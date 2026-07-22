@@ -1,0 +1,79 @@
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import { loadToday } from '$lib/lesson';
+	import { currentSession, entries, entryKey, students } from '$lib/stores';
+	import Header from './Header.svelte';
+	import RosterRow from './RosterRow.svelte';
+	import SetAllBar from './SetAllBar.svelte';
+	import Toast from './Toast.svelte';
+
+	let ready = $state(false);
+
+	const showAssessment = $derived(
+		$currentSession?.blocks.some((b) => b.kind === 'assessment') ?? false
+	);
+
+	const scrollKey = (): string => `lesson-scroll:${$currentSession?.id ?? ''}`;
+
+	onMount(() => {
+		let saveTimer: ReturnType<typeof setTimeout> | undefined;
+		const saveScroll = (): void => {
+			clearTimeout(saveTimer);
+			saveTimer = setTimeout(() => {
+				if ($currentSession) localStorage.setItem(scrollKey(), String(window.scrollY));
+			}, 150);
+		};
+
+		void loadToday().then(() => {
+			ready = true;
+			const saved = localStorage.getItem(scrollKey());
+			if (saved) {
+				requestAnimationFrame(() => window.scrollTo(0, Number(saved)));
+			}
+			window.addEventListener('scroll', saveScroll, { passive: true });
+		});
+
+		return () => {
+			clearTimeout(saveTimer);
+			window.removeEventListener('scroll', saveScroll);
+		};
+	});
+</script>
+
+<main class="screen">
+	<Header />
+	{#if ready && $currentSession}
+		<SetAllBar />
+		<div class="roster">
+			{#each $students as student (student.id)}
+				{@const entry = $entries.get(entryKey($currentSession.id, student.id))}
+				{#if entry}
+					<RosterRow {entry} {student} {showAssessment} />
+				{/if}
+			{/each}
+		</div>
+	{/if}
+</main>
+
+<Toast />
+
+<style>
+	.screen {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 0 var(--space-lg) var(--space-3xl);
+	}
+
+	.roster {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-md);
+		margin-top: var(--space-lg);
+	}
+
+	@media (min-width: 768px) {
+		.screen {
+			padding: 0 var(--space-xl) var(--space-3xl);
+		}
+	}
+</style>
