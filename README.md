@@ -20,6 +20,7 @@ Built with **SvelteKit** + **TypeScript** (strict mode), all state in **IndexedD
 ## Tech Stack
 
 - **SvelteKit** (Svelte 5) + **TypeScript** strict mode
+- **Bun** runtime & package manager (fast install/builds)
 - **IndexedDB** (typed, silent retry)
 - **CSS custom properties** design system (edX-inspired palette)
 - **Web Audio API** for reliable audio playback (fix for MediaRecorder blob issues)
@@ -28,8 +29,8 @@ Built with **SvelteKit** + **TypeScript** (strict mode), all state in **IndexedD
 ## Run
 
 ```sh
-npm install
-npm run dev
+bun install
+bun dev
 ```
 
 Lands directly on Math 8B with 28 seeded students and a default 10:00–12:00 lesson.
