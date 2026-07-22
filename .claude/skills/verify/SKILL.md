@@ -7,7 +7,7 @@ Run comprehensive checks to ensure code quality and correctness before committin
 
 ## Steps
 
-1. **Type check**: Run `npm run check` to verify TypeScript compilation and Svelte types
+1. **Type check**: Run `bun run check` to verify TypeScript compilation and Svelte types
 2. **Lint code**: Run ESLint on all changed files
 3. **Report results**: Show any errors and suggest fixes
 
@@ -18,6 +18,6 @@ If checks fail, stop and explain what needs fixing. Suggest fixes for linting er
 ## Command reference
 
 ```bash
-npm run check      # TypeScript + svelte-check
-npx eslint .       # Lint all files (or specify files to lint only changed ones)
+bun run check       # TypeScript + svelte-check
+bun eslint .        # Lint all files (or specify files to lint only changed ones)
 ```

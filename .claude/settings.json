@@ -3,7 +3,7 @@
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
-        "command": "npx prettier --write $FILE",
+        "command": "bun prettier --write $FILE",
         "description": "Auto-format with Prettier after edits"
       }
     ]

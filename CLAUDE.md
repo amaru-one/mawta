@@ -6,16 +6,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **yanay-ui** — A teacher's in-class lesson companion for tracking attendance, participation, and voice observations. Built with SvelteKit 5 + TypeScript (strict mode), IndexedDB persistence, no backend.
 
+Uses **Bun** as the package manager and runtime for fast install/build times.
+
 ## Build & Development
 
 ```bash
-npm run dev      # Start Vite dev server (http://localhost:5173)
-npm run build    # Production build
-npm run check    # Run svelte-check + TypeScript compilation
-npm run check:watch  # Watch mode for type checking
+bun dev          # Start Vite dev server (http://localhost:5173)
+bun run build    # Production build
+bun run check    # Run svelte-check + TypeScript compilation
+bun run check:watch  # Watch mode for type checking
 ```
 
-Type checking must pass before committing. Use `npm run check:watch` during development.
+Type checking must pass before committing. Use `bun run check:watch` during development.
 
 ## Code Style
 
