@@ -1,5 +1,9 @@
 node_modules
 
+# Claude Code
+CLAUDE.local.md
+.claude/settings.local.json
+
 # Output
 .output
 .vercel
