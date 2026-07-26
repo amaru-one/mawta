@@ -8,10 +8,21 @@
 	import Toast from './Toast.svelte';
 
 	let ready = $state(false);
+	let searchQuery = $state('');
 
 	const showAssessment = $derived(
 		$currentSession?.blocks.some((b) => b.kind === 'assessment') ?? false
 	);
+
+	const filteredStudents = $derived.by(() => {
+		const query = searchQuery.trim().toLowerCase();
+		if (query === '') return $students;
+		return $students.filter(
+			(s) =>
+				s.firstName.toLowerCase().includes(query) ||
+				s.lastName.toLowerCase().includes(query)
+		);
+	});
 
 	const scrollKey = (): string => `lesson-scroll:${$currentSession?.id ?? ''}`;
 
@@ -44,8 +55,16 @@
 	<Header />
 	{#if ready && $currentSession}
 		<SetAllBar />
+		<div class="search-box">
+			<input
+				type="text"
+				placeholder="Search students by name..."
+				bind:value={searchQuery}
+				class="search-input"
+			/>
+		</div>
 		<div class="roster">
-			{#each $students as student (student.id)}
+			{#each filteredStudents as student (student.id)}
 				{@const entry = $entries.get(entryKey($currentSession.id, student.id))}
 				{#if entry}
 					<RosterRow {entry} {student} {showAssessment} />
@@ -64,11 +83,31 @@
 		padding: 0 var(--space-lg) var(--space-3xl);
 	}
 
+	.search-box {
+		margin-top: var(--space-lg);
+		margin-bottom: var(--space-lg);
+	}
+
+	.search-input {
+		width: 100%;
+		height: 40px;
+		padding: 0 var(--space-md);
+		border: 1px solid var(--neutral-300);
+		border-radius: var(--radius-md);
+		font-size: 14px;
+		transition: border-color 100ms ease-out;
+	}
+
+	.search-input:focus {
+		outline: none;
+		border-color: var(--primary);
+		box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+	}
+
 	.roster {
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-md);
-		margin-top: var(--space-lg);
 	}
 
 	@media (min-width: 768px) {

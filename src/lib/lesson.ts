@@ -192,17 +192,55 @@ function snapshotAndApply(apply: (entry: Entry) => Entry, visibleIds?: Set<strin
 	};
 }
 
+export function areAllPresent(visibleIds?: Set<string>): boolean {
+	const $entries = get(entries);
+	const $students = get(students);
+	for (const student of $students) {
+		if (visibleIds && !visibleIds.has(student.id)) continue;
+		const entry = $entries.get(entryKey(get(currentSession)?.id ?? '', student.id));
+		if (!entry || entry.attendance !== 'present') return false;
+	}
+	return $students.length > 0;
+}
+
 export function setAllPresent(visibleIds?: Set<string>): SetAllUndo {
+	const allPresent = areAllPresent(visibleIds);
 	return snapshotAndApply(
-		(e) => (e.attendance === 'present' ? e : { ...e, attendance: 'present' }),
+		(e) => {
+			if (allPresent) {
+				return e.attendance === 'present' ? { ...e, attendance: null } : e;
+			} else {
+				return e.attendance === 'present' ? e : { ...e, attendance: 'present' };
+			}
+		},
 		visibleIds
 	);
 }
 
 // Marks everyone not absent as "good" (2). Absent students don't participate.
+export function areAllParticipated(visibleIds?: Set<string>): boolean {
+	const $entries = get(entries);
+	const $students = get(students);
+	for (const student of $students) {
+		if (visibleIds && !visibleIds.has(student.id)) continue;
+		const entry = $entries.get(entryKey(get(currentSession)?.id ?? '', student.id));
+		if (!entry || entry.attendance === 'absent' || entry.participation !== 2) return false;
+	}
+	return $students.length > 0;
+}
+
 export function setAllParticipated(visibleIds?: Set<string>): SetAllUndo {
+	const allParticipated = areAllParticipated(visibleIds);
 	return snapshotAndApply(
-		(e) => (e.attendance === 'absent' || e.participation === 2 ? e : { ...e, participation: 2 }),
+		(e) => {
+			if (allParticipated) {
+				return e.participation === 2 ? { ...e, participation: null } : e;
+			} else {
+				return e.attendance === 'absent' || e.participation === 2
+					? e
+					: { ...e, participation: 2 };
+			}
+		},
 		visibleIds
 	);
 }

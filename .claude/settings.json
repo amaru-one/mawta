@@ -1,11 +1,3 @@
 {
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "command": "bun prettier --write $FILE",
-        "description": "Auto-format with Prettier after edits"
-      }
-    ]
-  }
+  "hooks": {}
 }
