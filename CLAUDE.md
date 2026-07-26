@@ -26,6 +26,44 @@ Type checking must pass before committing. Use `bun run check:watch` during deve
 - **Formatting**: Prettier (configured in `.prettierrc`); runs automatically on edits
 - **Linting**: ESLint for TypeScript/Svelte; runs before commits
 
+## Design System
+
+**Color Palette**: All colors must come from `src/app.css` CSS variables. **Never use hardcoded hex colors in components.**
+
+**Hybrid Palette** (Pure Grayscale + High Contrast Strategy):
+Combines the sophistication of full grayscale with the minimalism of high contrast.
+
+**Core 7 Gray Tones** (strategically selected white → black):
+- `--white`: #ffffff (pure white)
+- `--gray-100`: #f5f5f5 (near-white for subtle backgrounds)
+- `--gray-200`: #e0e0e0 (light gray for secondary backgrounds)
+- `--gray-400`: #b0b0b0 (medium gray for borders/secondary text)
+- `--gray-600`: #606060 (medium-dark gray for text)
+- `--gray-800`: #333333 (dark gray for strong elements)
+- `--black`: #000000 (pure black)
+
+**Extended Palette** (9 tones available for component flexibility):
+- `--gray-50`, `--gray-300`, `--gray-500`, `--gray-700`, `--gray-900`
+
+**Semantic colors** (pure grayscale, high contrast priority):
+- `--primary`: Black (#000000) - strong visual hierarchy
+- `--success`: Dark gray (#333333) - positive actions
+- `--warning`: Medium gray (#606060) - neutral warnings
+- `--danger`: Black (#000000) - destructive actions
+
+**Action colors**:
+- `--action-save`: Black (#000000) / dark gray hover (#333333)
+- `--action-delete`: Black (#000000) / dark gray hover (#333333)
+- `--action-complete`: Dark gray (#333333) / black hover (#000000)
+
+**Design philosophy**:
+- Pure grayscale (white to black only) - no colors
+- High contrast strategy (black/dark gray preferred over mid-tones)
+- Maximum accessibility (WCAG AAA compliant)
+- Professional, timeless, minimalist aesthetic
+- Works perfectly for printing and colorblind users
+- Flexible hierarchy through tonal variation
+
 ## Git Workflow
 
 **Commit style:**

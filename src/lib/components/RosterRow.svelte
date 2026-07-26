@@ -6,12 +6,11 @@
 		removeNote,
 		setAttendance,
 		setParticipation,
-		setTookAssessment,
-		tagNote
+		setTookAssessment
 	} from '$lib/lesson';
 	import { notes } from '$lib/stores';
 	import { showToast } from '$lib/toast';
-	import type { Attendance, Entry, Note, NoteTag, Participation, Student } from '$lib/types';
+	import type { Attendance, Entry, Note, Participation, Student } from '$lib/types';
 	import AttendanceControl from './AttendanceControl.svelte';
 	import MicButton from './MicButton.svelte';
 	import ParticipationControl from './ParticipationControl.svelte';
@@ -65,9 +64,9 @@
 		showToast('Note deleted', { onUndo: undo.restore });
 	}
 
-	function handleTag(note: Note, tag: NoteTag | undefined): void {
+	function handleSave(note: Note): void {
 		hapticTap();
-		tagNote(note, tag);
+		showToast('Note saved');
 	}
 </script>
 
@@ -126,7 +125,7 @@
 					{note}
 					knownDuration={$noteDurations.get(note.id)}
 					ondelete={handleDelete}
-					ontag={handleTag}
+					onsave={handleSave}
 				/>
 			{/each}
 		</div>
@@ -158,7 +157,8 @@
 	}
 
 	.row.absent {
-		background: var(--danger-light);
+		background: var(--action-delete-light);
+		border-left-color: var(--action-delete);
 	}
 
 	.row.flash {

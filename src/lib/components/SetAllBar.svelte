@@ -122,7 +122,7 @@
 	}
 
 	.confetti:nth-child(odd) {
-		background: #34c759;
+		background: var(--action-complete);
 	}
 
 	.confetti:nth-child(3n) {
@@ -153,7 +153,7 @@
 	}
 
 	.bar.complete {
-		border-bottom: 2px solid #34c759;
+		border-bottom: 2px solid var(--action-complete);
 		animation: glow-pulse 2s ease-out;
 	}
 
@@ -175,7 +175,7 @@
 
 	.counter.complete {
 		font-weight: 700;
-		color: #34c759;
+		color: var(--action-complete);
 		font-size: 15px;
 	}
 
@@ -187,7 +187,7 @@
 
 	.counter .badge {
 		font-weight: 600;
-		color: #34c759;
+		color: var(--action-complete);
 		font-size: 12px;
 		padding: 2px 8px;
 		background: #ecfdf5;
@@ -224,7 +224,7 @@
 	}
 
 	.btn-present.active {
-		background: #34c759;
+		background: var(--action-complete);
 		color: white;
 		box-shadow: 0 4px 12px rgba(52, 199, 89, 0.2);
 	}
@@ -234,7 +234,7 @@
 	}
 
 	.btn-present.active:hover {
-		background: #30b452;
+		background: var(--action-complete-dark);
 		box-shadow: 0 4px 16px rgba(52, 199, 89, 0.3);
 	}
 </style>

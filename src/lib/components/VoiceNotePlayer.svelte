@@ -2,21 +2,22 @@
 	import { onDestroy } from 'svelte';
 	import { fly } from 'svelte/transition';
 	import { audioContext, blobDuration, decodeBlob, formatDuration } from '$lib/recorder';
-	import type { Note, NoteTag } from '$lib/types';
+	import type { Note } from '$lib/types';
 
 	interface Props {
 		note: Note;
 		knownDuration?: number;
 		ondelete: (note: Note) => void;
-		ontag: (note: Note, tag: NoteTag | undefined) => void;
+		onsave: (note: Note) => void;
 	}
 
-	let { note, knownDuration, ondelete, ontag }: Props = $props();
+	let { note, knownDuration, ondelete, onsave }: Props = $props();
 
 	let playing = $state(false);
 	let position = $state(0);
 	let measuredDuration = $state(0);
-	let confirmingDelete = $state(false);
+	let isSaved = $state(false);
+	let showDeleteConfirm = $state(false);
 
 	const duration = $derived(knownDuration ?? measuredDuration);
 
@@ -26,10 +27,6 @@
 	let pausedOffset = 0;
 	let stopping = false;
 	let posTimer: ReturnType<typeof setInterval> | undefined;
-	let holdTimer: ReturnType<typeof setTimeout> | undefined;
-
-	const TAGS: NoteTag[] = ['academic', 'behavior', 'logistics'];
-	const TAG_SHORT: Record<NoteTag, string> = { academic: 'A', behavior: 'B', logistics: 'L' };
 
 	$effect(() => {
 		if (!duration) {
@@ -79,19 +76,8 @@
 		}, 100);
 	}
 
-	function holdStart(): void {
-		holdTimer = setTimeout(() => {
-			confirmingDelete = true;
-		}, 500);
-	}
-
-	function holdEnd(): void {
-		clearTimeout(holdTimer);
-	}
-
 	onDestroy(() => {
 		clearInterval(posTimer);
-		clearTimeout(holdTimer);
 		if (source) {
 			stopping = true;
 			source.stop();
@@ -101,13 +87,8 @@
 
 <div
 	class="note"
-	class:confirming={confirmingDelete}
 	in:fly={{ x: -20, duration: 150 }}
 	out:fly={{ x: 100, duration: 200 }}
-	onpointerdown={holdStart}
-	onpointerup={holdEnd}
-	onpointercancel={holdEnd}
-	oncontextmenu={(e) => e.preventDefault()}
 	role="group"
 	aria-label="Voice note"
 >
@@ -138,37 +119,58 @@
 		{/if}
 	</button>
 
-	<span class="tags">
-		{#each TAGS as tag (tag)}
-			<button
-				class="tag pressable"
-				class:active={note.tag === tag}
-				onclick={() => ontag(note, note.tag === tag ? undefined : tag)}
-				aria-label={`Tag as ${tag}`}
-				aria-pressed={note.tag === tag}
-				title={tag}
-			>
-				{TAG_SHORT[tag]}
-			</button>
-		{/each}
-	</span>
-
-	{#if confirmingDelete}
+	<div class="actions">
+		<button
+			class="save pressable"
+			class:saved={isSaved}
+			onclick={() => {
+				onsave(note);
+				isSaved = true;
+			}}
+			aria-label="Save note"
+			title="Save note"
+		>
+			<svg viewBox="0 0 24 24" fill="currentColor" class="diskette-icon">
+				<path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z" />
+			</svg>
+		</button>
 		<button
 			class="delete pressable"
-			transition:fly={{ x: 40, duration: 200 }}
-			onclick={() => ondelete(note)}
+			onclick={() => (showDeleteConfirm = true)}
 			aria-label="Delete note"
+			title="Delete note"
 		>
-			Delete
+			<svg viewBox="0 0 24 24" fill="currentColor" class="trash-icon">
+				<path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-9l-1 1H5v2h14V4z" />
+			</svg>
 		</button>
-		<button
-			class="cancel pressable"
-			onclick={() => (confirmingDelete = false)}
-			aria-label="Keep note"
-		>
-			Keep
-		</button>
+	</div>
+
+	{#if showDeleteConfirm}
+		<div class="delete-modal" in:fly={{ scale: 0.95, duration: 150 }} out:fly={{ scale: 0.95, duration: 150 }}>
+			<div class="modal-backdrop" onclick={() => (showDeleteConfirm = false)}></div>
+			<div class="modal-content">
+				<p class="modal-title">Delete this note?</p>
+				<p class="modal-text">This action cannot be undone.</p>
+				<div class="modal-actions">
+					<button
+						class="modal-cancel pressable"
+						onclick={() => (showDeleteConfirm = false)}
+					>
+						Cancel
+					</button>
+					<button
+						class="modal-delete pressable"
+						onclick={() => {
+							ondelete(note);
+							showDeleteConfirm = false;
+						}}
+					>
+						Delete
+					</button>
+				</div>
+			</div>
+		</div>
 	{/if}
 </div>
 
@@ -182,10 +184,6 @@
 		transition: background-color 150ms ease-out;
 		user-select: none;
 		-webkit-user-select: none;
-	}
-
-	.note.confirming {
-		background: var(--danger-light);
 	}
 
 	.play {
@@ -236,44 +234,173 @@
 		white-space: nowrap;
 	}
 
-	.tags {
-		display: inline-flex;
+	.actions {
+		display: flex;
 		gap: var(--space-xs);
 		margin-left: auto;
 	}
 
-	.tag {
-		width: 22px;
-		height: 22px;
-		border-radius: var(--radius-sm);
-		font-size: 11px;
-		font-weight: 700;
-		background: var(--neutral-100);
-		color: var(--neutral-400);
+	@keyframes save-pulse {
+		0%, 100% {
+			transform: scale(1);
+		}
+		50% {
+			transform: scale(1.2);
+		}
+	}
+
+	.save {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
+		width: 28px;
+		height: 28px;
+		color: white;
+		background: var(--gray-400);
+		border: none;
+		border-radius: 6px;
+		cursor: pointer;
+		transition: background-color 150ms ease-out;
+		padding: 0;
+		animation: save-pulse 0.6s ease-in-out infinite;
 	}
 
-	.tag.active {
-		background: var(--accent-warm-light);
-		color: var(--accent-warm);
+	.save svg {
+		width: 16px;
+		height: 16px;
+	}
+
+	.save:hover {
+		background: var(--gray-500);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+	}
+
+	.save:active {
+		transform: scale(0.92);
+	}
+
+	.save.saved {
+		background: var(--action-save);
+		animation: none;
+	}
+
+	.save.saved:hover {
+		background: var(--action-save-dark);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 	}
 
 	.delete {
-		font-size: 12px;
-		font-weight: 700;
-		color: var(--danger);
-		background: white;
-		border-radius: var(--radius-sm);
-		padding: var(--space-xs) var(--space-sm);
-		box-shadow: var(--shadow-sm);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 28px;
+		height: 28px;
+		color: white;
+		background: var(--action-delete);
+		border: none;
+		border-radius: 6px;
+		cursor: pointer;
+		transition: all 150ms ease-out;
+		padding: 0;
 	}
 
-	.cancel {
-		font-size: 12px;
-		font-weight: 500;
+	.delete svg {
+		width: 16px;
+		height: 16px;
+	}
+
+	.delete:hover {
+		background: var(--action-delete-dark);
+		box-shadow: 0 2px 8px rgba(204, 42, 42, 0.3);
+	}
+
+	.delete:active {
+		transform: scale(0.92);
+	}
+
+	.delete-modal {
+		position: fixed;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 1000;
+	}
+
+	.modal-backdrop {
+		position: absolute;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.5);
+		cursor: pointer;
+	}
+
+	.modal-content {
+		position: relative;
+		background: white;
+		border-radius: 12px;
+		padding: 24px;
+		max-width: 320px;
+		box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+	}
+
+	.modal-title {
+		margin: 0 0 8px;
+		font-size: 16px;
+		font-weight: 700;
+		color: var(--neutral-900);
+	}
+
+	.modal-text {
+		margin: 0 0 20px;
+		font-size: 14px;
 		color: var(--neutral-600);
-		padding: var(--space-xs) var(--space-sm);
+	}
+
+	.modal-actions {
+		display: flex;
+		gap: 12px;
+		justify-content: flex-end;
+	}
+
+	.modal-cancel {
+		padding: 10px 16px;
+		min-height: 36px;
+		border-radius: 6px;
+		background: var(--gray-200);
+		color: var(--neutral-900);
+		font-size: 14px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 150ms ease-out;
+		border: none;
+	}
+
+	.modal-cancel:hover {
+		background: var(--gray-300);
+	}
+
+	.modal-cancel:active {
+		transform: scale(0.95);
+	}
+
+	.modal-delete {
+		padding: 10px 16px;
+		min-height: 36px;
+		border-radius: 6px;
+		background: var(--action-delete);
+		color: white;
+		font-size: 14px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 150ms ease-out;
+		border: none;
+	}
+
+	.modal-delete:hover {
+		background: var(--action-delete-dark);
+	}
+
+	.modal-delete:active {
+		transform: scale(0.95);
 	}
 </style>
