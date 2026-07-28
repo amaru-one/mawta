@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { hapticSuccess } from '$lib/haptics';
 	import { areAllPresent, setAllPresent } from '$lib/lesson';
-	import { enteredCount, students } from '$lib/stores';
+	import { currentSession, entries, enteredCount, entryKey, students } from '$lib/stores';
 	import { showToast } from '$lib/toast';
 
 	let isComplete = $state(false);
@@ -9,6 +9,15 @@
 
 	const allPresent = $derived(areAllPresent());
 	const isAllEntered = $derived($enteredCount === $students.length && $students.length > 0);
+	const canMarkPresent = $derived.by(() => {
+		const session = $currentSession;
+		if (!session) return true;
+		for (const student of $students) {
+			const entry = $entries.get(entryKey(session.id, student.id));
+			if (!entry || entry.attendance !== 'present') return true;
+		}
+		return false;
+	});
 
 	// Watch for completion
 	$effect(() => {
@@ -60,7 +69,14 @@
 			{/if}
 		</span>
 	</div>
-	<button class="btn-present pressable" class:active={allPresent} onclick={togglePresent}>
+	<button
+		class="btn-present pressable"
+		class:active={allPresent}
+		class:disabled={!canMarkPresent}
+		disabled={!canMarkPresent}
+		onclick={togglePresent}
+		aria-label={canMarkPresent ? 'Mark all present' : 'All students marked present'}
+	>
 		<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
 			<polyline points="20 6 9 17 4 12"></polyline>
 		</svg>
@@ -219,8 +235,14 @@
 		transition: opacity 150ms ease-out;
 	}
 
-	.btn-present:hover {
+	.btn-present:hover:not(.disabled) {
 		background: #e8e8eb;
+	}
+
+	.btn-present.disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+		pointer-events: none;
 	}
 
 	.btn-present.active {
@@ -233,7 +255,7 @@
 		opacity: 1;
 	}
 
-	.btn-present.active:hover {
+	.btn-present.active:hover:not(.disabled) {
 		background: var(--action-complete-dark);
 		box-shadow: 0 4px 16px rgba(52, 199, 89, 0.3);
 	}
