@@ -114,6 +114,7 @@
 				hasNotes={rowNotes.length > 0}
 				onrecorded={handleRecorded}
 				onrecordingchange={(r) => (recordingNow = r)}
+				disabled={!entry.attendance}
 			/>
 		</div>
 	</div>

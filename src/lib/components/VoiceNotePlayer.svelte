@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
-	import { fly } from 'svelte/transition';
+	import { fly, scale } from 'svelte/transition';
 	import { audioContext, blobDuration, decodeBlob, formatDuration } from '$lib/recorder';
 	import type { Note } from '$lib/types';
 
@@ -147,10 +147,26 @@
 	</div>
 
 	{#if showDeleteConfirm}
-		<div class="delete-modal" in:fly={{ scale: 0.95, duration: 150 }} out:fly={{ scale: 0.95, duration: 150 }}>
-			<div class="modal-backdrop" onclick={() => (showDeleteConfirm = false)}></div>
+		<div
+			class="delete-modal"
+			in:scale={{ start: 0.95, duration: 150 }}
+			out:scale={{ start: 0.95, duration: 150 }}
+			onkeydown={(e) => e.key === 'Escape' && (showDeleteConfirm = false)}
+			role="alertdialog"
+			aria-modal="true"
+			aria-labelledby="delete-title"
+			tabindex="0"
+		>
+			<div
+				class="modal-backdrop"
+				onclick={() => (showDeleteConfirm = false)}
+				onkeydown={(e) => e.key === 'Escape' && (showDeleteConfirm = false)}
+				role="button"
+				tabindex="-1"
+				aria-label="Close confirmation dialog"
+			></div>
 			<div class="modal-content">
-				<p class="modal-title">Delete this note?</p>
+				<p class="modal-title" id="delete-title">Delete this note?</p>
 				<p class="modal-text">This action cannot be undone.</p>
 				<div class="modal-actions">
 					<button

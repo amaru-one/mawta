@@ -6,9 +6,10 @@
 		hasNotes: boolean;
 		onrecorded: (blob: Blob, durationSec: number) => void;
 		onrecordingchange?: (recording: boolean) => void;
+		disabled?: boolean;
 	}
 
-	let { hasNotes, onrecorded, onrecordingchange }: Props = $props();
+	let { hasNotes, onrecorded, onrecordingchange, disabled = false }: Props = $props();
 
 	// Phases: idle → pressing (<400ms, may still be a mis-tap) → recording
 	let phase = $state<'idle' | 'pressing' | 'recording'>('idle');
@@ -23,7 +24,7 @@
 	const COMMIT_MS = 400;
 
 	async function press(event: PointerEvent): Promise<void> {
-		if (phase !== 'idle') return;
+		if (phase !== 'idle' || disabled) return;
 		event.preventDefault();
 		try {
 			(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
@@ -94,11 +95,13 @@
 		class="mic pressable"
 		class:pressing={phase === 'pressing'}
 		class:recording={phase === 'recording'}
+		class:disabled={disabled}
 		onpointerdown={press}
 		onpointerup={release}
 		onpointercancel={release}
 		oncontextmenu={(e) => e.preventDefault()}
-		aria-label="Hold to record a voice note"
+		disabled={disabled}
+		aria-label={disabled ? 'Mark attendance before recording' : 'Hold to record a voice note'}
 	>
 		<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 			<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
@@ -131,8 +134,15 @@
 		border: 2px solid transparent;
 	}
 
-	.mic:hover {
+	.mic:hover:not(.disabled) {
 		background: var(--neutral-200);
+	}
+
+	.mic.disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+		pointer-events: none;
+		color: var(--neutral-400);
 	}
 
 	.mic.pressing {
