@@ -11,13 +11,6 @@
 
 	let pulsing = $state(false);
 
-	const LABELS: Record<Participation, string> = {
-		0: 'none',
-		1: 'low',
-		2: 'good',
-		3: 'excellent'
-	};
-
 	const filled = $derived(value ?? 0);
 
 	function cycle(): void {
@@ -27,30 +20,23 @@
 		pulsing = true;
 		setTimeout(() => (pulsing = false), 200);
 	}
-
-	function fillClass(i: number): string {
-		if (i >= filled) return 'empty';
-		if (filled === 1) return 'low';
-		if (filled === 2) return 'good';
-		return 'excellent';
-	}
 </script>
 
 <button
-	class="circles pressable"
+	class="dots pressable"
 	class:disabled
 	{disabled}
 	onclick={cycle}
-	aria-label={`Participation: ${value === null ? 'not set' : LABELS[filled as Participation]} — tap to change`}
-	title={value === null ? 'Participation' : LABELS[filled as Participation]}
+	aria-label={`Participation: ${filled === 0 ? 'not rated' : `${filled} of 3`} — tap to change`}
+	title={filled === 0 ? 'Participation' : `${filled}/3`}
 >
-	{#each [0, 1, 2] as i (i)}
-		<span class="circle {fillClass(i)}" class:pulse={pulsing && i < filled}></span>
+	{#each [1, 2, 3] as i (i)}
+		<span class="dot" class:filled={i <= filled} class:pulse={pulsing && i <= filled}></span>
 	{/each}
 </button>
 
 <style>
-	.circles {
+	.dots {
 		display: inline-flex;
 		align-items: center;
 		gap: 4px;
@@ -61,7 +47,7 @@
 		padding: 0 var(--space-xs);
 	}
 
-	.circles:active:not(.disabled) {
+	.dots:active:not(.disabled) {
 		box-shadow: var(--shadow-primary);
 	}
 
@@ -70,34 +56,26 @@
 		cursor: default;
 	}
 
-	.circle {
-		width: 24px;
-		height: 24px;
+	.dot {
+		width: 12px;
+		height: 12px;
 		border-radius: 50%;
-		background: var(--neutral-300);
+		background: var(--gray-300);
 		transition: background-color 150ms ease-out;
 	}
 
-	.circle.low {
-		background: var(--primary);
+	.dot.filled {
+		background: var(--gray-800);
 	}
 
-	.circle.good {
-		background: var(--success);
-	}
-
-	.circle.excellent {
-		background: var(--accent-warm);
-	}
-
-	.circle.pulse {
+	.dot.pulse {
 		animation: pulse-scale 200ms ease-out;
 	}
 
 	@media (max-width: 480px) {
-		.circle {
-			width: 20px;
-			height: 20px;
+		.dot {
+			width: 10px;
+			height: 10px;
 		}
 	}
 </style>

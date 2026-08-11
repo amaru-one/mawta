@@ -64,10 +64,26 @@ export async function seedIfEmpty(): Promise<string> {
 			status: 'planned'
 		},
 		{
+			id: 'assessment-quiz-2',
+			courseId: COURSE_ID,
+			name: 'Quiz 2',
+			type: 'quiz',
+			maxScore: 20,
+			status: 'planned'
+		},
+		{
 			id: 'assessment-midterm-1',
 			courseId: COURSE_ID,
 			name: 'Midterm 1',
 			type: 'midterm',
+			maxScore: 100,
+			status: 'planned'
+		},
+		{
+			id: 'assessment-final-1',
+			courseId: COURSE_ID,
+			name: 'Final Exam',
+			type: 'final',
 			maxScore: 100,
 			status: 'planned'
 		}

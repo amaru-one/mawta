@@ -14,25 +14,7 @@ import {
 	notes,
 	students
 } from './stores';
-import type {
-	Assessment,
-	Attendance,
-	Block,
-	Entry,
-	Note,
-	NoteTag,
-	Participation,
-	Session,
-	SessionMode
-} from './types';
-
-// UI mode is tracked separately from session.blocks: a teacher can pick an
-// assessment mode before choosing which assessment, and switching modes must
-// never discard the other block's data.
-export const sessionMode: Writable<SessionMode> = writable('lesson');
-
-let lessonBlock: Block = { kind: 'lesson', topic: 'fractions' };
-let assessmentBlock: Extract<Block, { kind: 'assessment' }> | null = null;
+import type { Attendance, Entry, Note, NoteTag, Participation } from './types';
 
 // Note durations are runtime-only metadata (the persisted model stores just
 // the blob); recorded live, recovered from audio metadata after a reload.
@@ -51,14 +33,6 @@ function isToday(d: Date): boolean {
 		date.getMonth() === now.getMonth() &&
 		date.getDate() === now.getDate()
 	);
-}
-
-function modeFromBlocks(blocks: Block[]): SessionMode {
-	const hasLesson = blocks.some((b) => b.kind === 'lesson');
-	const hasAssessment = blocks.some((b) => b.kind === 'assessment');
-	if (hasLesson && hasAssessment) return 'lesson+assessment';
-	if (hasAssessment) return 'assessment';
-	return 'lesson';
 }
 
 export async function loadToday(): Promise<void> {
@@ -92,11 +66,6 @@ export async function loadToday(): Promise<void> {
 		await db.saveSession(session);
 	}
 
-	for (const block of session.blocks) {
-		if (block.kind === 'lesson') lessonBlock = block;
-		else assessmentBlock = block;
-	}
-	sessionMode.set(modeFromBlocks(session.blocks));
 	currentSession.set(session);
 
 	const savedEntries = await db.getEntries(session.id);
@@ -110,7 +79,6 @@ export async function loadToday(): Promise<void> {
 				studentId: student.id,
 				attendance: null,
 				participation: null,
-				tookAssessment: null,
 				notes: []
 			};
 		entryMap.set(entryKey(session.id, student.id), entry);
@@ -153,10 +121,6 @@ export async function setParticipation(
 	value: Participation | null
 ): Promise<void> {
 	updateEntry(studentId, { participation: value });
-}
-
-export async function setTookAssessment(studentId: string, value: boolean): Promise<void> {
-	updateEntry(studentId, { tookAssessment: value });
 }
 
 // --- Set-all (one undoable action) ---
@@ -325,47 +289,3 @@ function syncEntryNotes(entryId: string): void {
 	});
 }
 
-// --- Mode & assessment ---
-
-function persistBlocks(blocks: Block[]): void {
-	const session = get(currentSession);
-	if (!session) return;
-	const updated: Session = { ...session, blocks };
-	currentSession.set(updated);
-	void db.saveSession(updated);
-}
-
-export function setMode(mode: SessionMode): void {
-	sessionMode.set(mode);
-	const blocks: Block[] = [];
-	if (mode === 'lesson' || mode === 'lesson+assessment') blocks.push(lessonBlock);
-	if ((mode === 'assessment' || mode === 'lesson+assessment') && assessmentBlock) {
-		blocks.push(assessmentBlock);
-	}
-	persistBlocks(blocks);
-}
-
-export function chooseAssessment(assessmentId: string): void {
-	assessmentBlock = { kind: 'assessment', assessmentId };
-	setMode(get(sessionMode));
-}
-
-export async function createAssessment(
-	name: string,
-	type: Assessment['type'],
-	maxScore: number
-): Promise<void> {
-	const course = get(currentCourse);
-	if (!course) return;
-	const assessment: Assessment = {
-		id: uid(),
-		courseId: course.id,
-		name,
-		type,
-		maxScore,
-		status: 'planned'
-	};
-	assessments.update(($a) => [...$a, assessment]);
-	await db.saveAssessment(assessment);
-	chooseAssessment(assessment.id);
-}

@@ -1,13 +1,6 @@
 <script lang="ts">
 	import { hapticTap } from '$lib/haptics';
-	import {
-		addNote,
-		noteDurations,
-		removeNote,
-		setAttendance,
-		setParticipation,
-		setTookAssessment
-	} from '$lib/lesson';
+	import { addNote, noteDurations, removeNote, setAttendance, setParticipation } from '$lib/lesson';
 	import { notes } from '$lib/stores';
 	import { showToast } from '$lib/toast';
 	import type { Attendance, Entry, Note, Participation, Student } from '$lib/types';
@@ -19,17 +12,15 @@
 	interface Props {
 		entry: Entry;
 		student: Student;
-		showAssessment: boolean;
 	}
 
-	let { entry, student, showAssessment }: Props = $props();
+	let { entry, student }: Props = $props();
 
 	let recordingNow = $state(false);
 	let flash = $state(false);
 
 	const rowNotes = $derived($notes.get(entry.id) ?? []);
 	const isAbsent = $derived(entry.attendance === 'absent');
-	const initials = $derived(`${student.firstName[0] ?? ''}${student.lastName[0] ?? ''}`);
 
 	function flashRow(): void {
 		flash = true;
@@ -47,11 +38,6 @@
 		hapticTap();
 		void setParticipation(student.id, value);
 		showToast('Participation updated');
-	}
-
-	function handleTook(): void {
-		hapticTap();
-		void setTookAssessment(student.id, !entry.tookAssessment);
 	}
 
 	function handleRecorded(blob: Blob, durationSec: number): void {
@@ -78,33 +64,16 @@
 	class:flash
 >
 	<div class="main">
-		<span class="avatar" style:background={student.avatar ?? 'var(--primary)'}>
-			{initials}
-		</span>
-		<div class="who">
-			<span class="name">{student.firstName} {student.lastName}</span>
-			{#if rowNotes.length > 0}
-				<span class="context">
-					{rowNotes.length}
-					{rowNotes.length === 1 ? 'note' : 'notes'}{#if rowNotes[0].transcript}
-						· {rowNotes[0].transcript.split(' ').slice(0, 4).join(' ')}…{/if}
-				</span>
-			{/if}
+		<a class="student-card" href="/grades/{student.id}" onclick={hapticTap}>
+			<div class="who">
+				<span class="name">{student.firstName} {student.lastName}</span>
+			</div>
+		</a>
+		<div class="attendance-slot">
+			<AttendanceControl value={entry.attendance} onchange={handleAttendance} />
 		</div>
 
 		<div class="controls">
-			{#if showAssessment}
-				<button
-					class="took pressable"
-					class:on={entry.tookAssessment === true}
-					onclick={handleTook}
-					aria-pressed={entry.tookAssessment === true}
-					aria-label="Took the assessment"
-				>
-					{entry.tookAssessment ? 'took it ✓' : 'took it?'}
-				</button>
-			{/if}
-			<AttendanceControl value={entry.attendance} onchange={handleAttendance} />
 			<ParticipationControl
 				value={entry.participation}
 				disabled={isAbsent}
@@ -173,23 +142,24 @@
 		min-height: 56px;
 	}
 
-	.avatar {
-		width: 36px;
-		height: 36px;
-		min-width: 36px;
-		border-radius: 50%;
-		color: white;
-		font-size: 13px;
-		font-weight: 700;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		letter-spacing: 0.3px;
+	.student-card {
+		display: flex;
+		flex: 1;
+		min-width: 0;
+		padding: var(--space-xs) var(--space-sm);
+		margin: calc(-1 * var(--space-xs)) calc(-1 * var(--space-sm));
+		border-radius: var(--radius-md);
+		color: inherit;
+		text-decoration: none;
+		transition: background-color 150ms ease-out;
 	}
 
-	.absent .avatar {
-		filter: saturate(0.5);
-		opacity: 0.7;
+	.student-card:hover {
+		background: var(--neutral-200);
+	}
+
+	.absent .student-card:hover {
+		background: var(--gray-300);
 	}
 
 	.who {
@@ -212,35 +182,17 @@
 		color: var(--neutral-600);
 	}
 
-	.context {
-		font-size: 12px;
-		line-height: 16px;
-		color: var(--neutral-600);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
+	.attendance-slot {
+		flex-shrink: 0;
 	}
 
 	.controls {
 		display: flex;
 		align-items: center;
+		justify-content: space-between;
 		gap: var(--space-md);
-		flex-shrink: 0;
-	}
-
-	.took {
-		font-size: 12px;
-		font-weight: 700;
-		padding: var(--space-xs) var(--space-sm);
-		min-height: 32px;
-		border-radius: var(--radius-sm);
-		background: var(--neutral-200);
-		color: var(--neutral-600);
-	}
-
-	.took.on {
-		background: var(--primary-light);
-		color: var(--primary-dark);
+		flex: 1;
+		min-width: 120px;
 	}
 
 	.notes {
@@ -260,13 +212,12 @@
 			row-gap: var(--space-xs);
 		}
 
-		.who {
+		.student-card {
 			flex: 1 1 40%;
 		}
 
 		.controls {
 			gap: var(--space-sm);
-			margin-left: auto;
 		}
 
 		.notes {

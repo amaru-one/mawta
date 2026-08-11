@@ -10,10 +10,6 @@
 	let ready = $state(false);
 	let searchQuery = $state('');
 
-	const showAssessment = $derived(
-		$currentSession?.blocks.some((b) => b.kind === 'assessment') ?? false
-	);
-
 	const filteredStudents = $derived.by(() => {
 		const query = searchQuery.trim().toLowerCase();
 		if (query === '') return $students;
@@ -67,7 +63,7 @@
 			{#each filteredStudents as student (student.id)}
 				{@const entry = $entries.get(entryKey($currentSession.id, student.id))}
 				{#if entry}
-					<RosterRow {entry} {student} {showAssessment} />
+					<RosterRow {entry} {student} />
 				{/if}
 			{/each}
 		</div>
