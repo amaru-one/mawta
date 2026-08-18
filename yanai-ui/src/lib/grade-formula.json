@@ -1,0 +1,34 @@
+{
+	"courseId": "course-math-8b",
+	"components": [
+		{ "id": "participation", "label": "Participación", "source": "participation", "weight": 10 },
+		{
+			"id": "quiz-1",
+			"label": "Quiz 1",
+			"source": "assessment",
+			"assessmentId": "assessment-quiz-fractions",
+			"weight": 10
+		},
+		{
+			"id": "quiz-2",
+			"label": "Quiz 2",
+			"source": "assessment",
+			"assessmentId": "assessment-quiz-2",
+			"weight": 10
+		},
+		{
+			"id": "midterm",
+			"label": "Examen parcial",
+			"source": "assessment",
+			"assessmentId": "assessment-midterm-1",
+			"weight": 30
+		},
+		{
+			"id": "final",
+			"label": "Examen final",
+			"source": "assessment",
+			"assessmentId": "assessment-final-1",
+			"weight": 40
+		}
+	]
+}
