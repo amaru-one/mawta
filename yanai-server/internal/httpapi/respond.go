@@ -31,6 +31,10 @@ type errorBody struct {
 
 func writeError(w http.ResponseWriter, err error) {
 	appErr := db.MapError(err)
+	if appErr.Status >= 500 {
+		// 5xx envelopes are deliberately opaque; keep the cause in the log.
+		slog.Error("httpapi: internal error", "error", err)
+	}
 	writeJSON(w, appErr.Status, errorEnvelope{Error: errorBody{
 		Code:    appErr.Code,
 		Message: appErr.Message,

@@ -115,14 +115,16 @@ func GetClassDashboard(ctx context.Context, tx pgx.Tx, classID uuid.UUID, term T
 	// next_session: today's scheduled/in_progress session.
 	var ns SessionSummary
 	var nsFound bool
+	var nsDate time.Time
 	err = tx.QueryRow(ctx, `
 		select id, session_date, scheduled_start_at, scheduled_end_at, topic, status
 		  from class_sessions
 		 where class_id = $1 and session_date = $2 and status in ('scheduled','in_progress')
 		   and deleted_at is null
 		 order by scheduled_start_at limit 1
-	`, classID, today).Scan(&ns.SessionID, &ns.SessionDate, &ns.ScheduledStartAt, &ns.ScheduledEndAt, &ns.Topic, &ns.Status)
+	`, classID, today).Scan(&ns.SessionID, &nsDate, &ns.ScheduledStartAt, &ns.ScheduledEndAt, &ns.Topic, &ns.Status)
 	if err == nil {
+		ns.SessionDate = nsDate.Format("2006-01-02")
 		nsFound = true
 	} else if err != pgx.ErrNoRows {
 		return d, nil, err
