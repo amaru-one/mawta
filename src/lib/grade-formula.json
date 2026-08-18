@@ -1,7 +1,7 @@
 {
 	"courseId": "course-math-8b",
 	"components": [
-		{ "id": "participation", "label": "Participation", "source": "participation", "weight": 10 },
+		{ "id": "participation", "label": "Participación", "source": "participation", "weight": 10 },
 		{
 			"id": "quiz-1",
 			"label": "Quiz 1",
@@ -18,14 +18,14 @@
 		},
 		{
 			"id": "midterm",
-			"label": "Midterm",
+			"label": "Examen parcial",
 			"source": "assessment",
 			"assessmentId": "assessment-midterm-1",
 			"weight": 30
 		},
 		{
 			"id": "final",
-			"label": "Final Exam",
+			"label": "Examen final",
 			"source": "assessment",
 			"assessmentId": "assessment-final-1",
 			"weight": 40

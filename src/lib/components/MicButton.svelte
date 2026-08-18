@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { hapticRecordStart, hapticSuccess } from '$lib/haptics';
 	import { formatDuration, startRecording, type ActiveRecording } from '$lib/recorder';
+	import Icon from './Icon.svelte';
 
 	interface Props {
 		hasNotes: boolean;
@@ -87,30 +88,26 @@
 <div class="mic-wrap">
 	{#if phase === 'recording'}
 		<span class="counter">{formatDuration(elapsedSec)}</span>
-		<span class="hint">Release to save</span>
+		<span class="hint">Suelta para guardar</span>
 	{:else if phase === 'pressing'}
-		<span class="hint">Hold to record</span>
+		<span class="hint">Mantén para grabar</span>
 	{/if}
 	<button
-		class="mic pressable"
+		class="circ mic pressable"
+		class:has-notes={hasNotes}
 		class:pressing={phase === 'pressing'}
 		class:recording={phase === 'recording'}
-		class:disabled={disabled}
+		class:disabled
 		onpointerdown={press}
 		onpointerup={release}
 		onpointercancel={release}
 		oncontextmenu={(e) => e.preventDefault()}
-		disabled={disabled}
-		aria-label={disabled ? 'Mark attendance before recording' : 'Hold to record a voice note'}
+		{disabled}
+		aria-label={disabled
+			? 'Marca la asistencia antes de grabar'
+			: 'Mantén presionado para grabar una nota de voz'}
 	>
-		<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-			<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-			<path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-			<line x1="12" y1="19" x2="12" y2="22" />
-		</svg>
-		{#if hasNotes && phase === 'idle'}
-			<span class="dot" aria-hidden="true"></span>
-		{/if}
+		<Icon name="mic" size={14} />
 	</button>
 </div>
 
@@ -123,66 +120,51 @@
 
 	.mic {
 		position: relative;
-		width: 44px;
-		height: 44px;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		border-radius: 50%;
-		color: var(--neutral-600);
-		background: var(--neutral-100);
-		border: 2px solid transparent;
+		background: var(--surface-1);
+		color: var(--text-muted);
 	}
 
-	.mic:hover:not(.disabled) {
-		background: var(--neutral-200);
+	/* 44px minimum tap target via an invisible halo. */
+	.mic::after {
+		content: '';
+		position: absolute;
+		inset: -9px;
+	}
+
+	/* Rows that already carry a note get the filled treatment. */
+	.mic.has-notes {
+		background: var(--text-primary);
+		color: var(--surface-2);
 	}
 
 	.mic.disabled {
-		opacity: 0.5;
+		opacity: 0.4;
 		cursor: not-allowed;
 		pointer-events: none;
-		color: var(--neutral-400);
 	}
 
-	.mic.pressing {
-		transform: scale(1.1);
-		color: var(--primary);
-		border-color: var(--primary);
-		box-shadow: 0 0 8px rgba(0, 117, 180, 0.5);
+	.mic.pressing,
+	.mic.recording {
+		transform: scale(1.15);
+		background: var(--fill-primary);
+		color: var(--on-primary);
 	}
 
 	.mic.recording {
-		transform: scale(1.1);
-		color: var(--primary);
-		border-color: var(--primary);
-		box-shadow: 0 0 12px rgba(0, 117, 180, 0.6);
 		animation: record-pulse 600ms ease-in-out infinite;
-	}
-
-	.dot {
-		position: absolute;
-		top: 2px;
-		right: 2px;
-		width: 10px;
-		height: 10px;
-		border-radius: 50%;
-		background: var(--accent-warm);
-		border: 2px solid white;
 	}
 
 	.counter {
 		font-family: var(--font-mono);
-		font-size: 14px;
-		font-weight: 700;
-		color: var(--primary);
-		min-width: 40px;
+		font-size: 13px;
+		font-weight: 500;
+		min-width: 38px;
 		text-align: right;
 	}
 
 	.hint {
 		font-size: 12px;
-		color: var(--neutral-600);
+		color: var(--text-secondary);
 		white-space: nowrap;
 	}
 

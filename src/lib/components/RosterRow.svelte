@@ -1,10 +1,20 @@
 <script lang="ts">
 	import { hapticTap } from '$lib/haptics';
-	import { addNote, noteDurations, removeNote, setAttendance, setParticipation } from '$lib/lesson';
-	import { notes } from '$lib/stores';
+	import { gradeFor, trendFor } from '$lib/grades';
+	import {
+		addNote,
+		noteDurations,
+		removeNote,
+		setAttendance,
+		setFlag,
+		setParticipation
+	} from '$lib/lesson';
+	import { assessments, notes, scores } from '$lib/stores';
 	import { showToast } from '$lib/toast';
 	import type { Attendance, Entry, Note, Participation, Student } from '$lib/types';
 	import AttendanceControl from './AttendanceControl.svelte';
+	import FlagButton from './FlagButton.svelte';
+	import LevelBadge from './LevelBadge.svelte';
 	import MicButton from './MicButton.svelte';
 	import ParticipationControl from './ParticipationControl.svelte';
 	import VoiceNotePlayer from './VoiceNotePlayer.svelte';
@@ -21,6 +31,8 @@
 
 	const rowNotes = $derived($notes.get(entry.id) ?? []);
 	const isAbsent = $derived(entry.attendance === 'absent');
+	const grade = $derived(gradeFor(student.id, $scores, $assessments));
+	const trend = $derived(trendFor(student.id, $scores, $assessments));
 
 	function flashRow(): void {
 		flash = true;
@@ -31,61 +43,65 @@
 		hapticTap();
 		void setAttendance(student.id, value);
 		flashRow();
-		showToast(value === 'present' ? 'Marked present' : 'Marked absent');
+		showToast(value === 'present' ? 'Marcado presente' : 'Marcado ausente');
 	}
 
 	function handleParticipation(value: Participation): void {
 		hapticTap();
 		void setParticipation(student.id, value);
-		showToast('Participation updated');
+		showToast('Participación actualizada');
+	}
+
+	function handleFlag(value: boolean): void {
+		hapticTap();
+		setFlag(student.id, value);
+		showToast(value ? 'Alumno marcado' : 'Marca retirada');
 	}
 
 	function handleRecorded(blob: Blob, durationSec: number): void {
 		void addNote(student.id, blob, durationSec);
-		showToast('Note saved');
+		showToast('Nota guardada');
 	}
 
 	function handleDelete(note: Note): void {
 		const undo = removeNote(note);
-		showToast('Note deleted', { onUndo: undo.restore });
+		showToast('Nota eliminada', { onUndo: undo.restore });
 	}
 
-	function handleSave(note: Note): void {
+	function handleSave(): void {
 		hapticTap();
-		showToast('Note saved');
+		showToast('Nota guardada');
 	}
 </script>
 
-<div
-	class="row"
-	class:absent={isAbsent}
-	class:has-notes={rowNotes.length > 0}
-	class:recording={recordingNow}
-	class:flash
->
-	<div class="main">
-		<a class="student-card" href="/grades/{student.id}" onclick={hapticTap}>
-			<div class="who">
-				<span class="name">{student.firstName} {student.lastName}</span>
-			</div>
+<div class="card student" class:absent={isAbsent} class:recording={recordingNow} class:flash>
+	<div class="row head">
+		<a class="name" href="/grades/{student.id}" onclick={hapticTap}>
+			{student.firstName}
+			{student.lastName}
 		</a>
-		<div class="attendance-slot">
+		<div class="row marks">
+			{#if trend}
+				<span class="trend" class:up={trend.direction === 'up'}>{trend.from} →</span>
+			{/if}
+			<LevelBadge tier={grade.tier} />
 			<AttendanceControl value={entry.attendance} onchange={handleAttendance} />
 		</div>
+	</div>
 
-		<div class="controls">
-			<ParticipationControl
-				value={entry.participation}
-				disabled={isAbsent}
-				onchange={handleParticipation}
-			/>
-			<MicButton
-				hasNotes={rowNotes.length > 0}
-				onrecorded={handleRecorded}
-				onrecordingchange={(r) => (recordingNow = r)}
-				disabled={!entry.attendance}
-			/>
-		</div>
+	<div class="row controls">
+		<ParticipationControl
+			value={entry.participation}
+			disabled={isAbsent}
+			onchange={handleParticipation}
+		/>
+		<FlagButton flagged={entry.flagged} onchange={handleFlag} />
+		<MicButton
+			hasNotes={rowNotes.length > 0}
+			onrecorded={handleRecorded}
+			onrecordingchange={(r) => (recordingNow = r)}
+			disabled={!entry.attendance}
+		/>
 	</div>
 
 	{#if rowNotes.length > 0}
@@ -103,138 +119,69 @@
 </div>
 
 <style>
-	.row {
-		background: var(--neutral-50);
-		border-radius: var(--radius-md);
-		padding: var(--space-sm) var(--space-lg);
-		border-left: 3px solid transparent;
+	.student {
+		padding: 14px var(--space-lg);
 		transition:
 			background-color 150ms ease-out,
-			border-color 150ms ease-out,
 			box-shadow 150ms ease-out;
 	}
 
-	.row:hover {
-		box-shadow: var(--shadow-sm);
+	.student.absent {
+		background: var(--bg-danger);
 	}
 
-	.row.has-notes {
-		border-left-color: var(--primary-light);
+	.student.recording {
+		border-color: var(--border-strong);
 	}
 
-	.row.recording {
-		border-left-color: var(--primary);
+	.student.flash {
+		box-shadow: var(--shadow-accent);
 	}
 
-	.row.absent {
-		background: var(--action-delete-light);
-		border-left-color: var(--action-delete);
-	}
-
-	.row.flash {
-		box-shadow: var(--shadow-primary);
-	}
-
-	.main {
-		display: flex;
-		align-items: center;
-		gap: var(--space-md);
-		min-height: 56px;
-	}
-
-	.student-card {
-		display: flex;
-		flex: 1;
-		min-width: 0;
-		padding: var(--space-xs) var(--space-sm);
-		margin: calc(-1 * var(--space-xs)) calc(-1 * var(--space-sm));
-		border-radius: var(--radius-md);
-		color: inherit;
-		text-decoration: none;
-		transition: background-color 150ms ease-out;
-	}
-
-	.student-card:hover {
-		background: var(--neutral-200);
-	}
-
-	.absent .student-card:hover {
-		background: var(--gray-300);
-	}
-
-	.who {
-		display: flex;
-		flex-direction: column;
-		min-width: 0;
-		flex: 1;
+	.head {
+		justify-content: space-between;
+		gap: var(--space-sm);
+		margin-bottom: var(--space-md);
 	}
 
 	.name {
-		font-size: 16px;
+		font-size: 15px;
 		font-weight: 500;
-		line-height: 24px;
-		white-space: nowrap;
+		color: inherit;
+		text-decoration: none;
+		min-width: 0;
 		overflow: hidden;
 		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.absent .name {
-		color: var(--neutral-600);
+		color: var(--text-secondary);
 	}
 
-	.attendance-slot {
+	.marks {
+		gap: var(--space-sm);
 		flex-shrink: 0;
 	}
 
+	/* A drop in tier is the plain signal; a rise borrows the accent. */
+	.trend {
+		font-size: 11px;
+		color: var(--text-danger);
+	}
+
+	.trend.up {
+		color: var(--text-accent);
+	}
+
 	.controls {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: var(--space-md);
-		flex: 1;
-		min-width: 120px;
+		gap: 14px;
 	}
 
 	.notes {
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-xs);
-		padding: var(--space-xs) 0 var(--space-sm) calc(36px + var(--space-md));
-	}
-
-	@media (max-width: 480px) {
-		.row {
-			padding: var(--space-sm) var(--space-md);
-		}
-
-		.main {
-			flex-wrap: wrap;
-			row-gap: var(--space-xs);
-		}
-
-		.student-card {
-			flex: 1 1 40%;
-		}
-
-		.controls {
-			gap: var(--space-sm);
-		}
-
-		.notes {
-			padding-left: var(--space-sm);
-		}
-	}
-
-	@media (max-width: 900px) {
-		.name {
-			font-size: 16px;
-		}
-	}
-
-	@media (min-width: 901px) {
-		.name {
-			font-size: 14px;
-			line-height: 20px;
-		}
+		margin-top: 10px;
 	}
 </style>

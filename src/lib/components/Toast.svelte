@@ -30,29 +30,22 @@
 		display: flex;
 		align-items: center;
 		gap: var(--space-md);
-		background: var(--neutral-900);
-		color: white;
+		background: var(--fill-primary);
+		color: var(--on-primary);
 		font-size: 14px;
 		padding: var(--space-md) var(--space-lg);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius);
 		box-shadow: var(--shadow-lg);
 		white-space: nowrap;
+		max-width: calc(100vw - 2 * var(--space-lg));
 	}
 
+	/* Deliberately not the accent — that stays reserved for assistant output. */
 	.undo {
-		color: #7cc7f0;
-		font-weight: 700;
+		color: var(--on-primary);
+		text-decoration: underline;
+		font-weight: 500;
 		padding: var(--space-xs) var(--space-sm);
 		margin: calc(-1 * var(--space-xs)) calc(-1 * var(--space-sm));
-	}
-
-	@media (min-width: 768px) {
-		.toast {
-			bottom: auto;
-			top: var(--space-xl);
-			left: auto;
-			right: var(--space-xl);
-			transform: none;
-		}
 	}
 </style>

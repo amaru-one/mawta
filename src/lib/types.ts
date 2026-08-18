@@ -1,5 +1,7 @@
 // Data model — persisted to IndexedDB exactly as defined here.
 
+import type { IconName } from './icons';
+
 export type Course = {
 	id: string;
 	name: string; // "Math 8B"
@@ -47,6 +49,8 @@ export type Entry = {
 	studentId: string;
 	attendance: Attendance | null;
 	participation: Participation | null;
+	// Teacher-raised behavior marker for this session.
+	flagged: boolean;
 	notes: Note[];
 };
 
@@ -61,14 +65,24 @@ export type Note = {
 	createdAt: Date;
 };
 
-export type AppNotificationType = 'risk' | 'tip';
+// 'risk' and 'tip' come from the assistant; 'reminder' is a plain to-do the app
+// derives from missing input. Only the first two are rendered in the accent.
+export type AppNotificationType = 'risk' | 'tip' | 'reminder';
 
 // Mock data for now — no grades/risk model exists yet.
 export type AppNotification = {
 	id: string;
 	type: AppNotificationType;
+	// True when the assistant produced this. Drives the #5B5FC7 treatment.
+	aiGenerated: boolean;
 	message: string;
 	studentName?: string;
+	courseName?: string;
+	// Extra context for the metadata line, when the course name is already part
+	// of the message (reminders name their course inline).
+	detail?: string;
+	// Overrides the per-type default icon; reminders vary by what's pending.
+	icon?: IconName;
 	createdAt: Date;
 	read: boolean;
 };
@@ -98,4 +112,8 @@ export type Score = {
 	studentId: string;
 	componentId: string;
 	value: number;
+	// Epoch ms of the last edit. Lets us identify the most recent change and
+	// show what the tier was before it. Absent on records written before this
+	// field existed — treated as 0.
+	updatedAt?: number;
 };

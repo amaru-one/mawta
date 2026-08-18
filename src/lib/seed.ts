@@ -5,8 +5,6 @@ import type { Assessment, Course, Student } from './types';
 
 const COURSE_ID = 'course-math-8b';
 
-const AVATAR_COLORS = ['#0075B4', '#2ECC71', '#E8713B', '#F39C12', '#8E5BA6', '#16A085'];
-
 const NAMES: Array<[string, string]> = [
 	['Ana', 'Morales'],
 	['Diego', 'Krause'],
@@ -35,14 +33,18 @@ const NAMES: Array<[string, string]> = [
 	['Martina', 'Carrasco'],
 	['Sebastián', 'Leiva'],
 	['Trinidad', 'Espinoza'],
-	['Alonso', 'Guzmán']
+	['Alonso', 'Guzmán'],
 ];
+
+// Student ids are positional and stable, so the prerenderer can enumerate the
+// /grades/[studentId] routes without opening IndexedDB.
+export const SEEDED_STUDENT_IDS: string[] = NAMES.map((_, i) => `student-${i + 1}`);
 
 export async function seedIfEmpty(): Promise<string> {
 	const existing = await getCourses();
 	if (existing.length > 0) return existing[0].id;
 
-	const course: Course = { id: COURSE_ID, name: 'Math 8B' };
+	const course: Course = { id: COURSE_ID, name: 'Matemática 8B' };
 	await saveCourse(course);
 
 	const students: Student[] = NAMES.map(([firstName, lastName], i) => ({
@@ -50,7 +52,6 @@ export async function seedIfEmpty(): Promise<string> {
 		courseId: COURSE_ID,
 		firstName,
 		lastName,
-		avatar: AVATAR_COLORS[i % AVATAR_COLORS.length]
 	}));
 	await Promise.all(students.map(saveStudent));
 
@@ -58,10 +59,10 @@ export async function seedIfEmpty(): Promise<string> {
 		{
 			id: 'assessment-quiz-fractions',
 			courseId: COURSE_ID,
-			name: 'Quiz — fractions',
+			name: 'Quiz 1 — fracciones',
 			type: 'quiz',
 			maxScore: 20,
-			status: 'planned'
+			status: 'planned',
 		},
 		{
 			id: 'assessment-quiz-2',
@@ -69,24 +70,24 @@ export async function seedIfEmpty(): Promise<string> {
 			name: 'Quiz 2',
 			type: 'quiz',
 			maxScore: 20,
-			status: 'planned'
+			status: 'planned',
 		},
 		{
 			id: 'assessment-midterm-1',
 			courseId: COURSE_ID,
-			name: 'Midterm 1',
+			name: 'Examen parcial',
 			type: 'midterm',
 			maxScore: 100,
-			status: 'planned'
+			status: 'planned',
 		},
 		{
 			id: 'assessment-final-1',
 			courseId: COURSE_ID,
-			name: 'Final Exam',
+			name: 'Examen final',
 			type: 'final',
 			maxScore: 100,
-			status: 'planned'
-		}
+			status: 'planned',
+		},
 	];
 	await Promise.all(assessments.map(saveAssessment));
 

@@ -23,59 +23,50 @@
 </script>
 
 <button
-	class="dots pressable"
+	class="part pressable"
 	class:disabled
 	{disabled}
 	onclick={cycle}
-	aria-label={`Participation: ${filled === 0 ? 'not rated' : `${filled} of 3`} — tap to change`}
-	title={filled === 0 ? 'Participation' : `${filled}/3`}
+	aria-label={`Participación: ${filled === 0 ? 'sin calificar' : `${filled} de 3`} — toca para cambiar`}
+	title={filled === 0 ? 'Participación' : `${filled}/3`}
 >
 	{#each [1, 2, 3] as i (i)}
-		<span class="dot" class:filled={i <= filled} class:pulse={pulsing && i <= filled}></span>
+		<span class:filled={i <= filled} class:pulse={pulsing && i <= filled}></span>
 	{/each}
 </button>
 
 <style>
-	.dots {
-		display: inline-flex;
+	.part {
+		position: relative;
 		align-items: center;
-		gap: 4px;
-		min-width: 44px;
-		min-height: 44px;
-		justify-content: center;
-		border-radius: var(--radius-md);
-		padding: 0 var(--space-xs);
 	}
 
-	.dots:active:not(.disabled) {
-		box-shadow: var(--shadow-primary);
+	/* 44px minimum tap target via an invisible halo. */
+	.part::after {
+		content: '';
+		position: absolute;
+		inset: -16px -12px;
+	}
+
+	.part span {
+		background: var(--border-strong);
+		opacity: 0.35;
+		transition:
+			opacity 150ms ease-out,
+			background-color 150ms ease-out;
+	}
+
+	.part span.filled {
+		background: var(--text-primary);
+		opacity: 1;
+	}
+
+	.part span.pulse {
+		animation: pulse-scale 200ms ease-out;
 	}
 
 	.disabled {
 		opacity: 0.4;
 		cursor: default;
-	}
-
-	.dot {
-		width: 12px;
-		height: 12px;
-		border-radius: 50%;
-		background: var(--gray-300);
-		transition: background-color 150ms ease-out;
-	}
-
-	.dot.filled {
-		background: var(--gray-800);
-	}
-
-	.dot.pulse {
-		animation: pulse-scale 200ms ease-out;
-	}
-
-	@media (max-width: 480px) {
-		.dot {
-			width: 10px;
-			height: 10px;
-		}
 	}
 </style>

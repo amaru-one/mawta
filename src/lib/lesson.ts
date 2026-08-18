@@ -12,7 +12,7 @@ import {
 	entries,
 	entryKey,
 	notes,
-	students
+	students,
 } from './stores';
 import type { Attendance, Entry, Note, NoteTag, Participation } from './types';
 
@@ -41,7 +41,7 @@ export async function loadToday(): Promise<void> {
 		db.getCourses(),
 		db.getStudents(courseId),
 		db.getAssessments(courseId),
-		db.getSessions(courseId)
+		db.getSessions(courseId),
 	]);
 
 	const course = courses.find((c) => c.id === courseId) ?? null;
@@ -54,14 +54,14 @@ export async function loadToday(): Promise<void> {
 
 	let session = courseSessions.find((s) => isToday(s.date)) ?? null;
 	if (!session) {
-		// Timetable default for Math 8B: 10:00–12:00, plan is a lesson on fractions.
+		// Timetable default for Matemática 8B: 10:00–12:00, lección sobre fracciones.
 		session = {
 			id: uid(),
 			courseId,
 			date: new Date(),
 			startTime: '10:00',
 			endTime: '12:00',
-			blocks: [{ kind: 'lesson', topic: 'fractions' }]
+			blocks: [{ kind: 'lesson', topic: 'Fracciones' }],
 		};
 		await db.saveSession(session);
 	}
@@ -72,15 +72,19 @@ export async function loadToday(): Promise<void> {
 	const entryMap = new Map<string, Entry>();
 	for (const student of courseStudents) {
 		const saved = savedEntries.find((e) => e.studentId === student.id);
-		const entry: Entry =
-			saved ?? {
-				id: uid(),
-				sessionId: session.id,
-				studentId: student.id,
-				attendance: null,
-				participation: null,
-				notes: []
-			};
+		// `flagged` postdates the first release, so records written before it
+		// exists come back without the field.
+		const entry: Entry = saved
+			? { ...saved, flagged: saved.flagged ?? false }
+			: {
+					id: uid(),
+					sessionId: session.id,
+					studentId: student.id,
+					attendance: null,
+					participation: null,
+					flagged: false,
+					notes: [],
+				};
 		entryMap.set(entryKey(session.id, student.id), entry);
 	}
 
@@ -123,6 +127,10 @@ export async function setParticipation(
 	updateEntry(studentId, { participation: value });
 }
 
+export function setFlag(studentId: string, value: boolean): void {
+	updateEntry(studentId, { flagged: value });
+}
+
 // --- Set-all (one undoable action) ---
 
 export interface SetAllUndo {
@@ -152,7 +160,7 @@ function snapshotAndApply(apply: (entry: Entry) => Entry, visibleIds?: Set<strin
 				}
 				return new Map($entries);
 			});
-		}
+		},
 	};
 }
 
@@ -169,16 +177,13 @@ export function areAllPresent(visibleIds?: Set<string>): boolean {
 
 export function setAllPresent(visibleIds?: Set<string>): SetAllUndo {
 	const allPresent = areAllPresent(visibleIds);
-	return snapshotAndApply(
-		(e) => {
-			if (allPresent) {
-				return e.attendance === 'present' ? { ...e, attendance: null } : e;
-			} else {
-				return e.attendance === 'present' ? e : { ...e, attendance: 'present' };
-			}
-		},
-		visibleIds
-	);
+	return snapshotAndApply((e) => {
+		if (allPresent) {
+			return e.attendance === 'present' ? { ...e, attendance: null } : e;
+		} else {
+			return e.attendance === 'present' ? e : { ...e, attendance: 'present' };
+		}
+	}, visibleIds);
 }
 
 // Marks everyone not absent as "good" (2). Absent students don't participate.
@@ -195,23 +200,22 @@ export function areAllParticipated(visibleIds?: Set<string>): boolean {
 
 export function setAllParticipated(visibleIds?: Set<string>): SetAllUndo {
 	const allParticipated = areAllParticipated(visibleIds);
-	return snapshotAndApply(
-		(e) => {
-			if (allParticipated) {
-				return e.participation === 2 ? { ...e, participation: null } : e;
-			} else {
-				return e.attendance === 'absent' || e.participation === 2
-					? e
-					: { ...e, participation: 2 };
-			}
-		},
-		visibleIds
-	);
+	return snapshotAndApply((e) => {
+		if (allParticipated) {
+			return e.participation === 2 ? { ...e, participation: null } : e;
+		} else {
+			return e.attendance === 'absent' || e.participation === 2 ? e : { ...e, participation: 2 };
+		}
+	}, visibleIds);
 }
 
 // --- Voice notes ---
 
-export async function addNote(studentId: string, blob: Blob, durationSec: number): Promise<Note | null> {
+export async function addNote(
+	studentId: string,
+	blob: Blob,
+	durationSec: number
+): Promise<Note | null> {
 	const session = get(currentSession);
 	if (!session) return null;
 	const key = entryKey(session.id, studentId);
@@ -223,7 +227,7 @@ export async function addNote(studentId: string, blob: Blob, durationSec: number
 		entryId: entry.id,
 		audioBlob: blob,
 		transcript: null,
-		createdAt: new Date()
+		createdAt: new Date(),
 	};
 
 	noteDurations.update(($d) => {
@@ -259,7 +263,7 @@ export function removeNote(note: Note): { restore: () => void } {
 			});
 			syncEntryNotes(note.entryId);
 			void db.saveNote(note);
-		}
+		},
 	};
 }
 
@@ -288,4 +292,3 @@ function syncEntryNotes(entryId: string): void {
 		return new Map($entries);
 	});
 }
-
