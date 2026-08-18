@@ -1,0 +1,567 @@
+openapi: 3.0.3
+info:
+  title: Yanai API
+  version: "1.0"
+  description: |
+    Dev-header, multi-tenant API for the six Yanai screens (Home, Class
+    dashboard, Lesson/attendance, Student grades, Notifications, Profile).
+
+    Import: Bruno -> Import Collection -> OpenAPI Spec -> select this file.
+    Bruno groups operations by tag into folders (00 Health & Me .. 06
+    Perfil) and pre-fills every header/path/query/body example shown below.
+
+    Run: `go run ./cmd/api` from yanai-server/ against the seeded Postgres
+    from docs/postgres-setup.md.
+
+    Auth: every /api/v1/* operation requires X-Tenant-ID and X-Actor-ID
+    (both pre-filled below with the seeded demo tenant and Janice Quispe's
+    actor id). /healthz takes neither and lives outside /api/v1.
+
+    Jobs: writes that enqueue a background job (attendance -> risk.detect,
+    scores -> grade.recompute, summary request -> note_summary.generate)
+    land within ~2s when WORKER_ENABLED=true.
+
+    Correcting a score twice in a row 409s the second time -- the example
+    scoreId below points at a specific live row that the first call
+    supersedes. Re-fetch "Student grades" and swap in the new live score id
+    to correct again.
+
+    All example ids come from the live seed and regenerate on reseed.
+    Refresh any of them with, e.g.:
+      docker exec yanai-pg psql -U postgres -d yanai -Atc "set role yanai_app; \
+        set app.tenant_id='11111111-1111-4111-8111-111111111111'; \
+        select id from users where email='janice.quispe@cristorey.edu.pe';"
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local dev
+
+tags:
+  - name: 00 Health & Me
+  - name: 01 Inicio
+  - name: 02 Clase panel
+  - name: 03 Leccion
+  - name: 04 Notas
+  - name: 05 Notificaciones
+  - name: 06 Perfil
+
+components:
+  parameters:
+    TenantIdHeader:
+      name: X-Tenant-ID
+      in: header
+      required: true
+      schema: { type: string, format: uuid }
+      example: "11111111-1111-4111-8111-111111111111"
+    ActorIdHeader:
+      name: X-Actor-ID
+      in: header
+      required: true
+      schema: { type: string, format: uuid }
+      example: "fceaeebc-f52e-4084-b25f-33aa982de744"
+    ClassId:
+      name: classID
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+      example: "0eb5e1ff-cfec-446a-b629-35c108bbc9db"
+      description: Inglés 5to B
+    SessionId:
+      name: sessionID
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+      example: "97450626-84bd-4ed9-918d-5785ecf7b63e"
+      description: The 8-Aug session
+    StudentId:
+      name: studentID
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+      example: "1919d3e8-a34c-4f8c-8aaf-65b1de242534"
+      description: Agustín Soto
+    AssessmentId:
+      name: assessmentID
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+      example: "b4aa1a8a-39e4-4454-ba6f-e7e61b6bdaae"
+      description: Quiz 1
+    ScoreId:
+      name: scoreID
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+      example: "a42a4834-892b-4b42-8a5e-7e4e7c99fbb6"
+      description: Agustín's live Participación score
+    VoiceNoteId:
+      name: voiceNoteID
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+      example: "222123a0-8a93-43d8-9ca9-8dccb94eb94b"
+      description: Saved, transcribed seed voice note
+    NotificationId:
+      name: notificationID
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+      example: "78873111-9c33-4e3d-bc91-fe1fcdc0423a"
+      description: level_drop alert
+    DateQuery:
+      name: date
+      in: query
+      required: false
+      schema: { type: string, format: date }
+      example: "2026-08-08"
+      description: Defaults to today in the tenant timezone
+    TermIdQuery:
+      name: term_id
+      in: query
+      required: false
+      schema: { type: string, format: uuid }
+      example: "ff300a2c-7439-4186-9ff9-0fa54189358a"
+      description: Defaults to the tenant's single active term (Bimestre III)
+    QQuery:
+      name: q
+      in: query
+      required: false
+      schema: { type: string }
+      description: Substring match against name (students) or class name
+
+paths:
+  /healthz:
+    servers:
+      - url: http://localhost:8080
+        description: Root, no /api/v1 prefix, no auth
+    get:
+      tags: [00 Health & Me]
+      summary: Healthz
+      responses:
+        "200": { description: OK }
+
+  /me:
+    get:
+      tags: [00 Health & Me]
+      summary: Me
+      description: Teacher + tenant identity for the topbar.
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+      responses:
+        "200": { description: OK }
+
+  /home:
+    get:
+      tags: [01 Inicio]
+      summary: Home
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/DateQuery"
+      responses:
+        "200": { description: OK }
+
+  /classes:
+    get:
+      tags: [01 Inicio]
+      summary: Search classes
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - name: q
+          in: query
+          schema: { type: string }
+          example: "ingl"
+      responses:
+        "200": { description: OK }
+
+  /classes/{classID}/dashboard:
+    get:
+      tags: [02 Clase panel]
+      summary: Class dashboard
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/ClassId"
+        - $ref: "#/components/parameters/TermIdQuery"
+        - $ref: "#/components/parameters/DateQuery"
+      responses:
+        "200": { description: OK }
+
+  /classes/{classID}/sessions:
+    get:
+      tags: [02 Clase panel]
+      summary: Class sessions
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/ClassId"
+        - $ref: "#/components/parameters/DateQuery"
+        - name: dir
+          in: query
+          schema: { type: string, enum: [upcoming, past], default: upcoming }
+          example: "upcoming"
+        - name: limit
+          in: query
+          schema: { type: integer, default: 10 }
+      responses:
+        "200": { description: OK }
+
+  /classes/{classID}/students/{studentID}/grades:
+    get:
+      tags: [04 Notas]
+      summary: Student grades
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/ClassId"
+        - $ref: "#/components/parameters/StudentId"
+        - $ref: "#/components/parameters/TermIdQuery"
+      responses:
+        "200": { description: OK }
+
+  /classes/{classID}/assessments:
+    post:
+      tags: [04 Notas]
+      summary: Create assessment
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/ClassId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+            example:
+              title: "Quiz 2"
+              kind: "quiz"
+              component_code: "quiz"
+              max_score: 20
+              due_at: "2026-09-01T23:59:00Z"
+      responses:
+        "201": { description: Created }
+
+  /classes/{classID}/students/{studentID}/summary:
+    post:
+      tags: [04 Notas]
+      summary: Request AI summary
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/ClassId"
+        - $ref: "#/components/parameters/StudentId"
+        - $ref: "#/components/parameters/TermIdQuery"
+      responses:
+        "202": { description: Queued }
+
+  /sessions/{sessionID}/start:
+    post:
+      tags: [02 Clase panel]
+      summary: Start session
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - name: sessionID
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+          example: "7eb685eb-3c2f-4b29-a9cd-bae150bfd217"
+          description: The 12-Aug session, still scheduled
+      responses:
+        "200": { description: OK }
+
+  /sessions/{sessionID}/complete:
+    post:
+      tags: [02 Clase panel]
+      summary: Complete session
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - name: sessionID
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+          example: "7eb685eb-3c2f-4b29-a9cd-bae150bfd217"
+          description: The 12-Aug session, still scheduled
+      responses:
+        "200": { description: OK }
+
+  /sessions/{sessionID}:
+    get:
+      tags: [03 Leccion]
+      summary: Session roster
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/SessionId"
+        - name: q
+          in: query
+          schema: { type: string }
+          example: "agus"
+      responses:
+        "200": { description: OK }
+
+  /sessions/{sessionID}/attendance/{studentID}:
+    put:
+      tags: [03 Leccion]
+      summary: Upsert attendance
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/SessionId"
+        - $ref: "#/components/parameters/StudentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+            example:
+              status: "present"
+              minutes_late: null
+              note: null
+      responses:
+        "200": { description: OK }
+
+  /sessions/{sessionID}/attendance/mark-all-present:
+    post:
+      tags: [03 Leccion]
+      summary: Mark all present
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "200": { description: OK }
+
+  /sessions/{sessionID}/observations/{studentID}:
+    put:
+      tags: [03 Leccion]
+      summary: Upsert observation
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/SessionId"
+        - $ref: "#/components/parameters/StudentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+            example:
+              participation_level: 2
+              note: "Buen trabajo en grupo"
+              flag_type_ids: []
+      responses:
+        "200": { description: OK }
+
+  /sessions/{sessionID}/students/{studentID}/voice-notes:
+    post:
+      tags: [03 Leccion]
+      summary: Create voice note (JSON, no audio)
+      description: |
+        The real client sends multipart/form-data (an "audio" file field
+        plus "duration_ms" and optional "mime_type" form fields). This
+        operation shows the JSON-only fallback path (metadata, no audio
+        bytes) -- switch the body type to multipart/form-data in Bruno's
+        editor to upload real audio.
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/SessionId"
+        - $ref: "#/components/parameters/StudentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+            example:
+              duration_ms: 4200
+              mime_type: "audio/webm"
+      responses:
+        "201": { description: Created }
+
+  /voice-notes/{voiceNoteID}/audio:
+    get:
+      tags: [03 Leccion]
+      summary: Voice note audio
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/VoiceNoteId"
+      responses:
+        "200": { description: OK }
+
+  /voice-notes/{voiceNoteID}/transcript:
+    post:
+      tags: [03 Leccion]
+      summary: Attach transcript
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - name: voiceNoteID
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+          example: "5e67a914-feb9-4c37-a403-86a82cad09b1"
+          description: Draft voice note (unsaved), good for a save/discard demo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+            example:
+              transcript: "Agustín participa bien en trabajos grupales. Dificultad recurrente con tiempos verbales compuestos."
+              language: "es"
+      responses:
+        "200": { description: OK }
+
+  /voice-notes/{voiceNoteID}/save:
+    post:
+      tags: [03 Leccion]
+      summary: Save voice note
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - name: voiceNoteID
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+          example: "5e67a914-feb9-4c37-a403-86a82cad09b1"
+          description: Draft voice note
+      responses:
+        "200": { description: OK }
+
+  /voice-notes/{voiceNoteID}/discard:
+    post:
+      tags: [03 Leccion]
+      summary: Discard voice note
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - name: voiceNoteID
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+          example: "5e67a914-feb9-4c37-a403-86a82cad09b1"
+          description: Draft voice note
+      responses:
+        "200": { description: OK }
+
+  /assessments/{assessmentID}/scores:
+    post:
+      tags: [04 Notas]
+      summary: Create score
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/AssessmentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+            example:
+              student_id: "fba03b7e-865f-470a-9a36-70077a3fadf9"
+              status: "graded"
+              raw_value: 15
+              late_days: 0
+      responses:
+        "201": { description: Created }
+
+  /scores/{scoreID}/correct:
+    post:
+      tags: [04 Notas]
+      summary: Correct score
+      description: |
+        Supersedes the live row named by scoreID. A second call against the
+        same id 409s -- fetch "Student grades" and swap in the new live
+        score id to correct again.
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/ScoreId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+            example:
+              raw_value: 14
+      responses:
+        "201": { description: Created }
+
+  /notifications:
+    get:
+      tags: [05 Notificaciones]
+      summary: List notifications
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - name: kind
+          in: query
+          schema: { type: string, enum: [alert, reminder] }
+          example: "alert"
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: before
+          in: query
+          schema: { type: string, format: date-time }
+      responses:
+        "200": { description: OK }
+
+  /notifications/unread-count:
+    get:
+      tags: [05 Notificaciones]
+      summary: Unread count
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+      responses:
+        "200": { description: OK }
+
+  /notifications/{notificationID}/read:
+    post:
+      tags: [05 Notificaciones]
+      summary: Mark notification read
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/NotificationId"
+      responses:
+        "200": { description: OK }
+
+  /notifications/read-all:
+    post:
+      tags: [05 Notificaciones]
+      summary: Mark all notifications read
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+      responses:
+        "200": { description: OK }
+
+  /notifications/{notificationID}/dismiss:
+    post:
+      tags: [05 Notificaciones]
+      summary: Dismiss notification
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/NotificationId"
+      responses:
+        "200": { description: OK }
+
+  /profile:
+    get:
+      tags: [06 Perfil]
+      summary: Profile
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/TermIdQuery"
+        - $ref: "#/components/parameters/DateQuery"
+      responses:
+        "200": { description: OK }

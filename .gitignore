@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+
+# Env files (dev DB credentials, actor ids)
+.env
+.env.local
+*.local
+
+# yanai-server
+yanai-server/data/
+yanai-server/cmd/api/data/
+__debug_bin*
+*.log
+
+# yanai-ui
+yanai-ui/node_modules/
+yanai-ui/.svelte-kit/
+yanai-ui/build/
+yanai-ui/dist/
