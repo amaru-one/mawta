@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { hapticTap } from '$lib/haptics';
-	import type { CourseStatus, HomeCourse } from '$lib/mocks';
+	import type { CourseStatus, HomeCourse } from '$lib/types';
 	import Icon from './Icon.svelte';
 
 	interface Props {

@@ -1,16 +1,29 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { page } from '$app/state';
+	import { getClassDashboard } from '$lib/api/endpoints/classes';
 	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import type { Tier } from '$lib/grades';
 	import { hapticTap } from '$lib/haptics';
-	import { CLASS_DASHBOARD, HOME_COURSES } from '$lib/mocks';
+	import { CLASS_DASHBOARD } from '$lib/mocks';
 
-	// Display-only for now — there is no per-course analytics backend yet, so
-	// every course renders the same sample dashboard under its own name.
 	const courseId = $derived(page.params.courseId ?? '');
-	const course = $derived(HOME_COURSES.find((c) => c.id === courseId));
-	const name = $derived(course?.name ?? CLASS_DASHBOARD.name);
+
+	// Real class identity + today's session come from the API; the analytics
+	// below still render the sample dashboard until that screen is wired up.
+	let name = $state(CLASS_DASHBOARD.name);
+	let sessionId = $state<string | null>(null);
+
+	onMount(async () => {
+		try {
+			const dash = await getClassDashboard(courseId);
+			name = dash.name;
+			sessionId = dash.next_session?.session_id ?? null;
+		} catch {
+			// keep the sample header; the start button stays hidden
+		}
+	});
 
 	const d = CLASS_DASHBOARD;
 
@@ -36,9 +49,11 @@
 		<p class="today-label">{d.todayLabel}</p>
 		<p class="today-time">{d.todayTime}</p>
 		<p class="today-topic">{d.todayTopic}</p>
-		<a class="start pressable" href="/class/{courseId}/lesson" onclick={hapticTap}>
-			Iniciar clase →
-		</a>
+		{#if sessionId !== null}
+			<a class="start pressable" href="/class/{courseId}/lesson/{sessionId}" onclick={hapticTap}>
+				Iniciar clase →
+			</a>
+		{/if}
 	</div>
 
 	<div class="grid3 stats">

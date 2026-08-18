@@ -2,6 +2,22 @@
 
 import type { IconName } from './icons';
 
+// --- View models built from the API ---
+
+export type CourseStatus = 'live' | 'pending' | 'idle';
+
+// One card on the Home screen, built from GET /home.
+export type HomeCourse = {
+	id: string;
+	name: string;
+	icon: IconName;
+	schedule: string[];
+	status: CourseStatus;
+	bucket: 'today' | 'week';
+	// Today's session, when one exists — links straight into the lesson screen.
+	sessionId: string | null;
+};
+
 export type Course = {
 	id: string;
 	name: string; // "Math 8B"

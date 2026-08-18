@@ -15,6 +15,9 @@ export default defineConfig({
 			adapter: adapter({ fallback: 'index.html' })
 		})
 	],
+	// Expose PUBLIC_* vars on import.meta.env (Vite only exposes VITE_* by default).
+	// Missing vars stay undefined instead of failing the build like $env/static would.
+	envPrefix: ['VITE_', 'PUBLIC_'],
 	server: {
 		// Same-origin API in dev — mirrors the production reverse proxy, so no CORS.
 		proxy: {

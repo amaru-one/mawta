@@ -1,8 +1,9 @@
 // DTO → app-type translation. The app keeps its camelCase types in $lib/types;
 // this module is the single place wire shapes are converted.
 
-import type { AppNotification } from '$lib/types';
-import type { NotificationDto } from './dto';
+import { ICON_NAMES, type IconName } from '$lib/icons';
+import type { AppNotification, HomeCourse } from '$lib/types';
+import type { HomeDto, NotificationDto } from './dto';
 
 // "YYYY-MM-DD" → local-midnight Date (avoid the UTC shift of new Date(string)).
 export function parseDateOnly(d: string): Date {
@@ -28,6 +29,45 @@ export function splitDisplayName(name: string): { firstName: string; lastName: s
 	const idx = name.lastIndexOf(' ');
 	if (idx === -1) return { firstName: name, lastName: '' };
 	return { firstName: name.slice(0, idx), lastName: name.slice(idx + 1) };
+}
+
+// Subjects carry an icon_key that happens to match our sprite names.
+function toIconName(key: string | null): IconName {
+	return key !== null && (ICON_NAMES as readonly string[]).includes(key)
+		? (key as IconName)
+		: 'book';
+}
+
+// ISO-8601 weekday from the server: 1 = Monday .. 7 = Sunday.
+const WEEKDAY_LABELS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+export function toHomeCourses(dto: HomeDto): HomeCourse[] {
+	const today: HomeCourse[] = (dto.today ?? []).map((t) => ({
+		id: t.class_id,
+		name: t.name,
+		icon: toIconName(t.icon_key),
+		schedule:
+			t.scheduled_start_at !== null && t.scheduled_end_at !== null
+				? [`${formatTimeHHMM(t.scheduled_start_at)} – ${formatTimeHHMM(t.scheduled_end_at)}`]
+				: [],
+		status: t.status === 'in_progress' ? 'live' : t.status === 'scheduled' ? 'pending' : 'idle',
+		bucket: 'today',
+		sessionId: t.session_id
+	}));
+
+	const week: HomeCourse[] = (dto.week ?? []).map((w) => ({
+		id: w.class_id,
+		name: w.name,
+		icon: toIconName(w.icon_key),
+		schedule: (w.slots ?? []).map(
+			(s) => `${WEEKDAY_LABELS[s.weekday - 1] ?? ''} ${s.starts_at} – ${s.ends_at}`.trim()
+		),
+		status: 'idle',
+		bucket: 'week',
+		sessionId: null
+	}));
+
+	return [...today, ...week];
 }
 
 export function toAppNotification(dto: NotificationDto): AppNotification {
