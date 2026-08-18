@@ -1,4 +1,5 @@
-// Data model — persisted to IndexedDB exactly as defined here.
+// App-side data model. Wire shapes live in $lib/api/dto; the mappers in
+// $lib/api translate between the two.
 
 import type { IconName } from './icons';
 
@@ -41,16 +42,6 @@ export type Session = {
 	status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'rescheduled';
 	// MINEDU level code (AD/A/B/C) averaged across the section, when computed.
 	sectionAverageCode: string | null;
-};
-
-// Assessments are course-level, not session-level.
-export type Assessment = {
-	id: string;
-	courseId: string;
-	name: string; // "Quiz — fractions"
-	type: 'quiz' | 'midterm' | 'final';
-	maxScore: number;
-	status: 'planned' | 'administered' | 'graded';
 };
 
 export type Attendance = 'present' | 'absent';
@@ -112,33 +103,3 @@ export type AppNotification = {
 	read: boolean;
 };
 
-// Grade formula — in the real system this is authored by the academic
-// supervisor and served by the backend. For now it's a static local config.
-export type GradeComponentSource = 'participation' | 'assessment';
-
-export type GradeComponent = {
-	id: string;
-	label: string;
-	source: GradeComponentSource;
-	assessmentId?: string; // required when source === 'assessment'
-	weight: number; // percent; all components in a formula should sum to 100
-};
-
-export type GradeFormula = {
-	courseId: string;
-	components: GradeComponent[];
-};
-
-// Teacher-entered score for one grade-formula component. For 'assessment'
-// components this is raw points earned (out of that assessment's maxScore);
-// for the 'participation' component it's a 0-100 percent directly.
-export type Score = {
-	id: string;
-	studentId: string;
-	componentId: string;
-	value: number;
-	// Epoch ms of the last edit. Lets us identify the most recent change and
-	// show what the tier was before it. Absent on records written before this
-	// field existed — treated as 0.
-	updatedAt?: number;
-};
