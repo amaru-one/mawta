@@ -1,157 +1,243 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
+	import { list } from '$lib/api/client';
+	import type { ClassDashboardDto, SessionSummaryDto } from '$lib/api/dto';
 	import { getClassDashboard } from '$lib/api/endpoints/classes';
+	import { formatTimeHHMM, parseDateOnly } from '$lib/api/mappers';
 	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
-	import type { Tier } from '$lib/grades';
 	import { hapticTap } from '$lib/haptics';
-	import { CLASS_DASHBOARD } from '$lib/mocks';
 
 	const courseId = $derived(page.params.courseId ?? '');
 
-	// Real class identity + today's session come from the API; the analytics
-	// below still render the sample dashboard until that screen is wired up.
-	let name = $state(CLASS_DASHBOARD.name);
-	let sessionId = $state<string | null>(null);
+	let ready = $state(false);
+	let loadError = $state(false);
+	let d = $state<ClassDashboardDto | null>(null);
 
-	onMount(async () => {
+	async function load(): Promise<void> {
+		ready = false;
+		loadError = false;
 		try {
-			const dash = await getClassDashboard(courseId);
-			name = dash.name;
-			sessionId = dash.next_session?.session_id ?? null;
+			d = await getClassDashboard(courseId);
+			ready = true;
 		} catch {
-			// keep the sample header; the start button stays hidden
+			loadError = true;
 		}
-	});
+	}
 
-	const d = CLASS_DASHBOARD;
+	onMount(load);
 
-	const TIER_FILL: Record<Tier, string> = {
+	const TIER_FILL: Record<string, string> = {
 		AD: 'var(--fill-accent)',
 		A: 'var(--fill-success)',
 		B: 'var(--fill-warning)',
 		C: 'var(--fill-tier-c)'
 	};
+
+	const STATUS_LABEL: Record<string, string> = {
+		scheduled: 'SIN INICIAR',
+		in_progress: 'EN CURSO',
+		completed: 'FINALIZADA'
+	};
+
+	const timeRange = (s: SessionSummaryDto): string =>
+		`${formatTimeHHMM(s.scheduled_start_at)} – ${formatTimeHHMM(s.scheduled_end_at)}`;
+
+	const dateParts = (s: SessionSummaryDto): { day: string; month: string } => {
+		const date = parseDateOnly(s.session_date);
+		return {
+			day: String(date.getDate()),
+			month: date.toLocaleDateString('es-PE', { month: 'short' }).replace('.', '').toUpperCase()
+		};
+	};
+
+	const asistenciaLabel = $derived(
+		d?.stats.asistencia_pct != null ? `${Math.round(d.stats.asistencia_pct * 100)}%` : '—'
+	);
+
+	type PendingRow = { icon: 'checklist' | 'clipboard-check'; title: string; detail: string };
+	const pending = $derived.by((): PendingRow[] => {
+		if (!d) return [];
+		const rows: PendingRow[] = list(d.grades_pending).map((g) => ({
+			icon: 'checklist' as const,
+			title: 'Notas pendientes',
+			detail: `${g.title} · ${g.missing} ${g.missing === 1 ? 'alumno' : 'alumnos'}`
+		}));
+		for (const au of list(d.attendance_unmarked)) {
+			rows.push({
+				icon: 'clipboard-check',
+				title: 'Asistencia sin marcar',
+				detail: parseDateOnly(au.session_date).toLocaleDateString('es-PE', {
+					day: 'numeric',
+					month: 'long'
+				})
+			});
+		}
+		return rows;
+	});
+
+	const pastChips = (s: SessionSummaryDto): Array<{ text: string; tone: 'ok' | 'bad' }> => {
+		const chips: Array<{ text: string; tone: 'ok' | 'bad' }> = [];
+		if (s.present_count != null && s.roster_count != null) {
+			chips.push({ text: `${s.present_count}/${s.roster_count} presente`, tone: 'ok' });
+		}
+		if (s.missing_grades != null && s.missing_grades > 0) {
+			chips.push({ text: `${s.missing_grades} pendientes`, tone: 'bad' });
+		}
+		return chips;
+	};
 </script>
 
 <svelte:head>
-	<title>{name} — Panel</title>
+	<title>{d?.name ?? 'Clase'} — Panel</title>
 </svelte:head>
 
 <TopBar back="/" />
 
 <div class="body">
-	<p class="title">{name}</p>
-	<p class="subtitle">{d.summary}</p>
+	{#if ready && d}
+		<p class="title">{d.name}</p>
+		<p class="subtitle">{d.roster_count} alumnos · {d.sessions_per_week} sesiones/semana</p>
 
-	<div class="today">
-		<p class="today-label">{d.todayLabel}</p>
-		<p class="today-time">{d.todayTime}</p>
-		<p class="today-topic">{d.todayTopic}</p>
-		{#if sessionId !== null}
-			<a class="start pressable" href="/class/{courseId}/lesson/{sessionId}" onclick={hapticTap}>
-				Iniciar clase →
-			</a>
+		{#if d.next_session}
+			<div class="today">
+				<p class="today-label">HOY · {STATUS_LABEL[d.next_session.status] ?? ''}</p>
+				<p class="today-time">{timeRange(d.next_session)}</p>
+				<p class="today-topic">
+					{d.next_session.topic ? `Lección: ${d.next_session.topic}` : 'Sin tema asignado'}
+				</p>
+				<a
+					class="start pressable"
+					href="/class/{courseId}/lesson/{d.next_session.session_id}"
+					onclick={hapticTap}
+				>
+					Iniciar clase →
+				</a>
+			</div>
 		{/if}
-	</div>
 
-	<div class="grid3 stats">
-		<div class="stat"><p>Notas reg.</p><p>{d.stats.gradesEntered}</p></div>
-		<div class="stat"><p>Asistencia</p><p>{d.stats.attendance}</p></div>
-		<div class="stat"><p>En riesgo</p><p>{d.stats.atRisk}</p></div>
-	</div>
-
-	<div class="card section">
-		<p class="section-title">Distribución de logros</p>
-		<div class="bar">
-			{#each d.distribution as slice (slice.tier)}
-				<div style="flex:{slice.count};background:{TIER_FILL[slice.tier]}"></div>
-			{/each}
+		<div class="grid3 stats">
+			<div class="stat"><p>Notas reg.</p><p>{d.stats.scored}/{d.stats.expected}</p></div>
+			<div class="stat"><p>Asistencia</p><p>{asistenciaLabel}</p></div>
+			<div class="stat"><p>En riesgo</p><p>{d.stats.en_riesgo}</p></div>
 		</div>
-		<div class="legend">
-			{#each d.distribution as slice (slice.tier)}
-				<div class="row legend-item">
-					<span
-						class="legend-dot"
-						class:outlined={slice.tier === 'C'}
-						style="background:{TIER_FILL[slice.tier]}"
-					></span>
-					<span>{slice.tier} · {slice.count}</span>
-				</div>
-			{/each}
-		</div>
-	</div>
 
-	<div class="card section">
-		<p class="section-title">Alumnos en riesgo</p>
-		{#each d.risk as student, i (student.name)}
-			{#if i > 0}<div class="divider"></div>{/if}
-			<div class="row list-row">
-				<span class="bullet"></span>
-				<div class="grow">
-					<p class="list-title">{student.name}</p>
-					<p class="list-detail danger">{student.reason}</p>
+		{#if list(d.distribution).length > 0}
+			<div class="card section">
+				<p class="section-title">Distribución de logros</p>
+				<div class="bar">
+					{#each list(d.distribution) as slice (slice.code)}
+						<div style="flex:{slice.count};background:{TIER_FILL[slice.code] ?? 'var(--border)'}"></div>
+					{/each}
 				</div>
-				<span class="chevron"><Icon name="chevron-right" size={16} /></span>
+				<div class="legend">
+					{#each list(d.distribution) as slice (slice.code)}
+						<div class="row legend-item">
+							<span
+								class="legend-dot"
+								class:outlined={slice.code === 'C'}
+								style="background:{TIER_FILL[slice.code] ?? 'var(--border)'}"
+							></span>
+							<span>{slice.code} · {slice.count}</span>
+						</div>
+					{/each}
+				</div>
 			</div>
-		{/each}
-	</div>
+		{/if}
 
-	<div class="card section">
-		<p class="section-title">Pendientes</p>
-		{#each d.pending as item, i (item.title)}
-			{#if i > 0}<div class="divider"></div>{/if}
-			<div class="row list-row">
-				<span class="pending-icon"><Icon name={item.icon} size={16} /></span>
-				<div class="grow">
-					<p class="list-title">{item.title}</p>
-					<p class="list-detail">{item.detail}</p>
-				</div>
-				<span class="chevron"><Icon name="chevron-right" size={16} /></span>
+		{#if list(d.at_risk).length > 0}
+			<div class="card section">
+				<p class="section-title">Alumnos en riesgo</p>
+				{#each list(d.at_risk) as student, i (student.student_id)}
+					{#if i > 0}<div class="divider"></div>{/if}
+					<a
+						class="row list-row risk-link"
+						href="/grades/{student.student_id}?class={courseId}&name={encodeURIComponent(
+							student.name
+						)}&course={encodeURIComponent(d.name)}"
+						onclick={hapticTap}
+					>
+						<span class="bullet"></span>
+						<div class="grow">
+							<p class="list-title">{student.name}</p>
+							<p class="list-detail danger">{student.reason_text}</p>
+						</div>
+						<span class="chevron"><Icon name="chevron-right" size={16} /></span>
+					</a>
+				{/each}
 			</div>
-		{/each}
-	</div>
+		{/if}
 
-	<p class="eyebrow">PRÓXIMAS CLASES</p>
-	<div class="stack">
-		{#each d.upcoming as s (s.title)}
-			<div class="card row session">
-				<div class="date">
-					<p class="day">{s.day}</p>
-					<p class="month">{s.month}</p>
-				</div>
-				<div class="grow">
-					<p class="list-title">{s.title}</p>
-					<p class="list-detail">{s.detail}</p>
-				</div>
-				<span class="chevron"><Icon name="chevron-right" size={16} /></span>
-			</div>
-		{/each}
-	</div>
-
-	<p class="eyebrow">CLASES ANTERIORES</p>
-	<div class="stack">
-		{#each d.previous as s (s.title)}
-			<div class="card row session">
-				<div class="date">
-					<p class="day">{s.day}</p>
-					<p class="month">{s.month}</p>
-				</div>
-				<div class="grow">
-					<p class="list-title tight">{s.title}</p>
-					<div class="chips">
-						{#each s.chips ?? [] as chip (chip.text)}
-							<span class="chip" class:chip-ok={chip.tone === 'ok'} class:chip-bad={chip.tone === 'bad'}>
-								{chip.text}
-							</span>
-						{/each}
+		{#if pending.length > 0}
+			<div class="card section">
+				<p class="section-title">Pendientes</p>
+				{#each pending as item, i (item.title + item.detail)}
+					{#if i > 0}<div class="divider"></div>{/if}
+					<div class="row list-row">
+						<span class="pending-icon"><Icon name={item.icon} size={16} /></span>
+						<div class="grow">
+							<p class="list-title">{item.title}</p>
+							<p class="list-detail">{item.detail}</p>
+						</div>
 					</div>
-				</div>
-				<span class="chevron"><Icon name="chevron-right" size={16} /></span>
+				{/each}
 			</div>
-		{/each}
-	</div>
+		{/if}
+
+		{#if list(d.upcoming).length > 0}
+			<p class="eyebrow">PRÓXIMAS CLASES</p>
+			<div class="stack">
+				{#each list(d.upcoming) as s (s.session_id)}
+					{@const dp = dateParts(s)}
+					<div class="card row session">
+						<div class="date">
+							<p class="day">{dp.day}</p>
+							<p class="month">{dp.month}</p>
+						</div>
+						<div class="grow">
+							<p class="list-title">{s.topic ?? 'Clase'}</p>
+							<p class="list-detail">{timeRange(s)}</p>
+						</div>
+					</div>
+				{/each}
+			</div>
+		{/if}
+
+		{#if list(d.past).length > 0}
+			<p class="eyebrow">CLASES ANTERIORES</p>
+			<div class="stack">
+				{#each list(d.past) as s (s.session_id)}
+					{@const dp = dateParts(s)}
+					<div class="card row session">
+						<div class="date">
+							<p class="day">{dp.day}</p>
+							<p class="month">{dp.month}</p>
+						</div>
+						<div class="grow">
+							<p class="list-title tight">{s.topic ?? 'Clase'}</p>
+							<div class="chips">
+								{#each pastChips(s) as chip (chip.text)}
+									<span
+										class="chip"
+										class:chip-ok={chip.tone === 'ok'}
+										class:chip-bad={chip.tone === 'bad'}
+									>
+										{chip.text}
+									</span>
+								{/each}
+							</div>
+						</div>
+					</div>
+				{/each}
+			</div>
+		{/if}
+	{:else if loadError}
+		<p class="subtitle">
+			No se pudo cargar el panel.
+			<button class="pill-light pressable" onclick={load}>Reintentar</button>
+		</p>
+	{/if}
 </div>
 
 <style>
@@ -165,6 +251,11 @@
 		margin: 2px 0 var(--space-lg);
 		font-size: 13px;
 		color: var(--text-secondary);
+	}
+
+	.risk-link {
+		color: inherit;
+		text-decoration: none;
 	}
 
 	.today {

@@ -70,16 +70,36 @@ export function toHomeCourses(dto: HomeDto): HomeCourse[] {
 	return [...today, ...week];
 }
 
+// Reminder icons vary by what's pending.
+const CATEGORY_ICONS: Record<string, IconName> = {
+	attendance_unmarked: 'clipboard-check',
+	grades_pending: 'checklist',
+	level_drop: 'trending-down',
+	consecutive_absences: 'alert'
+};
+
 export function toAppNotification(dto: NotificationDto): AppNotification {
+	// Server titles embed the student/class names, but the feed renders those
+	// separately — strip them from the message so they don't display twice.
+	let message = dto.title;
+	if (dto.student_name !== null && message.startsWith(dto.student_name)) {
+		message = message.slice(dto.student_name.length).trimStart();
+	}
+	if (dto.class_name !== null) {
+		const suffix = `— ${dto.class_name}`;
+		if (message.endsWith(suffix)) message = message.slice(0, -suffix.length).trimEnd();
+	}
+
 	return {
 		id: dto.id,
 		// Server alerts come from the risk model/rules; reminders are derived to-dos.
 		type: dto.kind === 'alert' ? 'risk' : 'reminder',
 		aiGenerated: dto.kind === 'alert',
-		message: dto.title,
+		message,
 		detail: dto.body ?? undefined,
 		studentName: dto.student_name ?? undefined,
 		courseName: dto.class_name ?? undefined,
+		icon: CATEGORY_ICONS[dto.category],
 		createdAt: parseTimestamp(dto.created_at),
 		read: dto.read_at !== null
 	};

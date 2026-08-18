@@ -1,21 +1,93 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { list } from '$lib/api/client';
+	import type { ProfileDto } from '$lib/api/dto';
+	import { getProfile } from '$lib/api/endpoints/profile';
+	import { parseDateOnly } from '$lib/api/mappers';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
+	import type { IconName } from '$lib/icons';
 	import { hapticTap } from '$lib/haptics';
-	import {
-		APP_VERSION,
-		PROFILE_ACTIVITY,
-		PROFILE_CLASSES,
-		PROFILE_STATS,
-		TEACHER
-	} from '$lib/mocks';
 	import { showToast } from '$lib/toast';
 
-	let showLogoutConfirm = $state(false);
+	const APP_VERSION = 'Yanai v1.0.4';
 
-	const totalClasses = PROFILE_CLASSES.reduce((sum, g) => sum + g.classes.length, 0);
+	let showLogoutConfirm = $state(false);
+	let ready = $state(false);
+	let loadError = $state(false);
+	let profile = $state<ProfileDto | null>(null);
+
+	async function load(): Promise<void> {
+		ready = false;
+		loadError = false;
+		try {
+			profile = await getProfile();
+			ready = true;
+		} catch {
+			loadError = true;
+		}
+	}
+
+	onMount(load);
+
+	const initials = $derived(
+		(profile?.display_name ?? '')
+			.split(' ')
+			.slice(0, 2)
+			.map((w) => w[0] ?? '')
+			.join('')
+			.toUpperCase()
+	);
+
+	const school = $derived(
+		profile ? `${profile.tenant_name}${profile.tenant_city ? ` · ${profile.tenant_city}` : ''}` : ''
+	);
+
+	const since = $derived.by(() => {
+		if (!profile?.hired_on) return '';
+		// Date-only column serialized as midnight UTC; parse without the shift.
+		const hired = parseDateOnly(profile.hired_on.slice(0, 10));
+		const label = hired.toLocaleDateString('es-PE', { month: 'long', year: 'numeric' });
+		const years = Math.floor((Date.now() - hired.getTime()) / (365.25 * 24 * 3600 * 1000));
+		return `Desde ${label}${years > 0 ? ` · ${years} ${years === 1 ? 'año' : 'años'}` : ''}`;
+	});
+
+	const stats = $derived(
+		profile
+			? [
+					{ value: String(profile.top_stats.classes), label: 'Clases' },
+					{ value: String(profile.top_stats.students), label: 'Alumnos' },
+					{ value: `${Math.round(profile.top_stats.weekly_hours)}h`, label: 'Semanales' }
+				]
+			: []
+	);
+
+	type ActivityRow = { icon: IconName; label: string; value: string; danger?: boolean };
+	const activity = $derived.by((): ActivityRow[] => {
+		if (!profile) return [];
+		const a = profile.activity;
+		return [
+			{ icon: 'presentation', label: 'Clases dictadas', value: String(a.clases_dictadas) },
+			{
+				icon: 'clipboard-check',
+				label: 'Asistencias registradas',
+				value: `${a.asistencias_registradas} / ${a.asistencias_esperadas}`
+			},
+			{ icon: 'mic', label: 'Notas de voz', value: String(a.notas_de_voz) },
+			{ icon: 'checklist', label: 'Evaluaciones registradas', value: String(a.evaluaciones) },
+			{
+				icon: 'flag',
+				label: 'Alumnos en seguimiento',
+				value: String(a.alumnos_en_seguimiento),
+				danger: a.alumnos_en_seguimiento > 0
+			}
+		];
+	});
+
+	const classGroups = $derived(list(profile?.classes_by_grade));
+	const totalClasses = $derived(classGroups.reduce((sum, g) => sum + g.classes.length, 0));
 
 	// UI-only for now — no auth/session backend exists yet to actually log out of.
 	function confirmLogout(): void {
@@ -32,59 +104,66 @@
 <TopBar back="/" title="Mi perfil" showBell={false} />
 
 <div class="body top">
-	<div class="identity">
-		<span class="avatar big">{TEACHER.initials}</span>
-		<p class="name">{TEACHER.fullName}</p>
-		<p class="line">{TEACHER.role}</p>
-		<p class="line">{TEACHER.schoolFull}</p>
-		<p class="meta since">{TEACHER.since}</p>
-	</div>
-
-	<div class="grid3 stats">
-		{#each PROFILE_STATS as stat (stat.label)}
-			<div class="stat centered">
-				<p class="stat-value">{stat.value}</p>
-				<p class="stat-label">{stat.label}</p>
-			</div>
-		{/each}
-	</div>
-
-	<p class="eyebrow">ACTIVIDAD · BIMESTRE II</p>
-	<div class="card activity">
-		{#each PROFILE_ACTIVITY as item, i (item.label)}
-			{#if i > 0}<div class="divider"></div>{/if}
-			<div class="row activity-row">
-				<span class="activity-icon"><Icon name={item.icon} size={17} /></span>
-				<span class="activity-label">{item.label}</span>
-				<span class="activity-value" class:danger={item.danger}>{item.value}</span>
-			</div>
-		{/each}
-	</div>
-
-	<button class="btn-block logout pressable" onclick={() => (showLogoutConfirm = true)}>
-		<Icon name="logout" size={16} />Cerrar sesión
-	</button>
-
-	<p class="eyebrow classes-head">MIS CLASES · {totalClasses}</p>
-
-	{#each PROFILE_CLASSES as group (group.label)}
-		<div class="row group-head">
-			<p class="meta group-label">{group.label}</p>
-			<div class="rule"></div>
-			<span class="group-count">{group.classes.length}</span>
+	{#if ready && profile}
+		<div class="identity">
+			<span class="avatar big">{initials}</span>
+			<p class="name">{profile.display_name}</p>
+			{#if profile.title}<p class="line">{profile.title}</p>{/if}
+			<p class="line">{school}</p>
+			{#if since}<p class="meta since">{since}</p>{/if}
 		</div>
-		<div class="card group">
-			{#each group.classes as klass, i (klass.name)}
-				{#if i > 0}<div class="divider"></div>{/if}
-				<div class="row class-row">
-					<span class="class-name">{klass.name}</span>
-					<span class="class-meta">{klass.students} · {klass.perWeek}/sem</span>
+
+		<div class="grid3 stats">
+			{#each stats as stat (stat.label)}
+				<div class="stat centered">
+					<p class="stat-value">{stat.value}</p>
+					<p class="stat-label">{stat.label}</p>
 				</div>
 			{/each}
 		</div>
-	{/each}
 
-	<p class="meta version">{APP_VERSION}</p>
+		<p class="eyebrow">ACTIVIDAD</p>
+		<div class="card activity">
+			{#each activity as item, i (item.label)}
+				{#if i > 0}<div class="divider"></div>{/if}
+				<div class="row activity-row">
+					<span class="activity-icon"><Icon name={item.icon} size={17} /></span>
+					<span class="activity-label">{item.label}</span>
+					<span class="activity-value" class:danger={item.danger}>{item.value}</span>
+				</div>
+			{/each}
+		</div>
+
+		<button class="btn-block logout pressable" onclick={() => (showLogoutConfirm = true)}>
+			<Icon name="logout" size={16} />Cerrar sesión
+		</button>
+
+		<p class="eyebrow classes-head">MIS CLASES · {totalClasses}</p>
+
+		{#each classGroups as group (group.grade_label)}
+			<div class="row group-head">
+				<p class="meta group-label">{group.grade_label}</p>
+				<div class="rule"></div>
+				<span class="group-count">{group.classes.length}</span>
+			</div>
+			<div class="card group">
+				{#each group.classes as klass, i (klass.class_id)}
+					{#if i > 0}<div class="divider"></div>{/if}
+					<div class="row class-row">
+						<span class="class-name">{klass.name}</span>
+						<span class="class-meta">{klass.roster_count} · {klass.slots_per_week}/sem</span>
+					</div>
+				{/each}
+			</div>
+		{/each}
+
+		<p class="meta version">{APP_VERSION}</p>
+	{:else if loadError}
+		<p class="line">
+			No se pudo cargar el perfil.
+			<button class="pill-light pressable" onclick={load}>Reintentar</button>
+		</p>
+	{/if}
 </div>
 
 {#if showLogoutConfirm}

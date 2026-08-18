@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { hapticTap } from '$lib/haptics';
-	import { TEACHER } from '$lib/mocks';
-	import { unreadNotificationCount } from '$lib/stores';
+	import { teacher, unreadNotificationCount } from '$lib/stores';
 	import Icon from './Icon.svelte';
 
 	interface Props {
@@ -17,6 +16,7 @@
 	let { back, title, variant = 'default', showBell = true }: Props = $props();
 
 	const large = $derived(variant === 'home');
+	const who = $derived($teacher ?? { initials: '', shortName: '', school: '' });
 </script>
 
 <div class="topbar">
@@ -30,10 +30,10 @@
 		<p class="plain-title">{title}</p>
 	{:else}
 		<a class="identity pressable" href="/profile" onclick={hapticTap}>
-			<span class="avatar" class:large>{TEACHER.initials}</span>
+			<span class="avatar" class:large>{who.initials}</span>
 			<span class="who">
-				<span class="name" class:large>{TEACHER.shortName}</span>
-				<span class="school" class:large>{TEACHER.school}</span>
+				<span class="name" class:large>{who.shortName}</span>
+				<span class="school" class:large>{who.school}</span>
 			</span>
 		</a>
 	{/if}

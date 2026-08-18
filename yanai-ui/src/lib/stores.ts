@@ -15,6 +15,15 @@ export const currentSession: Writable<Session | null> = writable(null);
 export const students: Writable<Student[]> = writable([]);
 export const notifications: Writable<AppNotification[]> = writable([]);
 
+// Signed-in teacher identity from GET /me, loaded once by the layout.
+export type TeacherIdentity = {
+	initials: string;
+	shortName: string;
+	school: string;
+};
+
+export const teacher: Writable<TeacherIdentity | null> = writable(null);
+
 export const unreadNotificationCount: Readable<number> = derived(
 	notifications,
 	($notifications) => $notifications.filter((n) => !n.read).length
