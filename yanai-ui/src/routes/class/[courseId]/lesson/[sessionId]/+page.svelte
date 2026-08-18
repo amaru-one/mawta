@@ -5,24 +5,18 @@
 	import RosterRow from '$lib/components/RosterRow.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { page } from '$app/state';
-	import { gradeFor, loadScoresForStudents, tierFor, TIER_LABELS } from '$lib/grades';
+	import { TIER_LABELS, type Tier } from '$lib/grades';
 	import { hapticSuccess } from '$lib/haptics';
-	import { areAllPresent, loadToday, setAllPresent } from '$lib/lesson';
-	import {
-		assessments,
-		currentCourse,
-		currentSession,
-		entries,
-		entryKey,
-		scores,
-		students
-	} from '$lib/stores';
+	import { anyUnmarked, loadSession, markAllPresent } from '$lib/lesson';
+	import { currentCourse, currentSession, entries, entryKey, students } from '$lib/stores';
 	import { showToast } from '$lib/toast';
 
 	let ready = $state(false);
+	let loadError = $state(false);
 	let searchQuery = $state('');
 
 	const courseId = $derived(page.params.courseId ?? '');
+	const sessionId = $derived(page.params.sessionId ?? '');
 
 	const filteredStudents = $derived.by(() => {
 		const query = searchQuery.trim().toLowerCase();
@@ -33,36 +27,33 @@
 		);
 	});
 
-	// Section average across the whole roster, on the same tier scale as each row.
+	// Section average on the same tier scale as each row, computed server-side.
 	const sectionAverage = $derived.by(() => {
-		if ($students.length === 0) return null;
-		const total = $students.reduce(
-			(sum, s) => sum + gradeFor(s.id, $scores, $assessments).percent,
-			0
-		);
-		const tier = tierFor(Math.round(total / $students.length));
+		const code = $currentSession?.sectionAverageCode;
+		if (code !== 'AD' && code !== 'A' && code !== 'B' && code !== 'C') return null;
+		const tier = code as Tier;
 		return { tier, label: TIER_LABELS[tier] };
 	});
 
-	const presentCount = $derived.by(() => {
+	const markedCount = $derived.by(() => {
 		const session = $currentSession;
 		if (!session) return 0;
 		return $students.filter(
-			(s) => $entries.get(entryKey(session.id, s.id))?.attendance === 'present'
+			(s) => $entries.get(entryKey(session.id, s.id))?.attendance !== null
 		).length;
 	});
 
-	const allPresent = $derived.by(() => {
+	const hasUnmarked = $derived.by(() => {
 		// Touch the entries store so this recomputes on every attendance change.
 		void $entries;
-		return areAllPresent();
+		return anyUnmarked();
 	});
 
-	const topic = $derived($currentSession?.blocks.find((b) => b.kind === 'lesson')?.topic ?? '');
+	const topic = $derived($currentSession?.topic ?? '');
 
 	const dateLabel = $derived(
 		$currentSession
-			? new Date($currentSession.date).toLocaleDateString('es-PE', {
+			? $currentSession.date.toLocaleDateString('es-PE', {
 					day: 'numeric',
 					month: 'short'
 				})
@@ -71,16 +62,21 @@
 
 	const scrollKey = (): string => `lesson-scroll:${$currentSession?.id ?? ''}`;
 
-	function toggleAllPresent(): void {
-		const wasAllPresent = allPresent;
-		const undo = setAllPresent();
+	async function handleAllPresent(): Promise<void> {
 		hapticSuccess();
-		showToast(wasAllPresent ? 'Se quitó la asistencia' : 'Todos marcados presentes', {
-			onUndo: () => {
-				undo.restore();
-				showToast('Cambio deshecho');
-			}
-		});
+		const marked = await markAllPresent();
+		if (marked > 0) showToast(`${marked} marcados presentes`);
+	}
+
+	async function load(): Promise<void> {
+		ready = false;
+		loadError = false;
+		try {
+			await loadSession(sessionId);
+			ready = true;
+		} catch {
+			loadError = true;
+		}
 	}
 
 	onMount(() => {
@@ -92,16 +88,14 @@
 			}, 150);
 		};
 
-		void loadToday()
-			.then(() => loadScoresForStudents($students.map((s) => s.id)))
-			.then(() => {
-				ready = true;
-				const saved = localStorage.getItem(scrollKey());
-				if (saved) {
-					requestAnimationFrame(() => window.scrollTo(0, Number(saved)));
-				}
-				window.addEventListener('scroll', saveScroll, { passive: true });
-			});
+		void load().then(() => {
+			if (loadError) return;
+			const saved = localStorage.getItem(scrollKey());
+			if (saved) {
+				requestAnimationFrame(() => window.scrollTo(0, Number(saved)));
+			}
+			window.addEventListener('scroll', saveScroll, { passive: true });
+		});
 
 		return () => {
 			clearTimeout(saveTimer);
@@ -135,14 +129,14 @@
 
 		<div class="row attendance-summary">
 			<div class="row status">
-				<span class="check" class:complete={allPresent}>
+				<span class="check" class:complete={!hasUnmarked}>
 					<Icon name="circle-check" size={16} />
 				</span>
-				<span>{presentCount}/{$students.length} asistencia registrada</span>
+				<span>{markedCount}/{$students.length} asistencia registrada</span>
 			</div>
-			<button class="pill-light pressable" onclick={toggleAllPresent}>
-				{allPresent ? 'Quitar todos' : 'Todos presentes'}
-			</button>
+			{#if hasUnmarked}
+				<button class="pill-light pressable" onclick={handleAllPresent}>Todos presentes</button>
+			{/if}
 		</div>
 
 		<div class="search-wrap">
@@ -162,6 +156,11 @@
 		{#if filteredStudents.length === 0}
 			<p class="empty">Ningún alumno coincide con «{searchQuery}».</p>
 		{/if}
+	{:else if loadError}
+		<p class="empty">
+			No se pudo cargar la sesión.
+			<button class="pill-light pressable" onclick={load}>Reintentar</button>
+		</p>
 	{/if}
 </div>
 

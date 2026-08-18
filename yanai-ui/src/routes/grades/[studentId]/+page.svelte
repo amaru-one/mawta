@@ -1,84 +1,141 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
+	import { ApiError, list } from '$lib/api/client';
+	import type { AttemptDto, EvaluationDto, StudentGradesDto } from '$lib/api/dto';
+	import { correctScore, createScore, getStudentGrades, requestSummary } from '$lib/api/endpoints/grades';
 	import AiSummaryCard from '$lib/components/AiSummaryCard.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
-	import { gradeFor, loadScoresForStudent, saveScore } from '$lib/grades';
 	import { hapticTap } from '$lib/haptics';
-	import { loadToday } from '$lib/lesson';
-	import { VOICE_NOTE_SUMMARY } from '$lib/mocks';
-	import { assessments, currentCourse, scores, students } from '$lib/stores';
 	import { showToast } from '$lib/toast';
 
+	const studentId = $derived(page.params.studentId ?? '');
+	// Class id and display names travel as query params — the grades endpoint
+	// doesn't return them, and the SPA has no other student lookup.
+	const classId = $derived(page.url.searchParams.get('class') ?? '');
+	const studentName = $derived(page.url.searchParams.get('name') ?? 'Alumno');
+	const courseName = $derived(page.url.searchParams.get('course') ?? '');
+
 	let ready = $state(false);
+	let loadError = $state(false);
+	let data = $state<StudentGradesDto | null>(null);
 
-	onMount(() => {
-		const studentId = page.params.studentId;
-		void Promise.all([
-			loadToday(),
-			studentId ? loadScoresForStudent(studentId) : Promise.resolve()
-		]).then(() => {
+	async function load(): Promise<void> {
+		ready = false;
+		loadError = false;
+		try {
+			data = await getStudentGrades(classId, studentId);
 			ready = true;
-		});
-	});
+		} catch {
+			loadError = true;
+		}
+	}
 
-	const student = $derived($students.find((s) => s.id === page.params.studentId) ?? null);
-	const grade = $derived(student ? gradeFor(student.id, $scores, $assessments) : null);
+	// Quiet refresh that keeps the screen up — used after writes, once the
+	// worker has had time (~2s poll) to recompute the grade.
+	async function reload(): Promise<void> {
+		try {
+			data = await getStudentGrades(classId, studentId);
+		} catch {
+			// keep showing the last good data
+		}
+	}
 
-	// How much of the course has actually been marked, vs. still placeholder.
-	const evaluated = $derived.by(() => {
-		if (!grade) return { percent: 0, remaining: 100 };
-		const total = grade.components.reduce((sum, c) => sum + c.component.weight, 0);
-		const done = grade.components
-			.filter((c) => c.scored)
-			.reduce((sum, c) => sum + c.component.weight, 0);
-		const percent = total > 0 ? Math.round((done / total) * 100) : 0;
-		return { percent, remaining: 100 - percent };
-	});
+	function reloadSoon(): void {
+		setTimeout(() => void reload(), 3000);
+	}
 
-	// Best and worst final outcomes if every unscored component came in at 100 / 0.
-	const range = $derived.by(() => {
-		if (!grade) return null;
-		const total = grade.components.reduce((sum, c) => sum + c.component.weight, 0);
-		if (total === 0) return null;
-		const locked = grade.components
-			.filter((c) => c.scored)
-			.reduce((sum, c) => sum + c.score * c.component.weight, 0);
-		const openWeight = grade.components
-			.filter((c) => !c.scored)
-			.reduce((sum, c) => sum + c.component.weight, 0);
+	onMount(load);
+
+	const evaluations = $derived(list(data?.evaluations));
+
+	const grade = $derived.by(() => {
+		const cg = data?.computed_grade;
+		if (!cg) return null;
 		return {
-			min: Math.round(locked / total),
-			max: Math.round((locked + openWeight * 100) / total)
+			tier: cg.level_code ?? '—',
+			percent: Math.round(cg.normalized_value * 100),
+			evaluatedPct:
+				cg.total_weight > 0 ? Math.round((cg.evaluated_weight / cg.total_weight) * 100) : 0,
+			min: cg.projected_min_normalized !== null ? Math.round(cg.projected_min_normalized * 100) : null,
+			max: cg.projected_max_normalized !== null ? Math.round(cg.projected_max_normalized * 100) : null
 		};
 	});
 
-	function handleScoreChange(componentId: string, maxValue: number, e: Event): void {
-		if (!student) return;
+	// The current attempt is the latest one — corrections supersede in order.
+	function latestAttempt(ev: EvaluationDto): AttemptDto | null {
+		const attempts = list(ev.attempts);
+		if (attempts.length === 0) return null;
+		return attempts.reduce((a, b) => (b.attempt_number >= a.attempt_number ? b : a));
+	}
+
+	async function handleScoreChange(ev: EvaluationDto, e: Event): Promise<void> {
 		const target = e.currentTarget as HTMLInputElement;
 		const parsed = Number(target.value);
 		if (!Number.isFinite(parsed)) return;
-		const clamped = Math.min(maxValue, Math.max(0, Math.round(parsed)));
+		const clamped = Math.min(ev.max_score, Math.max(0, Math.round(parsed)));
 		target.value = String(clamped);
 		hapticTap();
-		saveScore(student.id, componentId, clamped);
-		showToast('Nota guardada');
+
+		try {
+			const attempt = latestAttempt(ev);
+			if (attempt) {
+				try {
+					await correctScore(attempt.score_id, { raw_value: clamped });
+				} catch (err) {
+					// Someone corrected it first — refetch and retry on the new score id.
+					if (err instanceof ApiError && err.code === 'already_superseded') {
+						await reload();
+						const fresh = data ? latestAttempt(evaluations.find((x) => x.assessment_id === ev.assessment_id) ?? ev) : null;
+						if (fresh) await correctScore(fresh.score_id, { raw_value: clamped });
+					} else {
+						throw err;
+					}
+				}
+			} else {
+				await createScore(ev.assessment_id, { student_id: studentId, raw_value: clamped });
+			}
+			showToast('Nota guardada');
+			void reload();
+			reloadSoon();
+		} catch {
+			showToast('No se pudo guardar — revisa tu conexión');
+		}
+	}
+
+	let requestingSummary = $state(false);
+
+	async function handleSummary(): Promise<void> {
+		if (requestingSummary) return;
+		requestingSummary = true;
+		try {
+			await requestSummary(classId, studentId);
+			showToast('Generando resumen…');
+			reloadSoon();
+			setTimeout(() => {
+				void reload();
+				requestingSummary = false;
+			}, 6000);
+		} catch {
+			requestingSummary = false;
+			showToast('No se pudo generar el resumen');
+		}
 	}
 </script>
 
 <svelte:head>
-	<title>{student ? `${student.firstName} ${student.lastName}` : 'Alumno'}</title>
+	<title>{studentName}</title>
 </svelte:head>
 
 <TopBar back="/" />
 
 <div class="body">
-	{#if ready}
-		{#if student && grade}
-			<p class="title">{student.firstName} {student.lastName}</p>
-			<p class="subtitle">{$currentCourse?.name ?? ''} · Bimestre II</p>
+	{#if ready && data}
+		<p class="title">{studentName}</p>
+		<p class="subtitle">{courseName}</p>
 
+		{#if grade}
 			<div class="result">
 				<p class="result-label">RESULTADO PARCIAL</p>
 				<div class="result-head">
@@ -86,68 +143,80 @@
 					<span class="pct">{grade.percent}% de lo evaluado</span>
 				</div>
 				<div class="progress">
-					<div class="progress-fill" style="width:{evaluated.percent}%"></div>
+					<div class="progress-fill" style="width:{grade.evaluatedPct}%"></div>
 				</div>
 				<p class="result-foot">
-					{evaluated.percent}% del curso evaluado · falta {evaluated.remaining}%
+					{grade.evaluatedPct}% del curso evaluado · falta {100 - grade.evaluatedPct}%
 				</p>
 			</div>
 
-			{#if range}
+			{#if grade.min !== null && grade.max !== null}
 				<div class="range">
 					<p class="range-label">Rango posible al cierre</p>
 					<div class="row">
-						<span class="range-min">{range.min}%</span>
+						<span class="range-min">{grade.min}%</span>
 						<div class="range-track"></div>
-						<span class="range-max">{range.max}%</span>
+						<span class="range-max">{grade.max}%</span>
 					</div>
 					<p class="range-note">Según cómo rinda en lo que falta</p>
 				</div>
 			{/if}
-
-			<p class="eyebrow">EVALUACIONES</p>
-
-			<div class="stack">
-				{#each grade.components as c (c.component.id)}
-					<div class="card row component" class:unscored={!c.scored}>
-						<div class="grow">
-							<p class="component-name">{c.component.label}</p>
-							<p class="component-weight">Peso {c.component.weight}%</p>
-						</div>
-						<span class="input-wrap">
-							<input
-								type="number"
-								class="score-input"
-								min="0"
-								max={c.maxValue}
-								value={c.rawValue}
-								onchange={(e) => handleScoreChange(c.component.id, c.maxValue, e)}
-								aria-label={`Nota de ${c.component.label}, sobre ${c.maxValue}`}
-							/>
-							<span class="max">/ {c.maxValue}</span>
-						</span>
-						<span class="score">{c.score}%</span>
-					</div>
-				{/each}
-			</div>
-
-			<button class="btn-block ai pressable" onclick={() => showToast('Resumen aún no disponible')}>
-				<Icon name="sparkles" size={16} />Generar resumen
-			</button>
-			<button
-				class="btn-block secondary pressable"
-				onclick={() => showToast('Añadir evaluación aún no disponible')}
-			>
-				<Icon name="plus" size={16} />Añadir evaluación
-			</button>
-
-			<AiSummaryCard
-				title="Resumen de {VOICE_NOTE_SUMMARY.noteCount} notas de voz"
-				bullets={VOICE_NOTE_SUMMARY.bullets}
-			/>
-		{:else}
-			<p class="empty">Alumno no encontrado.</p>
 		{/if}
+
+		<p class="eyebrow">EVALUACIONES</p>
+
+		<div class="stack">
+			{#each evaluations as ev (ev.assessment_id)}
+				{@const attempt = latestAttempt(ev)}
+				{@const scored = attempt?.raw_value != null}
+				<div class="card row component" class:unscored={!scored}>
+					<div class="grow">
+						<p class="component-name">{ev.title}</p>
+						<p class="component-weight">Peso {Math.round(ev.weight * 100)}%</p>
+					</div>
+					<span class="input-wrap">
+						<input
+							type="number"
+							class="score-input"
+							min="0"
+							max={ev.max_score}
+							value={attempt?.raw_value ?? ''}
+							onchange={(e) => void handleScoreChange(ev, e)}
+							aria-label={`Nota de ${ev.title}, sobre ${ev.max_score}`}
+						/>
+						<span class="max">/ {ev.max_score}</span>
+					</span>
+					<span class="score">
+						{scored && attempt?.raw_value != null
+							? `${Math.round((attempt.raw_value / ev.max_score) * 100)}%`
+							: '—'}
+					</span>
+				</div>
+			{/each}
+		</div>
+
+		{#if evaluations.length === 0}
+			<p class="empty">Aún no hay evaluaciones para este curso.</p>
+		{/if}
+
+		<button class="btn-block ai pressable" disabled={requestingSummary} onclick={handleSummary}>
+			<Icon name="sparkles" size={16} />
+			{data.summary?.status === 'generating' || requestingSummary
+				? 'Generando resumen…'
+				: 'Generar resumen'}
+		</button>
+
+		{#if data.summary && (data.summary.status === 'ready' || data.summary.status === 'stale')}
+			<AiSummaryCard
+				title="Resumen de {data.summary.notes_count} notas de voz"
+				bullets={data.summary.bullets}
+			/>
+		{/if}
+	{:else if loadError}
+		<p class="empty">
+			No se pudieron cargar las notas.
+			<button class="pill-light pressable" onclick={load}>Reintentar</button>
+		</p>
 	{/if}
 </div>
 
@@ -337,13 +406,6 @@
 		background: var(--fill-accent);
 		color: var(--on-accent);
 		margin-bottom: var(--space-sm);
-	}
-
-	.secondary {
-		background: var(--surface-2);
-		color: var(--text-primary);
-		border: 0.5px solid var(--border-strong);
-		margin-bottom: 20px;
 	}
 
 	.empty {

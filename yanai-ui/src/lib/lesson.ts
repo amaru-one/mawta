@@ -1,294 +1,325 @@
-// Orchestration layer: bootstraps today's session and owns every mutation.
-// Each action updates the stores synchronously (instant UI) and persists to
-// IndexedDB in the background — autosave, no submit button.
+// Orchestration layer for the lesson screen: loads a session's roster from the
+// API and owns every mutation. Each action updates the stores synchronously
+// (instant UI), sends the API call in the background, and reverts the store
+// with an error toast if the server rejects it — autosave, no submit button.
 
-import { get, writable, type Writable } from 'svelte/store';
-import * as db from './db';
-import { seedIfEmpty } from './seed';
+import { get } from 'svelte/store';
+import { ApiError, fetchAudioBlob, list } from './api/client';
+import type { AttendanceStatus, RosterEntryDto, SessionRosterDto } from './api/dto';
 import {
-	assessments,
-	currentCourse,
-	currentSession,
-	entries,
-	entryKey,
-	notes,
-	students,
-} from './stores';
-import type { Attendance, Entry, Note, NoteTag, Participation } from './types';
+	createVoiceNote,
+	discardVoiceNote,
+	getFlagTypes,
+	getSession,
+	markAllPresent as apiMarkAllPresent,
+	putAttendance,
+	putObservation,
+	saveVoiceNote,
+	startSession
+} from './api/endpoints/sessions';
+import { parseDateOnly, splitDisplayName } from './api/mappers';
+import { currentCourse, currentSession, entries, entryKey, notes, students } from './stores';
+import { showToast } from './toast';
+import type { Attendance, Entry, Note, Participation, Session, Student } from './types';
 
-// Note durations are runtime-only metadata (the persisted model stores just
-// the blob); recorded live, recovered from audio metadata after a reload.
-export const noteDurations: Writable<Map<string, number>> = writable(new Map());
+const SAVE_ERROR = 'No se pudo guardar — revisa tu conexión';
 
-const uid = (): string =>
-	typeof crypto !== 'undefined' && 'randomUUID' in crypto
-		? crypto.randomUUID()
-		: `id-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-
-function isToday(d: Date): boolean {
-	const now = new Date();
-	const date = new Date(d);
-	return (
-		date.getFullYear() === now.getFullYear() &&
-		date.getMonth() === now.getMonth() &&
-		date.getDate() === now.getDate()
-	);
+// The UI keeps attendance binary; the server's late/excused/justified statuses
+// collapse into the nearest bucket and are overwritten if the teacher toggles.
+function toAttendance(status: AttendanceStatus | null): Attendance | null {
+	if (status === null) return null;
+	return status === 'present' || status === 'late' ? 'present' : 'absent';
 }
 
-export async function loadToday(): Promise<void> {
-	const courseId = await seedIfEmpty();
-	const [courses, courseStudents, courseAssessments, courseSessions] = await Promise.all([
-		db.getCourses(),
-		db.getStudents(courseId),
-		db.getAssessments(courseId),
-		db.getSessions(courseId),
-	]);
+// FlagButton is boolean; the server wants flag-type UUIDs. Flagging uses the
+// tenant's first flag type; unflagging clears the whole set.
+let defaultFlagTypeId: string | null = null;
 
-	const course = courses.find((c) => c.id === courseId) ?? null;
-	currentCourse.set(course);
-	courseStudents.sort((a, b) =>
-		`${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
-	);
-	students.set(courseStudents);
-	assessments.set(courseAssessments);
-
-	let session = courseSessions.find((s) => isToday(s.date)) ?? null;
-	if (!session) {
-		// Timetable default for Matemática 8B: 10:00–12:00, lección sobre fracciones.
-		session = {
-			id: uid(),
-			courseId,
-			date: new Date(),
-			startTime: '10:00',
-			endTime: '12:00',
-			blocks: [{ kind: 'lesson', topic: 'Fracciones' }],
-		};
-		await db.saveSession(session);
+async function ensureFlagTypes(): Promise<void> {
+	if (defaultFlagTypeId !== null) return;
+	try {
+		const flagTypes = list((await getFlagTypes()).flag_types);
+		defaultFlagTypeId = flagTypes[0]?.id ?? null;
+	} catch {
+		// Flagging degrades gracefully until the next load.
 	}
-
-	currentSession.set(session);
-
-	const savedEntries = await db.getEntries(session.id);
-	const entryMap = new Map<string, Entry>();
-	for (const student of courseStudents) {
-		const saved = savedEntries.find((e) => e.studentId === student.id);
-		// `flagged` postdates the first release, so records written before it
-		// exists come back without the field.
-		const entry: Entry = saved
-			? { ...saved, flagged: saved.flagged ?? false }
-			: {
-					id: uid(),
-					sessionId: session.id,
-					studentId: student.id,
-					attendance: null,
-					participation: null,
-					flagged: false,
-					notes: [],
-				};
-		entryMap.set(entryKey(session.id, student.id), entry);
-	}
-
-	const noteMap = new Map<string, Note[]>();
-	await Promise.all(
-		[...entryMap.values()].map(async (entry) => {
-			const entryNotes = await db.getNotes(entry.id);
-			entryNotes.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-			entry.notes = entryNotes;
-			if (entryNotes.length > 0) noteMap.set(entry.id, entryNotes);
-		})
-	);
-
-	notes.set(noteMap);
-	entries.set(entryMap);
 }
 
-function updateEntry(studentId: string, patch: Partial<Entry>): void {
-	const session = get(currentSession);
-	if (!session) return;
-	const key = entryKey(session.id, studentId);
-	entries.update(($entries) => {
-		const entry = $entries.get(key);
-		if (!entry) return $entries;
-		const updated = { ...entry, ...patch };
-		$entries.set(key, updated);
-		void db.saveEntry(updated);
-		return new Map($entries);
-	});
-}
-
-export async function setAttendance(studentId: string, value: Attendance | null): Promise<void> {
-	updateEntry(studentId, { attendance: value });
-}
-
-export async function setParticipation(
-	studentId: string,
-	value: Participation | null
-): Promise<void> {
-	updateEntry(studentId, { participation: value });
-}
-
-export function setFlag(studentId: string, value: boolean): void {
-	updateEntry(studentId, { flagged: value });
-}
-
-// --- Set-all (one undoable action) ---
-
-export interface SetAllUndo {
-	restore: () => void;
-}
-
-function snapshotAndApply(apply: (entry: Entry) => Entry, visibleIds?: Set<string>): SetAllUndo {
-	const before = new Map<string, Entry>();
-	entries.update(($entries) => {
-		for (const [key, entry] of $entries) {
-			if (visibleIds && !visibleIds.has(entry.studentId)) continue;
-			before.set(key, entry);
-			const updated = apply(entry);
-			if (updated !== entry) {
-				$entries.set(key, updated);
-				void db.saveEntry(updated);
-			}
-		}
-		return new Map($entries);
-	});
+function toEntry(sessionId: string, dto: RosterEntryDto): { entry: Entry; noteList: Note[] } {
+	const id = entryKey(sessionId, dto.student_id);
+	const flagTypeIds = list(dto.flags).map((f) => f.id);
+	const noteList: Note[] = list(dto.voice_notes)
+		.filter((n) => n.status !== 'discarded')
+		.map((n) => ({
+			id: n.id,
+			entryId: id,
+			audioBlob: null,
+			transcript: n.transcript,
+			durationMs: n.duration_ms,
+			status: n.status === 'saved' ? 'saved' : 'draft'
+		}));
 	return {
-		restore: () => {
-			entries.update(($entries) => {
-				for (const [key, entry] of before) {
-					$entries.set(key, entry);
-					void db.saveEntry(entry);
-				}
-				return new Map($entries);
-			});
+		entry: {
+			id,
+			sessionId,
+			studentId: dto.student_id,
+			attendance: toAttendance(dto.attendance_status),
+			participation: (dto.participation_level as Participation | null) ?? null,
+			flagged: flagTypeIds.length > 0,
+			flagTypeIds,
+			observationNote: dto.observation_note,
+			levelCode: dto.level_code,
+			previousLevelCode: dto.previous_level_code,
+			trend: dto.trend,
+			notes: noteList
 		},
+		noteList
 	};
 }
 
-export function areAllPresent(visibleIds?: Set<string>): boolean {
-	const $entries = get(entries);
-	const $students = get(students);
-	for (const student of $students) {
-		if (visibleIds && !visibleIds.has(student.id)) continue;
-		const entry = $entries.get(entryKey(get(currentSession)?.id ?? '', student.id));
-		if (!entry || entry.attendance !== 'present') return false;
+function applyRoster(sessionId: string, dto: SessionRosterDto): void {
+	const h = dto.header;
+	const session: Session = {
+		id: h.session_id,
+		classId: h.class_id,
+		className: h.class_name,
+		topic: h.topic,
+		date: parseDateOnly(h.session_date),
+		status: h.status,
+		sectionAverageCode: h.section_average_code
+	};
+	currentSession.set(session);
+	currentCourse.set({ id: h.class_id, name: h.class_name });
+
+	const roster = list(dto.roster);
+	const studentList: Student[] = roster.map((r) => {
+		const { firstName, lastName } = splitDisplayName(r.name);
+		return { id: r.student_id, courseId: h.class_id, firstName, lastName };
+	});
+	students.set(studentList);
+
+	const entryMap = new Map<string, Entry>();
+	const noteMap = new Map<string, Note[]>();
+	for (const r of roster) {
+		const { entry, noteList } = toEntry(sessionId, r);
+		entryMap.set(entry.id, entry);
+		if (noteList.length > 0) noteMap.set(entry.id, noteList);
 	}
-	return $students.length > 0;
+	entries.set(entryMap);
+	notes.set(noteMap);
 }
 
-export function setAllPresent(visibleIds?: Set<string>): SetAllUndo {
-	const allPresent = areAllPresent(visibleIds);
-	return snapshotAndApply((e) => {
-		if (allPresent) {
-			return e.attendance === 'present' ? { ...e, attendance: null } : e;
-		} else {
-			return e.attendance === 'present' ? e : { ...e, attendance: 'present' };
-		}
-	}, visibleIds);
-}
+export async function loadSession(sessionId: string): Promise<void> {
+	const [roster] = await Promise.all([getSession(sessionId), ensureFlagTypes()]);
+	applyRoster(sessionId, roster);
 
-// Marks everyone not absent as "good" (2). Absent students don't participate.
-export function areAllParticipated(visibleIds?: Set<string>): boolean {
-	const $entries = get(entries);
-	const $students = get(students);
-	for (const student of $students) {
-		if (visibleIds && !visibleIds.has(student.id)) continue;
-		const entry = $entries.get(entryKey(get(currentSession)?.id ?? '', student.id));
-		if (!entry || entry.attendance === 'absent' || entry.participation !== 2) return false;
+	// Entering the lesson is "class begins" — promote a scheduled session.
+	if (roster.header.status === 'scheduled') {
+		startSession(sessionId)
+			.then(() =>
+				currentSession.update(($s) => ($s ? { ...$s, status: 'in_progress' } : $s))
+			)
+			.catch(() => {
+				// A parallel device may have started it already; harmless.
+			});
 	}
-	return $students.length > 0;
 }
 
-export function setAllParticipated(visibleIds?: Set<string>): SetAllUndo {
-	const allParticipated = areAllParticipated(visibleIds);
-	return snapshotAndApply((e) => {
-		if (allParticipated) {
-			return e.participation === 2 ? { ...e, participation: null } : e;
-		} else {
-			return e.attendance === 'absent' || e.participation === 2 ? e : { ...e, participation: 2 };
-		}
-	}, visibleIds);
+export async function refreshSession(): Promise<void> {
+	const session = get(currentSession);
+	if (!session) return;
+	applyRoster(session.id, await getSession(session.id));
 }
 
-// --- Voice notes ---
+// --- entry mutations (optimistic, revert on server rejection) ---
 
-export async function addNote(
-	studentId: string,
-	blob: Blob,
-	durationSec: number
-): Promise<Note | null> {
+function patchEntry(studentId: string, patch: Partial<Entry>): Entry | null {
 	const session = get(currentSession);
 	if (!session) return null;
 	const key = entryKey(session.id, studentId);
-	const entry = get(entries).get(key);
-	if (!entry) return null;
-
-	const note: Note = {
-		id: uid(),
-		entryId: entry.id,
-		audioBlob: blob,
-		transcript: null,
-		createdAt: new Date(),
-	};
-
-	noteDurations.update(($d) => {
-		$d.set(note.id, durationSec);
-		return new Map($d);
+	let previous: Entry | null = null;
+	entries.update(($entries) => {
+		const entry = $entries.get(key);
+		if (!entry) return $entries;
+		previous = entry;
+		$entries.set(key, { ...entry, ...patch });
+		return new Map($entries);
 	});
-	notes.update(($notes) => {
-		const list = $notes.get(entry.id) ?? [];
-		$notes.set(entry.id, [note, ...list]);
-		return new Map($notes);
-	});
-	updateEntry(studentId, { notes: [note, ...entry.notes] });
-	void db.saveNote(note);
-	return note;
+	return previous;
 }
 
-export function removeNote(note: Note): { restore: () => void } {
-	notes.update(($notes) => {
-		const list = ($notes.get(note.entryId) ?? []).filter((n) => n.id !== note.id);
-		if (list.length === 0) $notes.delete(note.entryId);
-		else $notes.set(note.entryId, list);
-		return new Map($notes);
+function restoreEntry(previous: Entry): void {
+	entries.update(($entries) => {
+		$entries.set(previous.id, previous);
+		return new Map($entries);
 	});
-	syncEntryNotes(note.entryId);
-	void db.deleteNote(note.id);
-	return {
-		restore: () => {
-			notes.update(($notes) => {
-				const list = [note, ...($notes.get(note.entryId) ?? [])];
-				list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-				$notes.set(note.entryId, list);
-				return new Map($notes);
-			});
-			syncEntryNotes(note.entryId);
-			void db.saveNote(note);
-		},
-	};
 }
 
-export function tagNote(note: Note, tag: NoteTag | undefined): void {
-	const updated: Note = { ...note, tag };
-	notes.update(($notes) => {
-		const list = ($notes.get(note.entryId) ?? []).map((n) => (n.id === note.id ? updated : n));
-		$notes.set(note.entryId, list);
-		return new Map($notes);
+function runMutation(previous: Entry | null, call: Promise<unknown>): void {
+	void call.catch((err: unknown) => {
+		if (previous) restoreEntry(previous);
+		showToast(err instanceof ApiError && err.hint ? err.hint : SAVE_ERROR);
 	});
-	syncEntryNotes(note.entryId);
-	void db.saveNote(updated);
 }
 
-// Keeps entry.notes mirroring the notes store for the given entry.
-function syncEntryNotes(entryId: string): void {
+export function setAttendance(studentId: string, value: Attendance): void {
 	const session = get(currentSession);
 	if (!session) return;
-	const $notes = get(notes);
+	const previous = patchEntry(studentId, { attendance: value });
+	runMutation(previous, putAttendance(session.id, studentId, { status: value }));
+}
+
+// Observation PUTs replace the whole observation, so every field the entry
+// already holds must ride along or it silently clears server-side.
+function putEntryObservation(entry: Entry): Promise<unknown> {
+	return putObservation(entry.sessionId, entry.studentId, {
+		participation_level: entry.participation,
+		note: entry.observationNote,
+		flag_type_ids: entry.flagTypeIds
+	});
+}
+
+export function setParticipation(studentId: string, value: Participation | null): void {
+	const session = get(currentSession);
+	if (!session) return;
+	const previous = patchEntry(studentId, { participation: value });
+	const updated = get(entries).get(entryKey(session.id, studentId));
+	if (!updated) return;
+	runMutation(previous, putEntryObservation(updated));
+}
+
+export function setFlag(studentId: string, value: boolean): void {
+	const session = get(currentSession);
+	if (!session) return;
+	if (value && defaultFlagTypeId === null) {
+		showToast(SAVE_ERROR);
+		return;
+	}
+	const flagTypeIds = value && defaultFlagTypeId !== null ? [defaultFlagTypeId] : [];
+	const previous = patchEntry(studentId, { flagged: value, flagTypeIds });
+	const updated = get(entries).get(entryKey(session.id, studentId));
+	if (!updated) return;
+	runMutation(previous, putEntryObservation(updated));
+}
+
+// --- mark all present ---
+
+export function anyUnmarked(): boolean {
+	for (const entry of get(entries).values()) {
+		if (entry.attendance === null) return true;
+	}
+	return false;
+}
+
+// Attendance is a register: the server upserts but never unsets, so there is
+// no "clear all" and no undo — matching the API's append-only philosophy.
+export async function markAllPresent(): Promise<number> {
+	const session = get(currentSession);
+	if (!session) return 0;
+
+	const before = new Map<string, Entry>();
 	entries.update(($entries) => {
 		for (const [key, entry] of $entries) {
-			if (entry.id === entryId) {
-				$entries.set(key, { ...entry, notes: $notes.get(entryId) ?? [] });
+			if (entry.attendance === null) {
+				before.set(key, entry);
+				$entries.set(key, { ...entry, attendance: 'present' });
 			}
 		}
 		return new Map($entries);
 	});
+
+	try {
+		const { marked } = await apiMarkAllPresent(session.id);
+		return marked;
+	} catch {
+		entries.update(($entries) => {
+			for (const [key, entry] of before) $entries.set(key, entry);
+			return new Map($entries);
+		});
+		showToast(SAVE_ERROR);
+		return 0;
+	}
+}
+
+// --- voice notes ---
+
+function setEntryNotes(entryId: string, noteList: Note[]): void {
+	notes.update(($notes) => {
+		if (noteList.length === 0) $notes.delete(entryId);
+		else $notes.set(entryId, noteList);
+		return new Map($notes);
+	});
+	entries.update(($entries) => {
+		const entry = $entries.get(entryId);
+		if (entry) $entries.set(entryId, { ...entry, notes: noteList });
+		return new Map($entries);
+	});
+}
+
+function replaceNote(entryId: string, noteId: string, next: Note | null): void {
+	const current = get(notes).get(entryId) ?? [];
+	const noteList =
+		next === null
+			? current.filter((n) => n.id !== noteId)
+			: current.map((n) => (n.id === noteId ? next : n));
+	setEntryNotes(entryId, noteList);
+}
+
+export async function addNote(studentId: string, blob: Blob, durationSec: number): Promise<void> {
+	const session = get(currentSession);
+	if (!session) return;
+	const entryId = entryKey(session.id, studentId);
+	if (!get(entries).has(entryId)) return;
+
+	const durationMs = Math.round(durationSec * 1000);
+	const localId = `local-${Date.now()}`;
+	const note: Note = {
+		id: localId,
+		entryId,
+		audioBlob: blob,
+		transcript: null,
+		durationMs,
+		status: 'draft',
+		createdAt: new Date()
+	};
+	setEntryNotes(entryId, [note, ...(get(notes).get(entryId) ?? [])]);
+
+	try {
+		const { id } = await createVoiceNote(session.id, studentId, blob, durationMs);
+		replaceNote(entryId, localId, { ...note, id });
+	} catch {
+		replaceNote(entryId, localId, null);
+		showToast(SAVE_ERROR);
+	}
+}
+
+export function saveNote(note: Note): void {
+	replaceNote(note.entryId, note.id, { ...note, status: 'saved' });
+	void saveVoiceNote(note.id).catch(() => {
+		replaceNote(note.entryId, note.id, note);
+		showToast(SAVE_ERROR);
+	});
+}
+
+// Discard is final server-side; the confirm dialog already says so.
+export function removeNote(note: Note): void {
+	replaceNote(note.entryId, note.id, null);
+	void discardVoiceNote(note.id).catch(() => {
+		setEntryNotes(note.entryId, [note, ...(get(notes).get(note.entryId) ?? [])]);
+		showToast(SAVE_ERROR);
+	});
+}
+
+// Playback audio: local blob right after recording, fetched (and memoized on
+// the note) for server-loaded notes.
+export async function noteAudio(note: Note): Promise<Blob | null> {
+	if (note.audioBlob) return note.audioBlob;
+	try {
+		const blob = await fetchAudioBlob(note.id);
+		replaceNote(note.entryId, note.id, { ...note, audioBlob: blob });
+		return blob;
+	} catch {
+		showToast('No se pudo cargar el audio');
+		return null;
+	}
 }

@@ -45,6 +45,7 @@ func (a *API) Router() http.Handler {
 		r.Use(a.tenantAuth)
 
 		r.Get("/me", a.handleMe)
+		r.Get("/flag-types", a.handleListFlagTypes)
 
 		r.Get("/home", a.handleHome)
 		r.Get("/classes", a.handleSearchClasses)

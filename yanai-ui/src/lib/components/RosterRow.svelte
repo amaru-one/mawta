@@ -1,15 +1,8 @@
 <script lang="ts">
 	import { hapticTap } from '$lib/haptics';
-	import { gradeFor, trendFor } from '$lib/grades';
-	import {
-		addNote,
-		noteDurations,
-		removeNote,
-		setAttendance,
-		setFlag,
-		setParticipation
-	} from '$lib/lesson';
-	import { assessments, notes, scores } from '$lib/stores';
+	import type { Tier } from '$lib/grades';
+	import { addNote, removeNote, saveNote, setAttendance, setFlag, setParticipation } from '$lib/lesson';
+	import { currentCourse, notes } from '$lib/stores';
 	import { showToast } from '$lib/toast';
 	import type { Attendance, Entry, Note, Participation, Student } from '$lib/types';
 	import AttendanceControl from './AttendanceControl.svelte';
@@ -31,8 +24,20 @@
 
 	const rowNotes = $derived($notes.get(entry.id) ?? []);
 	const isAbsent = $derived(entry.attendance === 'absent');
-	const grade = $derived(gradeFor(student.id, $scores, $assessments));
-	const trend = $derived(trendFor(student.id, $scores, $assessments));
+
+	const TIERS = ['AD', 'A', 'B', 'C'] as const;
+	const tier = $derived(
+		TIERS.includes(entry.levelCode as Tier) ? (entry.levelCode as Tier) : null
+	);
+	const previousTier = $derived(
+		entry.trend !== null && entry.trend !== 'flat' ? entry.previousLevelCode : null
+	);
+
+	const gradesHref = $derived(
+		`/grades/${student.id}?class=${$currentCourse?.id ?? ''}` +
+			`&name=${encodeURIComponent(`${student.firstName} ${student.lastName}`)}` +
+			`&course=${encodeURIComponent($currentCourse?.name ?? '')}`
+	);
 
 	function flashRow(): void {
 		flash = true;
@@ -41,14 +46,14 @@
 
 	function handleAttendance(value: Attendance): void {
 		hapticTap();
-		void setAttendance(student.id, value);
+		setAttendance(student.id, value);
 		flashRow();
 		showToast(value === 'present' ? 'Marcado presente' : 'Marcado ausente');
 	}
 
 	function handleParticipation(value: Participation): void {
 		hapticTap();
-		void setParticipation(student.id, value);
+		setParticipation(student.id, value);
 		showToast('Participación actualizada');
 	}
 
@@ -64,27 +69,30 @@
 	}
 
 	function handleDelete(note: Note): void {
-		const undo = removeNote(note);
-		showToast('Nota eliminada', { onUndo: undo.restore });
+		removeNote(note);
+		showToast('Nota eliminada');
 	}
 
-	function handleSave(): void {
+	function handleSave(note: Note): void {
 		hapticTap();
+		saveNote(note);
 		showToast('Nota guardada');
 	}
 </script>
 
 <div class="card student" class:absent={isAbsent} class:recording={recordingNow} class:flash>
 	<div class="row head">
-		<a class="name" href="/grades/{student.id}" onclick={hapticTap}>
+		<a class="name" href={gradesHref} onclick={hapticTap}>
 			{student.firstName}
 			{student.lastName}
 		</a>
 		<div class="row marks">
-			{#if trend}
-				<span class="trend" class:up={trend.direction === 'up'}>{trend.from} →</span>
+			{#if previousTier}
+				<span class="trend" class:up={entry.trend === 'up'}>{previousTier} →</span>
 			{/if}
-			<LevelBadge tier={grade.tier} />
+			{#if tier}
+				<LevelBadge {tier} />
+			{/if}
 			<AttendanceControl value={entry.attendance} onchange={handleAttendance} />
 		</div>
 	</div>
@@ -107,12 +115,7 @@
 	{#if rowNotes.length > 0}
 		<div class="notes">
 			{#each rowNotes as note (note.id)}
-				<VoiceNotePlayer
-					{note}
-					knownDuration={$noteDurations.get(note.id)}
-					ondelete={handleDelete}
-					onsave={handleSave}
-				/>
+				<VoiceNotePlayer {note} ondelete={handleDelete} onsave={handleSave} />
 			{/each}
 		</div>
 	{/if}

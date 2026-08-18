@@ -1,27 +1,29 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 	import { fly } from 'svelte/transition';
-	import { audioContext, blobDuration, decodeBlob, formatDuration } from '$lib/recorder';
+	import { noteAudio } from '$lib/lesson';
+	import { audioContext, decodeBlob, formatDuration } from '$lib/recorder';
 	import type { Note } from '$lib/types';
 	import ConfirmDialog from './ConfirmDialog.svelte';
 	import Icon from './Icon.svelte';
 
 	interface Props {
 		note: Note;
-		knownDuration?: number;
 		ondelete: (note: Note) => void;
 		onsave: (note: Note) => void;
 	}
 
-	let { note, knownDuration, ondelete, onsave }: Props = $props();
+	let { note, ondelete, onsave }: Props = $props();
 
 	let playing = $state(false);
 	let position = $state(0);
 	let measuredDuration = $state(0);
-	let isSaved = $state(false);
 	let showDeleteConfirm = $state(false);
 
-	const duration = $derived(knownDuration ?? measuredDuration);
+	// The store swaps in the updated note after a save, so this flows down.
+	const isSaved = $derived(note.status === 'saved');
+
+	const duration = $derived(measuredDuration || note.durationMs / 1000);
 
 	let buffer: AudioBuffer | null = null;
 	let source: AudioBufferSourceNode | null = null;
@@ -29,14 +31,6 @@
 	let pausedOffset = 0;
 	let stopping = false;
 	let posTimer: ReturnType<typeof setInterval> | undefined;
-
-	$effect(() => {
-		if (!duration) {
-			void blobDuration(note.audioBlob).then((d) => {
-				if (d > 0) measuredDuration = d;
-			});
-		}
-	});
 
 	function pause(): void {
 		if (!source) return;
@@ -54,7 +48,11 @@
 			return;
 		}
 		const ctx = audioContext();
-		buffer ??= await decodeBlob(note.audioBlob);
+		if (!buffer) {
+			const blob = await noteAudio(note);
+			if (!blob) return;
+			buffer = await decodeBlob(blob);
+		}
 		if (!buffer) return;
 		if (!measuredDuration) measuredDuration = buffer.duration;
 
@@ -114,10 +112,7 @@
 	<button
 		class="action pressable"
 		class:saved={isSaved}
-		onclick={() => {
-			onsave(note);
-			isSaved = true;
-		}}
+		onclick={() => onsave(note)}
 		aria-label="Guardar nota"
 		title="Guardar nota"
 	>
