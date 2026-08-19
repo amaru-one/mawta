@@ -2,12 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-This directory holds two independent, separately-run projects:
+This is a single monorepo (`/Users/amaru/yanai`) containing two subprojects with independent toolchains:
 
-- `yanai-server/` — Go API (not a git repo)
-- `yanai-ui/` — SvelteKit frontend (its own git repo)
+- `yanai-server/` — Go API
+- `yanai-ui/` — SvelteKit frontend, consuming `yanai-server`'s API over `/api/v1/*`
 
-`yanai-ui` is meant to eventually consume `yanai-server`'s API, but that wiring isn't done yet — the UI is currently IndexedDB-only. Each subproject has its own toolchain; work inside the relevant one rather than mixing commands.
+`yanai-ui` was previously its own separate git repo (`github.com/06amaru/yanay-ui`); its history was merged in via `git subtree` and that repo is now just an archive — do not treat it as a source of truth. Each subproject has its own toolchain; work inside the relevant one rather than mixing commands.
 
 ## yanai-server (Go)
 
@@ -27,4 +27,9 @@ This directory holds two independent, separately-run projects:
 - Lint/format: `bun eslint .` / `bun prettier --write .` (no npm scripts for these — see `.claude/skills/verify` and `.claude/skills/format` in this subproject).
 - Prettier is configured non-default: tabs (not spaces), single quotes, 100-char print width — let Prettier handle formatting rather than hand-formatting.
 - No test framework is set up.
-- The app is mid-redesign (working tree has uncommitted component/route changes); don't assume `yanai-ui/README.md` or its committed history reflect the current UI.
+- Talks to `yanai-server` via `src/lib/api/` (typed fetch client, DTOs, mappers) — dev auth headers come from `PUBLIC_TENANT_ID`/`PUBLIC_ACTOR_ID` env vars (see `.env.example`). No IndexedDB, no mock data — every screen reads and writes through the API.
+- SPA build via `adapter-static` (`fallback: 'index.html'`); the Vite dev server proxies `/api` and `/healthz` to `localhost:8080` so dev is same-origin too.
+
+## Deployment
+
+See `DEPLOY.md` at the repo root for the full runbook (single VPS, Docker Compose, Caddy, GitHub Actions CI/CD).
