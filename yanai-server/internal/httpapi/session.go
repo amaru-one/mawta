@@ -14,6 +14,7 @@ import (
 
 	"yanai-server/internal/db"
 	"yanai-server/internal/domain"
+	"yanai-server/internal/media"
 	"yanai-server/internal/repo"
 )
 
@@ -262,6 +263,20 @@ func (a *API) handleCreateVoiceNote(w http.ResponseWriter, r *http.Request) {
 		unprocessable(w, "audio is missing or too short to be a valid recording")
 		return
 	}
+
+	// Recording browsers disagree on codec/container (Chrome: WebM/Opus,
+	// Safari: MP4/AAC) and neither can play the other's output, so every
+	// upload is normalized to one canonical format before it's stored.
+	transcoded, err := media.TranscodeToMP3(r.Context(), audioBytes)
+	if err != nil {
+		unprocessable(w, "could not process audio")
+		return
+	}
+	audioBytes = transcoded
+	canonicalMimeType := media.CanonicalMimeType
+	mimeType = &canonicalMimeType
+	transcodedSize := int64(len(audioBytes))
+	byteSize = &transcodedSize
 
 	var voiceNoteID uuid.UUID
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {

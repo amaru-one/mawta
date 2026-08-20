@@ -10,7 +10,10 @@ COPY . .
 RUN CGO_ENABLED=0 go build -o /out/api ./cmd/api
 RUN CGO_ENABLED=0 go install github.com/pressly/goose/v3/cmd/goose@v3.27.3
 
-FROM gcr.io/distroless/static-debian12
+FROM debian:bookworm-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /out/api /usr/local/bin/api
 COPY --from=build /go/bin/goose /usr/local/bin/goose
