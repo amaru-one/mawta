@@ -197,15 +197,18 @@ func (a *API) handleCreateVoiceNote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	const maxAudioBytes = 2 << 20 // 1 min at ~128 kbps is ~1 MB; 2x headroom
+	const minAudioBytes = 1000    // rejects near-empty/mis-tap blobs
+	const maxDurationMs = 60_000  // voice notes are capped at 1 minute
+
 	var durationMs int32
 	var mimeType *string
 	var byteSize *int64
 	var audioBytes []byte
-	var audioExt string
 
 	contentType := r.Header.Get("Content-Type")
 	if len(contentType) >= 19 && contentType[:19] == "multipart/form-data" {
-		if err := r.ParseMultipartForm(32 << 20); err != nil {
+		if err := r.ParseMultipartForm(maxAudioBytes); err != nil {
 			badRequest(w, "invalid multipart form")
 			return
 		}
@@ -222,17 +225,17 @@ func (a *API) handleCreateVoiceNote(w http.ResponseWriter, r *http.Request) {
 		}
 		if file, header, err := r.FormFile("audio"); err == nil {
 			defer file.Close()
-			audioBytes, err = io.ReadAll(io.LimitReader(file, 32<<20))
+			audioBytes, err = io.ReadAll(io.LimitReader(file, maxAudioBytes+1))
 			if err != nil {
 				writeError(w, err)
 				return
 			}
-			sz := int64(len(audioBytes))
-			byteSize = &sz
-			audioExt = filepath.Ext(header.Filename)
-			if audioExt == "" {
-				audioExt = ".webm"
+			if len(audioBytes) > maxAudioBytes {
+				unprocessable(w, "audio exceeds the 1-minute size limit")
+				return
 			}
+			byteSize = new(int64)
+			*byteSize = int64(len(audioBytes))
 			if mimeType == nil {
 				ct := header.Header.Get("Content-Type")
 				mimeType = &ct
@@ -249,10 +252,16 @@ func (a *API) handleCreateVoiceNote(w http.ResponseWriter, r *http.Request) {
 		}
 		durationMs = body.DurationMs
 		mimeType = body.MimeType
-		audioExt = ".webm"
 	}
 
-	storageKey := filepath.Join(tc.TenantID.String(), sessionID.String(), uuid.NewString()+audioExt)
+	if durationMs > maxDurationMs {
+		unprocessable(w, "voice notes cannot be longer than 1 minute")
+		return
+	}
+	if len(audioBytes) < minAudioBytes {
+		unprocessable(w, "audio is missing or too short to be a valid recording")
+		return
+	}
 
 	var voiceNoteID uuid.UUID
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
@@ -260,7 +269,7 @@ func (a *API) handleCreateVoiceNote(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return err
 		}
-		voiceNoteID, err = repo.CreateVoiceNote(r.Context(), tx, sessionID, studentID, classID, tc.TeacherID, durationMs, storageKey, mimeType, byteSize)
+		voiceNoteID, err = repo.CreateVoiceNote(r.Context(), tx, sessionID, studentID, classID, tc.TeacherID, durationMs, audioBytes, mimeType, byteSize)
 		if err != nil {
 			return err
 		}
@@ -270,15 +279,6 @@ func (a *API) handleCreateVoiceNote(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		writeError(w, err)
 		return
-	}
-
-	if len(audioBytes) > 0 {
-		fullPath := filepath.Join(a.cfg.StorageDir, storageKey)
-		if err := os.MkdirAll(filepath.Dir(fullPath), 0o755); err != nil {
-			a.logger.Error("voice note storage mkdir", "error", err)
-		} else if err := os.WriteFile(fullPath, audioBytes, 0o644); err != nil {
-			a.logger.Error("voice note storage write", "error", err)
-		}
 	}
 
 	writeJSON(w, http.StatusCreated, map[string]any{"id": voiceNoteID})
@@ -303,17 +303,28 @@ func (a *API) handleVoiceNoteAudio(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fullPath := filepath.Join(a.cfg.StorageDir, file.StorageKey)
+	if file.MimeType != nil {
+		w.Header().Set("Content-Type", *file.MimeType)
+	}
+
+	if file.Audio != nil {
+		w.Header().Set("Content-Length", strconv.Itoa(len(file.Audio)))
+		_, _ = w.Write(file.Audio)
+		return
+	}
+
+	// Legacy fallback: pre-migration recordings still on disk.
+	if file.StorageKey == nil {
+		writeAppError(w, db.NewAppError(http.StatusNotFound, "not_found", "audio not found"))
+		return
+	}
+	fullPath := filepath.Join(a.cfg.StorageDir, *file.StorageKey)
 	f, err := os.Open(fullPath)
 	if err != nil {
 		writeAppError(w, db.NewAppError(http.StatusNotFound, "not_found", "audio file not found"))
 		return
 	}
 	defer f.Close()
-
-	if file.MimeType != nil {
-		w.Header().Set("Content-Type", *file.MimeType)
-	}
 	_, _ = io.Copy(w, f)
 }
 

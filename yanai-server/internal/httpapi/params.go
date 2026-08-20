@@ -42,6 +42,13 @@ func badRequest(w http.ResponseWriter, message string) {
 	writeAppError(w, db.NewAppError(http.StatusBadRequest, "bad_request", message))
 }
 
+// unprocessable builds a 422 for input that's well-formed but violates a
+// stated app constraint (e.g. the 1-minute voice note cap) rather than being
+// malformed outright.
+func unprocessable(w http.ResponseWriter, message string) {
+	writeAppError(w, db.NewAppError(http.StatusUnprocessableEntity, "unprocessable_entity", message))
+}
+
 // conflictf builds a 409 AppError for state-transition guards that aren't
 // backed by a database constraint (e.g. "0 rows updated").
 func conflictf(message string) *db.AppError {

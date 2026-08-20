@@ -359,13 +359,17 @@ paths:
   /sessions/{sessionID}/students/{studentID}/voice-notes:
     post:
       tags: [03 Leccion]
-      summary: Create voice note (JSON, no audio)
+      summary: Create voice note (multipart, audio required)
       description: |
         The real client sends multipart/form-data (an "audio" file field
-        plus "duration_ms" and optional "mime_type" form fields). This
-        operation shows the JSON-only fallback path (metadata, no audio
-        bytes) -- switch the body type to multipart/form-data in Bruno's
-        editor to upload real audio.
+        plus "duration_ms" and optional "mime_type" form fields) -- switch
+        the body type to multipart/form-data in Bruno's editor to upload
+        real audio. Audio is now stored in the database (bytea), written in
+        the same transaction as the row, so it is required: at least 1000
+        bytes and at most 2 MiB, and duration_ms may not exceed 60000 (voice
+        notes are capped at 1 minute). The JSON body shown below has no
+        audio bytes, so it always fails validation with 422 -- it's kept
+        only to document the metadata fields multipart also carries.
       parameters:
         - $ref: "#/components/parameters/TenantIdHeader"
         - $ref: "#/components/parameters/ActorIdHeader"
@@ -381,6 +385,7 @@ paths:
               mime_type: "audio/webm"
       responses:
         "201": { description: Created }
+        "422": { description: "Missing/too-short audio, or duration_ms over 60000" }
 
   /voice-notes/{voiceNoteID}/audio:
     get:

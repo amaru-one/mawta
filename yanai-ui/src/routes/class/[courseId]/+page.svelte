@@ -209,7 +209,11 @@
 			<div class="stack">
 				{#each list(d.past) as s (s.session_id)}
 					{@const dp = dateParts(s)}
-					<div class="card row session">
+					<a
+						class="card row session session-link"
+						href="/class/{courseId}/lesson/{s.session_id}"
+						onclick={hapticTap}
+					>
 						<div class="date">
 							<p class="day">{dp.day}</p>
 							<p class="month">{dp.month}</p>
@@ -228,7 +232,8 @@
 								{/each}
 							</div>
 						</div>
-					</div>
+						<span class="chevron"><Icon name="chevron-right" size={16} /></span>
+					</a>
 				{/each}
 			</div>
 		{/if}
@@ -254,6 +259,11 @@
 	}
 
 	.risk-link {
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.session-link {
 		color: inherit;
 		text-decoration: none;
 	}

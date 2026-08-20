@@ -21,9 +21,13 @@ Browser ── HTTPS ──▶ Caddy ── /api/*, /healthz ──▶ api conta
 One VPS, three containers via Docker Compose. This matches the app's actual
 constraints: voice-note audio lives on local disk (`STORAGE_DIR`), and the
 background job worker runs in-process inside the API — both are
-single-node by design, so a multi-instance PaaS would buy nothing here. A
-~$5–6/mo VPS (Hetzner CX22, DigitalOcean Basic Droplet, or similar) is
-enough for an MVP's traffic.
+single-node by design, so a multi-instance PaaS would buy nothing here.
+Deploying on **DigitalOcean**: a Basic Droplet, regular (not premium)
+CPU, **2 GB RAM / 1 vCPU (~$12/mo)** is the right MVP size — one step up
+from the cheapest 1 GB tier, since the planned supervisor analytics
+dashboard adds aggregate queries against Postgres on top of the API's own
+load, and 1 GB leaves very little headroom once Postgres, the API, and
+Caddy are all resident. Same Ubuntu 24.04 image, same commands below.
 
 **Known limitation, by design (see CLAUDE.md / the project's stated
 gaps):** there is no real authentication yet. The deployed app should only
@@ -33,13 +37,60 @@ ships. Every request is dev-authenticated by baking a fixed
 
 ---
 
+## Status
+
+Live deployment, first shipped 2026-08-19:
+
+- [x] §0 Prerequisites — DigitalOcean Droplet (2 GB/1 vCPU, Ubuntu 24.04),
+      IP `104.131.189.126`, hostname `104-131-189-126.sslip.io` (sslip.io,
+      no domain purchased)
+- [x] §1 Provision the VPS — Docker installed, `deploy` user created,
+      `ufw` active, deploy keypair authorized (`~/.ssh/yanai_deploy_key`
+      locally)
+- [x] §2 Lay out `/srv/yanai` — cloned via a read-only GitHub deploy key
+      (repo is private: `github.com/amaru-one/yanai`)
+- [x] §3 Configure secrets — `.env` written on the server
+- [x] §4 First deploy — image built locally on the droplet, migrated
+      (version 14), demo tenant seeded, SPA built locally and rsynced,
+      full stack up, HTTPS verified live
+- [x] §5 GitHub Actions CI/CD — all 6 repo secrets set via `gh secret
+      set`; not yet exercised by an actual push to `main`
+- [ ] §6 Backups — not yet configured
+- [ ] §7 Rollback — untested (no rollback needed yet)
+- [ ] §8 Verification checklist — first four items pass; backup cron and
+      a real `main` push are still outstanding
+
+**Known follow-up:** the `deploy` user has no passwordless `sudo`, so any
+future step needing root over non-interactive SSH will need `root@` again
+instead — not currently a blocker since §2 onward is unprivileged, but
+worth knowing before scripting further automation.
+
+**Watch on first `main` push:** the GHCR package `yanai-api` doesn't
+exist yet (§4 used a local build instead of pulling one). If it's created
+private by default, `docker compose pull` on the droplet will fail —
+see §3's `[HUMAN]` note on making the package public or `docker login
+ghcr.io` on the server.
+
+---
+
 ## 0. Prerequisites **[HUMAN]**
 
-- A VPS running **Ubuntu 24.04**, reachable over SSH as root (or a sudo
-  user). Any provider works — Hetzner, DigitalOcean, etc.
-- A domain (or subdomain) with a DNS **A record** pointing at the VPS's
-  public IP. Caddy needs this to issue a Let's Encrypt certificate — the
-  deploy will fail without it resolving.
+- A **DigitalOcean Droplet**, Ubuntu 24.04, Basic plan, regular CPU, 2 GB
+  RAM / 1 vCPU, reachable over SSH as root. Create it in the DO control
+  panel (or `doctl compute droplet create`) and add your SSH key at
+  creation time rather than a password.
+- A hostname for Caddy to issue a Let's Encrypt certificate for. No
+  domain purchase needed to get started: **[sslip.io](https://sslip.io)**
+  is a free public DNS service that resolves `<ip-with-dashes>.sslip.io`
+  straight to that IP with zero signup — e.g. if the Droplet's IP is
+  `164.90.123.45`, then `164-90-123-45.sslip.io` already resolves
+  correctly, today, with no setup. It's a real public hostname, so Caddy
+  gets a real HTTPS cert for it. Use that string as `DOMAIN` everywhere
+  below (§3's `.env` and §5's `DOMAIN` GitHub secret). If a real domain
+  is bought later, just change `DOMAIN` to it and redeploy — nothing
+  else in this runbook changes.
+  (`ufw` in §1 is the only firewall this runbook uses — no need for DO's
+  separate Cloud Firewall product for an MVP.)
 - A GitHub repo containing this monorepo (see §5 if it isn't pushed yet).
 - Ability to add **repository secrets** under Settings → Secrets and
   variables → Actions.
@@ -251,14 +302,33 @@ docker compose --env-file .env -f deploy/docker-compose.prod.yml exec -T postgre
 docker compose --env-file .env -f deploy/docker-compose.prod.yml start api
 ```
 
+## Ad-hoc: connecting a local GUI (pgAdmin, etc.) to production Postgres
+
+Postgres has no published port in `docker-compose.prod.yml` — it's only
+reachable on the Docker internal network (`postgres:5432`), and `ufw` (§1)
+only opens SSH/80/443. To point a local client at it, tunnel through the
+`deploy` user to the container's internal IP (there's no host-published
+port to forward to directly):
+
+```sh
+CONTAINER_IP=$(ssh -i ~/.ssh/yanai_deploy_key deploy@<your-server> \
+  "docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' \$(docker compose --env-file /srv/yanai/.env -f /srv/yanai/deploy/docker-compose.prod.yml ps -q postgres)") && \
+ssh -i ~/.ssh/yanai_deploy_key -L 5433:$CONTAINER_IP:5432 deploy@<your-server>
+```
+
+Keep that SSH session open, then connect the local client to `localhost:5433`,
+database `yanai`, user `postgres`, password = `POSTGRES_PASSWORD` from
+`/srv/yanai/.env` on the server.
+
 ## 8. Verification checklist
 
-- [ ] `curl https://<domain>/healthz` → `{"ok":true}`
-- [ ] `curl https://<domain>/api/v1/me` with the demo tenant/actor headers
-      → the seeded teacher
+- [x] `curl https://<domain>/healthz` → `{"ok":true}`
+- [x] `curl https://<domain>/api/v1/me` with the demo tenant/actor headers
+      → the seeded teacher (confirmed: Janice Q, I.E. Cristo Rey)
 - [ ] All six screens load and work in a browser: Home, class dashboard,
       lesson/attendance (mark present, add a voice note), grades (enter a
-      score), notifications, profile
+      score), notifications, profile — API/SPA reachability confirmed via
+      curl, not yet walked through in a browser
 - [ ] A push to `main` triggers `deploy.yml` and it goes green
 - [ ] The nightly backup cron entry exists (`crontab -l` won't show it —
       check `/etc/cron.d/yanai-backup` and `ls /srv/yanai/backups` the

@@ -23,6 +23,7 @@
 	let pressId = 0;
 
 	const COMMIT_MS = 400;
+	const MAX_RECORD_SEC = 60; // voice notes are capped at 1 minute (server-enforced too)
 
 	async function press(event: PointerEvent): Promise<void> {
 		if (phase !== 'idle' || disabled) return;
@@ -44,6 +45,7 @@
 			onrecordingchange?.(true);
 			tickTimer = setInterval(() => {
 				elapsedSec = (performance.now() - pressedAt) / 1000;
+				if (elapsedSec >= MAX_RECORD_SEC) void autoStop();
 			}, 100);
 		}, COMMIT_MS);
 
@@ -81,6 +83,25 @@
 		if (blob) {
 			hapticSuccess();
 			onrecorded(blob, heldMs / 1000);
+		}
+	}
+
+	// Stops the recording on its own once it hits MAX_RECORD_SEC, regardless
+	// of whether the finger is still down. release() is a no-op afterward
+	// (phase is already 'idle' by the time the pointer lifts).
+	async function autoStop(): Promise<void> {
+		if (phase !== 'recording') return;
+		clearInterval(tickTimer);
+		const active = recording;
+		recording = null;
+		phase = 'idle';
+		onrecordingchange?.(false);
+		if (!active) return;
+
+		const blob = await active.stop();
+		if (blob) {
+			hapticSuccess();
+			onrecorded(blob, MAX_RECORD_SEC);
 		}
 	}
 </script>

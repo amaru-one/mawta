@@ -15,7 +15,7 @@ import {
 	putAttendance,
 	putObservation,
 	saveVoiceNote,
-	startSession
+	startSession,
 } from './api/endpoints/sessions';
 import { parseDateOnly, splitDisplayName } from './api/mappers';
 import { currentCourse, currentSession, entries, entryKey, notes, students } from './stores';
@@ -56,7 +56,7 @@ function toEntry(sessionId: string, dto: RosterEntryDto): { entry: Entry; noteLi
 			audioBlob: null,
 			transcript: n.transcript,
 			durationMs: n.duration_ms,
-			status: n.status === 'saved' ? 'saved' : 'draft'
+			status: n.status === 'saved' ? 'saved' : 'draft',
 		}));
 	return {
 		entry: {
@@ -71,9 +71,9 @@ function toEntry(sessionId: string, dto: RosterEntryDto): { entry: Entry; noteLi
 			levelCode: dto.level_code,
 			previousLevelCode: dto.previous_level_code,
 			trend: dto.trend,
-			notes: noteList
+			notes: noteList,
 		},
-		noteList
+		noteList,
 	};
 }
 
@@ -86,7 +86,7 @@ function applyRoster(sessionId: string, dto: SessionRosterDto): void {
 		topic: h.topic,
 		date: parseDateOnly(h.session_date),
 		status: h.status,
-		sectionAverageCode: h.section_average_code
+		sectionAverageCode: h.section_average_code,
 	};
 	currentSession.set(session);
 	currentCourse.set({ id: h.class_id, name: h.class_name });
@@ -116,9 +116,7 @@ export async function loadSession(sessionId: string): Promise<void> {
 	// Entering the lesson is "class begins" — promote a scheduled session.
 	if (roster.header.status === 'scheduled') {
 		startSession(sessionId)
-			.then(() =>
-				currentSession.update(($s) => ($s ? { ...$s, status: 'in_progress' } : $s))
-			)
+			.then(() => currentSession.update(($s) => ($s ? { ...$s, status: 'in_progress' } : $s)))
 			.catch(() => {
 				// A parallel device may have started it already; harmless.
 			});
@@ -175,7 +173,7 @@ function putEntryObservation(entry: Entry): Promise<unknown> {
 	return putObservation(entry.sessionId, entry.studentId, {
 		participation_level: entry.participation,
 		note: entry.observationNote,
-		flag_type_ids: entry.flagTypeIds
+		flag_type_ids: entry.flagTypeIds,
 	});
 }
 
@@ -280,16 +278,18 @@ export async function addNote(studentId: string, blob: Blob, durationSec: number
 		transcript: null,
 		durationMs,
 		status: 'draft',
-		createdAt: new Date()
+		createdAt: new Date(),
 	};
 	setEntryNotes(entryId, [note, ...(get(notes).get(entryId) ?? [])]);
 
 	try {
 		const { id } = await createVoiceNote(session.id, studentId, blob, durationMs);
 		replaceNote(entryId, localId, { ...note, id });
-	} catch {
+	} catch (err) {
 		replaceNote(entryId, localId, null);
-		showToast(SAVE_ERROR);
+		// Validation rejections (over 1 min, empty/near-empty audio) carry a
+		// specific server message worth showing instead of the generic one.
+		showToast(err instanceof ApiError ? err.message : SAVE_ERROR);
 	}
 }
 
