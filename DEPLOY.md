@@ -54,22 +54,28 @@ Live deployment, first shipped 2026-08-19:
       (version 14), demo tenant seeded, SPA built locally and rsynced,
       full stack up, HTTPS verified live
 - [x] §5 GitHub Actions CI/CD — all 6 repo secrets set via `gh secret
-      set`; not yet exercised by an actual push to `main`
+      set`; exercised by a real push to `main` (see below) and green
 - [ ] §6 Backups — not yet configured
 - [ ] §7 Rollback — untested (no rollback needed yet)
-- [ ] §8 Verification checklist — first four items pass; backup cron and
-      a real `main` push are still outstanding
+- [x] §8 Verification checklist — `/healthz`, `/api/v1/me`, and a real
+      `main` push all pass; backup cron still outstanding, six-screen
+      browser walkthrough still outstanding
 
 **Known follow-up:** the `deploy` user has no passwordless `sudo`, so any
 future step needing root over non-interactive SSH will need `root@` again
 instead — not currently a blocker since §2 onward is unprivileged, but
 worth knowing before scripting further automation.
 
-**Watch on first `main` push:** the GHCR package `yanai-api` doesn't
-exist yet (§4 used a local build instead of pulling one). If it's created
-private by default, `docker compose pull` on the droplet will fail —
-see §3's `[HUMAN]` note on making the package public or `docker login
-ghcr.io` on the server.
+**Resolved (2026-08-20):** the first `main` push's `deploy.yml` run
+failed on `docker compose pull` with `unauthorized` — the `yanai-api`
+GHCR package defaulted to private and the droplet had no pull
+credentials. Fixed by keeping the package private (it bakes in
+`migrations/` and `seed/`, including real seed data — not safe to make
+public) and instead running `docker login ghcr.io` once on the server
+as the `deploy` user with a classic PAT scoped to `read:packages` only.
+Credentials persist in `~/.docker/config.json` on the droplet, so this
+was a one-time fix — no `deploy.yml` changes needed, and no manual SSH
+is needed for future deploys.
 
 ---
 
@@ -173,8 +179,17 @@ Generate the Postgres password with e.g. `openssl rand -base64 24`.
 its own read access to pull it: either make the package public after the
 first push (repo → Packages → yanai-api → Package settings → Change
 visibility), or `docker login ghcr.io` on the server with a PAT that has
-`read:packages`. Public is simpler for an MVP with no proprietary code in
-the image.
+`read:packages`. **This repo went with the latter** — the image bakes in
+`migrations/` and `seed/` (see `Dockerfile`), including real seed data,
+so the package stays private. Classic PAT (fine-grained tokens don't
+currently support GHCR), scoped to `read:packages` only, then on the
+server as `deploy`:
+```sh
+ssh deploy@<your-server> "docker login ghcr.io -u <github-owner> --password-stdin"
+# paste the token, Enter, Ctrl+D
+```
+One-time — credentials persist in `~/.docker/config.json`, so no repeat
+per deploy.
 
 ## 4. First deploy (manual, one-time)
 
