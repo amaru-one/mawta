@@ -1,5 +1,10 @@
 import { apiGet, apiSend } from '../client';
-import type { ScoreCorrectDto, ScoreCreateDto, StudentGradesDto } from '../dto';
+import type {
+	PracticeScoreCreateDto,
+	ScoreCorrectDto,
+	ScoreCreateDto,
+	StudentGradesDto,
+} from '../dto';
 
 export function getStudentGrades(
 	classId: string,
@@ -20,11 +25,30 @@ export function correctScore(scoreId: string, body: ScoreCorrectDto): Promise<{ 
 	return apiSend<{ id: string }>('POST', `/scores/${scoreId}/correct`, body);
 }
 
+export function createPracticeScore(
+	classId: string,
+	studentId: string,
+	body: PracticeScoreCreateDto
+): Promise<{ id: string }> {
+	return apiSend<{ id: string }>(
+		'POST',
+		`/classes/${classId}/students/${studentId}/practice-scores`,
+		body
+	);
+}
+
+export function deletePracticeScore(id: string): Promise<{ status: string }> {
+	return apiSend<{ status: string }>('POST', `/practice-scores/${id}/delete`);
+}
+
 export function requestSummary(
 	classId: string,
 	studentId: string,
 	termId?: string
 ): Promise<{ status: string }> {
 	const qs = termId ? `?term_id=${termId}` : '';
-	return apiSend<{ status: string }>('POST', `/classes/${classId}/students/${studentId}/summary${qs}`);
+	return apiSend<{ status: string }>(
+		'POST',
+		`/classes/${classId}/students/${studentId}/summary${qs}`
+	);
 }

@@ -48,9 +48,10 @@ type SummaryView struct {
 }
 
 type StudentGradesResponse struct {
-	ComputedGrade *ComputedGradeView `json:"computed_grade"`
-	Evaluations   []EvaluationEntry  `json:"evaluations"`
-	Summary       *SummaryView       `json:"summary"`
+	ComputedGrade  *ComputedGradeView   `json:"computed_grade"`
+	Evaluations    []EvaluationEntry    `json:"evaluations"`
+	Summary        *SummaryView         `json:"summary"`
+	PracticeScores []PracticeScoreEntry `json:"practice_scores"`
 }
 
 func GetStudentGrades(ctx context.Context, tx pgx.Tx, classID, studentID, termID uuid.UUID) (StudentGradesResponse, error) {
@@ -140,6 +141,12 @@ func GetStudentGrades(ctx context.Context, tx pgx.Tx, classID, studentID, termID
 	} else if err != pgx.ErrNoRows {
 		return resp, err
 	}
+
+	practiceScores, err := listPracticeScores(ctx, tx, classID, studentID, termID)
+	if err != nil {
+		return resp, err
+	}
+	resp.PracticeScores = practiceScores
 
 	return resp, nil
 }

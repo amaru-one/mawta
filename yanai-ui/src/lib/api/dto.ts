@@ -19,7 +19,8 @@ export type AssessmentKind =
 	| 'rubrica'
 	| 'otro';
 export type VoiceNoteStatus = 'draft' | 'saved' | 'discarded';
-export type TranscriptionStatus = 'pending' | 'queued' | 'processing' | 'completed' | 'failed' | 'skipped';
+export type TranscriptionStatus =
+	'pending' | 'queued' | 'processing' | 'completed' | 'failed' | 'skipped';
 export type SummaryStatus = 'pending' | 'generating' | 'ready' | 'failed' | 'stale';
 export type Trend = 'up' | 'down' | 'flat';
 export type Severity = 'info' | 'low' | 'medium' | 'high';
@@ -208,10 +209,21 @@ export type NoteSummaryDto = {
 	notes_count: number;
 };
 
+export type PracticeScoreDto = {
+	id: string;
+	title: string;
+	kind: AssessmentKind;
+	raw_value: number;
+	max_value: number;
+	note: string | null;
+	recorded_at: string;
+};
+
 export type StudentGradesDto = {
 	computed_grade: ComputedGradeDto | null;
 	evaluations: EvaluationDto[] | null;
 	summary: NoteSummaryDto | null;
+	practice_scores: PracticeScoreDto[] | null;
 };
 
 export type AssessmentCreateDto = {
@@ -221,6 +233,14 @@ export type AssessmentCreateDto = {
 	max_score: number;
 	due_at?: string | null;
 	term_id?: string | null;
+};
+
+export type PracticeScoreCreateDto = {
+	title: string;
+	kind?: AssessmentKind;
+	raw_value: number;
+	max_value: number;
+	note?: string | null;
 };
 
 export type ScoreCreateDto = {

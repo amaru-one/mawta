@@ -72,6 +72,9 @@ func (a *API) Router() http.Handler {
 		r.Post("/assessments/{assessmentID}/scores", a.handleCreateScore)
 		r.Post("/scores/{scoreID}/correct", a.handleCorrectScore)
 
+		r.Post("/classes/{classID}/students/{studentID}/practice-scores", a.handleCreatePracticeScore)
+		r.Post("/practice-scores/{practiceScoreID}/delete", a.handleDeletePracticeScore)
+
 		r.Get("/notifications", a.handleListNotifications)
 		r.Get("/notifications/unread-count", a.handleUnreadCount)
 		r.Post("/notifications/{notificationID}/read", a.handleMarkNotificationRead)

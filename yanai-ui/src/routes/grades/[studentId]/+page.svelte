@@ -2,9 +2,18 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { ApiError, list } from '$lib/api/client';
-	import type { AttemptDto, EvaluationDto, StudentGradesDto } from '$lib/api/dto';
-	import { correctScore, createScore, getStudentGrades, requestSummary } from '$lib/api/endpoints/grades';
+	import type { AttemptDto, EvaluationDto, PracticeScoreCreateDto, StudentGradesDto } from '$lib/api/dto';
+	import {
+		correctScore,
+		createPracticeScore,
+		createScore,
+		deletePracticeScore,
+		getStudentGrades,
+		requestSummary
+	} from '$lib/api/endpoints/grades';
+	import AddPracticeScoreDialog from '$lib/components/AddPracticeScoreDialog.svelte';
 	import AiSummaryCard from '$lib/components/AiSummaryCard.svelte';
+	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
@@ -49,6 +58,23 @@
 	onMount(load);
 
 	const evaluations = $derived(list(data?.evaluations));
+	const practiceScores = $derived(list(data?.practice_scores));
+
+	const kindLabels: Record<string, string> = {
+		quiz: 'Quiz',
+		examen: 'Examen',
+		practica: 'Práctica',
+		tarea: 'Tarea',
+		proyecto: 'Proyecto',
+		exposicion: 'Exposición',
+		participacion: 'Participación',
+		rubrica: 'Rúbrica',
+		otro: 'Otro'
+	};
+
+	function formatNoteDate(iso: string): string {
+		return new Date(iso).toLocaleDateString('es', { day: 'numeric', month: 'short' });
+	}
 
 	const grade = $derived.by(() => {
 		const cg = data?.computed_grade;
@@ -101,6 +127,31 @@
 			reloadSoon();
 		} catch {
 			showToast('No se pudo guardar — revisa tu conexión');
+		}
+	}
+
+	let showAddPracticeScore = $state(false);
+	let deletingPracticeScoreId = $state<string | null>(null);
+
+	async function handleAddPracticeScore(body: PracticeScoreCreateDto): Promise<void> {
+		showAddPracticeScore = false;
+		try {
+			await createPracticeScore(classId, studentId, body);
+			showToast('Nota personal guardada');
+			void reload();
+		} catch {
+			showToast('No se pudo guardar la nota');
+		}
+	}
+
+	async function handleDeletePracticeScore(id: string): Promise<void> {
+		deletingPracticeScoreId = null;
+		try {
+			await deletePracticeScore(id);
+			showToast('Nota personal eliminada');
+			void reload();
+		} catch {
+			showToast('No se pudo eliminar la nota');
 		}
 	}
 
@@ -199,6 +250,43 @@
 			<p class="empty">Aún no hay evaluaciones para este curso.</p>
 		{/if}
 
+		<p class="eyebrow">NOTAS PERSONALES</p>
+
+		<div class="stack">
+			{#each practiceScores as ps (ps.id)}
+				<div class="card row practice-score">
+					<div class="grow">
+						<p class="component-name">{ps.title}</p>
+						<p class="component-weight">{kindLabels[ps.kind] ?? ps.kind} · {formatNoteDate(ps.recorded_at)}</p>
+						{#if ps.note}
+							<p class="practice-note">{ps.note}</p>
+						{/if}
+					</div>
+					<span class="score">{ps.raw_value}/{ps.max_value}</span>
+					<button
+						class="action delete pressable"
+						onclick={() => (deletingPracticeScoreId = ps.id)}
+						aria-label="Eliminar nota personal"
+						title="Eliminar"
+					>
+						<Icon name="trash" size={15} />
+					</button>
+				</div>
+			{/each}
+		</div>
+
+		{#if practiceScores.length === 0}
+			<p class="empty">Aún no hay notas personales.</p>
+		{/if}
+
+		<button
+			class="btn-block pressable"
+			onclick={() => (showAddPracticeScore = true)}
+		>
+			<Icon name="plus" size={16} />
+			Añadir evaluación
+		</button>
+
 		<button class="btn-block ai pressable" disabled={requestingSummary} onclick={handleSummary}>
 			<Icon name="sparkles" size={16} />
 			{data.summary?.status === 'generating' || requestingSummary
@@ -219,6 +307,23 @@
 		</p>
 	{/if}
 </div>
+
+{#if showAddPracticeScore}
+	<AddPracticeScoreDialog
+		onsubmit={handleAddPracticeScore}
+		oncancel={() => (showAddPracticeScore = false)}
+	/>
+{/if}
+
+{#if deletingPracticeScoreId}
+	<ConfirmDialog
+		title="¿Eliminar esta nota personal?"
+		text="Esta acción no se puede deshacer."
+		confirmLabel="Eliminar"
+		onconfirm={() => void handleDeletePracticeScore(deletingPracticeScoreId!)}
+		oncancel={() => (deletingPracticeScoreId = null)}
+	/>
+{/if}
 
 <style>
 	.title {
@@ -399,6 +504,28 @@
 		font-weight: 500;
 		min-width: 40px;
 		text-align: right;
+	}
+
+	.practice-score {
+		align-items: flex-start;
+	}
+
+	.practice-note {
+		margin: 4px 0 0;
+		font-size: 12px;
+		color: var(--text-secondary);
+	}
+
+	.action {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--text-muted);
+	}
+
+	.action.delete {
+		color: var(--text-danger);
 	}
 
 	/* Assistant action — carries the accent. */
