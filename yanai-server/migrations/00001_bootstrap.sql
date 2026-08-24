@@ -81,24 +81,6 @@ create or replace function app.set_updated_at() returns trigger
   $fn$;
 -- +goose StatementEnd
 
--- +goose StatementBegin
-create or replace function app.forbid_hard_delete() returns trigger
-  language plpgsql
-  as $fn$
-  begin
-    if coalesce(nullif(current_setting('app.allow_hard_delete', true), ''), 'off') <> 'on' then
-      raise exception '% is soft-delete only; set app.allow_hard_delete to run an authorised erasure', tg_table_name
-        using errcode = 'restrict_violation',
-              hint = 'Set deleted_at instead. Lawful erasure runs through privacy.execute_deletion_request().';
-    end if;
-    return old;
-  end;
-  $fn$;
--- +goose StatementEnd
-
-comment on function app.forbid_hard_delete() is
-  'Blocks DELETE on tables that must be soft-deleted. The app.allow_hard_delete escape hatch exists so a Ley 29733 erasure request can still be honoured — see privacy.deletion_requests.';
-
 -- ---------------------------------------------------------------------------
 -- DDL helpers
 -- ---------------------------------------------------------------------------
@@ -115,14 +97,14 @@ create or replace function app.attach_updated_at(p_table regclass) returns void
   $fn$;
 -- +goose StatementEnd
 
+-- Hard deletes are allowed while the project is in development; this helper is
+-- kept as a no-op so downstream migrations that call it keep working.
 -- +goose StatementBegin
 create or replace function app.attach_soft_delete_guard(p_table regclass) returns void
   language plpgsql
   as $fn$
   begin
-    execute format(
-      'create trigger forbid_hard_delete before delete on %s for each row execute function app.forbid_hard_delete()',
-      p_table);
+    -- no-op: hard DELETE is permitted during development
   end;
   $fn$;
 -- +goose StatementEnd
@@ -162,7 +144,6 @@ $$;
 drop function if exists app.enable_tenant_rls(regclass);
 drop function if exists app.attach_soft_delete_guard(regclass);
 drop function if exists app.attach_updated_at(regclass);
-drop function if exists app.forbid_hard_delete();
 drop function if exists app.set_updated_at();
 drop function if exists app.current_actor_id();
 drop function if exists app.current_tenant_id();

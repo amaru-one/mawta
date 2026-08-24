@@ -326,9 +326,9 @@ only opens SSH/80/443. To point a local client at it, tunnel through the
 port to forward to directly):
 
 ```sh
-CONTAINER_IP=$(ssh -i ~/.ssh/yanai_deploy_key deploy@<your-server> \
+CONTAINER_IP=$(ssh -i ~/.ssh/yanai_deploy_key deploy@104.131.189.126 \
   "docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' \$(docker compose --env-file /srv/yanai/.env -f /srv/yanai/deploy/docker-compose.prod.yml ps -q postgres)") && \
-ssh -i ~/.ssh/yanai_deploy_key -L 5433:$CONTAINER_IP:5432 deploy@<your-server>
+ssh -i ~/.ssh/yanai_deploy_key -L 5433:$CONTAINER_IP:5432 deploy@104.131.189.126
 ```
 
 Keep that SSH session open, then connect the local client to `localhost:5433`,

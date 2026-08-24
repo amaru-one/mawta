@@ -25,16 +25,11 @@ that file for all variables.
 ## Auth (dev headers)
 
 Every `/api/v1/*` route requires `X-Tenant-ID` and `X-Actor-ID` (UUIDs); the
-actor must have an active teaching membership in the tenant. Fetch the demo
-teacher's user id:
+actor must have an active teaching membership in the tenant. Both are fixed by
+the seed and survive a reseed:
 
-```sh
-docker exec yanai-pg psql -U postgres -d yanai -Atc \
-  "set role yanai_app; set app.tenant_id='11111111-1111-4111-8111-111111111111'; \
-   select id from users where email='janice.quispe@cristorey.edu.pe';"
-```
-
-Tenant id is the demo tenant: `11111111-1111-4111-8111-111111111111`.
+- Tenant (demo tenant): `11111111-1111-4111-8111-111111111111`
+- Actor (demo teacher `janice.quispe@cristorey.edu.pe`): `22222222-2222-4222-8222-222222222222`
 
 ## Endpoints
 
@@ -77,7 +72,7 @@ SKIP LOCKED`. Toggle with `WORKER_ENABLED=false` to run API-only.
 
 ```sh
 T=11111111-1111-4111-8111-111111111111
-A=<janice's user id from above>
+A=22222222-2222-4222-8222-222222222222
 H='-H "X-Tenant-ID: '$T'" -H "X-Actor-ID: '$A'"'
 
 curl $H localhost:8080/api/v1/me
@@ -85,8 +80,10 @@ curl $H "localhost:8080/api/v1/classes/<inglés-class-id>/dashboard?date=2026-08
 curl $H "localhost:8080/api/v1/sessions/<8-aug-session-id>?q=agus"
 ```
 
-Expect: 28-student roster, AD4/A18/B6/C2 distribution, Sofía/Diego at risk,
-Quiz 1 missing 3, 8-Aug attendance unmarked. Score a pending student and the
+Expect: 10-student roster and two classes (Inglés 5to B, Matemática 5to B),
+each with 2 completed and 6 upcoming sessions and a full set of published,
+unscored assessments (Inglés: 4 listening / 2 reading / 2 writing / 1 speaking;
+Matemática: 4 quizzes / 2 tareas / 1 examen final). Score a student and the
 worker recomputes their grade within ~2s.
 
 ## Notes

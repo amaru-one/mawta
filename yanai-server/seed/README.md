@@ -7,7 +7,7 @@ pattern below is lifted directly from it, so when in doubt, search that file
 for the table name and copy the shape of the insert.
 
 Nothing here is a migration. Apply the schema migrations first
-(`migrations/00001`–`00014`), then run whatever script you write the same
+(everything under `migrations/`), then run whatever script you write the same
 way you'd run `seed_demo_tenant.sql`:
 
 ```sh
@@ -181,4 +181,5 @@ under the old weights: insert a **new** `grading_scheme_versions` row with a
 later `effective_from`, close the old version off
 (`update ... set effective_to = <new version's effective_from>`), then
 publish the new one. Never edit a published version's weights in place —
-`seed_demo_tenant.sql`'s scheme-version-2 block is the worked example.
+`app.forbid_published_weight_mutation` in `migrations/00008_grading_policy.sql`
+enforces this once a version is published.
