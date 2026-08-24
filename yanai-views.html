@@ -122,7 +122,7 @@
 
 <div class="page-head">
   <h1>Yanai — Asistente para docentes</h1>
-  <p>Seis vistas · versión actual</p>
+  <p>Ocho vistas · versión actual</p>
 </div>
 
 <div class="gallery">
@@ -216,9 +216,9 @@
   </div>
 </div>
 
-<!-- ============ 2. CLASSROOM DASHBOARD ============ -->
+<!-- ============ 2. CLASSROOM DASHBOARD v2 ============ -->
 <div class="frame">
-  <div class="frame-label"><span class="n">02</span><span class="t">Clase — panel</span></div>
+  <div class="frame-label"><span class="n">02b</span><span class="t">Clase — panel (v2)</span></div>
   <div class="phone">
     <div class="topbar">
       <svg class="ic" style="font-size:20px"><use href="#i-arrow-left"/></svg>
@@ -234,7 +234,7 @@
     </div>
     <div class="body">
       <p style="margin:0;font-weight:500;font-size:20px">Inglés 5to B</p>
-      <p style="margin:2px 0 16px;font-size:13px;color:var(--text-secondary)">30 alumnos · 4 sesiones/semana</p>
+      <p style="margin:2px 0 16px;font-size:13px;color:var(--text-secondary)">28 alumnos · 4 sesiones/semana</p>
 
       <div style="background:var(--text-primary);border-radius:12px;padding:16px;margin-bottom:20px">
         <p style="margin:0 0 8px;font-size:11px;letter-spacing:0.05em;color:var(--surface-1);font-family:var(--font-mono)">HOY · SIN INICIAR</p>
@@ -243,10 +243,46 @@
         <button style="width:100%;background:var(--surface-2);color:var(--text-primary);border:none;padding:12px;border-radius:var(--radius);font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">Iniciar clase →</button>
       </div>
 
-      <div class="grid3" style="margin-bottom:12px">
-        <div class="stat"><p>Notas reg.</p><p style="font-size:18px">14/20</p></div>
-        <div class="stat"><p>Asistencia</p><p style="font-size:18px">94%</p></div>
-        <div class="stat"><p>En riesgo</p><p style="font-size:18px;color:var(--text-danger)">2</p></div>
+      <p class="eyebrow">PROGRESO POR DESTREZA</p>
+      <div style="display:flex;gap:16px;overflow-x:auto;padding-bottom:4px;margin-bottom:20px">
+        <div style="text-align:center;flex-shrink:0">
+          <div style="position:relative;width:52px;height:52px">
+            <svg width="52" height="52" viewBox="0 0 52 52" style="transform:rotate(-90deg)">
+              <circle cx="26" cy="26" r="22" fill="none" stroke="var(--surface-1)" stroke-width="5"/>
+              <circle cx="26" cy="26" r="22" fill="none" stroke="var(--fill-accent)" stroke-width="5" stroke-linecap="round" stroke-dasharray="85.8 138.2"/>
+            </svg>
+            <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">62%</span>
+          </div>
+          <p style="margin:6px 0 0;font-size:11px;color:var(--text-secondary)">Listening</p>
+        </div>
+        <div style="text-align:center;flex-shrink:0">
+          <div style="position:relative;width:52px;height:52px">
+            <svg width="52" height="52" viewBox="0 0 52 52" style="transform:rotate(-90deg)">
+              <circle cx="26" cy="26" r="22" fill="none" stroke="var(--surface-1)" stroke-width="5"/>
+              <circle cx="26" cy="26" r="22" fill="none" stroke="var(--fill-accent)" stroke-width="5" stroke-linecap="round" stroke-dasharray="37.3 138.2"/>
+            </svg>
+            <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">27%</span>
+          </div>
+          <p style="margin:6px 0 0;font-size:11px;color:var(--text-secondary)">Reading</p>
+        </div>
+        <div style="text-align:center;flex-shrink:0">
+          <div style="position:relative;width:52px;height:52px">
+            <svg width="52" height="52" viewBox="0 0 52 52" style="transform:rotate(-90deg)">
+              <circle cx="26" cy="26" r="22" fill="none" stroke="var(--surface-1)" stroke-width="5"/>
+            </svg>
+            <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--text-muted)">0%</span>
+          </div>
+          <p style="margin:6px 0 0;font-size:11px;color:var(--text-secondary)">Writing</p>
+        </div>
+        <div style="text-align:center;flex-shrink:0">
+          <div style="position:relative;width:52px;height:52px">
+            <svg width="52" height="52" viewBox="0 0 52 52" style="transform:rotate(-90deg)">
+              <circle cx="26" cy="26" r="22" fill="none" stroke="var(--surface-1)" stroke-width="5"/>
+            </svg>
+            <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--text-muted)">0%</span>
+          </div>
+          <p style="margin:6px 0 0;font-size:11px;color:var(--text-secondary)">Speaking</p>
+        </div>
       </div>
 
       <div class="card" style="padding:14px 16px;margin-bottom:16px">
@@ -265,10 +301,13 @@
         </div>
       </div>
 
-      <div class="card" style="padding:14px 16px;margin-bottom:16px">
-        <p style="margin:0 0 10px;font-size:13px;font-weight:500">Alumnos en riesgo</p>
+      <div class="card" style="padding:14px 16px;margin-bottom:24px">
+        <div class="row" style="justify-content:space-between;margin-bottom:8px">
+          <p style="margin:0;font-size:13px;font-weight:500">Por atender</p>
+          <span style="font-size:11px;color:var(--text-muted)">5</span>
+        </div>
         <div class="row" style="gap:10px;padding:8px 0">
-          <span style="width:8px;height:8px;border-radius:50%;background:var(--fill-danger);flex-shrink:0"></span>
+          <span style="width:22px;height:22px;border-radius:50%;background:var(--fill-danger);color:var(--on-danger);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0">1</span>
           <div style="flex:1">
             <p style="margin:0;font-size:14px">Sofía Ramírez</p>
             <p style="margin:0;font-size:12px;color:var(--text-danger)">3 ausencias seguidas</p>
@@ -276,8 +315,8 @@
           <svg class="ic" style="font-size:16px;color:var(--text-muted)"><use href="#i-chevron-right"/></svg>
         </div>
         <div class="divider"></div>
-        <div class="row" style="gap:10px;padding:8px 0 0">
-          <span style="width:8px;height:8px;border-radius:50%;background:var(--fill-danger);flex-shrink:0"></span>
+        <div class="row" style="gap:10px;padding:8px 0">
+          <span style="width:22px;height:22px;border-radius:50%;background:var(--fill-danger);color:var(--on-danger);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0">2</span>
           <div style="flex:1">
             <p style="margin:0;font-size:14px">Diego Torres</p>
             <p style="margin:0;font-size:12px;color:var(--text-danger)">Bajó de A a B en 3 clases</p>
@@ -286,93 +325,46 @@
         </div>
       </div>
 
-      <div class="card" style="padding:14px 16px;margin-bottom:24px">
-        <p style="margin:0 0 10px;font-size:13px;font-weight:500">Pendientes</p>
-        <div class="row" style="gap:10px;padding:8px 0">
-          <svg class="ic" style="font-size:16px;color:var(--text-warning);flex-shrink:0"><use href="#i-checklist"/></svg>
-          <div style="flex:1">
-            <p style="margin:0;font-size:14px">Notas pendientes</p>
-            <p style="margin:0;font-size:12px;color:var(--text-secondary)">Listening: diálogos cortos · 3 alumnos</p>
-          </div>
-          <svg class="ic" style="font-size:16px;color:var(--text-muted)"><use href="#i-chevron-right"/></svg>
-        </div>
-        <div class="divider"></div>
-        <div class="row" style="gap:10px;padding:8px 0 0">
-          <svg class="ic" style="font-size:16px;color:var(--text-warning);flex-shrink:0"><use href="#i-clock"/></svg>
-          <div style="flex:1">
-            <p style="margin:0;font-size:14px">Asistencia sin marcar</p>
-            <p style="margin:0;font-size:12px;color:var(--text-secondary)">Hoy · 10:00–11:00</p>
-          </div>
-          <svg class="ic" style="font-size:16px;color:var(--text-muted)"><use href="#i-chevron-right"/></svg>
-        </div>
-      </div>
-
       <p class="eyebrow">PRÓXIMAS CLASES</p>
-      <div class="card row" style="padding:12px 16px;margin-bottom:10px">
-        <div style="text-align:center;min-width:34px">
-          <p style="margin:0;font-size:15px;font-weight:500">12</p>
-          <p style="margin:0;font-size:10px;color:var(--text-muted)">AGO</p>
+      <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;margin-bottom:20px">
+        <div class="card" style="min-width:120px;flex-shrink:0;padding:12px 14px">
+          <p style="margin:0;font-size:10px;color:var(--text-muted)">27 AGO</p>
+          <p style="margin:6px 0 0;font-size:13px;font-weight:500">Reading 3</p>
+          <p style="margin:2px 0 0;font-size:11px;color:var(--text-secondary)">10:00 AM</p>
         </div>
-        <div style="flex:1">
-          <p style="margin:0;font-size:14px">Grammar review</p>
-          <p style="margin:0;font-size:12px;color:var(--text-secondary)">10:00 – 11:00 AM</p>
+        <div class="card" style="min-width:120px;flex-shrink:0;padding:12px 14px">
+          <p style="margin:0;font-size:10px;color:var(--text-muted)">3 SEP</p>
+          <p style="margin:6px 0 0;font-size:13px;font-weight:500">Reading 4</p>
+          <p style="margin:2px 0 0;font-size:11px;color:var(--text-secondary)">10:00 AM</p>
         </div>
-        <svg class="ic" style="font-size:16px;color:var(--text-muted)"><use href="#i-chevron-right"/></svg>
-      </div>
-      <div class="card row" style="padding:12px 16px;margin-bottom:20px">
-        <div style="text-align:center;min-width:34px">
-          <p style="margin:0;font-size:15px;font-weight:500">14</p>
-          <p style="margin:0;font-size:10px;color:var(--text-muted)">AGO</p>
-        </div>
-        <div style="flex:1">
-          <p style="margin:0;font-size:14px">Reading comprehension</p>
-          <p style="margin:0;font-size:12px;color:var(--text-secondary)">10:00 – 11:00 AM</p>
-        </div>
-        <svg class="ic" style="font-size:16px;color:var(--text-muted)"><use href="#i-chevron-right"/></svg>
       </div>
 
       <p class="eyebrow">CLASES ANTERIORES</p>
-      <div class="card row" style="padding:12px 16px;margin-bottom:10px">
-        <div style="text-align:center;min-width:34px">
-          <p style="margin:0;font-size:15px;font-weight:500">3</p>
-          <p style="margin:0;font-size:10px;color:var(--text-muted)">AGO</p>
-        </div>
-        <div style="flex:1">
-          <p style="margin:0 0 4px;font-size:14px">Vocabulario: rutinas diarias</p>
-          <div style="display:flex;gap:6px">
+      <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px">
+        <div class="card" style="min-width:150px;flex-shrink:0;padding:12px 14px">
+          <p style="margin:0;font-size:10px;color:var(--text-muted)">3 AGO</p>
+          <p style="margin:6px 0 8px;font-size:13px;font-weight:500">Vocabulario: rutinas diarias</p>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
             <span class="chip chip-ok">30/30 presente</span>
             <span class="chip chip-ok">✓ Comentarios</span>
           </div>
         </div>
-        <svg class="ic" style="font-size:16px;color:var(--text-muted)"><use href="#i-chevron-right"/></svg>
-      </div>
-      <div class="card row" style="padding:12px 16px;margin-bottom:10px">
-        <div style="text-align:center;min-width:34px">
-          <p style="margin:0;font-size:15px;font-weight:500">1</p>
-          <p style="margin:0;font-size:10px;color:var(--text-muted)">AGO</p>
-        </div>
-        <div style="flex:1">
-          <p style="margin:0 0 4px;font-size:14px">Listening: diálogos cortos</p>
-          <div style="display:flex;gap:6px">
+        <div class="card" style="min-width:150px;flex-shrink:0;padding:12px 14px">
+          <p style="margin:0;font-size:10px;color:var(--text-muted)">1 AGO</p>
+          <p style="margin:6px 0 8px;font-size:13px;font-weight:500">Listening: diálogos cortos</p>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
             <span class="chip chip-ok">29/30 presente</span>
             <span class="chip chip-bad">3 pendientes</span>
           </div>
         </div>
-        <svg class="ic" style="font-size:16px;color:var(--text-muted)"><use href="#i-chevron-right"/></svg>
-      </div>
-      <div class="card row" style="padding:12px 16px">
-        <div style="text-align:center;min-width:34px">
-          <p style="margin:0;font-size:15px;font-weight:500">28</p>
-          <p style="margin:0;font-size:10px;color:var(--text-muted)">JUL</p>
-        </div>
-        <div style="flex:1">
-          <p style="margin:0 0 4px;font-size:14px">Simple past — ejercicios</p>
-          <div style="display:flex;gap:6px">
+        <div class="card" style="min-width:150px;flex-shrink:0;padding:12px 14px">
+          <p style="margin:0;font-size:10px;color:var(--text-muted)">28 JUL</p>
+          <p style="margin:6px 0 8px;font-size:13px;font-weight:500">Simple past — ejercicios</p>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
             <span class="chip chip-ok">30/30 presente</span>
             <span class="chip chip-ok">✓ Comentarios</span>
           </div>
         </div>
-        <svg class="ic" style="font-size:16px;color:var(--text-muted)"><use href="#i-chevron-right"/></svg>
       </div>
     </div>
   </div>

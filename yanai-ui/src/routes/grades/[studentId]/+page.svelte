@@ -60,6 +60,62 @@
 	const evaluations = $derived(list(data?.evaluations));
 	const practiceScores = $derived(list(data?.practice_scores));
 
+	type EvaluationModule = {
+		code: string;
+		label: string;
+		weight: number;
+		evaluations: EvaluationDto[];
+	};
+
+	const componentLabels: Record<string, string> = {
+		listening: 'Listening',
+		reading: 'Reading',
+		writing: 'Writing',
+		speaking: 'Speaking',
+		quiz: 'Quiz',
+		examen_final: 'Examen final',
+		participacion: 'Participación',
+		practicas: 'Prácticas calificadas',
+		examenes: 'Exámenes',
+		actitudinal: 'Actitudinal'
+	};
+
+	function moduleLabel(code: string): string {
+		return componentLabels[code] ?? code.charAt(0).toUpperCase() + code.slice(1);
+	}
+
+	// Groups the flat evaluation list into one accordion section per grading
+	// component (Listening, Reading, ...), in the order each first appears.
+	const evaluationModules = $derived.by((): EvaluationModule[] => {
+		const byCode = new Map<string, EvaluationModule>();
+		for (const ev of evaluations) {
+			let mod = byCode.get(ev.component_code);
+			if (!mod) {
+				mod = { code: ev.component_code, label: moduleLabel(ev.component_code), weight: ev.weight, evaluations: [] };
+				byCode.set(ev.component_code, mod);
+			}
+			mod.evaluations.push(ev);
+		}
+		return [...byCode.values()];
+	});
+
+	let expandedModules = $state<Set<string>>(new Set());
+
+	function toggleModule(code: string): void {
+		hapticTap();
+		const next = new Set(expandedModules);
+		if (next.has(code)) {
+			next.delete(code);
+		} else {
+			next.add(code);
+		}
+		expandedModules = next;
+	}
+
+	function scoredCount(mod: EvaluationModule): number {
+		return mod.evaluations.filter((ev) => latestAttempt(ev)?.raw_value != null).length;
+	}
+
 	const kindLabels: Record<string, string> = {
 		quiz: 'Quiz',
 		examen: 'Examen',
@@ -217,36 +273,58 @@
 		<p class="eyebrow">EVALUACIONES</p>
 
 		<div class="stack">
-			{#each evaluations as ev (ev.assessment_id)}
-				{@const attempt = latestAttempt(ev)}
-				{@const scored = attempt?.raw_value != null}
-				<div class="card row component" class:unscored={!scored}>
-					<div class="grow">
-						<p class="component-name">{ev.title}</p>
-						<p class="component-weight">Peso {Math.round(ev.weight * 100)}%</p>
-					</div>
-					<span class="input-wrap">
-						<input
-							type="number"
-							class="score-input"
-							min="0"
-							max={ev.max_score}
-							value={attempt?.raw_value ?? ''}
-							onchange={(e) => void handleScoreChange(ev, e)}
-							aria-label={`Nota de ${ev.title}, sobre ${ev.max_score}`}
-						/>
-						<span class="max">/ {ev.max_score}</span>
-					</span>
-					<span class="score">
-						{scored && attempt?.raw_value != null
-							? `${Math.round((attempt.raw_value / ev.max_score) * 100)}%`
-							: '—'}
-					</span>
+			{#each evaluationModules as mod (mod.code)}
+				{@const expanded = expandedModules.has(mod.code)}
+				<div class="card module" class:expanded>
+					<button
+						class="module-header pressable"
+						onclick={() => toggleModule(mod.code)}
+						aria-expanded={expanded}
+					>
+						<div class="grow">
+							<p class="component-name">{mod.label}</p>
+							<p class="component-weight">
+								Peso {Math.round(mod.weight * 100)}% · {scoredCount(mod)}/{mod.evaluations.length} evaluadas
+							</p>
+						</div>
+						<span class="chevron" class:open={expanded}>
+							<Icon name="chevron-right" size={16} />
+						</span>
+					</button>
+
+					{#if expanded}
+						<div class="module-body">
+							{#each mod.evaluations as ev (ev.assessment_id)}
+								{@const attempt = latestAttempt(ev)}
+								{@const scored = attempt?.raw_value != null}
+								<div class="row subgrade" class:unscored={!scored}>
+									<p class="subgrade-name grow">{ev.title}</p>
+									<span class="input-wrap">
+										<input
+											type="number"
+											class="score-input"
+											min="0"
+											max={ev.max_score}
+											value={attempt?.raw_value ?? ''}
+											onchange={(e) => void handleScoreChange(ev, e)}
+											aria-label={`Nota de ${ev.title}, sobre ${ev.max_score}`}
+										/>
+										<span class="max">/ {ev.max_score}</span>
+									</span>
+									<span class="score">
+										{scored && attempt?.raw_value != null
+											? `${Math.round((attempt.raw_value / ev.max_score) * 100)}%`
+											: '—'}
+									</span>
+								</div>
+							{/each}
+						</div>
+					{/if}
 				</div>
 			{/each}
 		</div>
 
-		{#if evaluations.length === 0}
+		{#if evaluationModules.length === 0}
 			<p class="empty">Aún no hay evaluaciones para este curso.</p>
 		{/if}
 
@@ -441,16 +519,6 @@
 		margin-bottom: 20px;
 	}
 
-	.component {
-		padding: var(--space-md) 14px;
-		gap: 10px;
-	}
-
-	.component.unscored {
-		border-style: dashed;
-		border-color: var(--border-strong);
-	}
-
 	.grow {
 		flex: 1;
 		min-width: 0;
@@ -461,13 +529,61 @@
 		font-size: 14px;
 	}
 
-	.component.unscored .component-name {
-		color: var(--text-muted);
-	}
-
 	.component-weight {
 		margin: 0;
 		font-size: 11px;
+		color: var(--text-muted);
+	}
+
+	.module {
+		padding: 0;
+		overflow: hidden;
+	}
+
+	.module-header {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		width: 100%;
+		padding: var(--space-md) 14px;
+		background: transparent;
+		border: none;
+		text-align: left;
+		color: inherit;
+		font: inherit;
+		cursor: pointer;
+	}
+
+	.chevron {
+		display: inline-flex;
+		flex-shrink: 0;
+		color: var(--text-muted);
+		transition: transform 150ms;
+	}
+
+	.chevron.open {
+		transform: rotate(90deg);
+	}
+
+	.module-body {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-sm);
+		padding: var(--space-sm) 14px var(--space-md);
+		border-top: 0.5px solid var(--border);
+	}
+
+	.subgrade {
+		gap: 10px;
+	}
+
+	.subgrade-name {
+		margin: 0;
+		font-size: 13px;
+		color: var(--text-secondary);
+	}
+
+	.subgrade.unscored .subgrade-name {
 		color: var(--text-muted);
 	}
 

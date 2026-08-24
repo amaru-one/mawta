@@ -57,6 +57,19 @@ type AttendanceUnmarkedSession struct {
 	SessionDate string    `json:"session_date"`
 }
 
+// ComponentProgress is one component's share of the grade registration for a
+// class: how many of the expected scores are in, and that as a 0-1 ratio.
+// Pct is null when nothing is due yet, which is distinct from "due but none
+// registered" (Expected > 0, Pct 0).
+type ComponentProgress struct {
+	ComponentID uuid.UUID `json:"component_id"`
+	Code        string    `json:"code"`
+	Name        string    `json:"name"`
+	Scored      int       `json:"scored"`
+	Expected    int       `json:"expected"`
+	Pct         *float64  `json:"pct"`
+}
+
 type SessionSummary struct {
 	SessionID        uuid.UUID `json:"session_id"`
 	SessionDate      string    `json:"session_date"`
@@ -67,6 +80,7 @@ type SessionSummary struct {
 	PresentCount     *int      `json:"present_count,omitempty"`
 	RosterCount      *int      `json:"roster_count,omitempty"`
 	MissingGrades    *int      `json:"missing_grades,omitempty"`
+	HasComments      *bool     `json:"has_comments,omitempty"`
 }
 
 type ClassDashboard struct {
@@ -78,6 +92,7 @@ type ClassDashboard struct {
 	TermID             uuid.UUID                   `json:"term_id"`
 	NextSession        *SessionSummary             `json:"next_session"`
 	Stats              DashboardStats              `json:"stats"`
+	Progress           []ComponentProgress         `json:"progress"`
 	Distribution       []LevelCount                `json:"distribution"`
 	AtRisk             []AtRiskStudent             `json:"at_risk"`
 	GradesPending      []GradesPendingAssessment   `json:"grades_pending"`
@@ -206,6 +221,54 @@ func GetClassDashboard(ctx context.Context, tx pgx.Tx, classID uuid.UUID, term T
 		}
 	}
 
+	// progress: how much of the grade registration is done, per component of the
+	// class's effective scheme. Same "due assessments x roster" denominator as
+	// Stats.NotasReg above, just broken out per component. Components with no due
+	// assessment yet report expected = 0, which the panel renders as an empty ring.
+	if !class.IsTutoria {
+		rows, err := tx.Query(ctx, `
+			with due as (
+			  select a.id, a.component_id from assessments a
+			   where a.class_id = $1 and a.term_id = $2 and a.status = 'published'
+			     and a.due_at is not null and a.due_at <= now() and a.deleted_at is null
+			),
+			roster_ids as (select unnest($3::uuid[]) as student_id)
+			select gc.id, gc.code, gc.name,
+			       (select count(*) from due where due.component_id = gc.id)
+			         * (select count(*) from roster_ids) as expected,
+			       (select count(*) from due cross join roster_ids r
+			         where due.component_id = gc.id
+			           and exists (
+			             select 1 from scores s
+			              where s.assessment_id = due.id and s.student_id = r.student_id
+			                and s.superseded_at is null and s.deleted_at is null
+			           )) as scored
+			  from grading_components gc
+			  join class_effective_grading_schemes ceg on ceg.scheme_id = gc.scheme_id
+			 where ceg.class_id = $1 and ceg.term_id = $2 and gc.deleted_at is null
+			 order by gc.sort_order
+		`, classID, term.ID, roster)
+		if err != nil {
+			return d, nil, err
+		}
+		for rows.Next() {
+			var cp ComponentProgress
+			if err := rows.Scan(&cp.ComponentID, &cp.Code, &cp.Name, &cp.Expected, &cp.Scored); err != nil {
+				rows.Close()
+				return d, nil, err
+			}
+			if cp.Expected > 0 {
+				pct := float64(cp.Scored) / float64(cp.Expected)
+				cp.Pct = &pct
+			}
+			d.Progress = append(d.Progress, cp)
+		}
+		rows.Close()
+		if err := rows.Err(); err != nil {
+			return d, nil, err
+		}
+	}
+
 	// at_risk.
 	rows, err := tx.Query(ctx, `
 		select rf.student_id,
@@ -313,7 +376,11 @@ func ListSessions(ctx context.Context, tx pgx.Tx, classID uuid.UUID, d time.Time
 	if dir == "past" {
 		query = `
 			select cs.id, cs.session_date, cs.scheduled_start_at, cs.scheduled_end_at, cs.topic, cs.status,
-			       att.present_count, att.roster_count, coalesce(pg.missing, 0)
+			       att.present_count, att.roster_count, coalesce(pg.missing, 0),
+			       exists (
+			         select 1 from voice_notes vn
+			          where vn.session_id = cs.id and vn.status = 'saved'
+			       ) as has_comments
 			  from class_sessions cs
 			  cross join lateral (
 			    select
@@ -345,7 +412,7 @@ func ListSessions(ctx context.Context, tx pgx.Tx, classID uuid.UUID, d time.Time
 	} else {
 		query = `
 			select cs.id, cs.session_date, cs.scheduled_start_at, cs.scheduled_end_at, cs.topic, cs.status,
-			       null::int, null::int, null::int
+			       null::int, null::int, null::int, null::bool
 			  from class_sessions cs
 			 where cs.class_id = $1 and cs.session_date > $2 and cs.deleted_at is null
 			 order by cs.session_date asc, cs.scheduled_start_at asc
@@ -364,7 +431,7 @@ func ListSessions(ctx context.Context, tx pgx.Tx, classID uuid.UUID, d time.Time
 		var s SessionSummary
 		var sd time.Time
 		if err := rows.Scan(&s.SessionID, &sd, &s.ScheduledStartAt, &s.ScheduledEndAt, &s.Topic, &s.Status,
-			&s.PresentCount, &s.RosterCount, &s.MissingGrades); err != nil {
+			&s.PresentCount, &s.RosterCount, &s.MissingGrades, &s.HasComments); err != nil {
 			return nil, err
 		}
 		s.SessionDate = sd.Format("2006-01-02")

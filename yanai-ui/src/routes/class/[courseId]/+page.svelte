@@ -6,6 +6,7 @@
 	import { getClassDashboard } from '$lib/api/endpoints/classes';
 	import { formatTimeHHMM, parseDateOnly } from '$lib/api/mappers';
 	import Icon from '$lib/components/Icon.svelte';
+	import ProgressRing from '$lib/components/ProgressRing.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
 
@@ -52,38 +53,16 @@
 		};
 	};
 
-	const asistenciaLabel = $derived(
-		d?.stats.asistencia_pct != null ? `${Math.round(d.stats.asistencia_pct * 100)}%` : '—'
-	);
-
-	type PendingRow = { icon: 'checklist' | 'clipboard-check'; title: string; detail: string };
-	const pending = $derived.by((): PendingRow[] => {
-		if (!d) return [];
-		const rows: PendingRow[] = list(d.grades_pending).map((g) => ({
-			icon: 'checklist' as const,
-			title: 'Notas pendientes',
-			detail: `${g.title} · ${g.missing} ${g.missing === 1 ? 'alumno' : 'alumnos'}`
-		}));
-		for (const au of list(d.attendance_unmarked)) {
-			rows.push({
-				icon: 'clipboard-check',
-				title: 'Asistencia sin marcar',
-				detail: parseDateOnly(au.session_date).toLocaleDateString('es-PE', {
-					day: 'numeric',
-					month: 'long'
-				})
-			});
-		}
-		return rows;
-	});
-
-	const pastChips = (s: SessionSummaryDto): Array<{ text: string; tone: 'ok' | 'bad' }> => {
+	const pastChips =(s: SessionSummaryDto): Array<{ text: string; tone: 'ok' | 'bad' }> => {
 		const chips: Array<{ text: string; tone: 'ok' | 'bad' }> = [];
 		if (s.present_count != null && s.roster_count != null) {
 			chips.push({ text: `${s.present_count}/${s.roster_count} presente`, tone: 'ok' });
 		}
 		if (s.missing_grades != null && s.missing_grades > 0) {
 			chips.push({ text: `${s.missing_grades} pendientes`, tone: 'bad' });
+		}
+		if (s.has_comments) {
+			chips.push({ text: '✓ Comentarios', tone: 'ok' });
 		}
 		return chips;
 	};
@@ -117,11 +96,14 @@
 			</div>
 		{/if}
 
-		<div class="grid3 stats">
-			<div class="stat"><p>Notas reg.</p><p>{d.stats.scored}/{d.stats.expected}</p></div>
-			<div class="stat"><p>Asistencia</p><p>{asistenciaLabel}</p></div>
-			<div class="stat"><p>En riesgo</p><p>{d.stats.en_riesgo}</p></div>
-		</div>
+		{#if list(d.progress).length > 0}
+			<p class="eyebrow">PROGRESO DE REGISTRO DE NOTAS</p>
+			<div class="ring-row">
+				{#each list(d.progress) as p (p.component_id)}
+					<ProgressRing pct={p.pct} label={p.name} />
+				{/each}
+			</div>
+		{/if}
 
 		{#if list(d.distribution).length > 0}
 			<div class="card section">
@@ -148,7 +130,10 @@
 
 		{#if list(d.at_risk).length > 0}
 			<div class="card section">
-				<p class="section-title">Alumnos en riesgo</p>
+				<div class="row section-head">
+					<p class="section-title">Por atender</p>
+					<span class="section-count">{list(d.at_risk).length}</span>
+				</div>
 				{#each list(d.at_risk) as student, i (student.student_id)}
 					{#if i > 0}<div class="divider"></div>{/if}
 					<a
@@ -158,7 +143,7 @@
 						)}&course={encodeURIComponent(d.name)}"
 						onclick={hapticTap}
 					>
-						<span class="bullet"></span>
+						<span class="index-badge">{i + 1}</span>
 						<div class="grow">
 							<p class="list-title">{student.name}</p>
 							<p class="list-detail danger">{student.reason_text}</p>
@@ -169,36 +154,15 @@
 			</div>
 		{/if}
 
-		{#if pending.length > 0}
-			<div class="card section">
-				<p class="section-title">Pendientes</p>
-				{#each pending as item, i (item.title + item.detail)}
-					{#if i > 0}<div class="divider"></div>{/if}
-					<div class="row list-row">
-						<span class="pending-icon"><Icon name={item.icon} size={16} /></span>
-						<div class="grow">
-							<p class="list-title">{item.title}</p>
-							<p class="list-detail">{item.detail}</p>
-						</div>
-					</div>
-				{/each}
-			</div>
-		{/if}
-
 		{#if list(d.upcoming).length > 0}
 			<p class="eyebrow">PRÓXIMAS CLASES</p>
-			<div class="stack">
+			<div class="session-scroll">
 				{#each list(d.upcoming) as s (s.session_id)}
 					{@const dp = dateParts(s)}
-					<div class="card row session">
-						<div class="date">
-							<p class="day">{dp.day}</p>
-							<p class="month">{dp.month}</p>
-						</div>
-						<div class="grow">
-							<p class="list-title">{s.topic ?? 'Clase'}</p>
-							<p class="list-detail">{timeRange(s)}</p>
-						</div>
+					<div class="card mini-session">
+						<p class="mini-date">{dp.day} {dp.month}</p>
+						<p class="mini-title">{s.topic ?? 'Clase'}</p>
+						<p class="mini-detail">{timeRange(s)}</p>
 					</div>
 				{/each}
 			</div>
@@ -206,33 +170,27 @@
 
 		{#if list(d.past).length > 0}
 			<p class="eyebrow">CLASES ANTERIORES</p>
-			<div class="stack">
+			<div class="session-scroll">
 				{#each list(d.past) as s (s.session_id)}
 					{@const dp = dateParts(s)}
 					<a
-						class="card row session session-link"
+						class="card mini-session mini-session-link"
 						href="/class/{courseId}/lesson/{s.session_id}"
 						onclick={hapticTap}
 					>
-						<div class="date">
-							<p class="day">{dp.day}</p>
-							<p class="month">{dp.month}</p>
+						<p class="mini-date">{dp.day} {dp.month}</p>
+						<p class="mini-title tight">{s.topic ?? 'Clase'}</p>
+						<div class="chips">
+							{#each pastChips(s) as chip (chip.text)}
+								<span
+									class="chip"
+									class:chip-ok={chip.tone === 'ok'}
+									class:chip-bad={chip.tone === 'bad'}
+								>
+									{chip.text}
+								</span>
+							{/each}
 						</div>
-						<div class="grow">
-							<p class="list-title tight">{s.topic ?? 'Clase'}</p>
-							<div class="chips">
-								{#each pastChips(s) as chip (chip.text)}
-									<span
-										class="chip"
-										class:chip-ok={chip.tone === 'ok'}
-										class:chip-bad={chip.tone === 'bad'}
-									>
-										{chip.text}
-									</span>
-								{/each}
-							</div>
-						</div>
-						<span class="chevron"><Icon name="chevron-right" size={16} /></span>
 					</a>
 				{/each}
 			</div>
@@ -263,9 +221,12 @@
 		text-decoration: none;
 	}
 
-	.session-link {
-		color: inherit;
-		text-decoration: none;
+	.ring-row {
+		display: flex;
+		gap: 16px;
+		overflow-x: auto;
+		padding-bottom: 4px;
+		margin-bottom: 20px;
 	}
 
 	.today {
@@ -309,22 +270,6 @@
 		text-decoration: none;
 	}
 
-	.stats {
-		margin-bottom: var(--space-md);
-	}
-
-	.stat p:first-child {
-		margin: 0 0 var(--space-xs);
-		font-size: 11px;
-		color: var(--text-secondary);
-	}
-
-	.stat p:last-child {
-		margin: 0;
-		font-size: 18px;
-		font-weight: 500;
-	}
-
 	.section {
 		padding: 14px var(--space-lg);
 		margin-bottom: var(--space-lg);
@@ -334,6 +279,20 @@
 		margin: 0 0 10px;
 		font-size: 13px;
 		font-weight: 500;
+	}
+
+	.section-head {
+		justify-content: space-between;
+		margin-bottom: var(--space-sm);
+	}
+
+	.section-head .section-title {
+		margin: 0;
+	}
+
+	.section-count {
+		font-size: 11px;
+		color: var(--text-muted);
 	}
 
 	.bar {
@@ -376,27 +335,23 @@
 		min-width: 0;
 	}
 
-	.bullet {
-		width: 8px;
-		height: 8px;
+	.index-badge {
+		width: 22px;
+		height: 22px;
 		border-radius: 50%;
 		background: var(--fill-danger);
-		flex-shrink: 0;
-	}
-
-	.pending-icon {
-		color: var(--text-warning);
+		color: var(--on-danger);
 		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 11px;
+		font-weight: 600;
 		flex-shrink: 0;
 	}
 
 	.list-title {
 		margin: 0;
 		font-size: 14px;
-	}
-
-	.list-title.tight {
-		margin-bottom: var(--space-xs);
 	}
 
 	.list-detail {
@@ -415,32 +370,46 @@
 		flex-shrink: 0;
 	}
 
-	.stack {
+	.session-scroll {
 		display: flex;
-		flex-direction: column;
 		gap: 10px;
+		overflow-x: auto;
+		padding-bottom: 4px;
 		margin-bottom: 20px;
 	}
 
-	.session {
+	.mini-session {
+		min-width: 120px;
+		flex-shrink: 0;
 		padding: var(--space-md) var(--space-lg);
+		color: inherit;
+		text-decoration: none;
 	}
 
-	.date {
-		text-align: center;
-		min-width: 34px;
+	.mini-session-link {
+		min-width: 150px;
 	}
 
-	.day {
-		margin: 0;
-		font-size: 15px;
-		font-weight: 500;
-	}
-
-	.month {
+	.mini-date {
 		margin: 0;
 		font-size: 10px;
 		color: var(--text-muted);
+	}
+
+	.mini-title {
+		margin: 6px 0 0;
+		font-size: 13px;
+		font-weight: 500;
+	}
+
+	.mini-title.tight {
+		margin-bottom: var(--space-xs);
+	}
+
+	.mini-detail {
+		margin: 2px 0 0;
+		font-size: 11px;
+		color: var(--text-secondary);
 	}
 
 	.chips {

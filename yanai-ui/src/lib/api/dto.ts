@@ -77,6 +77,7 @@ export type SessionSummaryDto = {
 	present_count?: number;
 	roster_count?: number;
 	missing_grades?: number;
+	has_comments?: boolean;
 };
 
 export type ClassDashboardDto = {
@@ -93,6 +94,17 @@ export type ClassDashboardDto = {
 		asistencia_pct: number | null;
 		en_riesgo: number;
 	};
+	progress:
+		| {
+				component_id: string;
+				code: string;
+				name: string;
+				scored: number;
+				expected: number;
+				/** scored/expected, or null when nothing is due for the component yet. */
+				pct: number | null;
+		  }[]
+		| null;
 	distribution: { code: string; count: number }[] | null;
 	at_risk: { student_id: string; name: string; reason_text: string; severity: Severity }[] | null;
 	grades_pending: { assessment_id: string; title: string; missing: number }[] | null;
