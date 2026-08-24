@@ -1,35 +1,70 @@
-# CLAUDE.md
+## SPEC PROTOCOL — MANDATORY, NO EXCEPTIONS
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This project uses per-folder specs. A spec file named `SPEC.md` must exist in
+every folder that contains source, analysis, or content files. These rules
+override convenience, speed, or your own judgment about whether a spec is
+"needed." They apply to every task, every session, every file change,
+regardless of how small.
 
-This is a single monorepo (`/Users/amaru/yanai`) containing two subprojects with independent toolchains:
+### RULE 1 — A SPEC MUST EXIST BEFORE YOU WORK IN A FOLDER
+Before reading, writing, or editing any file inside a folder:
+1. Check whether `SPEC.md` exists in that folder.
+2. If it does NOT exist, STOP. Do not write code or content first.
+   Create `SPEC.md` using the template below, ask me to confirm it if
+   anything is ambiguous, then proceed.
+3. If it DOES exist, you MUST open and read it in full before touching any
+   other file in that folder. Do not skim. Do not assume you remember it
+   from an earlier turn in this session — re-read it every time you re-enter
+   that folder, since it may have changed.
 
-- `yanai-server/` — Go API
-- `yanai-ui/` — SvelteKit frontend, consuming `yanai-server`'s API over `/api/v1/*`
+### RULE 2 — THE SPEC IS SOURCE OF TRUTH, NOT THE CODE
+If a file's behavior conflicts with what `SPEC.md` says, the spec wins.
+Either fix the file to match the spec, or stop and tell me the spec itself
+needs to change — never silently let them drift apart.
 
-`yanai-ui` was previously its own separate git repo (`github.com/06amaru/yanay-ui`); its history was merged in via `git subtree` and that repo is now just an archive — do not treat it as a source of truth. Each subproject has its own toolchain; work inside the relevant one rather than mixing commands.
+### RULE 3 — EVERY CHANGE MUST UPDATE THE SPEC, IN THE SAME TURN
+Any time you create, edit, delete, or rename a file inside a folder, you
+MUST update that folder's `SPEC.md` in the same response — not "later,"
+not "if you remember," not only when asked. This includes:
+- New functions, scripts, endpoints, datasets, or documents added
+- Changed behavior, parameters, formats, or conventions
+- Deleted or deprecated files
+- Anything a future session would need to know to avoid re-breaking it
 
-## yanai-server (Go)
+If a change has no spec-relevant impact (e.g. a typo fix, a comment,
+formatting only), state explicitly: "No spec update needed — reason: X."
+Do not skip the spec silently.
 
-- Run: `go run ./cmd/api` (reads `.env`, health check at `/healthz`)
-- No test suite exists yet (no `*_test.go` files); no lint config beyond standard `go vet`/`gofmt`.
-- Migrations use **goose**, not a built-in Go tool: `goose -dir migrations postgres "$DATABASE_URL" up`
-- Postgres runs on **port 55432** (not 5432) to avoid clashing with a local install — see `yanai-server/docs/postgres-setup.md` for the required extensions (pgvector, btree_gist, pg_trgm).
-- Every table has **FORCE**d row-level security. The app connects as the non-owner `yanai_app` role and must `set local app.tenant_id`/`app.actor_id` per transaction — if that's missing, queries silently return zero rows rather than erroring.
-- `scores` and `computed_grades` are append-only: never `UPDATE` them; corrections stamp `superseded_at` and insert a new row. Hard `DELETE` is trigger-blocked on every table except `jobs`.
-- Seed data (`yanai-server/seed/seed_demo_tenant.sql`) is run directly with `psql -f`, not through goose — see `yanai-server/seed/README.md` for the rules (e.g. grading-scheme component weights must sum to exactly 1).
-- Routes require dev auth headers `X-Tenant-ID` and `X-Actor-ID` — there's no real auth yet.
+### RULE 4 — NEVER CLOSE OUT A TASK WITH A STALE SPEC
+Before ending your turn, do a final check: does `SPEC.md` in every folder
+you touched still accurately describe what's in that folder right now?
+If not, fix it before responding to me. A task is not complete until specs
+match reality.
 
-## yanai-ui (SvelteKit)
+### RULE 5 — SPECS CASCADE
+If a change in one folder affects another folder's behavior or assumptions
+(e.g. shared data format, shared function signature, shared conventions),
+update the SPEC.md in every affected folder, not just the one you edited.
 
-- Package manager is **Bun**, not npm/yarn/pnpm — use `bun install`, `bun dev`, `bun run build`.
-- Type check: `bun run check` (runs `svelte-kit sync` + `svelte-check`).
-- Lint/format: `bun eslint .` / `bun prettier --write .` (no npm scripts for these — see `.claude/skills/verify` and `.claude/skills/format` in this subproject).
-- Prettier is configured non-default: tabs (not spaces), single quotes, 100-char print width — let Prettier handle formatting rather than hand-formatting.
-- No test framework is set up.
-- Talks to `yanai-server` via `src/lib/api/` (typed fetch client, DTOs, mappers) — dev auth headers come from `PUBLIC_TENANT_ID`/`PUBLIC_ACTOR_ID` env vars (see `.env.example`). No IndexedDB, no mock data — every screen reads and writes through the API.
-- SPA build via `adapter-static` (`fallback: 'index.html'`); the Vite dev server proxies `/api` and `/healthz` to `localhost:8080` so dev is same-origin too.
+---
 
-## Deployment
+### SPEC.md TEMPLATE (use this structure for every new spec)
 
-See `DEPLOY.md` at the repo root for the full runbook (single VPS, Docker Compose, Caddy, GitHub Actions CI/CD).
+## Purpose
+What this folder is for, one or two sentences.
+
+## Contents
+List of files in this folder and what each one does.
+
+## Inputs / Outputs
+What this folder consumes and produces (data formats, parameters, expected
+files, dependencies on other folders).
+
+## Conventions & Constraints
+Rules specific to this folder — naming, format, must/must-not behaviors.
+
+## Change Log
+- YYYY-MM-DD: what changed and why (append-only, most recent at top)
+
+## Open Questions
+Anything ambiguous or pending a decision — remove once resolved.

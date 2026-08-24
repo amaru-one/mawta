@@ -77,6 +77,19 @@ Credentials persist in `~/.docker/config.json` on the droplet, so this
 was a one-time fix — no `deploy.yml` changes needed, and no manual SSH
 is needed for future deploys.
 
+**Reset (2026-08-24):** the deployed database was dropped and reseeded
+(the schema dropped its hard-delete rule and the demo seed was rewritten
+— see `yanai-server/docs/postgres-setup.md`). Two durable consequences:
+
+- The demo teacher's `users.id` is now **fixed by the seed**
+  (`22222222-2222-4222-8222-222222222222`), so the §4 lookup query is
+  gone and the `PUBLIC_ACTOR_ID` GitHub secret (already updated) never
+  changes again, even across reseeds.
+- The `deploy.yml` run for that push shows **red on its smoke test
+  only**: the SPA/secret carried the new actor id while the database
+  still held the old seed. Expected for that one run; verified green by
+  hand afterwards.
+
 ---
 
 ## 0. Prerequisites **[HUMAN]**
@@ -213,12 +226,12 @@ docker compose --env-file .env -f deploy/docker-compose.prod.yml \
 # Seed the demo tenant (NOT a goose migration — run directly, same as dev).
 docker compose --env-file .env -f deploy/docker-compose.prod.yml \
   exec -T postgres psql -U postgres -d yanai -f /seed/seed_demo_tenant.sql
-
-# Get the demo teacher's actor id (users.id) for the SPA build below.
-docker compose --env-file .env -f deploy/docker-compose.prod.yml \
-  exec -T postgres psql -U postgres -d yanai -tAc \
-  "select id from users where email='janice.quispe@cristorey.edu.pe'"
 ```
+
+The seed fixes both dev-auth ids, so there is nothing to look up:
+tenant `11111111-1111-4111-8111-111111111111`, actor (the demo
+teacher's `users.id`) `22222222-2222-4222-8222-222222222222`. They
+survive any future reseed.
 
 The VPS never needs `bun` installed — only this first build does, and it's
 built on whichever machine already has the toolchain (your laptop, or this
@@ -229,7 +242,7 @@ From `yanai-ui/` on that machine:
 bun install
 PUBLIC_API_BASE_URL='' \
 PUBLIC_TENANT_ID='11111111-1111-4111-8111-111111111111' \
-PUBLIC_ACTOR_ID='<the id from the query above>' \
+PUBLIC_ACTOR_ID='22222222-2222-4222-8222-222222222222' \
 bun run build
 rsync -az --delete build/ deploy@<your-server>:/srv/yanai/ui/
 ```
@@ -271,7 +284,7 @@ The workflows already exist in the repo:
 | `SSH_KEY` | contents of the private half of the deploy keypair from §1 |
 | `DOMAIN` | same value as `.env`'s `DOMAIN` on the server |
 | `PUBLIC_TENANT_ID` | `11111111-1111-4111-8111-111111111111` |
-| `PUBLIC_ACTOR_ID` | the actor id looked up in §4 |
+| `PUBLIC_ACTOR_ID` | `22222222-2222-4222-8222-222222222222` (fixed by the seed) |
 
 `GITHUB_TOKEN` (used to push to GHCR) is provided automatically — nothing
 to add for it.
@@ -316,6 +329,56 @@ docker compose --env-file .env -f deploy/docker-compose.prod.yml exec -T postgre
   pg_restore -U postgres -d yanai --clean --if-exists < /srv/yanai/backups/yanai-<date>.dump
 docker compose --env-file .env -f deploy/docker-compose.prod.yml start api
 ```
+
+## Ad-hoc: resetting the deployed database
+
+While the app holds only the seeded demo tenant (no real auth yet — see
+the top of this file), the deployed stack is effectively a dev
+environment and wiping its database is a routine operation, the same as
+`yanai-server/docs/postgres-setup.md` describes for local. **The moment
+real school data exists, this section is off-limits** — restore from §6
+backups instead.
+
+Two traps make the remote flow different from local; both bit for real
+on 2026-08-24:
+
+1. **`git pull` first.** `deploy.yml` rsyncs only the SPA and `deploy/`
+   — it never pulls the repo clone, and the seed reaches the postgres
+   container as a bind mount of that clone (`../yanai-server/seed:/seed`).
+   Without a pull you reseed with a stale file.
+2. **`docker compose pull api` first.** `.env` pins
+   `API_IMAGE=...:latest`, but `deploy.yml` deploys by commit-SHA tag
+   and never refreshes the box's local `:latest`. Migrations live
+   *inside* the image (`/app/migrations`), so a bare
+   `docker compose run ... goose api up` silently replays whatever old
+   migration set the stale local `:latest` carries — goose reports
+   success either way. Pull, or export the SHA tag, before any manual
+   command that runs the api image.
+
+```sh
+ssh deploy@<your-server>
+cd /srv/yanai
+git pull --ff-only
+C="docker compose --env-file .env -f deploy/docker-compose.prod.yml"
+$C pull api
+$C stop api
+$C exec -T postgres psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
+  -c 'drop database yanai with (force);' -c 'create database yanai;'
+$C run --rm --entrypoint /usr/local/bin/goose api up
+$C exec -T postgres psql -U postgres -d yanai -v ON_ERROR_STOP=1 -f /seed/seed_demo_tenant.sql
+$C up -d
+```
+
+Verify from anywhere:
+
+```sh
+curl -fsS https://<domain>/api/v1/me \
+  -H 'X-Tenant-ID: 11111111-1111-4111-8111-111111111111' \
+  -H 'X-Actor-ID: 22222222-2222-4222-8222-222222222222'
+```
+
+Both ids are fixed by the seed, so nothing else (SPA build, GitHub
+secrets) needs touching after a reseed.
 
 ## Ad-hoc: connecting a local GUI (pgAdmin, etc.) to production Postgres
 

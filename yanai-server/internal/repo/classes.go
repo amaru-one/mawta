@@ -153,7 +153,7 @@ func GetClassDashboard(ctx context.Context, tx pgx.Tx, classID uuid.UUID, term T
 		with due as (
 		  select id from assessments
 		   where class_id = $1 and term_id = $2 and status = 'published'
-		     and due_at is not null and due_at <= now() and deleted_at is null
+		     and deleted_at is null
 		),
 		roster_ids as (select unnest($3::uuid[]) as student_id)
 		select
@@ -222,15 +222,15 @@ func GetClassDashboard(ctx context.Context, tx pgx.Tx, classID uuid.UUID, term T
 	}
 
 	// progress: how much of the grade registration is done, per component of the
-	// class's effective scheme. Same "due assessments x roster" denominator as
-	// Stats.NotasReg above, just broken out per component. Components with no due
+	// class's effective scheme. expected = published assessments x roster size;
+	// scored = how many of those have a live score. Components with no published
 	// assessment yet report expected = 0, which the panel renders as an empty ring.
 	if !class.IsTutoria {
 		rows, err := tx.Query(ctx, `
 			with due as (
 			  select a.id, a.component_id from assessments a
 			   where a.class_id = $1 and a.term_id = $2 and a.status = 'published'
-			     and a.due_at is not null and a.due_at <= now() and a.deleted_at is null
+			     and a.deleted_at is null
 			),
 			roster_ids as (select unnest($3::uuid[]) as student_id)
 			select gc.id, gc.code, gc.name,
