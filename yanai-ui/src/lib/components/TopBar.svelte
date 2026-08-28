@@ -1,11 +1,21 @@
 <script lang="ts">
 	import { hapticTap } from '$lib/haptics';
-	import { teacher, unreadNotificationCount } from '$lib/stores';
+	import { canGoBack, teacher, unreadNotificationCount } from '$lib/stores';
 	import Icon from './Icon.svelte';
 
 	interface Props {
-		/** Destination for the back arrow; omitted on the Home view. */
+		/**
+		 * Destination for the back arrow; omitted on the Home view. With
+		 * `useHistory` it is the fallback, used only when there is no in-app
+		 * history to return to.
+		 */
 		back?: string;
+		/**
+		 * Go to the previous screen rather than to `back`. For screens reached
+		 * from more than one place, where a fixed destination is wrong for
+		 * every caller but one.
+		 */
+		useHistory?: boolean;
 		/** Plain title instead of the teacher identity block (Profile view). */
 		title?: string;
 		/** Home shows a larger avatar and a logout shortcut. */
@@ -13,7 +23,23 @@
 		showBell?: boolean;
 	}
 
-	let { back, title, variant = 'default', showBell = true }: Props = $props();
+	let {
+		back,
+		useHistory = false,
+		title,
+		variant = 'default',
+		showBell = true
+	}: Props = $props();
+
+	function onBack(event: MouseEvent): void {
+		hapticTap();
+		// Nothing to pop (cold load, refresh, deep link): let the href stand.
+		if (!useHistory || !$canGoBack) return;
+		// Modified clicks mean "open the fallback elsewhere" — don't hijack them.
+		if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+		event.preventDefault();
+		history.back();
+	}
 
 	const large = $derived(variant === 'home');
 	const who = $derived($teacher ?? { initials: '', shortName: '', school: '' });
@@ -21,7 +47,7 @@
 
 <div class="topbar">
 	{#if back}
-		<a class="nav pressable" href={back} onclick={hapticTap} aria-label="Volver">
+		<a class="nav pressable" href={back} onclick={onBack} aria-label="Volver">
 			<Icon name="arrow-left" size={20} />
 		</a>
 	{/if}

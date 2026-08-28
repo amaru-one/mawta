@@ -2,8 +2,8 @@
 // this module is the single place wire shapes are converted.
 
 import { ICON_NAMES, type IconName } from '$lib/icons';
-import type { AppNotification, HomeCourse } from '$lib/types';
-import type { HomeDto, NotificationDto } from './dto';
+import type { AppNotification, CompetencyLevel, HomeCourse, SiagieReport } from '$lib/types';
+import type { CompetencyLevelDto, HomeDto, NotificationDto, SiagieReportDto } from './dto';
 
 // "YYYY-MM-DD" → local-midnight Date (avoid the UTC shift of new Date(string)).
 export function parseDateOnly(d: string): Date {
@@ -102,5 +102,52 @@ export function toAppNotification(dto: NotificationDto): AppNotification {
 		icon: CATEGORY_ICONS[dto.category],
 		createdAt: parseTimestamp(dto.created_at),
 		read: dto.read_at !== null
+	};
+}
+
+// The teacher's asserted level is the record, and nothing else stands in for
+// it (RVM 094-2020, 5.1.1.3 p.2-3). A null level means "not developed this
+// period" and must be rendered blank, never as C.
+export function toCompetencyLevel(dto: CompetencyLevelDto): CompetencyLevel {
+	return {
+		competencyId: dto.competency_id,
+		code: dto.code,
+		name: dto.name,
+		kind: dto.kind,
+		level: dto.level,
+		assertedAt: dto.asserted_at !== null ? parseTimestamp(dto.asserted_at) : null,
+		conclusionRequired: dto.conclusion_required,
+		conclusionRequirement: dto.conclusion_requirement,
+		conclusionBody: dto.conclusion_body,
+		conclusionStatus: dto.conclusion_status
+	};
+}
+
+export function toSiagieReport(dto: SiagieReportDto): SiagieReport {
+	return {
+		className: dto.class_name,
+		areaCurricular: dto.area_curricular,
+		termName: dto.term_name,
+		students: (dto.students ?? []).map((s) => ({
+			studentId: s.student_id,
+			studentCode: s.student_code,
+			studentName: s.student_name,
+			competencies: (s.competencies ?? []).map((c) => ({
+				competencyId: c.competency_id,
+				code: c.code,
+				name: c.name,
+				level: c.level,
+				conclusion: c.conclusion,
+				conclusionRequired: c.conclusion_required
+			}))
+		})),
+		blocking: (dto.blocking ?? []).map((b) => ({
+			studentId: b.student_id,
+			studentName: b.student_name,
+			competencyId: b.competency_id,
+			competency: b.competency
+		})),
+		ready: dto.ready,
+		notice: dto.notice
 	};
 }

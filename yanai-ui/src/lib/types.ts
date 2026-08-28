@@ -2,6 +2,7 @@
 // $lib/api translate between the two.
 
 import type { IconName } from './icons';
+import type { Tier } from './grades';
 
 // --- View models built from the API ---
 
@@ -103,3 +104,60 @@ export type AppNotification = {
 	read: boolean;
 };
 
+
+// --- Niveles de logro por competencia (RVM 094-2020 / 048-2024) ---
+
+// The teacher's asserted MINEDU level for one competency in one period, plus
+// conclusión descriptiva state. `level` is the official record and nothing
+// derives it: the teacher judges the period's evidence against the criterios
+// (RVM 094-2020, 5.1.1.3 p.2-3). There is deliberately no suggested level.
+export type CompetencyLevel = {
+	competencyId: string;
+	code: string;
+	name: string;
+	kind: 'area' | 'transversal' | 'adicional_area' | 'adicional_libre';
+	// Null means the competency was not developed/evaluated this period —
+	// a valid state (5.1.2.2 p.1). Render blank, never as C.
+	level: Tier | null;
+	assertedAt: Date | null;
+	// Why a conclusión descriptiva is mandatory here, decided server-side.
+	conclusionRequired: boolean;
+	conclusionRequirement: 'level_c' | 'consecutive_c' | 'inclusion_support' | 'optional';
+	conclusionBody: string | null;
+	conclusionStatus: 'draft' | 'final' | null;
+};
+
+// One competency row in the end-of-period SIAGIE report — read-only.
+export type SiagieCompetency = {
+	competencyId: string;
+	code: string;
+	name: string;
+	level: Tier | null;
+	conclusion: string | null;
+	conclusionRequired: boolean;
+};
+
+export type SiagieStudent = {
+	studentId: string;
+	studentCode: string;
+	studentName: string;
+	competencies: SiagieCompetency[];
+};
+
+// A mandatory conclusión descriptiva still missing — blocks `ready`.
+export type MissingConclusion = {
+	studentId: string;
+	studentName: string;
+	competencyId: string;
+	competency: string;
+};
+
+export type SiagieReport = {
+	className: string;
+	areaCurricular: string | null;
+	termName: string;
+	students: SiagieStudent[];
+	blocking: MissingConclusion[];
+	ready: boolean;
+	notice: string;
+};

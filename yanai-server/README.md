@@ -40,8 +40,10 @@ the seed and survive a reseed:
 | `GET /classes/{id}/dashboard`, `GET /classes/{id}/sessions`, `POST /sessions/{id}/start\|complete` | 02 Clase |
 | `GET /sessions/{id}?q=`, `PUT .../attendance/{sid}`, `POST .../mark-all-present`, `PUT .../observations/{sid}`, `POST .../voice-notes`, `GET/POST /voice-notes/{id}/...` | 03 Lección |
 | `GET /classes/{id}/students/{sid}/grades`, `POST /classes/{id}/assessments`, `POST /assessments/{id}/scores`, `POST /scores/{id}/correct`, `POST .../summary` | 04 Notas |
-| `GET /notifications`, `.../unread-count`, `POST .../read\|dismiss` | 05 Notificaciones |
-| `GET /profile` | 06 Perfil |
+| `GET /classes/{id}/students/{sid}/competencies`, `POST .../competency-levels`, `POST .../conclusions`, `GET /classes/{id}/siagie-report` | 05 Competencias |
+| `GET /classes/{id}/criteria`, `POST /classes/{id}/competencies/{cid}/criteria`, `POST /criteria/{id}/delete`, `POST /classes/{id}/students/{sid}/criterion-levels` | 06 Criterios |
+| `GET /notifications`, `.../unread-count`, `POST .../read\|dismiss` | 07 Notificaciones |
+| `GET /profile` | 08 Perfil |
 
 Every write sets Postgres session GUCs (`app.tenant_id`, `app.actor_id`,
 `app.request_id`) inside its transaction via `internal/db.WithTenantTx` —
@@ -53,20 +55,21 @@ identifiable student rows log a `student.read` event in the same tx.
 In-process job queue (`internal/worker`), claimed via `SELECT ... FOR UPDATE
 SKIP LOCKED`. Toggle with `WORKER_ENABLED=false` to run API-only.
 
-- **`grade.recompute`** — the real weighted computation: component weights,
-  `drop_lowest_n`, aggregation (mean/weighted_mean/best/last/sum), retake
-  resolution (none/best/last/capped), `min_evaluated_weight_for_grade`,
-  rounding. **Not implemented**: late penalties, per-competency grades.
-- **`risk.detect`** — consecutive absences and level-drop rules from
-  `risk_rules.params`.
-- **`notification.sweep`** — attendance-unmarked and grades-pending
-  reminders, deduped by `dedupe_key`.
-- **`note_summary.generate`** — deterministic extractive summary (first
-  sentence of each saved voice note's transcript, newest first, max 5
-  bullets). No AI provider this stage — transcription happens in the
-  browser; the client uploads transcript text via `.../transcript`.
-- **`retention.sweep`** — non-destructive: logs counts of records past
-  `retention_until`.
+- **`grade.recompute`** — the weighted computation behind the school's
+  *optional internal system*: component weights, `drop_lowest_n`, aggregation
+  (mean/weighted_mean/best/last/sum), retake resolution
+  (none/best/last/capped), `min_evaluated_weight_for_grade`, rounding.
+  **Not implemented**: late penalties.
+
+That is the only job kind. Under RVM 094-2020 achievement is the teacher's
+judgement of evidence against the criterios de evaluación, recorded per
+competencia in `competency_term_levels` through the API — no job writes,
+derives or suggests a nivel de logro, and nothing here forecasts one.
+
+Retired kinds whose rows may still be in `jobs`: `risk.detect`,
+`risk.term_failure`, `risk.promotion_projection`, `notification.sweep`,
+`note_summary.generate`, `retention.sweep`. They fail as "unknown job kind"
+until discarded, which is expected.
 
 ## Verification
 

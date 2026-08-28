@@ -18,17 +18,5 @@ func defaultRegistry() map[string]HandlerFunc {
 		domain.JobKindGradeRecompute: func(ctx context.Context, tx pgx.Tx, job Job) error {
 			return handlers.GradeRecompute(ctx, tx, job.ID, job.Payload)
 		},
-		domain.JobKindRiskDetect: func(ctx context.Context, tx pgx.Tx, job Job) error {
-			return handlers.RiskDetect(ctx, tx, job.Payload)
-		},
-		domain.JobKindNotificationSweep: func(ctx context.Context, tx pgx.Tx, job Job) error {
-			return handlers.NotificationSweep(ctx, tx, job.Payload)
-		},
-		domain.JobKindNoteSummaryGenerate: func(ctx context.Context, tx pgx.Tx, job Job) error {
-			return handlers.NoteSummaryGenerate(ctx, tx, job.ID, job.Payload)
-		},
-		domain.JobKindRetentionSweep: func(ctx context.Context, tx pgx.Tx, job Job) error {
-			return handlers.RetentionSweep(ctx, tx, job.Payload)
-		},
 	}
 }

@@ -57,12 +57,6 @@ func Run(ctx context.Context, database *db.DB, cfg config.Config, logger *slog.L
 		}(i)
 	}
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		tickerLoop(ctx, database, logger)
-	}()
-
 	wg.Wait()
 }
 

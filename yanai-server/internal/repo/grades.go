@@ -11,15 +11,17 @@ import (
 	"yanai-server/internal/db"
 )
 
+// ComputedGradeView is the school's optional internal weighted system, never
+// the official record. RVM 094-2020 determines achievement per competencia
+// from the teacher's judgement against criterios — see CompetencyLevelRow.
+// Carries no projection: the norm has no notion of a forecast grade.
 type ComputedGradeView struct {
-	NormalizedValue        float64  `json:"normalized_value"`
-	DisplayValue           *string  `json:"display_value"`
-	LevelCode              *string  `json:"level_code"`
-	EvaluatedWeight        float64  `json:"evaluated_weight"`
-	TotalWeight            float64  `json:"total_weight"`
-	ProjectedMinNormalized *float64 `json:"projected_min_normalized"`
-	ProjectedMaxNormalized *float64 `json:"projected_max_normalized"`
-	Trend                  *string  `json:"trend"`
+	NormalizedValue float64 `json:"normalized_value"`
+	DisplayValue    *string `json:"display_value"`
+	LevelCode       *string `json:"level_code"`
+	EvaluatedWeight float64 `json:"evaluated_weight"`
+	TotalWeight     float64 `json:"total_weight"`
+	Trend           *string `json:"trend"`
 }
 
 type ScoreAttempt struct {
@@ -30,13 +32,24 @@ type ScoreAttempt struct {
 	RawValue      *float64  `json:"raw_value"`
 }
 
+// CriterionRef names one criterio de evaluación an assessment evidences.
+type CriterionRef struct {
+	CriterionID uuid.UUID `json:"criterion_id"`
+	Code        *string   `json:"code"`
+	Description string    `json:"description"`
+}
+
+// EvaluationEntry is one graded item — a quiz, an exam — as *evidence*. It
+// carries no weight: under RVM 094-2020 a mark informs the teacher's
+// judgement of the criterios and never feeds a final grade arithmetically.
 type EvaluationEntry struct {
 	AssessmentID  uuid.UUID      `json:"assessment_id"`
 	Title         string         `json:"title"`
 	Kind          string         `json:"kind"`
 	MaxScore      float64        `json:"max_score"`
-	Weight        float64        `json:"weight"`
 	ComponentCode string         `json:"component_code"`
+	ComponentName string         `json:"component_name"`
+	Criteria      []CriterionRef `json:"criteria"`
 	Attempts      []ScoreAttempt `json:"attempts"`
 }
 
@@ -60,16 +73,14 @@ func GetStudentGrades(ctx context.Context, tx pgx.Tx, classID, studentID, termID
 	var cg ComputedGradeView
 	err := tx.QueryRow(ctx, `
 		select cg.normalized_value, cg.display_value, l.code,
-		       cg.evaluated_weight, cg.total_weight,
-		       cg.projected_min_normalized, cg.projected_max_normalized, cg.trend
+		       cg.evaluated_weight, cg.total_weight, cg.trend
 		  from computed_grades cg
 		  left join grade_scale_levels l on l.id = cg.scale_level_id
 		 where cg.student_id = $1 and cg.class_id = $2 and cg.term_id = $3
 		   and cg.superseded_at is null and cg.deleted_at is null
 	`, studentID, classID, termID).Scan(
 		&cg.NormalizedValue, &cg.DisplayValue, &cg.LevelCode,
-		&cg.EvaluatedWeight, &cg.TotalWeight,
-		&cg.ProjectedMinNormalized, &cg.ProjectedMaxNormalized, &cg.Trend,
+		&cg.EvaluatedWeight, &cg.TotalWeight, &cg.Trend,
 	)
 	if err == nil {
 		resp.ComputedGrade = &cg
@@ -78,12 +89,9 @@ func GetStudentGrades(ctx context.Context, tx pgx.Tx, classID, studentID, termID
 	}
 
 	rows, err := tx.Query(ctx, `
-		select a.id, a.title, a.kind, a.max_score, w.weight, gc.code,
+		select a.id, a.title, a.kind, a.max_score, gc.code, gc.name,
 		       s.id, s.attempt_number, s.attempt_kind, s.status, s.raw_value
 		  from assessments a
-		  join class_effective_grading_schemes ceg on ceg.class_id = a.class_id and ceg.term_id = a.term_id
-		  join grading_scheme_component_weights w on w.scheme_version_id = ceg.scheme_version_id
-		                                          and w.component_id = a.component_id and w.deleted_at is null
 		  join grading_components gc on gc.id = a.component_id
 		  left join scores s on s.assessment_id = a.id and s.student_id = $2
 		                     and s.superseded_at is null and s.deleted_at is null
@@ -103,7 +111,7 @@ func GetStudentGrades(ctx context.Context, tx pgx.Tx, classID, studentID, termID
 		var attemptNumber *int16
 		var attemptKind, status *string
 		var rawValue *float64
-		if err := rows.Scan(&e.AssessmentID, &e.Title, &e.Kind, &e.MaxScore, &e.Weight, &e.ComponentCode,
+		if err := rows.Scan(&e.AssessmentID, &e.Title, &e.Kind, &e.MaxScore, &e.ComponentCode, &e.ComponentName,
 			&scoreID, &attemptNumber, &attemptKind, &status, &rawValue); err != nil {
 			return resp, err
 		}
@@ -123,6 +131,38 @@ func GetStudentGrades(ctx context.Context, tx pgx.Tx, classID, studentID, termID
 	if err := rows.Err(); err != nil {
 		return resp, err
 	}
+
+	// Which criterios each assessment evidences. Read separately rather than
+	// joined above: an assessment links to zero or many criterios, and folding
+	// that into the scores join would multiply the attempt rows.
+	critRows, err := tx.Query(ctx, `
+		select ac.assessment_id, ec.id, ec.code, ec.description
+		  from assessment_criteria ac
+		  join assessments a on a.id = ac.assessment_id
+		  join evaluation_criteria ec on ec.id = ac.criterion_id
+		 where a.class_id = $1 and a.term_id = $2
+		   and a.status = 'published' and a.deleted_at is null
+		   and ac.deleted_at is null and ec.deleted_at is null
+		 order by ec.sort_order, ec.code
+	`, classID, termID)
+	if err != nil {
+		return resp, err
+	}
+	defer critRows.Close()
+	for critRows.Next() {
+		var assessmentID uuid.UUID
+		var ref CriterionRef
+		if err := critRows.Scan(&assessmentID, &ref.CriterionID, &ref.Code, &ref.Description); err != nil {
+			return resp, err
+		}
+		if entry, ok := byAssessment[assessmentID]; ok {
+			entry.Criteria = append(entry.Criteria, ref)
+		}
+	}
+	if err := critRows.Err(); err != nil {
+		return resp, err
+	}
+
 	for _, id := range order {
 		resp.Evaluations = append(resp.Evaluations, *byAssessment[id])
 	}

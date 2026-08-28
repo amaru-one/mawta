@@ -3,12 +3,20 @@
 // breakdown. Pure computation, no SQL — the worker handler loads inputs and
 // writes the result.
 //
+// This is the school's OPTIONAL INTERNAL SYSTEM, never the official record.
+// RVM 094-2020 determines achievement per competencia from the teacher's
+// judgement of evidence against the criterios de evaluación, with no weighted
+// average anywhere in it; that record is competency_term_levels and nothing
+// here feeds it. A private IE may keep its own internal numeric system
+// (D.S. 009-2006-ED art. 37.4.f), which is what this computes.
+//
 // Implemented: component weights, drop_lowest_n, aggregation
 // (mean/weighted_mean/best/last/sum), retake resolution (none/best/last/
 // capped), min_evaluated_weight_for_grade, and rounding modes.
 //
-// Out of scope for this stage: late penalties (scores.late_days /
-// late_penalty_pct_per_day are ignored) and per-competency grades.
+// Deliberately absent: any projection of a grade at term close. Out of scope
+// for this stage: late penalties (scores.late_days /
+// late_penalty_pct_per_day are ignored).
 package grading
 
 import (
@@ -65,13 +73,11 @@ type ComponentResult struct {
 }
 
 type Result struct {
-	NormalizedValue        float64
-	TotalWeight            float64
-	EvaluatedWeight        float64
-	ProjectedMinNormalized float64
-	ProjectedMaxNormalized float64
-	BelowMinEvaluated      bool
-	Components             []ComponentResult
+	NormalizedValue   float64
+	TotalWeight       float64
+	EvaluatedWeight   float64
+	BelowMinEvaluated bool
+	Components        []ComponentResult
 }
 
 type assessmentOutcome struct {
@@ -272,11 +278,6 @@ func Compute(assessments []AssessmentInput, weights []ComponentWeight, policy Po
 
 	if result.EvaluatedWeight > 0 {
 		result.NormalizedValue = achieved / result.EvaluatedWeight
-	}
-	result.ProjectedMinNormalized = achieved
-	result.ProjectedMaxNormalized = achieved + (result.TotalWeight - result.EvaluatedWeight)
-	if result.ProjectedMaxNormalized > result.TotalWeight {
-		result.ProjectedMaxNormalized = result.TotalWeight
 	}
 	result.BelowMinEvaluated = result.TotalWeight > 0 && result.EvaluatedWeight/result.TotalWeight < policy.MinEvaluatedWeightForGrade
 

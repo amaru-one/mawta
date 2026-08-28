@@ -2,7 +2,20 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { ApiError, list } from '$lib/api/client';
-	import type { AttemptDto, EvaluationDto, PracticeScoreCreateDto, StudentGradesDto } from '$lib/api/dto';
+	import type {
+		AttemptDto,
+		CompetencyCriteriaDto,
+		CriterionDto,
+		EvaluationDto,
+		PracticeScoreCreateDto,
+		StudentGradesDto
+	} from '$lib/api/dto';
+	import {
+		assertCompetencyLevel,
+		getStudentCompetencies,
+		upsertConclusion
+	} from '$lib/api/endpoints/competencies';
+	import { assertCriterionLevel, getClassCriteria } from '$lib/api/endpoints/criteria';
 	import {
 		correctScore,
 		createPracticeScore,
@@ -11,13 +24,17 @@
 		getStudentGrades,
 		requestSummary
 	} from '$lib/api/endpoints/grades';
+	import { toCompetencyLevel } from '$lib/api/mappers';
 	import AddPracticeScoreDialog from '$lib/components/AddPracticeScoreDialog.svelte';
 	import AiSummaryCard from '$lib/components/AiSummaryCard.svelte';
+	import CompetencyCard from '$lib/components/CompetencyCard.svelte';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
+	import type { Tier } from '$lib/grades';
 	import { hapticTap } from '$lib/haptics';
 	import { showToast } from '$lib/toast';
+	import type { CompetencyLevel } from '$lib/types';
 
 	const studentId = $derived(page.params.studentId ?? '');
 	// Class id and display names travel as query params — the grades endpoint
@@ -29,12 +46,21 @@
 	let ready = $state(false);
 	let loadError = $state(false);
 	let data = $state<StudentGradesDto | null>(null);
+	let competencies = $state<CompetencyLevel[]>([]);
+	let criteriaByCompetency = $state<Map<string, CriterionDto[]>>(new Map());
 
 	async function load(): Promise<void> {
 		ready = false;
 		loadError = false;
 		try {
-			data = await getStudentGrades(classId, studentId);
+			const [grades, comps, crits] = await Promise.all([
+				getStudentGrades(classId, studentId),
+				getStudentCompetencies(classId, studentId),
+				getClassCriteria(classId, studentId)
+			]);
+			data = grades;
+			competencies = list(comps.competencies).map(toCompetencyLevel);
+			criteriaByCompetency = indexCriteria(crits.competencies);
 			ready = true;
 		} catch {
 			loadError = true;
@@ -46,6 +72,25 @@
 	async function reload(): Promise<void> {
 		try {
 			data = await getStudentGrades(classId, studentId);
+		} catch {
+			// keep showing the last good data
+		}
+	}
+
+	function indexCriteria(rows: CompetencyCriteriaDto[] | null): Map<string, CriterionDto[]> {
+		const out = new Map<string, CriterionDto[]>();
+		for (const row of list(rows)) out.set(row.competency_id, list(row.criteria));
+		return out;
+	}
+
+	async function reloadCompetencies(): Promise<void> {
+		try {
+			const [comps, crits] = await Promise.all([
+				getStudentCompetencies(classId, studentId),
+				getClassCriteria(classId, studentId)
+			]);
+			competencies = list(comps.competencies).map(toCompetencyLevel);
+			criteriaByCompetency = indexCriteria(crits.competencies);
 		} catch {
 			// keep showing the last good data
 		}
@@ -63,35 +108,24 @@
 	type EvaluationModule = {
 		code: string;
 		label: string;
-		weight: number;
 		evaluations: EvaluationDto[];
 	};
 
-	const componentLabels: Record<string, string> = {
-		listening: 'Listening',
-		reading: 'Reading',
-		writing: 'Writing',
-		speaking: 'Speaking',
-		quiz: 'Quiz',
-		examen_final: 'Examen final',
-		participacion: 'Participación',
-		practicas: 'Prácticas calificadas',
-		examenes: 'Exámenes',
-		actitudinal: 'Actitudinal'
-	};
-
-	function moduleLabel(code: string): string {
-		return componentLabels[code] ?? code.charAt(0).toUpperCase() + code.slice(1);
-	}
-
 	// Groups the flat evaluation list into one accordion section per grading
-	// component (Listening, Reading, ...), in the order each first appears.
+	// component, in the order each first appears. Deliberately carries no
+	// weight: these are pieces of evidence, not shares of a final grade.
 	const evaluationModules = $derived.by((): EvaluationModule[] => {
 		const byCode = new Map<string, EvaluationModule>();
 		for (const ev of evaluations) {
 			let mod = byCode.get(ev.component_code);
 			if (!mod) {
-				mod = { code: ev.component_code, label: moduleLabel(ev.component_code), weight: ev.weight, evaluations: [] };
+				// The server sends the component's display name (gc.name); the code
+				// stays the grouping key. Fallback covers a stale API binary only.
+				mod = {
+					code: ev.component_code,
+					label: ev.component_name || ev.component_code,
+					evaluations: []
+				};
 				byCode.set(ev.component_code, mod);
 			}
 			mod.evaluations.push(ev);
@@ -132,18 +166,20 @@
 		return new Date(iso).toLocaleDateString('es', { day: 'numeric', month: 'short' });
 	}
 
-	const grade = $derived.by(() => {
+	// The school's own internal weighted system. Shown collapsed at the foot of
+	// the screen and labelled as such — it is not the official record and
+	// carries no projection.
+	const internalGrade = $derived.by(() => {
 		const cg = data?.computed_grade;
 		if (!cg) return null;
 		return {
-			tier: cg.level_code ?? '—',
-			percent: Math.round(cg.normalized_value * 100),
+			display: cg.display_value ?? String(Math.round(cg.normalized_value * 100)),
 			evaluatedPct:
-				cg.total_weight > 0 ? Math.round((cg.evaluated_weight / cg.total_weight) * 100) : 0,
-			min: cg.projected_min_normalized !== null ? Math.round(cg.projected_min_normalized * 100) : null,
-			max: cg.projected_max_normalized !== null ? Math.round(cg.projected_max_normalized * 100) : null
+				cg.total_weight > 0 ? Math.round((cg.evaluated_weight / cg.total_weight) * 100) : 0
 		};
 	});
+
+	let showInternal = $state(false);
 
 	// The current attempt is the latest one — corrections supersede in order.
 	function latestAttempt(ev: EvaluationDto): AttemptDto | null {
@@ -183,6 +219,48 @@
 			reloadSoon();
 		} catch {
 			showToast('No se pudo guardar — revisa tu conexión');
+		}
+	}
+
+	async function handleLevelChange(competencyId: string, level: Tier): Promise<void> {
+		hapticTap();
+		try {
+			await assertCompetencyLevel(classId, studentId, { competency_id: competencyId, level });
+			showToast('Nivel guardado');
+			await reloadCompetencies();
+		} catch (err) {
+			showToast(err instanceof ApiError ? err.message : 'No se pudo guardar — revisa tu conexión');
+		}
+	}
+
+	async function handleCriterionLevelChange(criterionId: string, level: Tier): Promise<void> {
+		hapticTap();
+		try {
+			await assertCriterionLevel(classId, studentId, { criterion_id: criterionId, level });
+			showToast('Criterio guardado');
+			await reloadCompetencies();
+		} catch (err) {
+			showToast(err instanceof ApiError ? err.message : 'No se pudo guardar — revisa tu conexión');
+		}
+	}
+
+	async function handleSaveConclusion(
+		competencyId: string,
+		body: string,
+		includesRecommendations: boolean,
+		status: 'draft' | 'final'
+	): Promise<void> {
+		try {
+			await upsertConclusion(classId, studentId, {
+				competency_id: competencyId,
+				body,
+				includes_recommendations: includesRecommendations,
+				status
+			});
+			showToast(status === 'final' ? 'Conclusión guardada' : 'Borrador guardado');
+			await reloadCompetencies();
+		} catch (err) {
+			showToast(err instanceof ApiError ? err.message : 'No se pudo guardar — revisa tu conexión');
 		}
 	}
 
@@ -235,42 +313,36 @@
 	<title>{studentName}</title>
 </svelte:head>
 
-<TopBar back="/" />
+<!-- Reached from both the class roster and the lesson screen, so the back arrow
+     returns to whichever it was. The class page is the fallback for a deep link
+     or a refresh, where there is no in-app history to pop. -->
+<TopBar back={classId ? `/class/${classId}` : '/'} useHistory />
 
 <div class="body">
 	{#if ready && data}
 		<p class="title">{studentName}</p>
 		<p class="subtitle">{courseName}</p>
 
-		{#if grade}
-			<div class="result">
-				<p class="result-label">RESULTADO PARCIAL</p>
-				<div class="result-head">
-					<span class="tier">{grade.tier}</span>
-					<span class="pct">{grade.percent}% de lo evaluado</span>
-				</div>
-				<div class="progress">
-					<div class="progress-fill" style="width:{grade.evaluatedPct}%"></div>
-				</div>
-				<p class="result-foot">
-					{grade.evaluatedPct}% del curso evaluado · falta {100 - grade.evaluatedPct}%
-				</p>
+		{#if competencies.length > 0}
+			<p class="eyebrow">NIVELES DE LOGRO POR COMPETENCIA</p>
+			<div class="stack">
+				{#each competencies as comp (comp.competencyId)}
+					<CompetencyCard
+						competency={comp}
+						criteria={criteriaByCompetency.get(comp.competencyId) ?? []}
+						onCriterionLevelChange={handleCriterionLevelChange}
+						onLevelChange={handleLevelChange}
+						onSaveConclusion={handleSaveConclusion}
+					/>
+				{/each}
 			</div>
-
-			{#if grade.min !== null && grade.max !== null}
-				<div class="range">
-					<p class="range-label">Rango posible al cierre</p>
-					<div class="row">
-						<span class="range-min">{grade.min}%</span>
-						<div class="range-track"></div>
-						<span class="range-max">{grade.max}%</span>
-					</div>
-					<p class="range-note">Según cómo rinda en lo que falta</p>
-				</div>
-			{/if}
 		{/if}
 
-		<p class="eyebrow">EVALUACIONES</p>
+		<p class="eyebrow">EVIDENCIA</p>
+		<p class="evidence-note">
+			Las notas son evidencia para tu juicio docente. No determinan el nivel de
+			logro ni se promedian para obtenerlo.
+		</p>
 
 		<div class="stack">
 			{#each evaluationModules as mod (mod.code)}
@@ -284,7 +356,7 @@
 						<div class="grow">
 							<p class="component-name">{mod.label}</p>
 							<p class="component-weight">
-								Peso {Math.round(mod.weight * 100)}% · {scoredCount(mod)}/{mod.evaluations.length} evaluadas
+								{scoredCount(mod)}/{mod.evaluations.length} evaluadas
 							</p>
 						</div>
 						<span class="chevron" class:open={expanded}>
@@ -297,25 +369,29 @@
 							{#each mod.evaluations as ev (ev.assessment_id)}
 								{@const attempt = latestAttempt(ev)}
 								{@const scored = attempt?.raw_value != null}
-								<div class="row subgrade" class:unscored={!scored}>
-									<p class="subgrade-name grow">{ev.title}</p>
-									<span class="input-wrap">
-										<input
-											type="number"
-											class="score-input"
-											min="0"
-											max={ev.max_score}
-											value={attempt?.raw_value ?? ''}
-											onchange={(e) => void handleScoreChange(ev, e)}
-											aria-label={`Nota de ${ev.title}, sobre ${ev.max_score}`}
-										/>
-										<span class="max">/ {ev.max_score}</span>
-									</span>
-									<span class="score">
-										{scored && attempt?.raw_value != null
-											? `${Math.round((attempt.raw_value / ev.max_score) * 100)}%`
-											: '—'}
-									</span>
+								<div class="subgrade" class:unscored={!scored}>
+									<div class="row">
+										<p class="subgrade-name grow">{ev.title}</p>
+										<span class="input-wrap">
+											<input
+												type="number"
+												class="score-input"
+												min="0"
+												max={ev.max_score}
+												value={attempt?.raw_value ?? ''}
+												onchange={(e) => void handleScoreChange(ev, e)}
+												aria-label={`Nota de ${ev.title}, sobre ${ev.max_score}`}
+											/>
+											<span class="max">/ {ev.max_score}</span>
+										</span>
+									</div>
+									{#if list(ev.criteria).length > 0}
+										<p class="evidences">
+											Evidencia: {list(ev.criteria)
+												.map((c) => c.code ?? c.description)
+												.join(' · ')}
+										</p>
+									{/if}
 								</div>
 							{/each}
 						</div>
@@ -326,6 +402,32 @@
 
 		{#if evaluationModules.length === 0}
 			<p class="empty">Aún no hay evaluaciones para este curso.</p>
+		{/if}
+
+		{#if internalGrade}
+			<div class="card internal">
+				<button
+					type="button"
+					class="internal-header pressable"
+					onclick={() => (showInternal = !showInternal)}
+					aria-expanded={showInternal}
+				>
+					<p class="grow internal-title">Sistema interno de la IE</p>
+					<span class="chevron" class:open={showInternal}>
+						<Icon name="chevron-right" size={16} />
+					</span>
+				</button>
+				{#if showInternal}
+					<div class="internal-body">
+						<p class="internal-value">{internalGrade.display}</p>
+						<p class="internal-foot">{internalGrade.evaluatedPct}% del curso evaluado</p>
+						<p class="internal-note">
+							Promedio ponderado propio del colegio. No es el registro oficial: el
+							MINEDU evalúa por competencias y el nivel de logro lo asignas tú.
+						</p>
+					</div>
+				{/if}
+			</div>
 		{/if}
 
 		<p class="eyebrow">NOTAS PERSONALES</p>
@@ -416,101 +518,6 @@
 		color: var(--text-secondary);
 	}
 
-	.result {
-		background: var(--text-primary);
-		border-radius: var(--radius-lg);
-		padding: var(--space-lg);
-		margin-bottom: var(--space-lg);
-	}
-
-	.result-label {
-		margin: 0 0 var(--space-sm);
-		font-size: 10px;
-		letter-spacing: 0.05em;
-		color: var(--surface-1);
-		font-family: var(--font-mono);
-	}
-
-	.result-head {
-		display: flex;
-		align-items: baseline;
-		gap: 10px;
-	}
-
-	.tier {
-		font-size: 26px;
-		font-weight: 600;
-		color: var(--surface-2);
-	}
-
-	.pct {
-		font-size: 15px;
-		color: var(--surface-1);
-	}
-
-	.progress {
-		width: 100%;
-		height: 6px;
-		border-radius: var(--radius-sm);
-		overflow: hidden;
-		margin: 14px 0 var(--space-sm);
-		background: rgba(255, 255, 255, 0.2);
-	}
-
-	.progress-fill {
-		height: 100%;
-		background: var(--surface-2);
-	}
-
-	.result-foot {
-		margin: 0;
-		font-size: 12px;
-		color: var(--surface-1);
-	}
-
-	.range {
-		background: var(--surface-1);
-		border-radius: var(--radius);
-		padding: var(--space-md) 14px;
-		margin-bottom: 20px;
-	}
-
-	.range-label {
-		margin: 0 0 6px;
-		font-size: 11px;
-		color: var(--text-secondary);
-	}
-
-	.range .row {
-		gap: var(--space-sm);
-	}
-
-	.range-min,
-	.range-max {
-		font-size: 15px;
-		font-weight: 500;
-	}
-
-	.range-min {
-		color: var(--text-danger);
-	}
-
-	.range-max {
-		color: var(--text-success);
-	}
-
-	.range-track {
-		flex: 1;
-		height: 4px;
-		border-radius: 2px;
-		background: linear-gradient(to right, var(--border-strong), var(--fill-accent));
-	}
-
-	.range-note {
-		margin: 6px 0 0;
-		font-size: 11px;
-		color: var(--text-muted);
-	}
 
 	.stack {
 		display: flex;
@@ -615,11 +622,65 @@
 		color: var(--text-secondary);
 	}
 
-	.score {
+	.evidence-note {
+		margin: 0 0 var(--space-sm);
+		font-size: 11px;
+		line-height: 1.4;
+		color: var(--text-muted);
+	}
+
+	.evidences {
+		margin: 4px 0 0;
+		font-size: 11px;
+		line-height: 1.35;
+		color: var(--text-muted);
+	}
+
+	.internal {
+		padding: 0;
+		margin-top: var(--space-lg);
+	}
+
+	.internal-header {
+		display: flex;
+		align-items: center;
+		gap: var(--space-sm);
+		width: 100%;
+		padding: var(--space-md);
+		background: none;
+		border: none;
+		font-family: inherit;
+		text-align: left;
+		cursor: pointer;
+	}
+
+	.internal-title {
+		margin: 0;
 		font-size: 13px;
-		font-weight: 500;
-		min-width: 40px;
-		text-align: right;
+		color: var(--text-secondary);
+	}
+
+	.internal-body {
+		padding: 0 var(--space-md) var(--space-md);
+	}
+
+	.internal-value {
+		margin: 0;
+		font-size: 22px;
+		font-weight: 600;
+	}
+
+	.internal-foot {
+		margin: 2px 0 0;
+		font-size: 12px;
+		color: var(--text-secondary);
+	}
+
+	.internal-note {
+		margin: var(--space-sm) 0 0;
+		font-size: 11px;
+		line-height: 1.4;
+		color: var(--text-muted);
 	}
 
 	.practice-score {

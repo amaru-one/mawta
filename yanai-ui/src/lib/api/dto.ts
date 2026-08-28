@@ -92,7 +92,6 @@ export type ClassDashboardDto = {
 		scored: number;
 		expected: number;
 		asistencia_pct: number | null;
-		en_riesgo: number;
 	};
 	progress:
 		| {
@@ -105,8 +104,9 @@ export type ClassDashboardDto = {
 				pct: number | null;
 		  }[]
 		| null;
+	/** Counts of asserted niveles de logro — the official record, not the
+	 *  internal weighted system. */
 	distribution: { code: string; count: number }[] | null;
-	at_risk: { student_id: string; name: string; reason_text: string; severity: Severity }[] | null;
 	grades_pending: { assessment_id: string; title: string; missing: number }[] | null;
 	attendance_unmarked: { session_id: string; session_date: string }[] | null;
 	upcoming: SessionSummaryDto[] | null;
@@ -193,24 +193,35 @@ export type AttemptDto = {
 	raw_value: number | null;
 };
 
+/** One criterio de evaluación an assessment evidences. */
+export type CriterionRefDto = {
+	criterion_id: string;
+	code: string | null;
+	description: string;
+};
+
+/** A graded item as *evidence*. Carries no weight: under RVM 094-2020 a mark
+ *  informs the teacher's judgement and never feeds a final grade. */
 export type EvaluationDto = {
 	assessment_id: string;
 	title: string;
 	kind: AssessmentKind;
 	max_score: number;
-	weight: number;
 	component_code: string;
+	component_name: string;
+	criteria: CriterionRefDto[] | null;
 	attempts: AttemptDto[] | null;
 };
 
+/** The school's OPTIONAL INTERNAL weighted system — never the official
+ *  record, and never a forecast. The official record is the nivel de logro
+ *  per competencia (CompetencyLevelDto). */
 export type ComputedGradeDto = {
 	normalized_value: number;
 	display_value: string | null;
 	level_code: string | null;
 	evaluated_weight: number;
 	total_weight: number;
-	projected_min_normalized: number | null;
-	projected_max_normalized: number | null;
 	trend: Trend | null;
 };
 
@@ -309,4 +320,143 @@ export type ProfileDto = {
 				classes: { class_id: string; name: string; roster_count: number; slots_per_week: number }[];
 		  }[]
 		| null;
+};
+
+// ---- competencias y niveles de logro (RVM 094-2020 / 048-2024) ----
+
+// The CNEB niveles de logro. Ordered C < B < A < AD, and deliberately not
+// numbers: no current norm maps them onto a 0-20 mark.
+export type NivelLogro = 'AD' | 'A' | 'B' | 'C';
+
+// What a competency counts as for promotion (5.1.3 p.9-11).
+export type CompetencyKind = 'area' | 'transversal' | 'adicional_area' | 'adicional_libre';
+
+// Why a conclusión descriptiva exists. Anything but 'optional' is mandatory
+// and blocks closing the period. Decided server-side, never sent by the client.
+export type ConclusionRequirement = 'level_c' | 'consecutive_c' | 'inclusion_support' | 'optional';
+export type ConclusionStatus = 'draft' | 'final';
+
+// La situación final del Acta Oficial (5.1.2.1.c p.5).
+export type SituacionFinal = 'PRO' | 'PER' | 'RR';
+
+export type CompetencyLevelDto = {
+	competency_id: string;
+	code: string;
+	name: string;
+	kind: CompetencyKind;
+	subject_id: string | null;
+	// The asserted level — the official record. Null means the competency was
+	// not developed and evaluated this period, which is valid: do NOT render
+	// it as C.
+	level: NivelLogro | null;
+	level_id: string | null;
+	asserted_at: string | null;
+	conclusion_required: boolean;
+	conclusion_requirement: ConclusionRequirement;
+	conclusion_body: string | null;
+	conclusion_status: ConclusionStatus | null;
+};
+
+export type CompetencyLevelsDto = { competencies: CompetencyLevelDto[] | null };
+
+export type AssertCompetencyLevelDto = {
+	competency_id: string;
+	level: NivelLogro;
+	note?: string | null;
+	term_id?: string;
+};
+
+export type ConclusionCreateDto = {
+	competency_id: string;
+	body: string;
+	// Every conclusion must carry personalised recommendations (5.1.1.3 p.7);
+	// the server rejects a 'final' one that does not.
+	includes_recommendations: boolean;
+	status: ConclusionStatus;
+	term_id?: string;
+};
+
+// ---- reporte de fin de periodo para SIAGIE ----
+
+export type MissingConclusionDto = {
+	student_id: string;
+	student_name: string;
+	competency_id: string;
+	competency: string;
+	requirement: ConclusionRequirement;
+};
+
+export type SiagieCompetencyDto = {
+	competency_id: string;
+	code: string;
+	name: string;
+	level: NivelLogro | null;
+	conclusion: string | null;
+	conclusion_required: boolean;
+};
+
+export type SiagieStudentDto = {
+	student_id: string;
+	student_code: string;
+	student_name: string;
+	competencies: SiagieCompetencyDto[] | null;
+};
+
+export type SiagieReportDto = {
+	class_id: string;
+	class_name: string;
+	subject_code: string;
+	area_curricular: string | null;
+	term_id: string;
+	term_name: string;
+	term_sequence: number;
+	students: SiagieStudentDto[] | null;
+	// Mandatory conclusiones descriptivas still missing. While this is
+	// non-empty the period is not ready to be sent.
+	blocking: MissingConclusionDto[] | null;
+	ready: boolean;
+	notice: string;
+};
+
+// --- Criterios de evaluación ------------------------------------------------
+// The criterios a teacher writes per competencia, and the level a student
+// reached against each one this period. These are the *evidence* the teacher
+// weighs before asserting the competency level; nothing rolls them up
+// automatically, because RVM 094-2020 makes that a judgement, not an average.
+
+export type CriterionDto = {
+	criterion_id: string;
+	code: string | null;
+	description: string;
+	sort_order: number;
+	performance_standard_id: string | null;
+	// This student's level for the criterio this period, when the listing is
+	// scoped to a student. Null means not yet judged — do NOT render as C.
+	level: NivelLogro | null;
+	level_id: string | null;
+};
+
+export type CompetencyCriteriaDto = {
+	competency_id: string;
+	code: string;
+	name: string;
+	kind: CompetencyKind;
+	// Empty rather than omitted when the teacher has written none yet — a
+	// competencia without criterios is the thing the screen most needs to say.
+	criteria: CriterionDto[] | null;
+};
+
+export type ClassCriteriaDto = { competencies: CompetencyCriteriaDto[] | null };
+
+export type CriterionCreateDto = {
+	description: string;
+	code?: string | null;
+	performance_standard_id?: string | null;
+};
+
+export type AssertCriterionLevelDto = {
+	criterion_id: string;
+	level: NivelLogro;
+	note?: string | null;
+	term_id?: string;
 };

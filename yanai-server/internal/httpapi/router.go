@@ -56,6 +56,19 @@ func (a *API) Router() http.Handler {
 		r.Post("/classes/{classID}/assessments", a.handleCreateAssessment)
 		r.Post("/classes/{classID}/students/{studentID}/summary", a.handleRequestSummary)
 
+		// Niveles de logro: the official MINEDU record (RVM 094-2020 / 048-2024).
+		r.Get("/classes/{classID}/students/{studentID}/competencies", a.handleStudentCompetencies)
+		r.Post("/classes/{classID}/students/{studentID}/competency-levels", a.handleAssertCompetencyLevel)
+		r.Post("/classes/{classID}/students/{studentID}/conclusions", a.handleUpsertConclusion)
+		r.Get("/classes/{classID}/siagie-report", a.handleSiagieReport)
+
+		// Criterios de evaluación: what the teacher judges each competencia
+		// against, and the per-criterio levels that evidence the judgement.
+		r.Get("/classes/{classID}/criteria", a.handleClassCriteria)
+		r.Post("/classes/{classID}/competencies/{competencyID}/criteria", a.handleCreateCriterion)
+		r.Post("/criteria/{criterionID}/delete", a.handleDeleteCriterion)
+		r.Post("/classes/{classID}/students/{studentID}/criterion-levels", a.handleAssertCriterionLevel)
+
 		r.Post("/sessions/{sessionID}/start", a.handleSessionStart)
 		r.Post("/sessions/{sessionID}/complete", a.handleSessionComplete)
 		r.Get("/sessions/{sessionID}", a.handleSessionRoster)

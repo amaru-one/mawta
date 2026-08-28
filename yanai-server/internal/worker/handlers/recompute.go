@@ -57,24 +57,26 @@ func GradeRecompute(ctx context.Context, tx pgx.Tx, jobID int64, payload []byte)
 	}
 
 	for _, studentID := range targets {
-		if err := recomputeOne(ctx, tx, jobID, p.ClassID, p.TermID, studentID); err != nil {
+		if _, err := recomputeOne(ctx, tx, jobID, p.ClassID, p.TermID, studentID); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func recomputeOne(ctx context.Context, tx pgx.Tx, jobID int64, classID, termID, studentID uuid.UUID) error {
+// recomputeOne returns whether it wrote a new computed_grades row; false
+// means nothing material changed.
+func recomputeOne(ctx context.Context, tx pgx.Tx, jobID int64, classID, termID, studentID uuid.UUID) (bool, error) {
 	var scoreCount int
 	if err := tx.QueryRow(ctx, `
 		select count(*) from scores
 		 where class_id = $1 and term_id = $2 and student_id = $3
 		   and superseded_at is null and deleted_at is null
 	`, classID, termID, studentID).Scan(&scoreCount); err != nil {
-		return err
+		return false, err
 	}
 	if scoreCount == 0 {
-		return nil
+		return false, nil
 	}
 
 	var schemeID, schemeVersionID uuid.UUID
@@ -82,10 +84,10 @@ func recomputeOne(ctx context.Context, tx pgx.Tx, jobID int64, classID, termID, 
 		select scheme_id, scheme_version_id from class_effective_grading_schemes
 		 where class_id = $1 and term_id = $2
 	`, classID, termID).Scan(&schemeID, &schemeVersionID); err != nil {
-		return err
+		return false, err
 	}
 	if schemeVersionID == uuid.Nil {
-		return nil // no published version in effect for this term; nothing to compute
+		return false, nil // no published version in effect for this term; nothing to compute
 	}
 
 	var policy grading.Policy
@@ -96,7 +98,7 @@ func recomputeOne(ctx context.Context, tx pgx.Tx, jobID int64, classID, termID, 
 		  from grading_scheme_versions where id = $1
 	`, schemeVersionID).Scan(&policy.RoundingMode, &policy.RoundingDecimals, &policy.AbsentCountsAs,
 		&policy.RetakePolicy, &policy.RetakeCapNormalized, &policy.MinEvaluatedWeightForGrade); err != nil {
-		return err
+		return false, err
 	}
 	var scaleKind string
 	var scaleMin, scaleMax float64
@@ -106,7 +108,7 @@ func recomputeOne(ctx context.Context, tx pgx.Tx, jobID int64, classID, termID, 
 		  from grading_schemes gs join grade_scales sc on sc.id = gs.scale_id
 		 where gs.id = $1
 	`, schemeID).Scan(&scaleID, &scaleKind, &scaleMin, &scaleMax, &scaleDecimals); err != nil {
-		return err
+		return false, err
 	}
 
 	wrows, err := tx.Query(ctx, `
@@ -115,20 +117,20 @@ func recomputeOne(ctx context.Context, tx pgx.Tx, jobID int64, classID, termID, 
 		 where scheme_version_id = $1 and deleted_at is null
 	`, schemeVersionID)
 	if err != nil {
-		return err
+		return false, err
 	}
 	var weights []grading.ComponentWeight
 	for wrows.Next() {
 		var w grading.ComponentWeight
 		if err := wrows.Scan(&w.ComponentID, &w.Weight, &w.DropLowestN, &w.Aggregation, &w.IsRequired); err != nil {
 			wrows.Close()
-			return err
+			return false, err
 		}
 		weights = append(weights, w)
 	}
 	wrows.Close()
 	if err := wrows.Err(); err != nil {
-		return err
+		return false, err
 	}
 
 	arows, err := tx.Query(ctx, `
@@ -142,7 +144,7 @@ func recomputeOne(ctx context.Context, tx pgx.Tx, jobID int64, classID, termID, 
 		 order by a.id, s.attempt_number
 	`, classID, termID, studentID)
 	if err != nil {
-		return err
+		return false, err
 	}
 	byAssessment := make(map[uuid.UUID]*grading.AssessmentInput)
 	var order []uuid.UUID
@@ -155,7 +157,7 @@ func recomputeOne(ctx context.Context, tx pgx.Tx, jobID int64, classID, termID, 
 		if err := arows.Scan(&assessmentID, &componentID, &weightWithinComponent, &dueAt,
 			&att.ScoreID, &att.AttemptNumber, &att.Status, &att.RawValue, &att.MaxValue, &att.RetakeCapNormalized); err != nil {
 			arows.Close()
-			return err
+			return false, err
 		}
 		ai, ok := byAssessment[assessmentID]
 		if !ok {
@@ -168,7 +170,7 @@ func recomputeOne(ctx context.Context, tx pgx.Tx, jobID int64, classID, termID, 
 	}
 	arows.Close()
 	if err := arows.Err(); err != nil {
-		return err
+		return false, err
 	}
 	var assessments []grading.AssessmentInput
 	for _, id := range order {
@@ -193,10 +195,10 @@ func recomputeOne(ctx context.Context, tx pgx.Tx, jobID int64, classID, termID, 
 	`, studentID, classID, termID).Scan(&liveID, &liveDigest, &livePrevLevelID, &livePrevNormalized)
 	hasLive := err == nil
 	if err != nil && err != pgx.ErrNoRows {
-		return err
+		return false, err
 	}
 	if hasLive && liveDigest != nil && *liveDigest == digest {
-		return nil // nothing material changed
+		return false, nil // nothing material changed
 	}
 
 	var scaleLevelID *uuid.UUID
@@ -215,7 +217,7 @@ func recomputeOne(ctx context.Context, tx pgx.Tx, jobID int64, classID, termID, 
 				displayValue = &code
 			}
 		} else if err != pgx.ErrNoRows {
-			return err
+			return false, err
 		}
 		if scaleKind != domain.ScaleOrdinal {
 			v := grading.Round(scaleMin+result.NormalizedValue*(scaleMax-scaleMin), policy.RoundingMode, scaleDecimals)
@@ -241,7 +243,7 @@ func recomputeOne(ctx context.Context, tx pgx.Tx, jobID int64, classID, termID, 
 
 	if hasLive {
 		if _, err := tx.Exec(ctx, `update computed_grades set superseded_at = now() where id = $1`, liveID); err != nil {
-			return err
+			return false, err
 		}
 	}
 
@@ -255,23 +257,23 @@ func recomputeOne(ctx context.Context, tx pgx.Tx, jobID int64, classID, termID, 
 		insert into computed_grades (
 			tenant_id, student_id, class_id, term_id, scheme_version_id, scale_id, scope,
 			normalized_value, normalization_method, scale_level_id, display_value,
-			total_weight, evaluated_weight, projected_min_normalized, projected_max_normalized,
+			total_weight, evaluated_weight,
 			previous_scale_level_id, previous_normalized_value, trend,
 			scores_counted, inputs_digest, computed_by_job_id, supersedes_id
 		) values (
 			app.current_tenant_id(), $1, $2, $3, $4, $5, $6,
 			$7, 'ratio_of_evaluated', $8, $9,
-			$10, $11, $12, $13,
-			$14, $15, $16,
-			$17, $18, $19, $20
+			$10, $11,
+			$12, $13, $14,
+			$15, $16, $17, $18
 		) returning id
 	`, studentID, classID, termID, schemeVersionID, scaleID, domain.ScopeTermPartial,
 		result.NormalizedValue, scaleLevelID, displayValue,
-		result.TotalWeight, result.EvaluatedWeight, result.ProjectedMinNormalized, result.ProjectedMaxNormalized,
+		result.TotalWeight, result.EvaluatedWeight,
 		prevLevelID, prevNormalized, trend,
 		scoreCount, digest, jobID, supersedesID,
 	).Scan(&newID); err != nil {
-		return err
+		return false, err
 	}
 
 	for _, cr := range result.Components {
@@ -287,11 +289,11 @@ func recomputeOne(ctx context.Context, tx pgx.Tx, jobID int64, classID, termID, 
 			cr.NormalizedValue, componentDisplayValue(cr, scaleKind), cr.AssessmentsCounted,
 			uuidStrings(cr.CountedScoreIDs), uuidStrings(cr.DroppedScoreIDs), uuidStrings(cr.ExcusedScoreIDs),
 		); err != nil {
-			return err
+			return false, err
 		}
 	}
 
-	return nil
+	return true, nil
 }
 
 func componentDisplayValue(cr grading.ComponentResult, scaleKind string) *string {

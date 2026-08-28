@@ -96,6 +96,13 @@ button {
 	cursor: pointer;
 }
 
+/* Every link in the app is a nav row, card or button with its own styling;
+   none want the browser's blue underline. */
+a {
+	color: inherit;
+	text-decoration: none;
+}
+
 input,
 select {
 	font-family: inherit;

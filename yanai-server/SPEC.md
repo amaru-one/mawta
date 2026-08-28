@@ -5,7 +5,7 @@ Go API powering the six Yanai screens on top of the Postgres schema in `migratio
 - `cmd/api/` — the single binary entrypoint (see its SPEC.md).
 - `internal/` — packages: `config`, `db`, `domain`, `grading`, `httpapi`, `media`, `repo`, `worker` (each with its own SPEC.md).
 - `migrations/` — goose SQL migrations 00001–00016 + `ANALYSIS.md` (see its SPEC.md).
-- `seed/` — demo tenant seed script + onboarding runbook (see its SPEC.md).
+- `seed/` — demo tenant seed script, add-on scripts for extra classes/sections, + onboarding runbook (see its SPEC.md).
 - `docs/` — local Postgres setup (see its SPEC.md).
 - `bruno/` — OpenAPI collection for the Bruno API client (see its SPEC.md).
 - `Dockerfile` — production image build (distroless, ships goose + migrations).
@@ -21,11 +21,17 @@ Consumes `DATABASE_URL` (Postgres 16 + pgvector) and env config (see `internal/c
 
 ## Conventions & Constraints
 - All SQL is hand-written in `internal/repo` and handlers; no ORM or code generation.
+- **Evaluation is por criterios, not weighted.** RVM 094-2020 (mod. 048-2024) determines achievement per competencia from the teacher's judgement of evidence against the criterios de evaluación they wrote. The official record is `competency_term_levels`, written only by a teacher's explicit action and derived from nothing. Marks on quizzes and exams are evidence; they never feed a final grade arithmetically.
+- `internal/grading` still computes a weighted grade, but only as the school's **optional internal system** (D.S. 009-2006-ED art. 37.4.f) — clearly labelled as such in the UI and walled off from the competency record. It is pure and SQL-free.
+- Nothing predictive: no projections, no risk flags, no situación-final projection. The app records what teachers assert.
 - Every tenant-scoped query runs under forced RLS via `db.WithTenantTx`; `WithSystemTx` (RLS bypass) is reserved for cross-tenant maintenance.
 - Append-only score/grade history: corrections supersede rows (`superseded_at`), never update in place.
 - No test suite exists yet; CI gate is `go vet` + `go build`.
 
 ## Change Log
+- 2026-08-27: Realigned grading with RVM 094-2020: criterios de evaluación per competencia are now a first-class surface (schema `00003`, `internal/repo/criteria.go`, `internal/httpapi/criteria.go`, and the criterios screen in `yanai-ui`), the weighted result was demoted to a labelled internal system, and everything predictive was removed — `internal/promotion` (with the repo's only test file), both risk job kinds, and the `risk_*` tables. `internal/grading` survives as the internal system's math.
+- 2026-08-26: `seed/`'s add-on scripts were folded back into `seed_demo_tenant.sql`; Contents line updated. `migrations/` squashed its 18-file history into `00001_initial_schema.sql`.
+- 2026-08-25: `seed/` now holds add-on scripts alongside the demo seed (`add_class_ingles_5to_a.sql`); the Contents line was widened to say so.
 - 2026-08-24: Initial spec created retroactively, describing current contents.
 
 ## Open Questions

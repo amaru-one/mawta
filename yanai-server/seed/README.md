@@ -6,13 +6,97 @@ school, a section of students, teachers, classes, and a grading scheme.
 pattern below is lifted directly from it, so when in doubt, search that file
 for the table name and copy the shape of the insert.
 
-Nothing here is a migration. Apply the schema migrations first
-(everything under `migrations/`), then run whatever script you write the same
-way you'd run `seed_demo_tenant.sql`:
+Nothing here is a migration — see *Applying the seed* below for how to run
+it, locally and on the server.
+
+## Applying the seed
+
+Apply in order: the goose migrations under `migrations/`, then
+`seed_demo_tenant.sql`. It is not idempotent — its two `do $$ ... end $$;`
+blocks each rely on a unique index to reject a second run — so re-applying
+means resetting the database first, not running the file twice.
+
+Each of the two blocks is already all-or-nothing; a clean run prints `DO`
+twice.
+
+### Local
+
+`../docs/postgres-setup.md` covers standing the container up (`yanai-pg`,
+host port 55432). It ships its own `psql` and nothing is bind-mounted, so
+pipe the file in over stdin — no host client needed:
 
 ```sh
-psql "$DATABASE_URL" -f your_script.sql
+cd yanai-server
+docker exec -i yanai-pg psql -U postgres -d yanai -v ON_ERROR_STOP=1 \
+  < seed/seed_demo_tenant.sql
 ```
+
+If you do have a host `psql` (`brew install libpq`), the `DATABASE_URL` form
+works too:
+
+```sh
+psql "$DATABASE_URL" -f seed/seed_demo_tenant.sql
+```
+
+### On the server (`/srv/yanai`)
+
+`deploy/docker-compose.prod.yml` bind-mounts this directory read-only at
+`/seed` inside the postgres container, so the file is addressed by path
+rather than piped.
+
+**`git pull` first.** The deploy workflow rsyncs only the SPA and `deploy/`,
+never the repo clone that mount points at — without a pull you apply a stale
+file. This bit for real on 2026-08-24; `../../DEPLOY.md` has the full note,
+including the matching `docker compose pull api` trap for migrations.
+
+```sh
+ssh deploy@<your-server>
+cd /srv/yanai
+git pull --ff-only
+
+C="docker compose --env-file .env -f deploy/docker-compose.prod.yml"
+$C exec -T postgres psql -U postgres -d yanai -v ON_ERROR_STOP=1 \
+  -f /seed/seed_demo_tenant.sql
+```
+
+`DEPLOY.md`
+§4 covers the first deploy (migrate, then seed) and the full drop-and-reseed.
+Reseeding production is routine only while it holds nothing but the demo
+tenant; once there is real student data it is a restore-from-backup job.
+
+### Dry-running it first
+
+Wrap it in a transaction you roll back. The `set constraints all immediate`
+is not optional: `check_weights_sum` is `DEFERRABLE INITIALLY DEFERRED`, so a
+plain rollback never fires it and a scheme whose weights don't sum to 1 would
+sail through the rehearsal.
+
+```sh
+{ echo 'begin;'; cat seed/seed_demo_tenant.sql;
+  echo 'set constraints all immediate;'; echo 'rollback;'; } \
+  | docker exec -i yanai-pg psql -U postgres -d yanai -v ON_ERROR_STOP=1
+```
+
+### Undoing it
+
+Hard deletes are permitted in development (`app.attach_soft_delete_guard` is
+a no-op), but a *published* scheme version's weight rows stay guarded. Open
+the escape hatch the schema provides for exactly this case, in the same
+transaction as the deletes:
+
+```sql
+select set_config('app.tenant_id', '<tenant uuid>', true);
+select set_config('app.allow_hard_delete', 'on', true);
+```
+
+Then delete children before parents: `evaluation_criterion_scores`,
+`assessment_criteria`, `scores`, `class_sessions`, `class_schedules`,
+`class_teachers`, `assessments`, `classes`, `section_memberships`,
+`sections`, `courses`, `evaluation_criteria`, `performance_standards`,
+`capabilities`, `competencies`, then the scheme's weights, version,
+components and scheme, then `subjects`. Delete a version's weight rows and
+the version in the same transaction — the deferred sum check skips a version
+that no longer exists, and would otherwise fire on a sum of 0.
 
 ## The one thing that will bite you first
 
@@ -181,5 +265,53 @@ under the old weights: insert a **new** `grading_scheme_versions` row with a
 later `effective_from`, close the old version off
 (`update ... set effective_to = <new version's effective_from>`), then
 publish the new one. Never edit a published version's weights in place —
-`app.forbid_published_weight_mutation` in `migrations/00008_grading_policy.sql`
+`app.forbid_published_weight_mutation` in `migrations/00001_initial_schema.sql`
 enforces this once a version is published.
+
+## 6. Recording criterios de evaluación and rubric scores
+
+The CNEB layer below `competencies`: capacidades, desempeños, and the
+teacher's own criterios de evaluación. `seed_demo_tenant.sql`'s Matemática
+block is the worked example — search it for `capabilities` to see the
+pattern in context.
+
+```sql
+insert into capabilities (tenant_id, competency_id, code, name, sort_order)
+values (v_tenant, v_competency, '<code>', '<capacidad name>', <order>)
+returning id into v_capability;
+
+insert into performance_standards (tenant_id, capability_id, grade_level_id, code, description)
+values (v_tenant, v_capability, v_grade_level, '<code>', '<desempeño text>')
+returning id into v_performance_standard;
+
+insert into evaluation_criteria (tenant_id, competency_id, performance_standard_id, code, description, sort_order)
+values (v_tenant, v_competency, v_performance_standard, '<code>', '<criterio precisado>', <order>)
+returning id into v_criterion;
+
+-- Which assessment evidences this criterio (sibling of assessment_competencies,
+-- at criterio granularity):
+insert into assessment_criteria (tenant_id, assessment_id, criterion_id)
+values (v_tenant, v_assessment, v_criterion);
+```
+
+Both `performance_standard_id` on `evaluation_criteria` and `grade_level_id`
+on `performance_standards` are nullable — a school loads its curriculum
+incrementally, capacidad by capacidad and desempeño by desempeño, not all at
+once. Not every capacidad needs a desempeño row yet, and a teacher can write
+a criterio ad hoc before the national desempeño behind it is loaded.
+
+Recording a per-student, per-criterio rubric result is append-only, exactly
+like `scores`:
+
+```sql
+insert into evaluation_criterion_scores (tenant_id, assessment_id, criterion_id, student_id, scale_level_id, recorded_by_id)
+values (v_tenant, v_assessment, v_criterion, v_student, v_scale_level, v_teacher);
+```
+
+`class_id` and `term_id` are denormalised from the assessment by a trigger —
+never supply them. A student who submitted nothing gets no row at all,
+rather than one at the lowest level: absence of evidence is not the same as
+evidence of the lowest level, the same principle `competency_term_levels`
+already follows. Correcting a result never updates the row in place — stamp
+`superseded_at` on the old row, then insert the replacement with
+`supersedes_id` set, same as correcting a `scores` row.

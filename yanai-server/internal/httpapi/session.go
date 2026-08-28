@@ -90,17 +90,7 @@ func (a *API) handleAttendanceUpsert(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return err
 		}
-		if err := repo.LogEvent(r.Context(), tx, "attendance.marked", "attendance_record", nil, payload, &studentID, &classID, &sessionID); err != nil {
-			return err
-		}
-		if req.Status == domain.AttendanceAbsent {
-			jobPayload, _ := json.Marshal(map[string]any{"class_id": classID, "student_id": studentID})
-			uniqueKey := "risk.detect:" + studentID.String() + ":" + classID.String()
-			if err := repo.EnqueueJob(r.Context(), tx, tc.TenantID, domain.JobKindRiskDetect, 2, jobPayload, uniqueKey); err != nil {
-				return err
-			}
-		}
-		return nil
+		return repo.LogEvent(r.Context(), tx, "attendance.marked", "attendance_record", nil, payload, &studentID, &classID, &sessionID)
 	})
 	if err != nil {
 		writeError(w, err)
@@ -130,12 +120,7 @@ func (a *API) handleMarkAllPresent(w http.ResponseWriter, r *http.Request) {
 		if err := repo.MaybeStampAttendanceTaken(r.Context(), tx, sessionID, tc.TeacherID); err != nil {
 			return err
 		}
-		if err := repo.LogEvent(r.Context(), tx, "attendance.marked_bulk", "class_session", &sessionID, nil, nil, &classID, &sessionID); err != nil {
-			return err
-		}
-		jobPayload, _ := json.Marshal(map[string]any{"class_id": classID})
-		uniqueKey := "risk.detect:" + classID.String()
-		return repo.EnqueueJob(r.Context(), tx, tc.TenantID, domain.JobKindRiskDetect, 3, jobPayload, uniqueKey)
+		return repo.LogEvent(r.Context(), tx, "attendance.marked_bulk", "class_session", &sessionID, nil, nil, &classID, &sessionID)
 	})
 	if err != nil {
 		writeError(w, err)

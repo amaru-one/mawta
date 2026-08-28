@@ -196,39 +196,13 @@ func (a *API) handleCorrectScore(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]any{"id": newScoreID})
 }
 
-func (a *API) handleRequestSummary(w http.ResponseWriter, r *http.Request) {
-	tc := tenantCtxFrom(r)
-	classID, err := pathUUID(r, "classID")
-	if err != nil {
-		badRequest(w, "invalid classID")
-		return
-	}
-	studentID, err := pathUUID(r, "studentID")
-	if err != nil {
-		badRequest(w, "invalid studentID")
-		return
-	}
-	termIDParam := queryUUID(r, "term_id")
-
-	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
-		term, err := repo.ResolveTerm(r.Context(), tx, termIDParam)
-		if err != nil {
-			return err
-		}
-		payload, _ := json.Marshal(map[string]any{
-			"student_id": studentID, "class_id": classID, "term_id": term.ID, "requested_by": tc.TeacherID,
-		})
-		uniqueKey := "note_summary.generate:" + studentID.String() + ":" + classID.String() + ":" + term.ID.String()
-		if err := repo.EnqueueJob(r.Context(), tx, tc.TenantID, domain.JobKindNoteSummaryGenerate, 2, payload, uniqueKey); err != nil {
-			return err
-		}
-		return repo.LogEvent(r.Context(), tx, "note_summary.requested", "note_summary", nil, nil, &studentID, &classID, nil)
+// handleRequestSummary is retired along with the note_summary.generate job.
+// The route stays so the UI surfaces a clear error rather than silently
+// queueing work no handler would ever claim.
+func (a *API) handleRequestSummary(w http.ResponseWriter, _ *http.Request) {
+	writeJSON(w, http.StatusNotImplemented, map[string]any{
+		"error": "note summary generation is not available",
 	})
-	if err != nil {
-		writeError(w, err)
-		return
-	}
-	writeJSON(w, http.StatusAccepted, map[string]any{"status": "queued"})
 }
 
 func enqueueGradeRecompute(ctx context.Context, tx pgx.Tx, tenantID, classID, termID, studentID uuid.UUID) error {

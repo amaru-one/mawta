@@ -144,6 +144,11 @@ goose -dir migrations postgres "$DATABASE_URL" up
 docker exec -i yanai-pg psql -U postgres -d yanai -v ON_ERROR_STOP=1 -f - < seed/seed_demo_tenant.sql
 ```
 
+`seed_demo_tenant.sql` is one file containing all four dataset blocks
+(the base tenant plus `Inglés 5to A`, `Historia 4to A`, `Arte 3ro A`), applied
+in dependency order inside it — nothing else to run. `../seed/README.md`
+covers what each block contains, and how to dry-run or undo it.
+
 `yanai_app` is a **cluster-wide** role, so it outlives the database it was
 created for. That's fine: migration `00001` creates it only `if not exists`
 and re-grants its privileges on every `up`, so re-migrating a freshly created

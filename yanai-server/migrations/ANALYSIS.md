@@ -2,6 +2,12 @@
 
 Companion to `00001`–`00014`. Covers the queries expected to hurt, the places
 the HTML was ambiguous, and the constraints from the brief I would argue with.
+Predates `00002_evaluation_criteria.sql` (added 2026-08-26, after the squash);
+the reasoning below still holds, but object counts are from before it — see
+`SPEC.md`'s Change Log for what `00002` added. Live count after `00002`: 60
+base tables in `public` (incl. `goose_db_version`), i.e. the squash's 55 plus
+the five new tables (`capabilities`, `performance_standards`,
+`evaluation_criteria`, `assessment_criteria`, `evaluation_criterion_scores`).
 
 ## Verification
 

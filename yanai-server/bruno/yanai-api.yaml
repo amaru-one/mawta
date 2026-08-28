@@ -42,8 +42,22 @@ tags:
   - name: 02 Clase panel
   - name: 03 Leccion
   - name: 04 Notas
-  - name: 05 Notificaciones
-  - name: 06 Perfil
+  - name: 05 Competencias
+    description: >
+      Niveles de logro por competencia y conclusiones descriptivas — el registro
+      oficial que exige la RVM 094-2020 (modificada por RVM 048-2024), y el
+      reporte de fin de periodo para SIAGIE. A diferencia de "04 Notas", que
+      recoge evidencia (y el sistema interno ponderado del colegio), esto es lo
+      que asigna el docente y lo único que la norma reconoce.
+  - name: 06 Criterios
+    description: >
+      Los criterios de evaluación que el docente escribe para cada competencia,
+      y el nivel de cada estudiante frente a cada criterio en el periodo. Son la
+      referencia contra la cual se valora la evidencia (RVM 094-2020); son
+      evidencia para el juicio docente, nunca se promedian ni se agregan al
+      nivel de logro.
+  - name: 07 Notificaciones
+  - name: 08 Perfil
 
 components:
   parameters:
@@ -217,6 +231,197 @@ paths:
         - $ref: "#/components/parameters/ActorIdHeader"
         - $ref: "#/components/parameters/ClassId"
         - $ref: "#/components/parameters/StudentId"
+        - $ref: "#/components/parameters/TermIdQuery"
+      responses:
+        "200": { description: OK }
+
+  /classes/{classID}/students/{studentID}/competencies:
+    get:
+      tags: [05 Competencias]
+      summary: Niveles de logro por competencia
+      description: >
+        El registro oficial (RVM 094-2020, modificada por RVM 048-2024): el nivel
+        de logro AD/A/B/C que el docente asignó a cada competencia del área en el
+        periodo, y si la conclusión descriptiva es obligatoria. No hay nivel
+        sugerido: el nivel es juicio del docente sobre las evidencias, no un
+        número que el sistema proponga primero. `level: null` significa que la
+        competencia no se desarrolló en el periodo — no equivale a C.
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/ClassId"
+        - $ref: "#/components/parameters/StudentId"
+        - $ref: "#/components/parameters/TermIdQuery"
+      responses:
+        "200": { description: OK }
+
+  /classes/{classID}/students/{studentID}/competency-levels:
+    post:
+      tags: [05 Competencias]
+      summary: Asertar nivel de logro
+      description: >
+        Único escritor del nivel de logro oficial. Es juicio del docente sobre las
+        evidencias del periodo (5.1.1.3 p.2-3), nunca se deriva de la nota
+        calculada ni de los niveles por criterio. Append-only: volver a asertar
+        supersede la fila anterior.
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/ClassId"
+        - $ref: "#/components/parameters/StudentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+            example:
+              competency_id: "00000000-0000-0000-0000-000000000000"
+              level: "B"
+              note: null
+      responses:
+        "201": { description: Created }
+        "400": { description: level must be AD, A, B or C }
+
+  /classes/{classID}/students/{studentID}/conclusions:
+    post:
+      tags: [05 Competencias]
+      summary: Conclusión descriptiva
+      description: >
+        Obligatoria cuando el nivel es C (5.1.1.3 p.7.d), cuando hay C en dos o
+        más periodos consecutivos (p.3, y debe sustentar la falta de avance), y
+        en cada periodo para estudiantes que enfrentan barreras educativas (p.7).
+        El motivo lo determina el servidor, no el cliente. Una conclusión `final`
+        sin `includes_recommendations` se rechaza con 422.
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/ClassId"
+        - $ref: "#/components/parameters/StudentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+            example:
+              competency_id: "00000000-0000-0000-0000-000000000000"
+              body: "Avances, dificultades y recomendaciones personalizadas."
+              includes_recommendations: true
+              status: "final"
+      responses:
+        "201": { description: Created }
+        "422": { description: missing_recommendations }
+
+  /classes/{classID}/criteria:
+    get:
+      tags: [06 Criterios]
+      summary: Criterios de evaluación de la clase
+      description: >
+        Cada competencia del área con los criterios de evaluación que el docente
+        escribió para ella. Con `student_id`, cada criterio trae además el nivel
+        de ese estudiante en el periodo. Una competencia sin criterios se
+        devuelve con la lista vacía, no se omite: bajo la RVM 094-2020 los
+        criterios son la referencia contra la cual se valora la evidencia, así
+        que una competencia sin ellos es justo lo que el docente necesita ver.
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/ClassId"
+        - name: student_id
+          in: query
+          required: false
+          schema: { type: string, format: uuid }
+        - $ref: "#/components/parameters/TermIdQuery"
+      responses:
+        "200": { description: OK }
+
+  /classes/{classID}/competencies/{competencyID}/criteria:
+    post:
+      tags: [06 Criterios]
+      summary: Crear criterio de evaluación
+      description: >
+        El docente escribe su propio criterio, opcionalmente anclado a un
+        desempeño del CNEB (`performance_standard_id`). Se rechaza una
+        descripción vacía y una competencia que no pertenezca al área de la clase.
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/ClassId"
+        - name: competencyID
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+            example:
+              description: "Traduce un problema verbal con dos incógnitas a un sistema de ecuaciones."
+              code: "CRIT1"
+              performance_standard_id: null
+      responses:
+        "201": { description: Created }
+        "400": { description: missing_description | competency_not_in_class }
+
+  /criteria/{criterionID}/delete:
+    post:
+      tags: [06 Criterios]
+      summary: Eliminar criterio (soft)
+      description: >
+        Borrado lógico. Los niveles ya registrados contra el criterio se
+        conservan: son parte del historial académico del estudiante aunque el
+        docente deje de usar el criterio.
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - name: criterionID
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "204": { description: No Content }
+        "404": { description: not_found }
+
+  /classes/{classID}/students/{studentID}/criterion-levels:
+    post:
+      tags: [06 Criterios]
+      summary: Asertar nivel por criterio
+      description: >
+        El nivel AD/A/B/C del estudiante en un criterio, para todo el periodo.
+        Es evidencia para el juicio del docente, no el registro oficial: nada lo
+        promedia ni lo agrega al nivel de logro de la competencia. Append-only.
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/ClassId"
+        - $ref: "#/components/parameters/StudentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+            example:
+              criterion_id: "00000000-0000-0000-0000-000000000000"
+              level: "A"
+              note: null
+      responses:
+        "201": { description: Created }
+        "400": { description: level must be AD, A, B or C }
+
+  /classes/{classID}/siagie-report:
+    get:
+      tags: [05 Competencias]
+      summary: Reporte de fin de periodo (SIAGIE)
+      description: >
+        Lo que el SIAGIE espera recibir por periodo: por estudiante, el nivel de
+        logro de cada competencia desarrollada y su conclusión descriptiva donde
+        es obligatoria. `ready` es false mientras falte alguna conclusión
+        obligatoria; `blocking` las lista. No incluye nivel de logro por área
+        ("no se asignará un nivel de logro a cada área curricular", 5.1.1.3 p.12).
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/ClassId"
         - $ref: "#/components/parameters/TermIdQuery"
       responses:
         "200": { description: OK }
@@ -499,7 +704,7 @@ paths:
 
   /notifications:
     get:
-      tags: [05 Notificaciones]
+      tags: [07 Notificaciones]
       summary: List notifications
       parameters:
         - $ref: "#/components/parameters/TenantIdHeader"
@@ -519,7 +724,7 @@ paths:
 
   /notifications/unread-count:
     get:
-      tags: [05 Notificaciones]
+      tags: [07 Notificaciones]
       summary: Unread count
       parameters:
         - $ref: "#/components/parameters/TenantIdHeader"
@@ -529,7 +734,7 @@ paths:
 
   /notifications/{notificationID}/read:
     post:
-      tags: [05 Notificaciones]
+      tags: [07 Notificaciones]
       summary: Mark notification read
       parameters:
         - $ref: "#/components/parameters/TenantIdHeader"
@@ -540,7 +745,7 @@ paths:
 
   /notifications/read-all:
     post:
-      tags: [05 Notificaciones]
+      tags: [07 Notificaciones]
       summary: Mark all notifications read
       parameters:
         - $ref: "#/components/parameters/TenantIdHeader"
@@ -550,7 +755,7 @@ paths:
 
   /notifications/{notificationID}/dismiss:
     post:
-      tags: [05 Notificaciones]
+      tags: [07 Notificaciones]
       summary: Dismiss notification
       parameters:
         - $ref: "#/components/parameters/TenantIdHeader"
@@ -561,7 +766,7 @@ paths:
 
   /profile:
     get:
-      tags: [06 Perfil]
+      tags: [08 Perfil]
       summary: Profile
       parameters:
         - $ref: "#/components/parameters/TenantIdHeader"

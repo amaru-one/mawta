@@ -3,7 +3,6 @@ package httpapi
 import (
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
 	"yanai-server/internal/domain"
@@ -29,17 +28,8 @@ func (a *API) handleClassDashboard(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return err
 		}
-		var atRiskStudentIDs []uuid.UUID
-		dashboard, atRiskStudentIDs, err = repo.GetClassDashboard(r.Context(), tx, classID, term, today)
-		if err != nil {
-			return err
-		}
-		if len(atRiskStudentIDs) > 0 {
-			if err := repo.LogStudentReads(r.Context(), tx, atRiskStudentIDs, tc.TeacherID, &classID, nil); err != nil {
-				return err
-			}
-		}
-		return nil
+		dashboard, err = repo.GetClassDashboard(r.Context(), tx, classID, term, today)
+		return err
 	})
 	if err != nil {
 		writeError(w, err)

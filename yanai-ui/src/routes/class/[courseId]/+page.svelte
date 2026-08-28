@@ -6,7 +6,6 @@
 	import { getClassDashboard } from '$lib/api/endpoints/classes';
 	import { formatTimeHHMM, parseDateOnly } from '$lib/api/mappers';
 	import Icon from '$lib/components/Icon.svelte';
-	import ProgressRing from '$lib/components/ProgressRing.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
 
@@ -96,15 +95,6 @@
 			</div>
 		{/if}
 
-		{#if list(d.progress).length > 0}
-			<p class="eyebrow">PROGRESO DE REGISTRO DE NOTAS</p>
-			<div class="ring-row">
-				{#each list(d.progress) as p (p.component_id)}
-					<ProgressRing pct={p.pct} label={p.name} />
-				{/each}
-			</div>
-		{/if}
-
 		{#if list(d.distribution).length > 0}
 			<div class="card section">
 				<p class="section-title">Distribución de logros</p>
@@ -128,31 +118,29 @@
 			</div>
 		{/if}
 
-		{#if list(d.at_risk).length > 0}
-			<div class="card section">
-				<div class="row section-head">
-					<p class="section-title">Por atender</p>
-					<span class="section-count">{list(d.at_risk).length}</span>
+		<div class="card section">
+			<a
+				class="row list-row"
+				href="/class/{courseId}/criteria?course={encodeURIComponent(d.name)}"
+				onclick={hapticTap}
+			>
+				<span class="icon-tile"><Icon name="clipboard-check" size={18} /></span>
+				<div class="grow">
+					<p class="list-title">Criterios de evaluación</p>
+					<p class="list-detail">Lo que valoras en cada competencia</p>
 				</div>
-				{#each list(d.at_risk) as student, i (student.student_id)}
-					{#if i > 0}<div class="divider"></div>{/if}
-					<a
-						class="row list-row risk-link"
-						href="/grades/{student.student_id}?class={courseId}&name={encodeURIComponent(
-							student.name
-						)}&course={encodeURIComponent(d.name)}"
-						onclick={hapticTap}
-					>
-						<span class="index-badge">{i + 1}</span>
-						<div class="grow">
-							<p class="list-title">{student.name}</p>
-							<p class="list-detail danger">{student.reason_text}</p>
-						</div>
-						<span class="chevron"><Icon name="chevron-right" size={16} /></span>
-					</a>
-				{/each}
-			</div>
-		{/if}
+				<span class="chevron"><Icon name="chevron-right" size={16} /></span>
+			</a>
+			<div class="divider"></div>
+			<a class="row list-row" href="/class/{courseId}/siagie-report" onclick={hapticTap}>
+				<span class="icon-tile"><Icon name="checklist" size={18} /></span>
+				<div class="grow">
+					<p class="list-title">Reporte de fin de periodo</p>
+					<p class="list-detail">Niveles de logro y conclusiones — SIAGIE</p>
+				</div>
+				<span class="chevron"><Icon name="chevron-right" size={16} /></span>
+			</a>
+		</div>
 
 		{#if list(d.upcoming).length > 0}
 			<p class="eyebrow">PRÓXIMAS CLASES</p>
@@ -216,18 +204,7 @@
 		color: var(--text-secondary);
 	}
 
-	.risk-link {
-		color: inherit;
-		text-decoration: none;
-	}
 
-	.ring-row {
-		display: flex;
-		gap: 16px;
-		overflow-x: auto;
-		padding-bottom: 4px;
-		margin-bottom: 20px;
-	}
 
 	.today {
 		background: var(--text-primary);
@@ -281,19 +258,8 @@
 		font-weight: 500;
 	}
 
-	.section-head {
-		justify-content: space-between;
-		margin-bottom: var(--space-sm);
-	}
 
-	.section-head .section-title {
-		margin: 0;
-	}
 
-	.section-count {
-		font-size: 11px;
-		color: var(--text-muted);
-	}
 
 	.bar {
 		display: flex;
@@ -335,19 +301,6 @@
 		min-width: 0;
 	}
 
-	.index-badge {
-		width: 22px;
-		height: 22px;
-		border-radius: 50%;
-		background: var(--fill-danger);
-		color: var(--on-danger);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 11px;
-		font-weight: 600;
-		flex-shrink: 0;
-	}
 
 	.list-title {
 		margin: 0;
@@ -360,9 +313,6 @@
 		color: var(--text-secondary);
 	}
 
-	.list-detail.danger {
-		color: var(--text-danger);
-	}
 
 	.chevron {
 		color: var(--text-muted);

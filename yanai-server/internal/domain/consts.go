@@ -133,14 +133,6 @@ const (
 	SummaryStale      = "stale"
 )
 
-// risk_flags.status
-const (
-	RiskFlagActive    = "active"
-	RiskFlagResolved  = "resolved"
-	RiskFlagDismissed = "dismissed"
-	RiskFlagExpired   = "expired"
-)
-
 // notifications.kind
 const (
 	NotificationAlert    = "alert"
@@ -168,11 +160,7 @@ const (
 
 // jobs.kind
 const (
-	JobKindGradeRecompute      = "grade.recompute"
-	JobKindRiskDetect          = "risk.detect"
-	JobKindNotificationSweep   = "notification.sweep"
-	JobKindRetentionSweep      = "retention.sweep"
-	JobKindNoteSummaryGenerate = "note_summary.generate"
+	JobKindGradeRecompute = "grade.recompute"
 )
 
 // memberships.role / status
@@ -195,4 +183,61 @@ const (
 	TermActive   = "active"
 	TermClosed   = "closed"
 	TermArchived = "archived"
+)
+
+// competencies.kind — what a competency counts as for promotion
+// (RVM 094-2020 num. 5.1.3 p.9-11).
+const (
+	CompetencyArea           = "area"
+	CompetencyTransversal    = "transversal"
+	CompetencyAdicionalArea  = "adicional_area"
+	CompetencyAdicionalLibre = "adicional_libre"
+)
+
+// year_final_situations.situation — the siglas the Acta Oficial carries
+// (num. 5.1.2.1.c p.5). There is no fourth value and no numeric equivalent.
+const (
+	SituationPromoted   = "PRO"
+	SituationPermanence = "PER"
+	SituationRecovery   = "RR"
+)
+
+// year_final_situations.stage
+const (
+	SituationStageYearEnd          = "year_end"
+	SituationStagePostRecuperacion = "post_recuperacion"
+)
+
+// descriptive_conclusions.requirement — why a conclusión descriptiva exists.
+// Everything but ConclusionOptional is mandatory and blocks closing a period.
+const (
+	ConclusionLevelC           = "level_c"
+	ConclusionConsecutiveC     = "consecutive_c"
+	ConclusionInclusionSupport = "inclusion_support"
+	ConclusionOptional         = "optional"
+)
+
+// descriptive_conclusions.status
+const (
+	ConclusionDraft = "draft"
+	ConclusionFinal = "final"
+)
+
+// grade_scale_levels.code on the MINEDU ordinal scale. Ordered C < B < A < AD.
+// These are only the wire/database spellings: nothing in the codebase compares
+// them, and nothing should compare them as numbers — under RVM 094-2020 a
+// nivel de logro is asserted by a teacher, never arrived at by arithmetic.
+const (
+	LevelC  = "C"
+	LevelB  = "B"
+	LevelA  = "A"
+	LevelAD = "AD"
+)
+
+// notifications.severity
+const (
+	SeverityInfo   = "info"
+	SeverityLow    = "low"
+	SeverityMedium = "medium"
+	SeverityHigh   = "high"
 )
