@@ -53,7 +53,7 @@ export async function startRecording(): Promise<ActiveRecording | null> {
 			settled = true;
 			recorder.onstop = null;
 			recorder.stop();
-		}
+		},
 	};
 }
 
@@ -76,11 +76,6 @@ export async function decodeBlob(blob: Blob): Promise<AudioBuffer | null> {
 	} catch {
 		return null;
 	}
-}
-
-export async function blobDuration(blob: Blob): Promise<number> {
-	const decoded = await decodeBlob(blob);
-	return decoded?.duration ?? 0;
 }
 
 export function formatDuration(seconds: number): string {

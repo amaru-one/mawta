@@ -37,7 +37,7 @@ func (a *API) handleSessionRoster(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return err
 		}
-		roster, studentIDs, err := repo.GetSessionRoster(r.Context(), tx, sessionID, header.ClassID, sd, header.TermID, q)
+		roster, studentIDs, err := repo.GetSessionRoster(r.Context(), tx, sessionID, header.ClassID, sd, q)
 		if err != nil {
 			return err
 		}
@@ -130,9 +130,8 @@ func (a *API) handleMarkAllPresent(w http.ResponseWriter, r *http.Request) {
 }
 
 type observationRequest struct {
-	ParticipationLevel *int16      `json:"participation_level"`
-	Note               *string     `json:"note"`
-	FlagTypeIDs        []uuid.UUID `json:"flag_type_ids"`
+	Note        *string     `json:"note"`
+	FlagTypeIDs []uuid.UUID `json:"flag_type_ids"`
 }
 
 func (a *API) handleObservationUpsert(w http.ResponseWriter, r *http.Request) {
@@ -154,7 +153,7 @@ func (a *API) handleObservationUpsert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
-		if err := repo.UpsertObservation(r.Context(), tx, sessionID, studentID, tc.TeacherID, req.ParticipationLevel, req.Note, req.FlagTypeIDs); err != nil {
+		if err := repo.UpsertObservation(r.Context(), tx, sessionID, studentID, tc.TeacherID, req.Note, req.FlagTypeIDs); err != nil {
 			return err
 		}
 		classID, _, err := repo.GetSessionMeta(r.Context(), tx, sessionID)
@@ -326,38 +325,6 @@ func (a *API) handleVoiceNoteAudio(w http.ResponseWriter, r *http.Request) {
 	}
 	defer f.Close()
 	_, _ = io.Copy(w, f)
-}
-
-type transcriptRequest struct {
-	Transcript string  `json:"transcript"`
-	Language   *string `json:"language"`
-}
-
-func (a *API) handleVoiceNoteTranscript(w http.ResponseWriter, r *http.Request) {
-	tc := tenantCtxFrom(r)
-	voiceNoteID, err := pathUUID(r, "voiceNoteID")
-	if err != nil {
-		badRequest(w, "invalid voiceNoteID")
-		return
-	}
-	var req transcriptRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		badRequest(w, "invalid JSON body")
-		return
-	}
-
-	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
-		if err := repo.SetVoiceNoteTranscript(r.Context(), tx, voiceNoteID, req.Transcript, req.Language); err != nil {
-			return err
-		}
-		vid := voiceNoteID
-		return repo.LogEvent(r.Context(), tx, "voice_note.transcribed", "voice_note", &vid, nil, nil, nil, nil)
-	})
-	if err != nil {
-		writeError(w, err)
-		return
-	}
-	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
 }
 
 func (a *API) handleVoiceNoteSave(w http.ResponseWriter, r *http.Request) {

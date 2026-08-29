@@ -6,7 +6,7 @@ import type {
 	ObservationPutDto,
 	SessionRosterDto,
 	SessionStatus,
-	VoiceNoteStatus
+	VoiceNoteStatus,
 } from '../dto';
 
 export function getSession(sessionId: string, q?: string): Promise<SessionRosterDto> {
@@ -16,10 +16,6 @@ export function getSession(sessionId: string, q?: string): Promise<SessionRoster
 
 export function startSession(sessionId: string): Promise<{ status: SessionStatus }> {
 	return apiSend<{ status: SessionStatus }>('POST', `/sessions/${sessionId}/start`);
-}
-
-export function completeSession(sessionId: string): Promise<{ status: SessionStatus }> {
-	return apiSend<{ status: SessionStatus }>('POST', `/sessions/${sessionId}/complete`);
 }
 
 export function putAttendance(
@@ -56,18 +52,10 @@ export function createVoiceNote(
 	form.append('audio', audio, 'note.webm');
 	form.append('duration_ms', String(durationMs));
 	form.append('mime_type', audio.type || 'audio/webm');
-	return apiUpload<{ id: string }>(`/sessions/${sessionId}/students/${studentId}/voice-notes`, form);
-}
-
-export function postTranscript(
-	voiceNoteId: string,
-	transcript: string,
-	language?: string
-): Promise<{ ok: boolean }> {
-	return apiSend<{ ok: boolean }>('POST', `/voice-notes/${voiceNoteId}/transcript`, {
-		transcript,
-		language: language ?? null
-	});
+	return apiUpload<{ id: string }>(
+		`/sessions/${sessionId}/students/${studentId}/voice-notes`,
+		form
+	);
 }
 
 export function saveVoiceNote(voiceNoteId: string): Promise<{ status: VoiceNoteStatus }> {

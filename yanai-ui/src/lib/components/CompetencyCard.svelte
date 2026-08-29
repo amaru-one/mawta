@@ -6,15 +6,18 @@
 	import Icon from './Icon.svelte';
 	import LevelBadge from './LevelBadge.svelte';
 	import LevelPicker from './LevelPicker.svelte';
-	import CriterionRow from './CriterionRow.svelte';
+	import CriterionTimeline from './CriterionTimeline.svelte';
 
 	interface Props {
 		competency: CompetencyLevel;
-		/** The criterios the teacher wrote for this competencia, with the
-		 *  student's level against each. The evidence the competency level is
-		 *  judged from — never summed or averaged into it. */
+		/** The criterios the teacher wrote for this competencia, each with the
+		 *  row of evidence judged against it. This is what the competency level
+		 *  is read from — never summed or averaged into it. Read-only here:
+		 *  levels are recorded inside each piece of evidencia, which is where
+		 *  the norm puts them. */
 		criteria?: CriterionDto[];
-		onCriterionLevelChange?: (criterionId: string, level: Tier) => Promise<void>;
+		/** Opens one piece of evidencia from a cell of the grid. */
+		onopenevidence?: (assessmentId: string) => void;
 		onLevelChange: (competencyId: string, level: Tier) => Promise<void>;
 		onSaveConclusion: (
 			competencyId: string,
@@ -27,7 +30,7 @@
 	let {
 		competency,
 		criteria = [],
-		onCriterionLevelChange,
+		onopenevidence,
 		onLevelChange,
 		onSaveConclusion
 	}: Props = $props();
@@ -111,18 +114,16 @@
 				</p>
 			{:else}
 				{#each criteria as c (c.criterion_id)}
-					<CriterionRow
-						criterion={c}
-						onLevelChange={onCriterionLevelChange ?? (async () => {})}
-					/>
+					<CriterionTimeline criterion={c} {onopenevidence} />
 				{/each}
 			{/if}
 
 			<p class="eyebrow section">Nivel de logro</p>
 			<LevelPicker level={competency.level} disabled={saving} onselect={selectLevel} />
 			<p class="official">
-				Tu juicio sobre la evidencia del periodo. No se calcula a partir de los
-				criterios ni de las notas.
+				Tu juicio sobre la evidencia del periodo, leyendo cada criterio en el
+				tiempo. No se calcula ni se promedia a partir de los criterios ni de las
+				notas.
 			</p>
 
 			{#if showConclusion}

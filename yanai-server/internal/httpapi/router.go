@@ -48,29 +48,28 @@ func (a *API) Router() http.Handler {
 		r.Get("/flag-types", a.handleListFlagTypes)
 
 		r.Get("/home", a.handleHome)
-		r.Get("/classes", a.handleSearchClasses)
 
 		r.Get("/classes/{classID}/dashboard", a.handleClassDashboard)
-		r.Get("/classes/{classID}/sessions", a.handleClassSessions)
 		r.Get("/classes/{classID}/students/{studentID}/grades", a.handleStudentGrades)
+		r.Get("/classes/{classID}/grading-components", a.handleGradingComponents)
 		r.Post("/classes/{classID}/assessments", a.handleCreateAssessment)
-		r.Post("/classes/{classID}/students/{studentID}/summary", a.handleRequestSummary)
+		r.Post("/assessments/{assessmentID}/delete", a.handleDeleteAssessment)
 
 		// Niveles de logro: the official MINEDU record (RVM 094-2020 / 048-2024).
 		r.Get("/classes/{classID}/students/{studentID}/competencies", a.handleStudentCompetencies)
 		r.Post("/classes/{classID}/students/{studentID}/competency-levels", a.handleAssertCompetencyLevel)
 		r.Post("/classes/{classID}/students/{studentID}/conclusions", a.handleUpsertConclusion)
-		r.Get("/classes/{classID}/siagie-report", a.handleSiagieReport)
 
 		// Criterios de evaluación: what the teacher judges each competencia
-		// against, and the per-criterio levels that evidence the judgement.
+		// against, and the evidencia × criterio levels that evidence the
+		// judgement. A level always names the evidencia it was read from.
 		r.Get("/classes/{classID}/criteria", a.handleClassCriteria)
 		r.Post("/classes/{classID}/competencies/{competencyID}/criteria", a.handleCreateCriterion)
 		r.Post("/criteria/{criterionID}/delete", a.handleDeleteCriterion)
 		r.Post("/classes/{classID}/students/{studentID}/criterion-levels", a.handleAssertCriterionLevel)
+		r.Get("/assessments/{assessmentID}/criteria-grid", a.handleAssessmentCriteriaGrid)
 
 		r.Post("/sessions/{sessionID}/start", a.handleSessionStart)
-		r.Post("/sessions/{sessionID}/complete", a.handleSessionComplete)
 		r.Get("/sessions/{sessionID}", a.handleSessionRoster)
 		r.Put("/sessions/{sessionID}/attendance/{studentID}", a.handleAttendanceUpsert)
 		r.Post("/sessions/{sessionID}/attendance/mark-all-present", a.handleMarkAllPresent)
@@ -78,7 +77,6 @@ func (a *API) Router() http.Handler {
 		r.Post("/sessions/{sessionID}/students/{studentID}/voice-notes", a.handleCreateVoiceNote)
 
 		r.Get("/voice-notes/{voiceNoteID}/audio", a.handleVoiceNoteAudio)
-		r.Post("/voice-notes/{voiceNoteID}/transcript", a.handleVoiceNoteTranscript)
 		r.Post("/voice-notes/{voiceNoteID}/save", a.handleVoiceNoteSave)
 		r.Post("/voice-notes/{voiceNoteID}/discard", a.handleVoiceNoteDiscard)
 
@@ -89,10 +87,8 @@ func (a *API) Router() http.Handler {
 		r.Post("/practice-scores/{practiceScoreID}/delete", a.handleDeletePracticeScore)
 
 		r.Get("/notifications", a.handleListNotifications)
-		r.Get("/notifications/unread-count", a.handleUnreadCount)
 		r.Post("/notifications/{notificationID}/read", a.handleMarkNotificationRead)
 		r.Post("/notifications/read-all", a.handleMarkAllNotificationsRead)
-		r.Post("/notifications/{notificationID}/dismiss", a.handleDismissNotification)
 
 		r.Get("/profile", a.handleProfile)
 	})

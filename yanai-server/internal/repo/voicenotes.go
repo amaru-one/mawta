@@ -34,26 +34,6 @@ func GetVoiceNoteFile(ctx context.Context, tx pgx.Tx, id uuid.UUID) (VoiceNoteFi
 	return f, err
 }
 
-func SetVoiceNoteTranscript(ctx context.Context, tx pgx.Tx, id uuid.UUID, transcript string, language *string) error {
-	lang := "es"
-	if language != nil && *language != "" {
-		lang = *language
-	}
-	ct, err := tx.Exec(ctx, `
-		update voice_notes
-		   set transcript = $2, transcript_language = $3,
-		       transcription_status = 'completed', transcribed_at = now()
-		 where id = $1 and deleted_at is null
-	`, id, transcript, lang)
-	if err != nil {
-		return err
-	}
-	if ct.RowsAffected() == 0 {
-		return pgx.ErrNoRows
-	}
-	return nil
-}
-
 func SetVoiceNoteStatus(ctx context.Context, tx pgx.Tx, id uuid.UUID, status string) error {
 	ct, err := tx.Exec(ctx, `
 		update voice_notes set status = $2 where id = $1 and deleted_at is null

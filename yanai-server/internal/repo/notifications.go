@@ -53,15 +53,6 @@ func ListNotifications(ctx context.Context, tx pgx.Tx, teacherID uuid.UUID, kind
 	return out, rows.Err()
 }
 
-func UnreadNotificationCount(ctx context.Context, tx pgx.Tx, teacherID uuid.UUID) (int, error) {
-	var n int
-	err := tx.QueryRow(ctx, `
-		select count(*) from notifications
-		 where recipient_teacher_id = $1 and read_at is null and dismissed_at is null and deleted_at is null
-	`, teacherID).Scan(&n)
-	return n, err
-}
-
 func MarkNotificationRead(ctx context.Context, tx pgx.Tx, notificationID, teacherID uuid.UUID) error {
 	ct, err := tx.Exec(ctx, `
 		update notifications set read_at = coalesce(read_at, now())
@@ -85,18 +76,4 @@ func MarkAllNotificationsRead(ctx context.Context, tx pgx.Tx, teacherID uuid.UUI
 		return 0, err
 	}
 	return int(ct.RowsAffected()), nil
-}
-
-func DismissNotification(ctx context.Context, tx pgx.Tx, notificationID, teacherID uuid.UUID) error {
-	ct, err := tx.Exec(ctx, `
-		update notifications set dismissed_at = now()
-		 where id = $1 and recipient_teacher_id = $2 and deleted_at is null
-	`, notificationID, teacherID)
-	if err != nil {
-		return err
-	}
-	if ct.RowsAffected() == 0 {
-		return pgx.ErrNoRows
-	}
-	return nil
 }

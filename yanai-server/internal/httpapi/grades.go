@@ -45,13 +45,52 @@ func (a *API) handleStudentGrades(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, resp)
 }
 
+// handleGradingComponents lists the components of the class's effective
+// grading scheme — the accordion sections evidence is filed under, and the
+// options in the "añadir evidencia" dialog.
+func (a *API) handleGradingComponents(w http.ResponseWriter, r *http.Request) {
+	tc := tenantCtxFrom(r)
+	classID, err := pathUUID(r, "classID")
+	if err != nil {
+		badRequest(w, "invalid classID")
+		return
+	}
+	termIDParam := queryUUID(r, "term_id")
+
+	var components []repo.GradingComponent
+	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		term, err := repo.ResolveTerm(r.Context(), tx, termIDParam)
+		if err != nil {
+			return err
+		}
+		components, err = repo.ListGradingComponents(r.Context(), tx, classID, term.ID)
+		return err
+	})
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"components": components})
+}
+
+// createAssessmentRequest files one piece of evidencia. StudentID set makes it
+// evidence for that student alone; omitted, it is a column for the whole
+// class. CriterionIDs are the criterios de evaluación it speaks to — evidence
+// for the teacher's judgement, never rolled up into a level.
 type createAssessmentRequest struct {
-	Title         string  `json:"title"`
-	Kind          string  `json:"kind"`
-	ComponentCode string  `json:"component_code"`
-	MaxScore      float64 `json:"max_score"`
-	DueAt         *string `json:"due_at"`
-	TermID        *string `json:"term_id"`
+	Title         string   `json:"title"`
+	Kind          string   `json:"kind"`
+	ComponentCode string   `json:"component_code"`
+	MaxScore      float64  `json:"max_score"`
+	DueAt         *string  `json:"due_at"`
+	TermID        *string  `json:"term_id"`
+	StudentID     *string  `json:"student_id"`
+	CriterionIDs  []string `json:"criterion_ids"`
+	// CountsTowardInternal defaults to true when omitted — the historical
+	// behaviour, and the right one for ordinary class work. Set it false for
+	// evidence that should inform the competencia but not the school's own
+	// average, such as a recovery task given to one student.
+	CountsTowardInternal *bool `json:"counts_toward_internal"`
 }
 
 func (a *API) handleCreateAssessment(w http.ResponseWriter, r *http.Request) {
@@ -79,6 +118,26 @@ func (a *API) handleCreateAssessment(w http.ResponseWriter, r *http.Request) {
 		termIDParam, _ = uuid.Parse(*req.TermID)
 	}
 
+	var studentID *uuid.UUID
+	if req.StudentID != nil && *req.StudentID != "" {
+		parsed, err := uuid.Parse(*req.StudentID)
+		if err != nil {
+			badRequest(w, "invalid student_id")
+			return
+		}
+		studentID = &parsed
+	}
+
+	criterionIDs := make([]uuid.UUID, 0, len(req.CriterionIDs))
+	for _, raw := range req.CriterionIDs {
+		parsed, err := uuid.Parse(raw)
+		if err != nil {
+			badRequest(w, "invalid criterion_ids")
+			return
+		}
+		criterionIDs = append(criterionIDs, parsed)
+	}
+
 	var assessmentID uuid.UUID
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
 		term, err := repo.ResolveTerm(r.Context(), tx, termIDParam)
@@ -93,18 +152,85 @@ func (a *API) handleCreateAssessment(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return err
 		}
-		assessmentID, err = repo.CreateAssessment(r.Context(), tx, classID, term.ID, scheme.SchemeID, componentID, tc.TeacherID, req.Title, req.Kind, req.MaxScore, req.DueAt)
+		assessmentID, err = repo.CreateAssessment(r.Context(), tx, repo.NewAssessment{
+			ClassID:      classID,
+			TermID:       term.ID,
+			SchemeID:     scheme.SchemeID,
+			ComponentID:  componentID,
+			TeacherID:    tc.TeacherID,
+			StudentID:    studentID,
+			Title:        req.Title,
+			Kind:         req.Kind,
+			MaxScore:     req.MaxScore,
+			DueAt:        req.DueAt,
+			CriterionIDs: criterionIDs,
+
+			CountsTowardInternal: req.CountsTowardInternal == nil || *req.CountsTowardInternal,
+		})
 		if err != nil {
 			return err
 		}
 		aid := assessmentID
-		return repo.LogEvent(r.Context(), tx, "assessment.created", "assessment", &aid, nil, nil, &classID, nil)
+		return repo.LogEvent(r.Context(), tx, "assessment.created", "assessment", &aid, nil, studentID, &classID, nil)
 	})
 	if err != nil {
 		writeError(w, err)
 		return
 	}
 	writeJSON(w, http.StatusCreated, map[string]any{"id": assessmentID})
+}
+
+// handleDeleteAssessment soft-deletes a piece of evidence created by mistake.
+// The scores already recorded against it stay in the student's history — the
+// same rule deleted criterios follow — but the assessment stops counting
+// towards the school's internal weighted grade, so every affected student is
+// requeued for recompute.
+func (a *API) handleDeleteAssessment(w http.ResponseWriter, r *http.Request) {
+	tc := tenantCtxFrom(r)
+	assessmentID, err := pathUUID(r, "assessmentID")
+	if err != nil {
+		badRequest(w, "invalid assessmentID")
+		return
+	}
+
+	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		d, err := repo.DeleteAssessment(r.Context(), tx, assessmentID)
+		if err != nil {
+			return err
+		}
+		aid := assessmentID
+		if err := repo.LogEvent(r.Context(), tx, "assessment.deleted", "assessment",
+			&aid, nil, d.StudentID, &d.ClassID, nil); err != nil {
+			return err
+		}
+
+		// Class-wide evidence affects everyone currently on the roster; a
+		// per-student one, only its own student.
+		students := []uuid.UUID{}
+		if d.StudentID != nil {
+			students = append(students, *d.StudentID)
+		} else {
+			today, err := repo.TenantToday(r.Context(), tx, tc.TenantID)
+			if err != nil {
+				return err
+			}
+			students, err = repo.RosterAsOf(r.Context(), tx, d.ClassID, today)
+			if err != nil {
+				return err
+			}
+		}
+		for _, sid := range students {
+			if err := enqueueGradeRecompute(r.Context(), tx, tc.TenantID, d.ClassID, d.TermID, sid); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 type createScoreRequest struct {
@@ -194,15 +320,6 @@ func (a *API) handleCorrectScore(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusCreated, map[string]any{"id": newScoreID})
-}
-
-// handleRequestSummary is retired along with the note_summary.generate job.
-// The route stays so the UI surfaces a clear error rather than silently
-// queueing work no handler would ever claim.
-func (a *API) handleRequestSummary(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusNotImplemented, map[string]any{
-		"error": "note summary generation is not available",
-	})
 }
 
 func enqueueGradeRecompute(ctx context.Context, tx pgx.Tx, tenantID, classID, termID, studentID uuid.UUID) error {

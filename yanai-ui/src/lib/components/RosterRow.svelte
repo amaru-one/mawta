@@ -1,15 +1,12 @@
 <script lang="ts">
 	import { hapticTap } from '$lib/haptics';
-	import type { Tier } from '$lib/grades';
-	import { addNote, removeNote, saveNote, setAttendance, setFlag, setParticipation } from '$lib/lesson';
+	import { addNote, removeNote, saveNote, setAttendance, setFlag } from '$lib/lesson';
 	import { currentCourse, notes } from '$lib/stores';
 	import { showToast } from '$lib/toast';
-	import type { Attendance, Entry, Note, Participation, Student } from '$lib/types';
+	import type { Attendance, Entry, Note, Student } from '$lib/types';
 	import AttendanceControl from './AttendanceControl.svelte';
 	import FlagButton from './FlagButton.svelte';
-	import LevelBadge from './LevelBadge.svelte';
 	import MicButton from './MicButton.svelte';
-	import ParticipationControl from './ParticipationControl.svelte';
 	import VoiceNotePlayer from './VoiceNotePlayer.svelte';
 
 	interface Props {
@@ -24,14 +21,6 @@
 
 	const rowNotes = $derived($notes.get(entry.id) ?? []);
 	const isAbsent = $derived(entry.attendance === 'absent');
-
-	const TIERS = ['AD', 'A', 'B', 'C'] as const;
-	const tier = $derived(
-		TIERS.includes(entry.levelCode as Tier) ? (entry.levelCode as Tier) : null
-	);
-	const previousTier = $derived(
-		entry.trend !== null && entry.trend !== 'flat' ? entry.previousLevelCode : null
-	);
 
 	const gradesHref = $derived(
 		`/grades/${student.id}?class=${$currentCourse?.id ?? ''}` +
@@ -49,12 +38,6 @@
 		setAttendance(student.id, value);
 		flashRow();
 		showToast(value === 'present' ? 'Marcado presente' : 'Marcado ausente');
-	}
-
-	function handleParticipation(value: Participation): void {
-		hapticTap();
-		setParticipation(student.id, value);
-		showToast('Participación actualizada');
 	}
 
 	function handleFlag(value: boolean): void {
@@ -86,23 +69,10 @@
 			{student.firstName}
 			{student.lastName}
 		</a>
-		<div class="row marks">
-			{#if previousTier}
-				<span class="trend" class:up={entry.trend === 'up'}>{previousTier} →</span>
-			{/if}
-			{#if tier}
-				<LevelBadge {tier} />
-			{/if}
-			<AttendanceControl value={entry.attendance} onchange={handleAttendance} />
-		</div>
+		<AttendanceControl value={entry.attendance} onchange={handleAttendance} />
 	</div>
 
 	<div class="row controls">
-		<ParticipationControl
-			value={entry.participation}
-			disabled={isAbsent}
-			onchange={handleParticipation}
-		/>
 		<FlagButton flagged={entry.flagged} onchange={handleFlag} />
 		<MicButton
 			hasNotes={rowNotes.length > 0}
@@ -160,21 +130,6 @@
 
 	.absent .name {
 		color: var(--text-secondary);
-	}
-
-	.marks {
-		gap: var(--space-sm);
-		flex-shrink: 0;
-	}
-
-	/* A drop in tier is the plain signal; a rise borrows the accent. */
-	.trend {
-		font-size: 11px;
-		color: var(--text-danger);
-	}
-
-	.trend.up {
-		color: var(--text-accent);
 	}
 
 	.controls {

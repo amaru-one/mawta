@@ -2,6 +2,11 @@
 // Postgres has none of these as real enum types, so sqlc-style generation
 // would give us plain strings anyway; these constants exist so call sites
 // don't hand-roll the literals.
+//
+// The mirror covers the tables Go actually reads or writes, not the whole
+// schema: a block whose subsystem has no Go code left is deleted rather than
+// kept as a spelling nobody can reach. Re-add one alongside the code that
+// needs it.
 package domain
 
 // class_sessions.status
@@ -45,22 +50,6 @@ const (
 	ScoreExcused      = "excused"
 	ScoreAbsent       = "absent"
 	ScoreNotSubmitted = "not_submitted"
-)
-
-// scores.attempt_kind
-const (
-	AttemptOriginal     = "original"
-	AttemptRecuperacion = "recuperacion"
-	AttemptSubsanacion  = "subsanacion"
-	AttemptMakeup       = "makeup"
-)
-
-// grading_scheme_versions.retake_policy
-const (
-	RetakeNone   = "none"
-	RetakeBest   = "best"
-	RetakeLast   = "last"
-	RetakeCapped = "capped"
 )
 
 // grading_scheme_versions.absent_counts_as
@@ -112,25 +101,6 @@ const (
 	VoiceNoteDraft     = "draft"
 	VoiceNoteSaved     = "saved"
 	VoiceNoteDiscarded = "discarded"
-)
-
-// voice_notes.transcription_status
-const (
-	TranscriptionPending    = "pending"
-	TranscriptionQueued     = "queued"
-	TranscriptionProcessing = "processing"
-	TranscriptionCompleted  = "completed"
-	TranscriptionFailed     = "failed"
-	TranscriptionSkipped    = "skipped"
-)
-
-// note_summaries.status
-const (
-	SummaryPending    = "pending"
-	SummaryGenerating = "generating"
-	SummaryReady      = "ready"
-	SummaryFailed     = "failed"
-	SummaryStale      = "stale"
 )
 
 // notifications.kind
@@ -192,20 +162,6 @@ const (
 	CompetencyTransversal    = "transversal"
 	CompetencyAdicionalArea  = "adicional_area"
 	CompetencyAdicionalLibre = "adicional_libre"
-)
-
-// year_final_situations.situation — the siglas the Acta Oficial carries
-// (num. 5.1.2.1.c p.5). There is no fourth value and no numeric equivalent.
-const (
-	SituationPromoted   = "PRO"
-	SituationPermanence = "PER"
-	SituationRecovery   = "RR"
-)
-
-// year_final_situations.stage
-const (
-	SituationStageYearEnd          = "year_end"
-	SituationStagePostRecuperacion = "post_recuperacion"
 )
 
 // descriptive_conclusions.requirement — why a conclusión descriptiva exists.

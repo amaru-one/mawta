@@ -12,13 +12,11 @@ export const ICON_NAMES = [
 	'bank',
 	'world',
 	'checklist',
-	'clock',
 	'circle-check',
 	'flag',
 	'mic',
 	'play',
 	'pause',
-	'stop',
 	'save',
 	'trash',
 	'sparkles',
@@ -27,7 +25,6 @@ export const ICON_NAMES = [
 	'alert',
 	'clipboard-check',
 	'presentation',
-	'users',
 ] as const;
 
 export type IconName = (typeof ICON_NAMES)[number];

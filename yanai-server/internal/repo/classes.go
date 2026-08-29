@@ -140,19 +140,27 @@ func GetClassDashboard(ctx context.Context, tx pgx.Tx, classID uuid.UUID, term T
 	}
 
 	// stats: notas registradas.
+	// A per-student assessment (assessments.student_id) counts once, for its
+	// own student — not once per student on the roster, which is what the
+	// plain cross join would do.
 	err = tx.QueryRow(ctx, `
 		with due as (
-		  select id from assessments
+		  select id, student_id from assessments
 		   where class_id = $1 and term_id = $2 and status = 'published'
 		     and deleted_at is null
 		),
-		roster_ids as (select unnest($3::uuid[]) as student_id)
+		roster_ids as (select unnest($3::uuid[]) as student_id),
+		expected as (
+		  select d.id, r.student_id
+		    from due d cross join roster_ids r
+		   where d.student_id is null or d.student_id = r.student_id
+		)
 		select
-		  (select count(*) from due) * (select count(*) from roster_ids) as denom,
-		  (select count(*) from due d cross join roster_ids r
+		  (select count(*) from expected) as denom,
+		  (select count(*) from expected e
 		     where exists (
 		       select 1 from scores s
-		        where s.assessment_id = d.id and s.student_id = r.student_id
+		        where s.assessment_id = e.id and s.student_id = e.student_id
 		          and s.superseded_at is null and s.deleted_at is null
 		     )) as scored
 	`, classID, term.ID, roster).Scan(&d.Stats.NotasRegDenominator, &d.Stats.NotasRegNumerator)
@@ -205,25 +213,31 @@ func GetClassDashboard(ctx context.Context, tx pgx.Tx, classID uuid.UUID, term T
 	}
 
 	// progress: how much of the grade registration is done, per component of the
-	// class's effective scheme. expected = published assessments x roster size;
-	// scored = how many of those have a live score. Components with no published
-	// assessment yet report expected = 0, which the panel renders as an empty ring.
+	// class's effective scheme. expected = one cell per (assessment, student it
+	// applies to) — the whole roster for a class-wide assessment, one student for
+	// a per-student one; scored = how many of those have a live score.
+	// Components with no published assessment yet report expected = 0, which the
+	// panel renders as an empty ring.
 	if !class.IsTutoria {
 		rows, err := tx.Query(ctx, `
 			with due as (
-			  select a.id, a.component_id from assessments a
+			  select a.id, a.component_id, a.student_id from assessments a
 			   where a.class_id = $1 and a.term_id = $2 and a.status = 'published'
 			     and a.deleted_at is null
 			),
-			roster_ids as (select unnest($3::uuid[]) as student_id)
+			roster_ids as (select unnest($3::uuid[]) as student_id),
+			expected as (
+			  select d.id, d.component_id, r.student_id
+			    from due d cross join roster_ids r
+			   where d.student_id is null or d.student_id = r.student_id
+			)
 			select gc.id, gc.code, gc.name,
-			       (select count(*) from due where due.component_id = gc.id)
-			         * (select count(*) from roster_ids) as expected,
-			       (select count(*) from due cross join roster_ids r
-			         where due.component_id = gc.id
+			       (select count(*) from expected e where e.component_id = gc.id) as expected,
+			       (select count(*) from expected e
+			         where e.component_id = gc.id
 			           and exists (
 			             select 1 from scores s
-			              where s.assessment_id = due.id and s.student_id = r.student_id
+			              where s.assessment_id = e.id and s.student_id = e.student_id
 			                and s.superseded_at is null and s.deleted_at is null
 			           )) as scored
 			  from grading_components gc
@@ -261,6 +275,7 @@ func GetClassDashboard(ctx context.Context, tx pgx.Tx, classID uuid.UUID, term T
 		                     and s.superseded_at is null and s.deleted_at is null
 		 where a.class_id = $1 and a.term_id = $2 and a.status = 'published'
 		   and a.due_at is not null and a.due_at <= now() and a.deleted_at is null
+		   and (a.student_id is null or a.student_id = r.student_id)
 		   and s.id is null
 		 group by a.id, a.title
 		 having count(*) > 0
@@ -358,7 +373,9 @@ func ListSessions(ctx context.Context, tx pgx.Tx, classID uuid.UUID, d time.Time
 			       and sm.deleted_at is null
 			      left join scores s on s.assessment_id = a.id and s.student_id = sm.student_id
 			                         and s.superseded_at is null and s.deleted_at is null
-			     where a.session_id = cs.id and a.status = 'published' and a.deleted_at is null and s.id is null
+			     where a.session_id = cs.id and a.status = 'published' and a.deleted_at is null
+			       and (a.student_id is null or a.student_id = sm.student_id)
+			       and s.id is null
 			  ) pg on true
 			 where cs.class_id = $1 and cs.session_date < $2 and cs.deleted_at is null
 			 order by cs.session_date desc, cs.scheduled_start_at desc

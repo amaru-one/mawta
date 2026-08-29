@@ -61,10 +61,6 @@
 		<path d="M9 8h4" />
 		<path d="M9 12h2" />
 	</symbol>
-	<symbol id="i-clock" viewBox="0 0 24 24">
-		<circle cx="12" cy="12" r="9" />
-		<path d="M12 7v5l3 3" />
-	</symbol>
 	<symbol id="i-circle-check" viewBox="0 0 24 24">
 		<circle cx="12" cy="12" r="9" />
 		<path d="M9 12l2 2 4-4" />
@@ -85,9 +81,6 @@
 	<symbol id="i-pause" viewBox="0 0 24 24">
 		<rect x="7" y="4" width="4" height="16" rx="1" fill="currentColor" stroke="none" />
 		<rect x="13" y="4" width="4" height="16" rx="1" fill="currentColor" stroke="none" />
-	</symbol>
-	<symbol id="i-stop" viewBox="0 0 24 24">
-		<rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" stroke="none" />
 	</symbol>
 	<symbol id="i-save" viewBox="0 0 24 24">
 		<path d="M6 4h10l4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />
@@ -128,11 +121,5 @@
 		<path d="M4 4v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V4" />
 		<path d="M12 16v4" />
 		<path d="M9 20h6" />
-	</symbol>
-	<symbol id="i-users" viewBox="0 0 24 24">
-		<circle cx="9" cy="8" r="3.5" />
-		<path d="M3 20a6 6 0 0 1 12 0" />
-		<path d="M16 5.2a3.5 3.5 0 0 1 0 5.6" />
-		<path d="M18 14.3A6 6 0 0 1 21 20" />
 	</symbol>
 </svg>

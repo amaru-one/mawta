@@ -7,7 +7,6 @@
 export type SessionStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'rescheduled';
 export type AttendanceStatus = 'present' | 'late' | 'absent' | 'excused' | 'justified';
 export type ScoreStatus = 'graded' | 'excused' | 'absent' | 'not_submitted';
-export type AttemptKind = 'original' | 'recuperacion' | 'subsanacion' | 'makeup';
 export type AssessmentKind =
 	| 'quiz'
 	| 'examen'
@@ -19,9 +18,6 @@ export type AssessmentKind =
 	| 'rubrica'
 	| 'otro';
 export type VoiceNoteStatus = 'draft' | 'saved' | 'discarded';
-export type TranscriptionStatus =
-	'pending' | 'queued' | 'processing' | 'completed' | 'failed' | 'skipped';
-export type SummaryStatus = 'pending' | 'generating' | 'ready' | 'failed' | 'stale';
 export type Trend = 'up' | 'down' | 'flat';
 export type Severity = 'info' | 'low' | 'medium' | 'high';
 export type NotificationKind = 'alert' | 'reminder';
@@ -31,7 +27,17 @@ export type NotificationKind = 'alert' | 'reminder';
 export type MeDto = {
 	user: { display_name: string; email: string };
 	teacher: { id: string; title: string | null };
-	tenant: { id: string; name: string; city: string | null; timezone: string };
+	tenant: {
+		id: string;
+		name: string;
+		city: string | null;
+		timezone: string;
+		/** Whether the school runs its own weighted numeric system alongside the
+		 *  official record (D.S. 009-2006-ED art. 37.4.f). False hides every mark
+		 *  input and the computed grade; niveles de logro are unaffected, since
+		 *  the official record never comes from a number either way. */
+		uses_internal_grading: boolean;
+	};
 };
 
 // ---- home ----
@@ -62,8 +68,6 @@ export type HomeDto = {
 	today: HomeTodayDto[] | null;
 	week: HomeWeekDto[] | null;
 };
-
-export type ClassSearchDto = { classes: { class_id: string; name: string }[] | null };
 
 // ---- class panel ----
 
@@ -113,8 +117,6 @@ export type ClassDashboardDto = {
 	past: SessionSummaryDto[] | null;
 };
 
-export type SessionListDto = { sessions: SessionSummaryDto[] | null };
-
 // ---- lesson / session roster ----
 
 export type RosterFlagDto = {
@@ -129,18 +131,13 @@ export type RosterVoiceNoteDto = {
 	id: string;
 	duration_ms: number;
 	status: VoiceNoteStatus;
-	transcription_status: TranscriptionStatus;
 	transcript: string | null;
 };
 
 export type RosterEntryDto = {
 	student_id: string;
 	name: string;
-	level_code: string | null;
-	previous_level_code: string | null;
-	trend: Trend | null;
 	attendance_status: AttendanceStatus | null;
-	participation_level: number | null;
 	observation_note: string | null;
 	flags: RosterFlagDto[] | null;
 	voice_notes: RosterVoiceNoteDto[] | null;
@@ -164,12 +161,10 @@ export type SessionRosterDto = {
 
 export type AttendancePutDto = {
 	status: AttendanceStatus;
-	minutes_late?: number | null;
 	note?: string | null;
 };
 
 export type ObservationPutDto = {
-	participation_level: number | null;
 	note: string | null;
 	// Authoritative set — omitting or null clears every flag.
 	flag_type_ids: string[];
@@ -188,16 +183,18 @@ export type FlagTypeDto = {
 export type AttemptDto = {
 	score_id: string;
 	attempt_number: number;
-	attempt_kind: AttemptKind;
 	status: ScoreStatus;
 	raw_value: number | null;
 };
 
-/** One criterio de evaluación an assessment evidences. */
+/** One criterio de evaluación an assessment evidences, with the level this
+ *  student reached against it *on that evidence* — one cell of the evidencia ×
+ *  criterio grid. `level: null` means unjudged; never render it as C. */
 export type CriterionRefDto = {
 	criterion_id: string;
 	code: string | null;
 	description: string;
+	level: NivelLogro | null;
 };
 
 /** A graded item as *evidence*. Carries no weight: under RVM 094-2020 a mark
@@ -209,6 +206,13 @@ export type EvaluationDto = {
 	max_score: number;
 	component_code: string;
 	component_name: string;
+	/** True when the assessment was created for this student alone rather than
+	 *  for the whole class (`assessments.student_id`). */
+	is_personal: boolean;
+	/** Whether this evidence feeds the school's internal weighted average. It
+	 *  always feeds the official judgement — the criterio levels below count
+	 *  regardless, because the norm knows nothing about this flag. */
+	counts_toward_internal: boolean;
 	criteria: CriterionRefDto[] | null;
 	attempts: AttemptDto[] | null;
 };
@@ -225,13 +229,6 @@ export type ComputedGradeDto = {
 	trend: Trend | null;
 };
 
-export type NoteSummaryDto = {
-	id: string;
-	status: SummaryStatus;
-	bullets: string[];
-	notes_count: number;
-};
-
 export type PracticeScoreDto = {
 	id: string;
 	title: string;
@@ -245,9 +242,18 @@ export type PracticeScoreDto = {
 export type StudentGradesDto = {
 	computed_grade: ComputedGradeDto | null;
 	evaluations: EvaluationDto[] | null;
-	summary: NoteSummaryDto | null;
 	practice_scores: PracticeScoreDto[] | null;
 };
+
+/** One grading component of the class's effective scheme — the accordion
+ *  section a piece of evidence is filed under. */
+export type GradingComponentDto = {
+	component_id: string;
+	code: string;
+	name: string;
+};
+
+export type GradingComponentsDto = { components: GradingComponentDto[] | null };
 
 export type AssessmentCreateDto = {
 	title: string;
@@ -256,6 +262,16 @@ export type AssessmentCreateDto = {
 	max_score: number;
 	due_at?: string | null;
 	term_id?: string | null;
+	/** Omitted or null files the evidence for the whole class; set, it is
+	 *  evidencia for that student alone. */
+	student_id?: string | null;
+	/** Whether this evidence feeds the school's internal weighted average.
+	 *  Omit for true. False keeps it in the official judgement and out of the
+	 *  school's own number — the recovery task given to one student. */
+	counts_toward_internal?: boolean;
+	/** Which criterios de evaluación the evidence speaks to. Evidence for the
+	 *  teacher's judgement — never rolled up into a nivel de logro. */
+	criterion_ids?: string[];
 };
 
 export type PracticeScoreCreateDto = {
@@ -290,7 +306,6 @@ export type NotificationDto = {
 	body: string | null;
 	created_at: string;
 	read_at: string | null;
-	dismissed_at: string | null;
 	student_name: string | null;
 	class_name: string | null;
 };
@@ -336,20 +351,15 @@ export type CompetencyKind = 'area' | 'transversal' | 'adicional_area' | 'adicio
 export type ConclusionRequirement = 'level_c' | 'consecutive_c' | 'inclusion_support' | 'optional';
 export type ConclusionStatus = 'draft' | 'final';
 
-// La situación final del Acta Oficial (5.1.2.1.c p.5).
-export type SituacionFinal = 'PRO' | 'PER' | 'RR';
-
 export type CompetencyLevelDto = {
 	competency_id: string;
 	code: string;
 	name: string;
 	kind: CompetencyKind;
-	subject_id: string | null;
 	// The asserted level — the official record. Null means the competency was
 	// not developed and evaluated this period, which is valid: do NOT render
 	// it as C.
 	level: NivelLogro | null;
-	level_id: string | null;
 	asserted_at: string | null;
 	conclusion_required: boolean;
 	conclusion_requirement: ConclusionRequirement;
@@ -376,64 +386,38 @@ export type ConclusionCreateDto = {
 	term_id?: string;
 };
 
-// ---- reporte de fin de periodo para SIAGIE ----
-
-export type MissingConclusionDto = {
-	student_id: string;
-	student_name: string;
-	competency_id: string;
-	competency: string;
-	requirement: ConclusionRequirement;
-};
-
-export type SiagieCompetencyDto = {
-	competency_id: string;
-	code: string;
-	name: string;
-	level: NivelLogro | null;
-	conclusion: string | null;
-	conclusion_required: boolean;
-};
-
-export type SiagieStudentDto = {
-	student_id: string;
-	student_code: string;
-	student_name: string;
-	competencies: SiagieCompetencyDto[] | null;
-};
-
-export type SiagieReportDto = {
-	class_id: string;
-	class_name: string;
-	subject_code: string;
-	area_curricular: string | null;
-	term_id: string;
-	term_name: string;
-	term_sequence: number;
-	students: SiagieStudentDto[] | null;
-	// Mandatory conclusiones descriptivas still missing. While this is
-	// non-empty the period is not ready to be sent.
-	blocking: MissingConclusionDto[] | null;
-	ready: boolean;
-	notice: string;
-};
-
 // --- Criterios de evaluación ------------------------------------------------
 // The criterios a teacher writes per competencia, and the level a student
 // reached against each one this period. These are the *evidence* the teacher
 // weighs before asserting the competency level; nothing rolls them up
 // automatically, because RVM 094-2020 makes that a judgement, not an average.
 
+/** One cell of the evidencia × criterio grid: what this student showed against
+ *  one criterio, on one piece of evidence. */
+export type CriterionEvidenceDto = {
+	assessment_id: string;
+	title: string;
+	kind: AssessmentKind;
+	due_at: string | null;
+	is_personal: boolean;
+	level: NivelLogro;
+};
+
 export type CriterionDto = {
 	criterion_id: string;
 	code: string | null;
 	description: string;
-	sort_order: number;
 	performance_standard_id: string | null;
-	// This student's level for the criterio this period, when the listing is
-	// scoped to a student. Null means not yet judged — do NOT render as C.
-	level: NivelLogro | null;
-	level_id: string | null;
+	// This criterio's row across the period's evidence, oldest first, when the
+	// listing is scoped to a student. Read left to right it is a trajectory —
+	// C → B → A → A is a student who learned to justify — which is why the
+	// criterio itself no longer carries a single level. Empty means nothing has
+	// been judged against it yet: a real state, never a C.
+	evidence: CriterionEvidenceDto[] | null;
+	// The legacy period-grain judgement, written before 2026-08-28 when the app
+	// still let a teacher grade a criterio with no evidence in hand. Read-only
+	// history; there is no writer for it any more.
+	period_level: NivelLogro | null;
 };
 
 export type CompetencyCriteriaDto = {
@@ -448,6 +432,40 @@ export type CompetencyCriteriaDto = {
 
 export type ClassCriteriaDto = { competencies: CompetencyCriteriaDto[] | null };
 
+// --- Evidencia × criterio grid ----------------------------------------------
+// One piece of evidence across its whole roster: the criterios it declares as
+// columns, the students as rows. This is the marking view — one criterio at a
+// time down thirty scripts. It carries no mark: the school's numeric system is
+// the other reading of the same evidence, captured on the student's screen.
+
+export type GridCriterionDto = {
+	criterion_id: string;
+	code: string | null;
+	description: string;
+	competency_id: string;
+	competency_name: string;
+};
+
+export type GridStudentDto = {
+	student_id: string;
+	full_name: string;
+	/** criterion_id → level. A criterio absent from the map is unjudged, which
+	 *  is a real state and must never render as C. */
+	levels: Record<string, NivelLogro>;
+};
+
+export type AssessmentCriteriaGridDto = {
+	assessment_id: string;
+	title: string;
+	kind: AssessmentKind;
+	class_id: string;
+	term_id: string;
+	due_at: string | null;
+	is_personal: boolean;
+	criteria: GridCriterionDto[] | null;
+	students: GridStudentDto[] | null;
+};
+
 export type CriterionCreateDto = {
 	description: string;
 	code?: string | null;
@@ -456,7 +474,10 @@ export type CriterionCreateDto = {
 
 export type AssertCriterionLevelDto = {
 	criterion_id: string;
+	/** Required. A criterio level always names the evidencia it was read from:
+	 *  the criterio is the ruler, never the thing being marked (RVM 094-2020,
+	 *  5.1.1.3 p.3). There is no term_id — the evidencia carries the periodo. */
+	assessment_id: string;
 	level: NivelLogro;
 	note?: string | null;
-	term_id?: string;
 };

@@ -6,54 +6,54 @@ import svelteParser from 'svelte-eslint-parser';
 import globals from 'globals';
 
 export default [
-  js.configs.recommended,
-  {
-    languageOptions: {
-      globals: globals.browser,
-      ecmaVersion: 2020,
-      sourceType: 'module',
-    },
-  },
-  {
-    files: ['**/*.ts', '**/*.tsx'],
-    languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        ecmaVersion: 2020,
-        sourceType: 'module',
-      },
-      globals: globals.browser,
-    },
-    plugins: {
-      '@typescript-eslint': tsPlugin,
-    },
-    rules: {
-      'no-undef': 'off',
-      'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': 'warn',
-      '@typescript-eslint/no-explicit-any': 'warn',
-    },
-  },
-  {
-    files: ['**/*.svelte'],
-    languageOptions: {
-      parser: svelteParser,
-      parserOptions: {
-        parser: tsParser,
-        ecmaVersion: 2020,
-        sourceType: 'module',
-      },
-      globals: globals.browser,
-    },
-    plugins: {
-      svelte: sveltePlugin,
-    },
-    rules: {
-      ...sveltePlugin.configs.recommended.rules,
-      'no-unused-vars': 'off',
-    },
-  },
-  {
-    ignores: ['node_modules/', 'dist/', 'build/', '.svelte-kit/', '.output/'],
-  },
+	js.configs.recommended,
+	{
+		languageOptions: {
+			globals: globals.browser,
+			ecmaVersion: 2020,
+			sourceType: 'module',
+		},
+	},
+	{
+		files: ['**/*.ts', '**/*.tsx'],
+		languageOptions: {
+			parser: tsParser,
+			parserOptions: {
+				ecmaVersion: 2020,
+				sourceType: 'module',
+			},
+			globals: globals.browser,
+		},
+		plugins: {
+			'@typescript-eslint': tsPlugin,
+		},
+		rules: {
+			'no-undef': 'off',
+			'no-unused-vars': 'off',
+			'@typescript-eslint/no-unused-vars': 'warn',
+			'@typescript-eslint/no-explicit-any': 'warn',
+		},
+	},
+	{
+		files: ['**/*.svelte'],
+		languageOptions: {
+			parser: svelteParser,
+			parserOptions: {
+				parser: tsParser,
+				ecmaVersion: 2020,
+				sourceType: 'module',
+			},
+			globals: globals.browser,
+		},
+		plugins: {
+			svelte: sveltePlugin,
+		},
+		rules: {
+			...sveltePlugin.configs.recommended.rules,
+			'no-unused-vars': 'off',
+		},
+	},
+	{
+		ignores: ['node_modules/', 'dist/', 'build/', '.svelte-kit/', '.output/'],
+	},
 ];

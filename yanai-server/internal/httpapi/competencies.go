@@ -198,39 +198,3 @@ func (a *API) handleUpsertConclusion(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, http.StatusCreated, map[string]any{"id": id, "status": status})
 }
-
-// GET /classes/{classID}/siagie-report?term_id=
-//
-// The end-of-period report, shaped as what SIAGIE expects to receive. `ready`
-// is false while any mandatory conclusión descriptiva is missing.
-func (a *API) handleSiagieReport(w http.ResponseWriter, r *http.Request) {
-	tc := tenantCtxFrom(r)
-	classID, err := pathUUID(r, "classID")
-	if err != nil {
-		badRequest(w, "invalid classID")
-		return
-	}
-	termIDParam := queryUUID(r, "term_id")
-
-	var rep repo.SiagieReport
-	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
-		term, err := repo.ResolveTerm(r.Context(), tx, termIDParam)
-		if err != nil {
-			return err
-		}
-		rep, err = repo.GetSiagieReport(r.Context(), tx, classID, term.ID)
-		if err != nil {
-			return err
-		}
-		ids := make([]uuid.UUID, 0, len(rep.Students))
-		for _, s := range rep.Students {
-			ids = append(ids, s.StudentID)
-		}
-		return repo.LogStudentReads(r.Context(), tx, ids, tc.TeacherID, &classID, nil)
-	})
-	if err != nil {
-		writeError(w, err)
-		return
-	}
-	writeJSON(w, http.StatusOK, rep)
-}

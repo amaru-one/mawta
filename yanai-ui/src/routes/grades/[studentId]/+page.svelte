@@ -3,10 +3,12 @@
 	import { page } from '$app/state';
 	import { ApiError, list } from '$lib/api/client';
 	import type {
+		AssessmentCreateDto,
 		AttemptDto,
 		CompetencyCriteriaDto,
 		CriterionDto,
 		EvaluationDto,
+		GradingComponentDto,
 		PracticeScoreCreateDto,
 		StudentGradesDto
 	} from '$lib/api/dto';
@@ -15,24 +17,30 @@
 		getStudentCompetencies,
 		upsertConclusion
 	} from '$lib/api/endpoints/competencies';
+	import {
+		createAssessment,
+		deleteAssessment,
+		getGradingComponents
+	} from '$lib/api/endpoints/classes';
 	import { assertCriterionLevel, getClassCriteria } from '$lib/api/endpoints/criteria';
 	import {
 		correctScore,
 		createPracticeScore,
 		createScore,
 		deletePracticeScore,
-		getStudentGrades,
-		requestSummary
+		getStudentGrades
 	} from '$lib/api/endpoints/grades';
 	import { toCompetencyLevel } from '$lib/api/mappers';
+	import AddEvidenceDialog from '$lib/components/AddEvidenceDialog.svelte';
 	import AddPracticeScoreDialog from '$lib/components/AddPracticeScoreDialog.svelte';
-	import AiSummaryCard from '$lib/components/AiSummaryCard.svelte';
 	import CompetencyCard from '$lib/components/CompetencyCard.svelte';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
+	import EvidenceCriteriaPickers from '$lib/components/EvidenceCriteriaPickers.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import type { Tier } from '$lib/grades';
 	import { hapticTap } from '$lib/haptics';
+	import { usesInternalGrading } from '$lib/stores';
 	import { showToast } from '$lib/toast';
 	import type { CompetencyLevel } from '$lib/types';
 
@@ -47,20 +55,27 @@
 	let loadError = $state(false);
 	let data = $state<StudentGradesDto | null>(null);
 	let competencies = $state<CompetencyLevel[]>([]);
-	let criteriaByCompetency = $state<Map<string, CriterionDto[]>>(new Map());
+	let criteriaGroups = $state<CompetencyCriteriaDto[]>([]);
+	let gradingComponents = $state<GradingComponentDto[]>([]);
+	// The competency cards read the criterios by competency id; the evidence
+	// dialog needs them grouped, so the grouped list is what is held and the
+	// map is derived from it.
+	const criteriaByCompetency = $derived(indexCriteria(criteriaGroups));
 
 	async function load(): Promise<void> {
 		ready = false;
 		loadError = false;
 		try {
-			const [grades, comps, crits] = await Promise.all([
+			const [grades, comps, crits, components] = await Promise.all([
 				getStudentGrades(classId, studentId),
 				getStudentCompetencies(classId, studentId),
-				getClassCriteria(classId, studentId)
+				getClassCriteria(classId, studentId),
+				getGradingComponents(classId)
 			]);
 			data = grades;
 			competencies = list(comps.competencies).map(toCompetencyLevel);
-			criteriaByCompetency = indexCriteria(crits.competencies);
+			criteriaGroups = list(crits.competencies);
+			gradingComponents = list(components.components);
 			ready = true;
 		} catch {
 			loadError = true;
@@ -77,9 +92,9 @@
 		}
 	}
 
-	function indexCriteria(rows: CompetencyCriteriaDto[] | null): Map<string, CriterionDto[]> {
+	function indexCriteria(rows: CompetencyCriteriaDto[]): Map<string, CriterionDto[]> {
 		const out = new Map<string, CriterionDto[]>();
-		for (const row of list(rows)) out.set(row.competency_id, list(row.criteria));
+		for (const row of rows) out.set(row.competency_id, list(row.criteria));
 		return out;
 	}
 
@@ -90,7 +105,7 @@
 				getClassCriteria(classId, studentId)
 			]);
 			competencies = list(comps.competencies).map(toCompetencyLevel);
-			criteriaByCompetency = indexCriteria(crits.competencies);
+			criteriaGroups = list(crits.competencies);
 		} catch {
 			// keep showing the last good data
 		}
@@ -134,6 +149,21 @@
 	});
 
 	let expandedModules = $state<Set<string>>(new Set());
+	// Which evidence rows have their criterio pickers open. Collapsed by
+	// default: the list is read as an inventory far more often than it is
+	// marked, and thirty pickers at once is not a list.
+	let expandedEvidence = $state<Set<string>>(new Set());
+
+	function toggleEvidence(assessmentId: string): void {
+		hapticTap();
+		const next = new Set(expandedEvidence);
+		if (next.has(assessmentId)) {
+			next.delete(assessmentId);
+		} else {
+			next.add(assessmentId);
+		}
+		expandedEvidence = next;
+	}
 
 	function toggleModule(code: string): void {
 		hapticTap();
@@ -233,15 +263,39 @@
 		}
 	}
 
-	async function handleCriterionLevelChange(criterionId: string, level: Tier): Promise<void> {
+	// One cell of the evidencia × criterio grid. The assessment is not optional:
+	// a criterio level always names the work it was read from (RVM 094-2020,
+	// 5.1.1.3 p.3). Both reads are refreshed — the evidence rows hold the
+	// pickers, the competency cards hold the row across the period.
+	async function handleCriterionLevelChange(
+		assessmentId: string,
+		criterionId: string,
+		level: Tier
+	): Promise<void> {
 		hapticTap();
 		try {
-			await assertCriterionLevel(classId, studentId, { criterion_id: criterionId, level });
-			showToast('Criterio guardado');
-			await reloadCompetencies();
+			await assertCriterionLevel(classId, studentId, {
+				criterion_id: criterionId,
+				assessment_id: assessmentId,
+				level
+			});
+			showToast('Nivel del criterio guardado');
+			await Promise.all([reload(), reloadCompetencies()]);
 		} catch (err) {
 			showToast(err instanceof ApiError ? err.message : 'No se pudo guardar — revisa tu conexión');
 		}
+	}
+
+	// A cell of the timeline opens the piece of evidence it came from, so the
+	// teacher can go from "this criterio dipped in June" straight to the work.
+	function openEvidence(assessmentId: string): void {
+		const ev = evaluations.find((e) => e.assessment_id === assessmentId);
+		if (!ev) return;
+		expandedModules = new Set([...expandedModules, ev.component_code]);
+		expandedEvidence = new Set([...expandedEvidence, assessmentId]);
+		document
+			.getElementById(`evidence-${assessmentId}`)
+			?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 	}
 
 	async function handleSaveConclusion(
@@ -261,6 +315,38 @@
 			await reloadCompetencies();
 		} catch (err) {
 			showToast(err instanceof ApiError ? err.message : 'No se pudo guardar — revisa tu conexión');
+		}
+	}
+
+	// Evidence created from this screen belongs to this student alone. Class
+	// work is filed from the class dashboard, which speaks for the class rather
+	// than for one student — see routes/class/[courseId].
+	let showAddEvidence = $state(false);
+	let deletingEvidence = $state<EvaluationDto | null>(null);
+
+	async function handleAddEvidence(body: AssessmentCreateDto): Promise<void> {
+		showAddEvidence = false;
+		try {
+			await createAssessment(classId, { ...body, student_id: studentId });
+			showToast('Evidencia añadida');
+			// The new evidence arrives unscored, with its accordion already open
+			// so the mark can be typed straight away.
+			expandedModules = new Set([...expandedModules, body.component_code]);
+			await reload();
+		} catch (err) {
+			showToast(err instanceof ApiError ? err.message : 'No se pudo añadir la evidencia');
+		}
+	}
+
+	async function handleDeleteEvidence(ev: EvaluationDto): Promise<void> {
+		deletingEvidence = null;
+		try {
+			await deleteAssessment(ev.assessment_id);
+			showToast('Evidencia eliminada');
+			await reload();
+			reloadSoon();
+		} catch (err) {
+			showToast(err instanceof ApiError ? err.message : 'No se pudo eliminar la evidencia');
 		}
 	}
 
@@ -289,24 +375,6 @@
 		}
 	}
 
-	let requestingSummary = $state(false);
-
-	async function handleSummary(): Promise<void> {
-		if (requestingSummary) return;
-		requestingSummary = true;
-		try {
-			await requestSummary(classId, studentId);
-			showToast('Generando resumen…');
-			reloadSoon();
-			setTimeout(() => {
-				void reload();
-				requestingSummary = false;
-			}, 6000);
-		} catch {
-			requestingSummary = false;
-			showToast('No se pudo generar el resumen');
-		}
-	}
 </script>
 
 <svelte:head>
@@ -330,7 +398,7 @@
 					<CompetencyCard
 						competency={comp}
 						criteria={criteriaByCompetency.get(comp.competencyId) ?? []}
-						onCriterionLevelChange={handleCriterionLevelChange}
+						onopenevidence={openEvidence}
 						onLevelChange={handleLevelChange}
 						onSaveConclusion={handleSaveConclusion}
 					/>
@@ -340,8 +408,15 @@
 
 		<p class="eyebrow">EVIDENCIA</p>
 		<p class="evidence-note">
-			Las notas son evidencia para tu juicio docente. No determinan el nivel de
-			logro ni se promedian para obtenerlo.
+			{#if $usesInternalGrading}
+				Cada evidencia se registra una vez y se lee dos veces: la nota alimenta el
+				sistema interno del colegio, el nivel por criterio alimenta el registro
+				oficial. Las notas no determinan el nivel de logro ni se promedian para
+				obtenerlo.
+			{:else}
+				Valora cada evidencia contra los criterios que declara. El nivel de logro
+				de la competencia sigue siendo tu juicio sobre todo el periodo.
+			{/if}
 		</p>
 
 		<div class="stack">
@@ -369,27 +444,77 @@
 							{#each mod.evaluations as ev (ev.assessment_id)}
 								{@const attempt = latestAttempt(ev)}
 								{@const scored = attempt?.raw_value != null}
-								<div class="subgrade" class:unscored={!scored}>
+								{@const crits = list(ev.criteria)}
+								{@const open = expandedEvidence.has(ev.assessment_id)}
+								<div
+									class="subgrade"
+									class:unscored={!scored && $usesInternalGrading}
+									id={`evidence-${ev.assessment_id}`}
+								>
 									<div class="row">
 										<p class="subgrade-name grow">{ev.title}</p>
-										<span class="input-wrap">
-											<input
-												type="number"
-												class="score-input"
-												min="0"
-												max={ev.max_score}
-												value={attempt?.raw_value ?? ''}
-												onchange={(e) => void handleScoreChange(ev, e)}
-												aria-label={`Nota de ${ev.title}, sobre ${ev.max_score}`}
-											/>
-											<span class="max">/ {ev.max_score}</span>
-										</span>
+										{#if $usesInternalGrading}
+											<span class="input-wrap">
+												<input
+													type="number"
+													class="score-input"
+													min="0"
+													max={ev.max_score}
+													value={attempt?.raw_value ?? ''}
+													onchange={(e) => void handleScoreChange(ev, e)}
+													aria-label={`Nota de ${ev.title}, sobre ${ev.max_score}`}
+												/>
+												<span class="max">/ {ev.max_score}</span>
+											</span>
+										{/if}
+										<button
+											class="action delete pressable"
+											onclick={() => (deletingEvidence = ev)}
+											aria-label={`Eliminar ${ev.title}`}
+											title="Eliminar"
+										>
+											<Icon name="trash" size={15} />
+										</button>
 									</div>
-									{#if list(ev.criteria).length > 0}
+									<p class="tags">
+										<span class="kind">{kindLabels[ev.kind] ?? ev.kind}</span>
+										{#if ev.is_personal}
+											<span class="personal">Solo este alumno</span>
+										{/if}
+										{#if $usesInternalGrading && !ev.counts_toward_internal}
+											<span class="excluded">Fuera del promedio interno</span>
+										{/if}
+									</p>
+
+									{#if crits.length > 0}
+										<div class="row criteria-actions">
+											<button
+												type="button"
+												class="link-btn pressable grow"
+												onclick={() => toggleEvidence(ev.assessment_id)}
+												aria-expanded={open}
+											>
+												{open ? 'Ocultar' : 'Valorar'} criterios ({crits.filter(
+													(c) => c.level !== null
+												).length}/{crits.length})
+											</button>
+											<a
+												class="link-btn"
+												href={`/class/${classId}/evidence/${ev.assessment_id}?course=${encodeURIComponent(courseName)}`}
+											>
+												Toda la clase
+											</a>
+										</div>
+										{#if open}
+											<EvidenceCriteriaPickers
+												criteria={crits}
+												onLevelChange={(criterionId, level) =>
+													handleCriterionLevelChange(ev.assessment_id, criterionId, level)}
+											/>
+										{/if}
+									{:else}
 										<p class="evidences">
-											Evidencia: {list(ev.criteria)
-												.map((c) => c.code ?? c.description)
-												.join(' · ')}
+											Sin criterios declarados: no hay contra qué valorarla.
 										</p>
 									{/if}
 								</div>
@@ -401,10 +526,15 @@
 		</div>
 
 		{#if evaluationModules.length === 0}
-			<p class="empty">Aún no hay evaluaciones para este curso.</p>
+			<p class="empty">Aún no hay evidencias para este curso.</p>
 		{/if}
 
-		{#if internalGrade}
+		<button class="btn-block add-evidence pressable" onclick={() => (showAddEvidence = true)}>
+			<Icon name="plus" size={16} />
+			Añadir evidencia
+		</button>
+
+		{#if internalGrade && $usesInternalGrading}
 			<div class="card internal">
 				<button
 					type="button"
@@ -464,22 +594,8 @@
 			onclick={() => (showAddPracticeScore = true)}
 		>
 			<Icon name="plus" size={16} />
-			Añadir evaluación
+			Añadir nota personal
 		</button>
-
-		<button class="btn-block ai pressable" disabled={requestingSummary} onclick={handleSummary}>
-			<Icon name="sparkles" size={16} />
-			{data.summary?.status === 'generating' || requestingSummary
-				? 'Generando resumen…'
-				: 'Generar resumen'}
-		</button>
-
-		{#if data.summary && (data.summary.status === 'ready' || data.summary.status === 'stale')}
-			<AiSummaryCard
-				title="Resumen de {data.summary.notes_count} notas de voz"
-				bullets={data.summary.bullets}
-			/>
-		{/if}
 	{:else if loadError}
 		<p class="empty">
 			No se pudieron cargar las notas.
@@ -487,6 +603,28 @@
 		</p>
 	{/if}
 </div>
+
+{#if showAddEvidence}
+	<AddEvidenceDialog
+		usesInternalGrading={$usesInternalGrading}
+		components={gradingComponents}
+		competencies={criteriaGroups}
+		scope="student"
+		{studentName}
+		onsubmit={handleAddEvidence}
+		oncancel={() => (showAddEvidence = false)}
+	/>
+{/if}
+
+{#if deletingEvidence}
+	<ConfirmDialog
+		title="¿Eliminar «{deletingEvidence.title}»?"
+		text="Las notas ya registradas quedan en el historial, pero dejan de verse aquí y de contar en el sistema interno."
+		confirmLabel="Eliminar"
+		onconfirm={() => void handleDeleteEvidence(deletingEvidence!)}
+		oncancel={() => (deletingEvidence = null)}
+	/>
+{/if}
 
 {#if showAddPracticeScore}
 	<AddPracticeScoreDialog
@@ -539,6 +677,28 @@
 	.component-weight {
 		margin: 0;
 		font-size: 11px;
+		color: var(--text-muted);
+	}
+
+	.criteria-actions {
+		gap: var(--space-md);
+		margin-top: var(--space-sm);
+	}
+
+	.link-btn {
+		padding: 0;
+		border: none;
+		background: none;
+		font-family: inherit;
+		font-size: 12px;
+		font-weight: 500;
+		color: var(--text-accent, var(--text-primary));
+		text-align: left;
+		text-decoration: none;
+		cursor: pointer;
+	}
+
+	.excluded {
 		color: var(--text-muted);
 	}
 
@@ -636,6 +796,30 @@
 		color: var(--text-muted);
 	}
 
+	/* The kind (quiz, tarea, proyecto...) rides as a label on the row: the
+	   accordion groups by grading component, not by kind, so the row is where
+	   the kind has to be legible. */
+	.tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-xs);
+		margin: 4px 0 0;
+		font-size: 11px;
+	}
+
+	.kind,
+	.personal {
+		border-radius: var(--radius-sm);
+		padding: 1px 6px;
+		background: var(--surface-1);
+		color: var(--text-muted);
+	}
+
+	.personal {
+		color: var(--text-secondary);
+		border: 0.5px solid var(--border);
+	}
+
 	.internal {
 		padding: 0;
 		margin-top: var(--space-lg);
@@ -705,11 +889,10 @@
 		color: var(--text-danger);
 	}
 
-	/* Assistant action — carries the accent. */
-	.ai {
-		background: var(--fill-accent);
-		color: var(--on-accent);
-		margin-bottom: var(--space-sm);
+	/* Closes the EVIDENCIA section, so it needs the same gap the eyebrows use
+	   before NOTAS PERSONALES starts. */
+	.add-evidence {
+		margin-bottom: var(--space-lg);
 	}
 
 	.empty {

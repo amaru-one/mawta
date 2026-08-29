@@ -40,15 +40,3 @@ export function createPracticeScore(
 export function deletePracticeScore(id: string): Promise<{ status: string }> {
 	return apiSend<{ status: string }>('POST', `/practice-scores/${id}/delete`);
 }
-
-export function requestSummary(
-	classId: string,
-	studentId: string,
-	termId?: string
-): Promise<{ status: string }> {
-	const qs = termId ? `?term_id=${termId}` : '';
-	return apiSend<{ status: string }>(
-		'POST',
-		`/classes/${classId}/students/${studentId}/summary${qs}`
-	);
-}

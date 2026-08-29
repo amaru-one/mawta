@@ -36,13 +36,13 @@ the seed and survive a reseed:
 | Route | Screen |
 |---|---|
 | `GET /me` | topbar |
-| `GET /home`, `GET /classes?q=` | 01 Inicio |
-| `GET /classes/{id}/dashboard`, `GET /classes/{id}/sessions`, `POST /sessions/{id}/start\|complete` | 02 Clase |
+| `GET /home` | 01 Inicio |
+| `GET /classes/{id}/dashboard`, `POST /sessions/{id}/start` | 02 Clase |
 | `GET /sessions/{id}?q=`, `PUT .../attendance/{sid}`, `POST .../mark-all-present`, `PUT .../observations/{sid}`, `POST .../voice-notes`, `GET/POST /voice-notes/{id}/...` | 03 Lección |
-| `GET /classes/{id}/students/{sid}/grades`, `POST /classes/{id}/assessments`, `POST /assessments/{id}/scores`, `POST /scores/{id}/correct`, `POST .../summary` | 04 Notas |
-| `GET /classes/{id}/students/{sid}/competencies`, `POST .../competency-levels`, `POST .../conclusions`, `GET /classes/{id}/siagie-report` | 05 Competencias |
+| `GET /classes/{id}/students/{sid}/grades`, `POST /classes/{id}/assessments`, `POST /assessments/{id}/scores`, `POST /scores/{id}/correct` | 04 Notas |
+| `GET /classes/{id}/students/{sid}/competencies`, `POST .../competency-levels`, `POST .../conclusions` | 05 Competencias |
 | `GET /classes/{id}/criteria`, `POST /classes/{id}/competencies/{cid}/criteria`, `POST /criteria/{id}/delete`, `POST /classes/{id}/students/{sid}/criterion-levels` | 06 Criterios |
-| `GET /notifications`, `.../unread-count`, `POST .../read\|dismiss` | 07 Notificaciones |
+| `GET /notifications`, `POST .../read`, `POST /notifications/read-all` | 07 Notificaciones |
 | `GET /profile` | 08 Perfil |
 
 Every write sets Postgres session GUCs (`app.tenant_id`, `app.actor_id`,

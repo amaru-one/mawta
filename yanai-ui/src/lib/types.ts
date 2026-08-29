@@ -47,9 +47,6 @@ export type Session = {
 
 export type Attendance = 'present' | 'absent';
 
-// 0=not rated, 1-3=star rating.
-export type Participation = 0 | 1 | 2 | 3;
-
 // One entry per student per session, built from the session roster.
 export type Entry = {
 	// Natural key `${sessionId}:${studentId}` — the server has no entry id.
@@ -57,17 +54,12 @@ export type Entry = {
 	sessionId: string;
 	studentId: string;
 	attendance: Attendance | null;
-	participation: Participation | null;
 	// Teacher-raised behavior marker for this session; `flagTypeIds` carries the
 	// server's flag-type UUIDs behind the boolean, and observation PUTs are an
 	// authoritative set, so both must ride along on every mutation.
 	flagged: boolean;
 	flagTypeIds: string[];
 	observationNote: string | null;
-	// Grade standing from the server (recomputed asynchronously).
-	levelCode: string | null;
-	previousLevelCode: string | null;
-	trend: 'up' | 'down' | 'flat' | null;
 	notes: Note[];
 };
 
@@ -104,7 +96,6 @@ export type AppNotification = {
 	read: boolean;
 };
 
-
 // --- Niveles de logro por competencia (RVM 094-2020 / 048-2024) ---
 
 // The teacher's asserted MINEDU level for one competency in one period, plus
@@ -125,39 +116,4 @@ export type CompetencyLevel = {
 	conclusionRequirement: 'level_c' | 'consecutive_c' | 'inclusion_support' | 'optional';
 	conclusionBody: string | null;
 	conclusionStatus: 'draft' | 'final' | null;
-};
-
-// One competency row in the end-of-period SIAGIE report — read-only.
-export type SiagieCompetency = {
-	competencyId: string;
-	code: string;
-	name: string;
-	level: Tier | null;
-	conclusion: string | null;
-	conclusionRequired: boolean;
-};
-
-export type SiagieStudent = {
-	studentId: string;
-	studentCode: string;
-	studentName: string;
-	competencies: SiagieCompetency[];
-};
-
-// A mandatory conclusión descriptiva still missing — blocks `ready`.
-export type MissingConclusion = {
-	studentId: string;
-	studentName: string;
-	competencyId: string;
-	competency: string;
-};
-
-export type SiagieReport = {
-	className: string;
-	areaCurricular: string | null;
-	termName: string;
-	students: SiagieStudent[];
-	blocking: MissingConclusion[];
-	ready: boolean;
-	notice: string;
 };

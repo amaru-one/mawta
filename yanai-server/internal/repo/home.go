@@ -174,37 +174,3 @@ func GetHome(ctx context.Context, tx pgx.Tx, teacherID uuid.UUID, d time.Time) (
 	}
 	return resp, nil
 }
-
-type ClassSearchResult struct {
-	ClassID uuid.UUID `json:"class_id"`
-	Name    string    `json:"name"`
-}
-
-// SearchClasses matches the "Buscar por clase" box using the classes.name
-// trgm index.
-func SearchClasses(ctx context.Context, tx pgx.Tx, teacherID uuid.UUID, q string) ([]ClassSearchResult, error) {
-	rows, err := tx.Query(ctx, `
-		select distinct c.id, c.name
-		  from classes c
-		  join class_teachers ct on ct.class_id = c.id and ct.deleted_at is null
-		 where ct.teacher_id = $1
-		   and c.deleted_at is null
-		   and c.name ilike '%' || $2 || '%'
-		 order by c.name
-		 limit 20
-	`, teacherID, q)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var out []ClassSearchResult
-	for rows.Next() {
-		var c ClassSearchResult
-		if err := rows.Scan(&c.ClassID, &c.Name); err != nil {
-			return nil, err
-		}
-		out = append(out, c)
-	}
-	return out, rows.Err()
-}

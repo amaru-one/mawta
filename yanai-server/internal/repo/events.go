@@ -18,20 +18,6 @@ func LogEvent(ctx context.Context, tx pgx.Tx, action, entityType string, entityI
 	return err
 }
 
-// LogJobEvent writes an event with actor_type='job', for actions taken by
-// the background worker rather than an interactive request (app.log_event
-// always stamps actor_type='user', which is wrong for these).
-func LogJobEvent(ctx context.Context, tx pgx.Tx, action, entityType string, entityID, studentID, classID *uuid.UUID, payload []byte) error {
-	if payload == nil {
-		payload = []byte("{}")
-	}
-	_, err := tx.Exec(ctx, `
-		insert into events (tenant_id, actor_type, action, entity_type, entity_id, student_id, class_id, payload)
-		values (app.current_tenant_id(), 'job', $1, $2, $3, $4, $5, $6)
-	`, action, entityType, entityID, studentID, classID, payload)
-	return err
-}
-
 // LogStudentReads bulk-inserts student.read events for every student id in
 // a roster/search response, in the same transaction as the read. Every read
 // that returns identifiable student rows must produce one of these.

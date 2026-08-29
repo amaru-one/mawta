@@ -141,6 +141,10 @@ func recomputeOne(ctx context.Context, tx pgx.Tx, jobID int64, classID, termID, 
 		                and s.superseded_at is null and s.deleted_at is null
 		  left join retake_authorizations ra on ra.id = s.retake_authorization_id
 		 where a.class_id = $1 and a.term_id = $2 and a.status = 'published' and a.deleted_at is null
+		   -- The school's own average only. Evidence flagged out of it still
+		   -- counts for the official judgement, which is recorded per criterio
+		   -- and never passes through here.
+		   and a.counts_toward_internal
 		 order by a.id, s.attempt_number
 	`, classID, termID, studentID)
 	if err != nil {

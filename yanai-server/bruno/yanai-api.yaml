@@ -17,8 +17,7 @@ info:
     (both pre-filled below with the seeded demo tenant and Janice Quispe's
     actor id). /healthz takes neither and lives outside /api/v1.
 
-    Jobs: writes that enqueue a background job (attendance -> risk.detect,
-    scores -> grade.recompute, summary request -> note_summary.generate)
+    Jobs: writes that enqueue a background job (scores -> grade.recompute)
     land within ~2s when WORKER_ENABLED=true.
 
     Correcting a score twice in a row 409s the second time -- the example
@@ -45,10 +44,10 @@ tags:
   - name: 05 Competencias
     description: >
       Niveles de logro por competencia y conclusiones descriptivas — el registro
-      oficial que exige la RVM 094-2020 (modificada por RVM 048-2024), y el
-      reporte de fin de periodo para SIAGIE. A diferencia de "04 Notas", que
-      recoge evidencia (y el sistema interno ponderado del colegio), esto es lo
-      que asigna el docente y lo único que la norma reconoce.
+      oficial que exige la RVM 094-2020 (modificada por RVM 048-2024). A
+      diferencia de "04 Notas", que recoge evidencia (y el sistema interno
+      ponderado del colegio), esto es lo que asigna el docente y lo único que la
+      norma reconoce.
   - name: 06 Criterios
     description: >
       Los criterios de evaluación que el docente escribe para cada competencia,
@@ -158,7 +157,13 @@ paths:
     get:
       tags: [00 Health & Me]
       summary: Me
-      description: Teacher + tenant identity for the topbar.
+      description: >
+        Teacher + tenant identity for the topbar, plus
+        `tenant.uses_internal_grading`: whether the school runs its own weighted
+        numeric system alongside the official record (D.S. 009-2006-ED art.
+        37.4.f). False hides every mark input and the computed grade; niveles de
+        logro are unaffected, since the official record never comes from a
+        number either way.
       parameters:
         - $ref: "#/components/parameters/TenantIdHeader"
         - $ref: "#/components/parameters/ActorIdHeader"
@@ -176,20 +181,6 @@ paths:
       responses:
         "200": { description: OK }
 
-  /classes:
-    get:
-      tags: [01 Inicio]
-      summary: Search classes
-      parameters:
-        - $ref: "#/components/parameters/TenantIdHeader"
-        - $ref: "#/components/parameters/ActorIdHeader"
-        - name: q
-          in: query
-          schema: { type: string }
-          example: "ingl"
-      responses:
-        "200": { description: OK }
-
   /classes/{classID}/dashboard:
     get:
       tags: [02 Clase panel]
@@ -200,25 +191,6 @@ paths:
         - $ref: "#/components/parameters/ClassId"
         - $ref: "#/components/parameters/TermIdQuery"
         - $ref: "#/components/parameters/DateQuery"
-      responses:
-        "200": { description: OK }
-
-  /classes/{classID}/sessions:
-    get:
-      tags: [02 Clase panel]
-      summary: Class sessions
-      parameters:
-        - $ref: "#/components/parameters/TenantIdHeader"
-        - $ref: "#/components/parameters/ActorIdHeader"
-        - $ref: "#/components/parameters/ClassId"
-        - $ref: "#/components/parameters/DateQuery"
-        - name: dir
-          in: query
-          schema: { type: string, enum: [upcoming, past], default: upcoming }
-          example: "upcoming"
-        - name: limit
-          in: query
-          schema: { type: integer, default: 10 }
       responses:
         "200": { description: OK }
 
@@ -317,8 +289,11 @@ paths:
       summary: Criterios de evaluación de la clase
       description: >
         Cada competencia del área con los criterios de evaluación que el docente
-        escribió para ella. Con `student_id`, cada criterio trae además el nivel
-        de ese estudiante en el periodo. Una competencia sin criterios se
+        escribió para ella. Con `student_id`, cada criterio trae además su fila
+        de la grilla evidencia × criterio (`evidence`: una celda por evidencia
+        valorada, de la más antigua a la más reciente) y `period_level`, el
+        juicio de periodo heredado que ya no se escribe. Una competencia sin
+        criterios se
         devuelve con la lista vacía, no se omite: bajo la RVM 094-2020 los
         criterios son la referencia contra la cual se valora la evidencia, así
         que una competencia sin ellos es justo lo que el docente necesita ver.
@@ -385,11 +360,16 @@ paths:
   /classes/{classID}/students/{studentID}/criterion-levels:
     post:
       tags: [06 Criterios]
-      summary: Asertar nivel por criterio
+      summary: Asertar nivel por criterio, en una evidencia
       description: >
-        El nivel AD/A/B/C del estudiante en un criterio, para todo el periodo.
-        Es evidencia para el juicio del docente, no el registro oficial: nada lo
-        promedia ni lo agrega al nivel de logro de la competencia. Append-only.
+        Una celda de la grilla evidencia × criterio: el nivel AD/A/B/C que el
+        estudiante mostró en un criterio, **en una evidencia concreta**.
+        `assessment_id` es obligatorio — la RVM 094-2020 (5.1.1.3 p.3) valora la
+        evidencia *a través* del criterio, así que el criterio es la regla y
+        nunca lo calificado. No lleva `term_id`: el periodo lo aporta la
+        evidencia. Es evidencia para el juicio del docente, no el registro
+        oficial: nada lo promedia ni lo agrega al nivel de logro de la
+        competencia. Append-only.
       parameters:
         - $ref: "#/components/parameters/TenantIdHeader"
         - $ref: "#/components/parameters/ActorIdHeader"
@@ -402,22 +382,50 @@ paths:
             schema: { type: object }
             example:
               criterion_id: "00000000-0000-0000-0000-000000000000"
+              assessment_id: "00000000-0000-0000-0000-000000000000"
               level: "A"
               note: null
       responses:
         "201": { description: Created }
-        "400": { description: level must be AD, A, B or C }
+        "400":
+          description: >
+            criterion_level_needs_evidence (falta `assessment_id`) |
+            criterion_not_in_evidence (la evidencia no declara ese criterio) |
+            evidence_not_for_student (evidencia personal de otro alumno) |
+            level must be AD, A, B or C
 
-  /classes/{classID}/siagie-report:
+  /assessments/{assessmentID}/criteria-grid:
     get:
-      tags: [05 Competencias]
-      summary: Reporte de fin de periodo (SIAGIE)
+      tags: [06 Criterios]
+      summary: Grilla evidencia × criterio de una evidencia
       description: >
-        Lo que el SIAGIE espera recibir por periodo: por estudiante, el nivel de
-        logro de cada competencia desarrollada y su conclusión descriptiva donde
-        es obligatoria. `ready` es false mientras falte alguna conclusión
-        obligatoria; `blocking` las lista. No incluye nivel de logro por área
-        ("no se asignará un nivel de logro a cada área curricular", 5.1.1.3 p.12).
+        Una evidencia sobre toda su nómina: los criterios que declara como
+        columnas, los estudiantes como filas y los niveles ya registrados como
+        celdas. Es la vista de corrección — un criterio a la vez sobre treinta
+        trabajos, en lugar de treinta pantallas. Una evidencia personal
+        (`assessments.student_id`) devuelve un solo estudiante.
+
+        No devuelve nota, a propósito: el sistema interno del colegio es la
+        *otra* lectura de la misma evidencia y se captura en la pantalla del
+        estudiante.
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - name: assessmentID
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: OK }
+        "404": { description: not_found }
+
+  /classes/{classID}/grading-components:
+    get:
+      tags: [04 Notas]
+      summary: List grading components
+      description: >
+        The components of the class's effective scheme — the sections the
+        evidence accordion groups by, and the options when filing evidencia.
       parameters:
         - $ref: "#/components/parameters/TenantIdHeader"
         - $ref: "#/components/parameters/ActorIdHeader"
@@ -429,7 +437,19 @@ paths:
   /classes/{classID}/assessments:
     post:
       tags: [04 Notas]
-      summary: Create assessment
+      summary: Create assessment (evidencia)
+      description: >
+        Files one piece of evidencia. Omit student_id for a column covering the
+        whole class; set it to scope the evidence to that student alone (a
+        recovery task, a re-done project). criterion_ids links the criterios de
+        evaluación it evidences — evidence for the teacher's judgement, never
+        rolled up into a nivel de logro, and the set of criterios the
+        criteria-grid will let you value it against.
+
+        counts_toward_internal (default true) is about the school's own weighted
+        average only. False keeps the evidence in the official judgement and out
+        of that number — the recovery task given to one student, which would
+        otherwise lift only their average.
       parameters:
         - $ref: "#/components/parameters/TenantIdHeader"
         - $ref: "#/components/parameters/ActorIdHeader"
@@ -445,42 +465,17 @@ paths:
               component_code: "quiz"
               max_score: 20
               due_at: "2026-09-01T23:59:00Z"
+              student_id: null
+              counts_toward_internal: true
+              criterion_ids: []
       responses:
         "201": { description: Created }
-
-  /classes/{classID}/students/{studentID}/summary:
-    post:
-      tags: [04 Notas]
-      summary: Request AI summary
-      parameters:
-        - $ref: "#/components/parameters/TenantIdHeader"
-        - $ref: "#/components/parameters/ActorIdHeader"
-        - $ref: "#/components/parameters/ClassId"
-        - $ref: "#/components/parameters/StudentId"
-        - $ref: "#/components/parameters/TermIdQuery"
-      responses:
-        "202": { description: Queued }
+        "400": { description: student_not_in_class / criterion_not_in_class }
 
   /sessions/{sessionID}/start:
     post:
       tags: [02 Clase panel]
       summary: Start session
-      parameters:
-        - $ref: "#/components/parameters/TenantIdHeader"
-        - $ref: "#/components/parameters/ActorIdHeader"
-        - name: sessionID
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
-          example: "7eb685eb-3c2f-4b29-a9cd-bae150bfd217"
-          description: The 12-Aug session, still scheduled
-      responses:
-        "200": { description: OK }
-
-  /sessions/{sessionID}/complete:
-    post:
-      tags: [02 Clase panel]
-      summary: Complete session
       parameters:
         - $ref: "#/components/parameters/TenantIdHeader"
         - $ref: "#/components/parameters/ActorIdHeader"
@@ -555,7 +550,6 @@ paths:
           application/json:
             schema: { type: object }
             example:
-              participation_level: 2
               note: "Buen trabajo en grupo"
               flag_type_ids: []
       responses:
@@ -603,30 +597,6 @@ paths:
       responses:
         "200": { description: OK }
 
-  /voice-notes/{voiceNoteID}/transcript:
-    post:
-      tags: [03 Leccion]
-      summary: Attach transcript
-      parameters:
-        - $ref: "#/components/parameters/TenantIdHeader"
-        - $ref: "#/components/parameters/ActorIdHeader"
-        - name: voiceNoteID
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
-          example: "5e67a914-feb9-4c37-a403-86a82cad09b1"
-          description: Draft voice note (unsaved), good for a save/discard demo
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { type: object }
-            example:
-              transcript: "Agustín participa bien en trabajos grupales. Dificultad recurrente con tiempos verbales compuestos."
-              language: "es"
-      responses:
-        "200": { description: OK }
-
   /voice-notes/{voiceNoteID}/save:
     post:
       tags: [03 Leccion]
@@ -658,6 +628,23 @@ paths:
           description: Draft voice note
       responses:
         "200": { description: OK }
+
+  /assessments/{assessmentID}/delete:
+    post:
+      tags: [04 Notas]
+      summary: Delete assessment (evidencia)
+      description: >
+        Soft-deletes a piece of evidence created by mistake. Scores already
+        recorded against it stay in the student's history, but the assessment
+        stops counting towards the school's internal weighted grade, so every
+        affected student is requeued for recompute.
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/AssessmentId"
+      responses:
+        "204": { description: Deleted }
+        "404": { description: assessment_not_found }
 
   /assessments/{assessmentID}/scores:
     post:
@@ -722,16 +709,6 @@ paths:
       responses:
         "200": { description: OK }
 
-  /notifications/unread-count:
-    get:
-      tags: [07 Notificaciones]
-      summary: Unread count
-      parameters:
-        - $ref: "#/components/parameters/TenantIdHeader"
-        - $ref: "#/components/parameters/ActorIdHeader"
-      responses:
-        "200": { description: OK }
-
   /notifications/{notificationID}/read:
     post:
       tags: [07 Notificaciones]
@@ -750,17 +727,6 @@ paths:
       parameters:
         - $ref: "#/components/parameters/TenantIdHeader"
         - $ref: "#/components/parameters/ActorIdHeader"
-      responses:
-        "200": { description: OK }
-
-  /notifications/{notificationID}/dismiss:
-    post:
-      tags: [07 Notificaciones]
-      summary: Dismiss notification
-      parameters:
-        - $ref: "#/components/parameters/TenantIdHeader"
-        - $ref: "#/components/parameters/ActorIdHeader"
-        - $ref: "#/components/parameters/NotificationId"
       responses:
         "200": { description: OK }
 

@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
+	"yanai-server/internal/db"
 	"yanai-server/internal/domain"
 	"yanai-server/internal/repo"
 )
@@ -145,17 +146,24 @@ func (a *API) handleDeleteCriterion(w http.ResponseWriter, r *http.Request) {
 }
 
 type assertCriterionLevelRequest struct {
-	CriterionID string  `json:"criterion_id"`
-	Level       string  `json:"level"`
-	Note        *string `json:"note"`
-	TermID      *string `json:"term_id"`
+	CriterionID string `json:"criterion_id"`
+	// AssessmentID is required: a criterio level always names the evidencia it
+	// was read from. There is no term_id — the assessment carries the periodo,
+	// and the trigger copies it onto the row.
+	AssessmentID string  `json:"assessment_id"`
+	Level        string  `json:"level"`
+	Note         *string `json:"note"`
 }
 
 // POST /classes/{classID}/students/{studentID}/criterion-levels
 //
-// The teacher's level for one criterio over the whole period. This is
-// evidence the teacher accumulates and then weighs; it is never rolled up
-// into the competency level automatically, because the norm makes that a
+// One cell of the evidencia × criterio grid: what this student showed against
+// one criterio, in one piece of evidence. RVM 094-2020 5.1.1.3 p.3 values
+// evidence *through* the criterios, so the evidencia is not optional here —
+// the criterio is the ruler, never the thing being marked.
+//
+// This is evidence the teacher accumulates and then weighs; it is never rolled
+// up into the competency level automatically, because the norm makes that a
 // judgement rather than an average.
 func (a *API) handleAssertCriterionLevel(w http.ResponseWriter, r *http.Request) {
 	tc := tenantCtxFrom(r)
@@ -180,6 +188,12 @@ func (a *API) handleAssertCriterionLevel(w http.ResponseWriter, r *http.Request)
 		badRequest(w, "invalid criterion_id")
 		return
 	}
+	assessmentID, err := uuid.Parse(req.AssessmentID)
+	if err != nil {
+		writeAppError(w, db.NewAppError(http.StatusBadRequest, "criterion_level_needs_evidence",
+			"a criterio level must name the evidencia it was read from"))
+		return
+	}
 	level := strings.ToUpper(strings.TrimSpace(req.Level))
 	switch level {
 	case domain.LevelAD, domain.LevelA, domain.LevelB, domain.LevelC:
@@ -188,23 +202,17 @@ func (a *API) handleAssertCriterionLevel(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var termIDParam uuid.UUID
-	if req.TermID != nil {
-		termIDParam, _ = uuid.Parse(*req.TermID)
-	}
-
 	var levelID uuid.UUID
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
-		term, err := repo.ResolveTerm(r.Context(), tx, termIDParam)
-		if err != nil {
-			return err
-		}
+		var err error
 		levelID, err = repo.AssertCriterionLevel(r.Context(), tx,
-			classID, studentID, criterionID, term.ID, tc.TeacherID, level, req.Note)
+			assessmentID, studentID, criterionID, tc.TeacherID, level, req.Note)
 		if err != nil {
 			return err
 		}
-		payload, _ := json.Marshal(map[string]any{"level": level, "criterion_id": criterionID})
+		payload, _ := json.Marshal(map[string]any{
+			"level": level, "criterion_id": criterionID, "assessment_id": assessmentID,
+		})
 		return repo.LogEvent(r.Context(), tx, "criterion_level.asserted", "evaluation_criterion_score",
 			&levelID, payload, &studentID, &classID, nil)
 	})
@@ -213,4 +221,42 @@ func (a *API) handleAssertCriterionLevel(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	writeJSON(w, http.StatusCreated, map[string]any{"id": levelID, "level": level})
+}
+
+// GET /assessments/{assessmentID}/criteria-grid
+//
+// The evidencia × criterio grid for one piece of evidence across its roster:
+// the criterios it declares as columns, the students as rows, the levels
+// already recorded as cells. This is how a teacher actually marks a set of
+// work — one criterio at a time down thirty scripts, not thirty screens.
+//
+// It carries no mark. The school's numeric system is the other reading of the
+// same evidence and is captured on the student's own screen; a /20 box beside
+// these pickers would put a number in the teacher's eye at the exact moment
+// they are meant to be judging against a criterio.
+func (a *API) handleAssessmentCriteriaGrid(w http.ResponseWriter, r *http.Request) {
+	tc := tenantCtxFrom(r)
+	assessmentID, err := pathUUID(r, "assessmentID")
+	if err != nil {
+		badRequest(w, "invalid assessmentID")
+		return
+	}
+
+	var grid repo.AssessmentCriterionGrid
+	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		grid, err = repo.GetAssessmentCriterionGrid(r.Context(), tx, assessmentID)
+		if err != nil {
+			return err
+		}
+		ids := make([]uuid.UUID, 0, len(grid.Students))
+		for _, s := range grid.Students {
+			ids = append(ids, s.StudentID)
+		}
+		return repo.LogStudentReads(r.Context(), tx, ids, tc.TeacherID, &grid.ClassID, nil)
+	})
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, grid)
 }

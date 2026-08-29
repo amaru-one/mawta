@@ -15,18 +15,10 @@ export function getNotifications(opts?: {
 	return apiGet<NotificationListDto>(`/notifications${suffix}`);
 }
 
-export function getUnreadCount(): Promise<{ unread_count: number }> {
-	return apiGet<{ unread_count: number }>('/notifications/unread-count');
-}
-
 export function markNotificationRead(id: string): Promise<{ ok: boolean }> {
 	return apiSend<{ ok: boolean }>('POST', `/notifications/${id}/read`);
 }
 
 export function markAllNotificationsRead(): Promise<{ marked_read: number }> {
 	return apiSend<{ marked_read: number }>('POST', '/notifications/read-all');
-}
-
-export function dismissNotification(id: string): Promise<{ ok: boolean }> {
-	return apiSend<{ ok: boolean }>('POST', `/notifications/${id}/dismiss`);
 }

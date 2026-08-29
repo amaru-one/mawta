@@ -20,7 +20,7 @@ import {
 import { parseDateOnly, splitDisplayName } from './api/mappers';
 import { currentCourse, currentSession, entries, entryKey, notes, students } from './stores';
 import { showToast } from './toast';
-import type { Attendance, Entry, Note, Participation, Session, Student } from './types';
+import type { Attendance, Entry, Note, Session, Student } from './types';
 
 const SAVE_ERROR = 'No se pudo guardar — revisa tu conexión';
 
@@ -64,13 +64,9 @@ function toEntry(sessionId: string, dto: RosterEntryDto): { entry: Entry; noteLi
 			sessionId,
 			studentId: dto.student_id,
 			attendance: toAttendance(dto.attendance_status),
-			participation: (dto.participation_level as Participation | null) ?? null,
 			flagged: flagTypeIds.length > 0,
 			flagTypeIds,
 			observationNote: dto.observation_note,
-			levelCode: dto.level_code,
-			previousLevelCode: dto.previous_level_code,
-			trend: dto.trend,
 			notes: noteList,
 		},
 		noteList,
@@ -123,12 +119,6 @@ export async function loadSession(sessionId: string): Promise<void> {
 	}
 }
 
-export async function refreshSession(): Promise<void> {
-	const session = get(currentSession);
-	if (!session) return;
-	applyRoster(session.id, await getSession(session.id));
-}
-
 // --- entry mutations (optimistic, revert on server rejection) ---
 
 function patchEntry(studentId: string, patch: Partial<Entry>): Entry | null {
@@ -171,19 +161,9 @@ export function setAttendance(studentId: string, value: Attendance): void {
 // already holds must ride along or it silently clears server-side.
 function putEntryObservation(entry: Entry): Promise<unknown> {
 	return putObservation(entry.sessionId, entry.studentId, {
-		participation_level: entry.participation,
 		note: entry.observationNote,
 		flag_type_ids: entry.flagTypeIds,
 	});
-}
-
-export function setParticipation(studentId: string, value: Participation | null): void {
-	const session = get(currentSession);
-	if (!session) return;
-	const previous = patchEntry(studentId, { participation: value });
-	const updated = get(entries).get(entryKey(session.id, studentId));
-	if (!updated) return;
-	runMutation(previous, putEntryObservation(updated));
 }
 
 export function setFlag(studentId: string, value: boolean): void {

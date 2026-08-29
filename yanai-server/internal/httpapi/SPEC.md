@@ -4,15 +4,15 @@ The chi router, middleware, and HTTP handlers — one handler file per screen of
 ## Contents
 - `router.go` — `API` struct, `New`, `Router()` (all routes under `/api/v1` behind `tenantAuth`; `/healthz` outside), `handleHealthz`.
 - `middleware.go` — `requestID`, `requestLogger`, `tenantAuth` (validates `X-Tenant-ID`/`X-Actor-ID`, resolves the teacher, builds `db.TenantCtx`), `tenantCtxFrom`.
-- `home.go` — GET /home, GET /classes (search), date resolution in tenant timezone.
-- `common.go` — GET /me.
-- `class.go` — GET class dashboard, GET class sessions, POST session start/complete.
-- `session.go` — GET session roster, PUT attendance, POST mark-all-present, PUT observation, voice-note create/audio/transcript/save/discard. (Attendance no longer enqueues risk work — risk is grade-driven now.)
-- `grades.go` — GET student grades, POST assessment, POST score create/correct (both enqueue `grade.recompute`, which chains nothing), POST summary request (**retired: returns 501**), `enqueueGradeRecompute` helper.
-- `competencies.go` — the official MINEDU record: GET competencies for a student (level, whether a conclusión descriptiva is mandatory and why — there is deliberately no suggested level), POST competency-level (the only writer of an official nivel de logro), POST conclusion, GET siagie-report.
-- `criteria.go` — the criterios de evaluación a competencia is judged against: GET class criteria (optionally with one student's level per criterio), POST criterion (the teacher writes their own), POST criterion delete, POST criterion-level (period-grain, evidence only).
+- `home.go` — GET /home, date resolution in tenant timezone.
+- `common.go` — GET /me (carries `tenant.uses_internal_grading`, the school's own-system switch).
+- `class.go` — GET class dashboard, POST session start.
+- `session.go` — GET session roster, PUT attendance, POST mark-all-present, PUT observation (note + flag types), voice-note create/audio/save/discard. (Attendance no longer enqueues risk work — risk is grade-driven now.)
+- `grades.go` — GET student grades, GET grading components, POST assessment (optional `student_id` scopes it to one student, optional `criterion_ids` links the criterios it evidences, optional `counts_toward_internal` keeps it out of the school's own average), POST assessment delete (soft; requeues every affected student for recompute), POST score create/correct (both enqueue `grade.recompute`, which chains nothing), `enqueueGradeRecompute` helper.
+- `competencies.go` — the official MINEDU record: GET competencies for a student (level, whether a conclusión descriptiva is mandatory and why — there is deliberately no suggested level), POST competency-level (the only writer of an official nivel de logro), POST conclusion.
+- `criteria.go` — the criterios de evaluación a competencia is judged against: GET class criteria (optionally with one student's evidencia × criterio row per criterio), POST criterion (the teacher writes their own), POST criterion delete, POST criterion-level (one cell of the grid — `assessment_id` required), GET assessment criteria-grid (one evidence × its criterios × its roster, the class-wide marking view).
 - `practice_scores.go` — POST create / POST delete unofficial practice scores.
-- `notifications.go` — list, unread-count, mark read, read-all, dismiss.
+- `notifications.go` — list, mark read, read-all.
 - `profile.go` — GET /profile. `flag_types.go` — GET /flag-types.
 - `params.go` — path/query parsing helpers and error shorthand. `respond.go` — `writeJSON`/`writeError`/`writeAppError`.
 
@@ -24,10 +24,15 @@ Inputs: HTTP requests with dev-auth headers. Outputs: JSON responses (snake_case
 - Every response returning identifiable student rows must log `student.read` events (`repo.LogStudentReads`).
 - Route changes cascade to `bruno/yanai-api.yaml` and the UI's `src/lib/api/endpoints/`.
 - Handlers contain no SQL — queries belong in `internal/repo`.
+- A criterio level is only accepted with the `assessment_id` it was read from. A body without one is refused as `criterion_level_needs_evidence` — the criterio is the ruler, never the thing being marked (RVM 094-2020, 5.1.1.3 p.3).
+- The criteria-grid response carries no mark, and must not grow one. The school's numeric system is the other reading of the same evidence and is captured on the student's screen; a number beside those pickers is a number in the teacher's eye while they judge.
 - A nivel de logro is only ever written from an explicit teacher action. No handler may derive one from `computed_grades`; the suggestion travels as `suggested_level_id` so an override stays auditable (RVM 094-2020, 5.1.1.3 p.2-3).
 - Whether a conclusión descriptiva is mandatory is derived server-side from the student's live level, never taken from the request body.
 
 ## Change Log
+- 2026-08-29: Deleted the end-of-period SIAGIE report (`GET /classes/{classID}/siagie-report` and `handleSiagieReport`) — a read-only view over data the student's grades screen already owns and writes. Deleted seven more routes that no client called: `GET /classes` (search), `GET /classes/{classID}/sessions`, `POST /sessions/{sessionID}/complete`, `POST /voice-notes/{voiceNoteID}/transcript`, `GET /notifications/unread-count`, `POST /notifications/{notificationID}/dismiss`, and the 501 summary stub `POST /classes/{classID}/students/{studentID}/summary` (which resolves this spec's own Open Question). `handleObservationUpsert` no longer accepts `participation_level`: the roster row's three-dot control is gone, and the observation PUT is authoritative, so a client that kept sending the field would have been the only thing keeping it alive. `handleSessionRoster` stopped passing `header.TermID` to `repo.GetSessionRoster`, which no longer needs it. Cascade: `internal/repo`, `internal/domain`, `migrations/00006`, `bruno/yanai-api.yaml`, `README.md`, `yanai-ui`.
+- 2026-08-28: Criterio levels are now evidencia-anchored. `POST /classes/{classID}/students/{studentID}/criterion-levels` takes `assessment_id` (required) and no longer takes `term_id` — the evidencia carries the periodo — and returns `criterion_level_needs_evidence`, `criterion_not_in_evidence` or `evidence_not_for_student` where it used to accept anything. New `GET /assessments/{assessmentID}/criteria-grid` for marking a whole class against one piece of evidence; it logs `student.read` for every student it returns. `POST /classes/{classID}/assessments` gained `counts_toward_internal` (defaults true when omitted). `GET /me` carries `tenant.uses_internal_grading`. Cascade: `internal/repo`, `internal/worker/handlers`, `bruno/yanai-api.yaml`, `yanai-ui`.
+- 2026-08-28: Two routes for filing evidencia: `GET /classes/{classID}/grading-components` (the picker's options) and `POST /assessments/{assessmentID}/delete` (soft delete, then one `grade.recompute` per affected student — the whole roster for class-wide evidence, one student for personal). `POST /classes/{classID}/assessments` gained `student_id` and `criterion_ids`; both are parsed and validated in the handler and enforced in `repo`. Which screen may create which scope is a UI decision, not a server one: the API accepts both from anywhere. Cascade: `internal/repo`, `bruno/yanai-api.yaml`, `yanai-ui`.
 - 2026-08-27: Added `criteria.go` and its four routes, the surface where a teacher writes the criterios a competencia is judged against and records a level per criterio per periodo. Removed `enqueuePromotionProjection` from `competencies.go` (the job kind is gone) and rewrote the doc comments that described a "suggested level" — under RVM 094-2020 the level is a judgement of evidence against the criterios, not a number the system offers first. `class.go` stopped logging at-risk student reads, since the dashboard no longer returns an at-risk list. Cascade: `internal/repo`, `yanai-ui`.
 - 2026-08-26: Added `competencies.go` and its four routes. This is the first surface that writes what RVM 094-2020 actually regulates — a nivel de logro per competencia per periodo — rather than the computed grade that had been standing in for it. `siagie-report` reports `ready: false` while any mandatory conclusion is missing, so a period cannot be sent incomplete.
 - 2026-08-25: Removed both `risk.detect` enqueues from `session.go` (attendance marking no longer triggers risk). `handleRequestSummary` now returns 501 without enqueueing — the `note_summary.generate` handler is gone, and enqueueing an unhandled kind would burn 20 attempts before being discarded. The route and its UI caller are intentionally left in place so the button surfaces a clear error.
@@ -35,4 +40,4 @@ Inputs: HTTP requests with dev-auth headers. Outputs: JSON responses (snake_case
 - 2026-08-24: Initial spec created retroactively, describing current contents.
 
 ## Open Questions
-- `POST /classes/{classID}/students/{studentID}/summary` is a 501 stub. Either restore summary generation or remove the route together with the UI affordance in `yanai-ui/src/lib/api/endpoints/grades.ts` and the button that calls it.
+- None.

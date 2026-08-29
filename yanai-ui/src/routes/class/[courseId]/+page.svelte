@@ -1,25 +1,47 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import { list } from '$lib/api/client';
-	import type { ClassDashboardDto, SessionSummaryDto } from '$lib/api/dto';
-	import { getClassDashboard } from '$lib/api/endpoints/classes';
+	import { ApiError, list } from '$lib/api/client';
+	import type {
+		AssessmentCreateDto,
+		ClassDashboardDto,
+		CompetencyCriteriaDto,
+		GradingComponentDto,
+		SessionSummaryDto
+	} from '$lib/api/dto';
+	import { createAssessment, getClassDashboard, getGradingComponents } from '$lib/api/endpoints/classes';
+	import { getClassCriteria } from '$lib/api/endpoints/criteria';
 	import { formatTimeHHMM, parseDateOnly } from '$lib/api/mappers';
+	import AddEvidenceDialog from '$lib/components/AddEvidenceDialog.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
+	import { usesInternalGrading } from '$lib/stores';
+	import { showToast } from '$lib/toast';
 
 	const courseId = $derived(page.params.courseId ?? '');
 
 	let ready = $state(false);
 	let loadError = $state(false);
 	let d = $state<ClassDashboardDto | null>(null);
+	// Loaded for the "añadir evidencia" dialog, not for the dashboard itself:
+	// the components are the sections evidence is filed under and the criterios
+	// are what it can be linked to.
+	let gradingComponents = $state<GradingComponentDto[]>([]);
+	let criteriaGroups = $state<CompetencyCriteriaDto[]>([]);
 
 	async function load(): Promise<void> {
 		ready = false;
 		loadError = false;
 		try {
-			d = await getClassDashboard(courseId);
+			const [dashboard, components, crits] = await Promise.all([
+				getClassDashboard(courseId),
+				getGradingComponents(courseId),
+				getClassCriteria(courseId)
+			]);
+			d = dashboard;
+			gradingComponents = list(components.components);
+			criteriaGroups = list(crits.competencies);
 			ready = true;
 		} catch {
 			loadError = true;
@@ -27,6 +49,21 @@
 	}
 
 	onMount(load);
+
+	// Evidence filed from here is for the whole class — this is the screen that
+	// speaks for the class rather than for one student. A single student's
+	// evidence is added from their own grades screen instead.
+	let showAddEvidence = $state(false);
+
+	async function handleAddEvidence(body: AssessmentCreateDto): Promise<void> {
+		showAddEvidence = false;
+		try {
+			await createAssessment(courseId, body);
+			showToast('Evidencia añadida para toda la clase');
+		} catch (err) {
+			showToast(err instanceof ApiError ? err.message : 'No se pudo añadir la evidencia');
+		}
+	}
 
 	const TIER_FILL: Record<string, string> = {
 		AD: 'var(--fill-accent)',
@@ -132,14 +169,13 @@
 				<span class="chevron"><Icon name="chevron-right" size={16} /></span>
 			</a>
 			<div class="divider"></div>
-			<a class="row list-row" href="/class/{courseId}/siagie-report" onclick={hapticTap}>
-				<span class="icon-tile"><Icon name="checklist" size={18} /></span>
+			<button type="button" class="row list-row pressable" onclick={() => (showAddEvidence = true)}>
+				<span class="icon-tile"><Icon name="plus" size={18} /></span>
 				<div class="grow">
-					<p class="list-title">Reporte de fin de periodo</p>
-					<p class="list-detail">Niveles de logro y conclusiones — SIAGIE</p>
+					<p class="list-title">Añadir evidencia</p>
+					<p class="list-detail">Para toda la clase — la nota se pone por alumno</p>
 				</div>
-				<span class="chevron"><Icon name="chevron-right" size={16} /></span>
-			</a>
+			</button>
 		</div>
 
 		{#if list(d.upcoming).length > 0}
@@ -190,6 +226,17 @@
 		</p>
 	{/if}
 </div>
+
+{#if showAddEvidence}
+	<AddEvidenceDialog
+		usesInternalGrading={$usesInternalGrading}
+		components={gradingComponents}
+		competencies={criteriaGroups}
+		scope="class"
+		onsubmit={handleAddEvidence}
+		oncancel={() => (showAddEvidence = false)}
+	/>
+{/if}
 
 <style>
 	.title {
@@ -294,6 +341,13 @@
 	.list-row {
 		gap: 10px;
 		padding: var(--space-sm) 0;
+	}
+
+	/* The one row that acts instead of navigating. A <button> does not get the
+	   full width and left alignment an <a> gets for free in this card. */
+	button.list-row {
+		width: 100%;
+		text-align: left;
 	}
 
 	.grow {

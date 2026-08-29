@@ -5,19 +5,11 @@
 		title: string;
 		text: string;
 		confirmLabel: string;
-		cancelLabel?: string;
 		onconfirm: () => void;
 		oncancel: () => void;
 	}
 
-	let {
-		title,
-		text,
-		confirmLabel,
-		cancelLabel = 'Cancelar',
-		onconfirm,
-		oncancel
-	}: Props = $props();
+	let { title, text, confirmLabel, onconfirm, oncancel }: Props = $props();
 
 	const titleId = `confirm-${Math.random().toString(36).slice(2, 8)}`;
 </script>
@@ -37,7 +29,7 @@
 		<p class="title" id={titleId}>{title}</p>
 		<p class="text">{text}</p>
 		<div class="actions">
-			<button class="cancel pressable" onclick={oncancel}>{cancelLabel}</button>
+			<button class="cancel pressable" onclick={oncancel}>Cancelar</button>
 			<button class="confirm pressable" onclick={onconfirm}>{confirmLabel}</button>
 		</div>
 	</div>

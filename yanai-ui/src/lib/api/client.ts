@@ -31,9 +31,16 @@ function authHeaders(): Record<string, string> {
 // routes (404/405) and panics come back from chi as plain text.
 async function toApiError(res: Response): Promise<ApiError> {
 	try {
-		const body = (await res.json()) as { error?: { code?: string; message?: string; hint?: string } };
+		const body = (await res.json()) as {
+			error?: { code?: string; message?: string; hint?: string };
+		};
 		if (body?.error?.code) {
-			return new ApiError(res.status, body.error.code, body.error.message ?? res.statusText, body.error.hint);
+			return new ApiError(
+				res.status,
+				body.error.code,
+				body.error.message ?? res.statusText,
+				body.error.hint
+			);
 		}
 	} catch {
 		// non-JSON body
@@ -44,6 +51,9 @@ async function toApiError(res: Response): Promise<ApiError> {
 async function request<T>(path: string, init: RequestInit): Promise<T> {
 	const res = await fetch(`${API_BASE}/api/v1${path}`, init);
 	if (!res.ok) throw await toApiError(res);
+	// Deletes answer 204 with no body. Parsing that as JSON throws, which made
+	// a successful delete look like a failed request to every caller.
+	if (res.status === 204) return undefined as T;
 	return (await res.json()) as T;
 }
 
@@ -55,10 +65,8 @@ export function apiSend<T>(method: 'POST' | 'PUT', path: string, body?: unknown)
 	return request<T>(path, {
 		method,
 		headers:
-			body === undefined
-				? authHeaders()
-				: { ...authHeaders(), 'Content-Type': 'application/json' },
-		body: body === undefined ? undefined : JSON.stringify(body)
+			body === undefined ? authHeaders() : { ...authHeaders(), 'Content-Type': 'application/json' },
+		body: body === undefined ? undefined : JSON.stringify(body),
 	});
 }
 
@@ -71,7 +79,7 @@ export function apiUpload<T>(path: string, form: FormData): Promise<T> {
 // fetch it into a Blob and hand it to the Web Audio decode path.
 export async function fetchAudioBlob(voiceNoteId: string): Promise<Blob> {
 	const res = await fetch(`${API_BASE}/api/v1/voice-notes/${voiceNoteId}/audio`, {
-		headers: authHeaders()
+		headers: authHeaders(),
 	});
 	if (!res.ok) throw await toApiError(res);
 	return res.blob();

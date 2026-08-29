@@ -37,21 +37,6 @@ func (a *API) handleListNotifications(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"notifications": notifications})
 }
 
-func (a *API) handleUnreadCount(w http.ResponseWriter, r *http.Request) {
-	tc := tenantCtxFrom(r)
-	var count int
-	err := a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
-		var err error
-		count, err = repo.UnreadNotificationCount(r.Context(), tx, tc.TeacherID)
-		return err
-	})
-	if err != nil {
-		writeError(w, err)
-		return
-	}
-	writeJSON(w, http.StatusOK, map[string]any{"unread_count": count})
-}
-
 func (a *API) handleMarkNotificationRead(w http.ResponseWriter, r *http.Request) {
 	tc := tenantCtxFrom(r)
 	notificationID, err := pathUUID(r, "notificationID")
@@ -82,25 +67,4 @@ func (a *API) handleMarkAllNotificationsRead(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"marked_read": n})
-}
-
-func (a *API) handleDismissNotification(w http.ResponseWriter, r *http.Request) {
-	tc := tenantCtxFrom(r)
-	notificationID, err := pathUUID(r, "notificationID")
-	if err != nil {
-		badRequest(w, "invalid notificationID")
-		return
-	}
-	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
-		if err := repo.DismissNotification(r.Context(), tx, notificationID, tc.TeacherID); err != nil {
-			return err
-		}
-		nid := notificationID
-		return repo.LogEvent(r.Context(), tx, "notification.dismissed", "notification", &nid, nil, nil, nil, nil)
-	})
-	if err != nil {
-		writeError(w, err)
-		return
-	}
-	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
 }

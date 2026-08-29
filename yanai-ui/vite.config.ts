@@ -8,12 +8,12 @@ export default defineConfig({
 			compilerOptions: {
 				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
 				runes: ({ filename }) =>
-					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
+					filename.split(/[/\\]/).includes('node_modules') ? undefined : true,
 			},
 
 			// SPA build: every route falls back to index.html and resolves client-side.
-			adapter: adapter({ fallback: 'index.html' })
-		})
+			adapter: adapter({ fallback: 'index.html' }),
+		}),
 	],
 	// Expose PUBLIC_* vars on import.meta.env (Vite only exposes VITE_* by default).
 	// Missing vars stay undefined instead of failing the build like $env/static would.
@@ -22,7 +22,7 @@ export default defineConfig({
 		// Same-origin API in dev — mirrors the production reverse proxy, so no CORS.
 		proxy: {
 			'/api': 'http://localhost:8080',
-			'/healthz': 'http://localhost:8080'
-		}
-	}
+			'/healthz': 'http://localhost:8080',
+		},
+	},
 });

@@ -4,7 +4,7 @@ Monorepo root for Yanai, a mobile-first assistant for secondary school teachers 
 ## Contents
 - `CLAUDE.md` — project instructions: the mandatory SPEC protocol every session must follow.
 - `DEPLOY.md` — step-by-step runbook for deploying to a single DigitalOcean VPS (Postgres + API + Caddy via Docker Compose) with a GitHub Actions pipeline; `[HUMAN]` marks manual steps.
-- `yanai-views.html` — static gallery of the app screens (Home, Class dashboard, Lesson/attendance, Student grades, Notifications, Profile, SIAGIE report); the authoritative product spec the schema and API were derived from. Screen 04 now leads with the niveles de logro and their criterios: keep it in step with `yanai-ui`, or it stops being authoritative.
+- `yanai-views.html` — static gallery of the app screens (Home, Class dashboard, Lesson/attendance, Student grades, Notifications, Profile); the authoritative product spec the schema and API were derived from. Screen 04 now leads with the niveles de logro and their criterios: keep it in step with `yanai-ui`, or it stops being authoritative.
 - `.gitignore` — root ignore rules.
 - `yanai-server/` — Go API, migrations, seed data (see its SPEC.md).
 - `yanai-ui/` — SvelteKit SPA (see its SPEC.md).
@@ -21,6 +21,7 @@ Consumes nothing; produces the deployed app. `DEPLOY.md` assumes GitHub repo + G
 - Generated/tool directories (`.svelte-kit/`, `node_modules/`, `.vscode/`, `.claude/`) and the empty `yanai-server/data/` carry no SPEC.md.
 
 ## Change Log
+- 2026-08-29: Purge pass across both apps, reflected here in `yanai-views.html`. Screen 07 (Reporte SIAGIE) was deleted with the route behind it — it was read-only over data screen 04 already owns, and the one thing only it could do, filing evidencia for the whole class, moved to the class dashboard. Screen 03's roster rows lost their participation dots, their per-row nivel de logro badge and the "A →" trend arrow, plus the `.part` CSS behind the dots; the section-average badge stays. Screen 04 lost the "Generar resumen" button and the AI summary card, whose endpoint had returned 501 since the job kind was retired. Also removed a pile of code with no reachable caller — eight API routes, `session_observations.participation_level` (migration `00006`) and assorted orphan functions. See `yanai-server/SPEC.md` and `yanai-ui/src/routes/SPEC.md`.
 - 2026-08-27: Screen 04 in `yanai-views.html` was rebuilt to match the criterio-based model: the weighted "RESULTADO PARCIAL" hero and the "Rango posible al cierre" projection are gone, competencias lead with their criterios, "EVALUACIONES" became "EVIDENCIA" without weights, and the weighted grade appears only as a labelled "Sistema interno de la IE" card. See `yanai-server/SPEC.md` and `yanai-ui/src/routes/grades/[studentId]/SPEC.md`.
 - 2026-08-24: Initial spec created retroactively, describing current contents.
 

@@ -1,10 +1,5 @@
 import { apiGet, apiSend } from '../client';
-import type {
-	AssertCompetencyLevelDto,
-	CompetencyLevelsDto,
-	ConclusionCreateDto,
-	SiagieReportDto,
-} from '../dto';
+import type { AssertCompetencyLevelDto, CompetencyLevelsDto, ConclusionCreateDto } from '../dto';
 
 // The niveles de logro a teacher has asserted for one student in one class and
 // period, and whether a conclusión descriptiva is mandatory. There is no
@@ -47,11 +42,4 @@ export function upsertConclusion(
 		`/classes/${classId}/students/${studentId}/conclusions`,
 		body
 	);
-}
-
-// The end-of-period report shaped as what SIAGIE expects. `ready` is false
-// while any mandatory conclusión descriptiva is missing.
-export function getSiagieReport(classId: string, termId?: string): Promise<SiagieReportDto> {
-	const qs = termId ? `?term_id=${termId}` : '';
-	return apiGet<SiagieReportDto>(`/classes/${classId}/siagie-report${qs}`);
 }

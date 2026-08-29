@@ -7,7 +7,7 @@
 	import Toast from '$lib/components/Toast.svelte';
 	import { getMe } from '$lib/api/endpoints/home';
 	import { loadNotifications } from '$lib/notifications';
-	import { canGoBack, teacher } from '$lib/stores';
+	import { canGoBack, teacher, usesInternalGrading } from '$lib/stores';
 
 	let { children } = $props();
 
@@ -35,6 +35,7 @@
 					shortName: name,
 					school: me.tenant.name
 				});
+				usesInternalGrading.set(me.tenant.uses_internal_grading);
 			})
 			.catch(() => {});
 
