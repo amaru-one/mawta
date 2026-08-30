@@ -2,6 +2,10 @@
 
 Companion to `00001`–`00014`. Covers the queries expected to hurt, the places
 the HTML was ambiguous, and the constraints from the brief I would argue with.
+(The HTML in question, `yanai-views.html`, was removed from the repo on
+2026-08-29 — see root `SPEC.md`. This document is a dated design record and
+is left as originally written; the per-folder SPEC.md files are now the
+product spec of record.)
 Predates `00002_evaluation_criteria.sql` (added 2026-08-26, after the squash);
 the reasoning below still holds, but object counts are from before it — see
 `SPEC.md`'s Change Log for what `00002` added. Live count after `00002`: 60

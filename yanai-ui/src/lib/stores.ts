@@ -13,7 +13,7 @@ export const notifications: Writable<AppNotification[]> = writable([]);
 export const canGoBack: Writable<boolean> = writable(false);
 
 // Signed-in teacher identity from GET /me, loaded once by the layout.
-export type TeacherIdentity = {
+type TeacherIdentity = {
 	initials: string;
 	shortName: string;
 	school: string;

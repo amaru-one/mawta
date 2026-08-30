@@ -75,8 +75,8 @@ func (d *DB) WithTenantTx(ctx context.Context, tc TenantCtx, fn func(tx pgx.Tx) 
 }
 
 // WithSystemTx opens a transaction as the pool owner (bypasses RLS). Use
-// only for genuinely cross-tenant maintenance work (the notification.sweep
-// ticker's tenant enumeration) — never for handling request data.
+// only for genuinely cross-tenant maintenance work (the worker's dispatch of
+// a nil-tenant job) — never for handling request data.
 func (d *DB) WithSystemTx(ctx context.Context, fn func(tx pgx.Tx) error) error {
 	tx, err := d.Pool.Begin(ctx)
 	if err != nil {

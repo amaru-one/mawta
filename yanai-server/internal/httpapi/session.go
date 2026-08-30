@@ -129,46 +129,6 @@ func (a *API) handleMarkAllPresent(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"marked": marked})
 }
 
-type observationRequest struct {
-	Note        *string     `json:"note"`
-	FlagTypeIDs []uuid.UUID `json:"flag_type_ids"`
-}
-
-func (a *API) handleObservationUpsert(w http.ResponseWriter, r *http.Request) {
-	tc := tenantCtxFrom(r)
-	sessionID, err := pathUUID(r, "sessionID")
-	if err != nil {
-		badRequest(w, "invalid sessionID")
-		return
-	}
-	studentID, err := pathUUID(r, "studentID")
-	if err != nil {
-		badRequest(w, "invalid studentID")
-		return
-	}
-	var req observationRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		badRequest(w, "invalid JSON body")
-		return
-	}
-
-	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
-		if err := repo.UpsertObservation(r.Context(), tx, sessionID, studentID, tc.TeacherID, req.Note, req.FlagTypeIDs); err != nil {
-			return err
-		}
-		classID, _, err := repo.GetSessionMeta(r.Context(), tx, sessionID)
-		if err != nil {
-			return err
-		}
-		return repo.LogEvent(r.Context(), tx, "observation.recorded", "session_observation", nil, nil, &studentID, &classID, &sessionID)
-	})
-	if err != nil {
-		writeError(w, err)
-		return
-	}
-	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
-}
-
 func (a *API) handleCreateVoiceNote(w http.ResponseWriter, r *http.Request) {
 	tc := tenantCtxFrom(r)
 	sessionID, err := pathUUID(r, "sessionID")

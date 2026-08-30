@@ -9,11 +9,9 @@ import type { AttendanceStatus, RosterEntryDto, SessionRosterDto } from './api/d
 import {
 	createVoiceNote,
 	discardVoiceNote,
-	getFlagTypes,
 	getSession,
 	markAllPresent as apiMarkAllPresent,
 	putAttendance,
-	putObservation,
 	saveVoiceNote,
 	startSession,
 } from './api/endpoints/sessions';
@@ -31,23 +29,8 @@ function toAttendance(status: AttendanceStatus | null): Attendance | null {
 	return status === 'present' || status === 'late' ? 'present' : 'absent';
 }
 
-// FlagButton is boolean; the server wants flag-type UUIDs. Flagging uses the
-// tenant's first flag type; unflagging clears the whole set.
-let defaultFlagTypeId: string | null = null;
-
-async function ensureFlagTypes(): Promise<void> {
-	if (defaultFlagTypeId !== null) return;
-	try {
-		const flagTypes = list((await getFlagTypes()).flag_types);
-		defaultFlagTypeId = flagTypes[0]?.id ?? null;
-	} catch {
-		// Flagging degrades gracefully until the next load.
-	}
-}
-
 function toEntry(sessionId: string, dto: RosterEntryDto): { entry: Entry; noteList: Note[] } {
 	const id = entryKey(sessionId, dto.student_id);
-	const flagTypeIds = list(dto.flags).map((f) => f.id);
 	const noteList: Note[] = list(dto.voice_notes)
 		.filter((n) => n.status !== 'discarded')
 		.map((n) => ({
@@ -64,9 +47,6 @@ function toEntry(sessionId: string, dto: RosterEntryDto): { entry: Entry; noteLi
 			sessionId,
 			studentId: dto.student_id,
 			attendance: toAttendance(dto.attendance_status),
-			flagged: flagTypeIds.length > 0,
-			flagTypeIds,
-			observationNote: dto.observation_note,
 			notes: noteList,
 		},
 		noteList,
@@ -106,7 +86,7 @@ function applyRoster(sessionId: string, dto: SessionRosterDto): void {
 }
 
 export async function loadSession(sessionId: string): Promise<void> {
-	const [roster] = await Promise.all([getSession(sessionId), ensureFlagTypes()]);
+	const roster = await getSession(sessionId);
 	applyRoster(sessionId, roster);
 
 	// Entering the lesson is "class begins" — promote a scheduled session.
@@ -155,29 +135,6 @@ export function setAttendance(studentId: string, value: Attendance): void {
 	if (!session) return;
 	const previous = patchEntry(studentId, { attendance: value });
 	runMutation(previous, putAttendance(session.id, studentId, { status: value }));
-}
-
-// Observation PUTs replace the whole observation, so every field the entry
-// already holds must ride along or it silently clears server-side.
-function putEntryObservation(entry: Entry): Promise<unknown> {
-	return putObservation(entry.sessionId, entry.studentId, {
-		note: entry.observationNote,
-		flag_type_ids: entry.flagTypeIds,
-	});
-}
-
-export function setFlag(studentId: string, value: boolean): void {
-	const session = get(currentSession);
-	if (!session) return;
-	if (value && defaultFlagTypeId === null) {
-		showToast(SAVE_ERROR);
-		return;
-	}
-	const flagTypeIds = value && defaultFlagTypeId !== null ? [defaultFlagTypeId] : [];
-	const previous = patchEntry(studentId, { flagged: value, flagTypeIds });
-	const updated = get(entries).get(entryKey(session.id, studentId));
-	if (!updated) return;
-	runMutation(previous, putEntryObservation(updated));
 }
 
 // --- mark all present ---

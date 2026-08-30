@@ -11,7 +11,7 @@ export function parseDateOnly(d: string): Date {
 	return new Date(y, m - 1, day);
 }
 
-export function parseTimestamp(ts: string): Date {
+function parseTimestamp(ts: string): Date {
 	return new Date(ts);
 }
 

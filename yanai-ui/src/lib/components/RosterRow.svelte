@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { hapticTap } from '$lib/haptics';
-	import { addNote, removeNote, saveNote, setAttendance, setFlag } from '$lib/lesson';
+	import { addNote, removeNote, saveNote, setAttendance } from '$lib/lesson';
 	import { currentCourse, notes } from '$lib/stores';
 	import { showToast } from '$lib/toast';
 	import type { Attendance, Entry, Note, Student } from '$lib/types';
 	import AttendanceControl from './AttendanceControl.svelte';
-	import FlagButton from './FlagButton.svelte';
 	import MicButton from './MicButton.svelte';
 	import VoiceNotePlayer from './VoiceNotePlayer.svelte';
 
@@ -40,12 +39,6 @@
 		showToast(value === 'present' ? 'Marcado presente' : 'Marcado ausente');
 	}
 
-	function handleFlag(value: boolean): void {
-		hapticTap();
-		setFlag(student.id, value);
-		showToast(value ? 'Alumno marcado' : 'Marca retirada');
-	}
-
 	function handleRecorded(blob: Blob, durationSec: number): void {
 		void addNote(student.id, blob, durationSec);
 		showToast('Nota guardada');
@@ -72,15 +65,12 @@
 		<AttendanceControl value={entry.attendance} onchange={handleAttendance} />
 	</div>
 
-	<div class="row controls">
-		<FlagButton flagged={entry.flagged} onchange={handleFlag} />
-		<MicButton
-			hasNotes={rowNotes.length > 0}
-			onrecorded={handleRecorded}
-			onrecordingchange={(r) => (recordingNow = r)}
-			disabled={!entry.attendance}
-		/>
-	</div>
+	<MicButton
+		hasNotes={rowNotes.length > 0}
+		onrecorded={handleRecorded}
+		onrecordingchange={(r) => (recordingNow = r)}
+		disabled={!entry.attendance}
+	/>
 
 	{#if rowNotes.length > 0}
 		<div class="notes">
@@ -130,10 +120,6 @@
 
 	.absent .name {
 		color: var(--text-secondary);
-	}
-
-	.controls {
-		gap: 14px;
 	}
 
 	.notes {

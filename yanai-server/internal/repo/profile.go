@@ -32,7 +32,6 @@ type ProfileActivity struct {
 	AsistenciasEsperadas   int `json:"asistencias_esperadas"`
 	NotasDeVoz             int `json:"notas_de_voz"`
 	Evaluaciones           int `json:"evaluaciones"`
-	AlumnosEnSeguimiento   int `json:"alumnos_en_seguimiento"`
 }
 
 type ProfileResponse struct {
@@ -144,12 +143,6 @@ func GetProfile(ctx context.Context, tx pgx.Tx, teacherID uuid.UUID, term Term, 
 			select count(*) from assessments
 			 where created_by_id = $1 and term_id = $2 and deleted_at is null
 		`, teacherID, term.ID).Scan(&resp.Activity.Evaluaciones); err != nil {
-			return resp, err
-		}
-		if err := tx.QueryRow(ctx, `
-			select count(distinct student_id) from risk_flags
-			 where class_id = any($1::uuid[]) and status = 'active' and deleted_at is null
-		`, classIDs).Scan(&resp.Activity.AlumnosEnSeguimiento); err != nil {
 			return resp, err
 		}
 	}

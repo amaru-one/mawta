@@ -21,14 +21,6 @@ type SessionHeader struct {
 	AttendanceTotal    int       `json:"attendance_total"`
 }
 
-type FlagRef struct {
-	ID         uuid.UUID `json:"id"`
-	Code       string    `json:"code"`
-	Label      string    `json:"label"`
-	Severity   string    `json:"severity"`
-	IsPositive bool      `json:"is_positive"`
-}
-
 type VoiceNoteRef struct {
 	ID         uuid.UUID `json:"id"`
 	DurationMs int32     `json:"duration_ms"`
@@ -40,8 +32,6 @@ type RosterEntry struct {
 	StudentID        uuid.UUID      `json:"student_id"`
 	Name             string         `json:"name"`
 	AttendanceStatus *string        `json:"attendance_status"`
-	ObservationNote  *string        `json:"observation_note"`
-	Flags            []FlagRef      `json:"flags"`
 	VoiceNotes       []VoiceNoteRef `json:"voice_notes"`
 }
 
@@ -115,12 +105,11 @@ func GetSessionRoster(ctx context.Context, tx pgx.Tx, sessionID, classID uuid.UU
 	rows, err := tx.Query(ctx, `
 		select st.id,
 		       coalesce(st.preferred_name, st.given_name) || ' ' || st.paternal_surname as name,
-		       ar.status, so.id, so.note
+		       ar.status
 		  from section_memberships sm
 		  join classes c on c.section_id = sm.section_id and c.id = $1
 		  join students st on st.id = sm.student_id and st.deleted_at is null
 		  left join attendance_records ar on ar.session_id = $2 and ar.student_id = st.id and ar.deleted_at is null
-		  left join session_observations so on so.session_id = $2 and so.student_id = st.id and so.deleted_at is null
 		 where sm.joined_on <= $3 and (sm.left_on is null or sm.left_on > $3) and sm.deleted_at is null
 		   and ($4 = '' or (coalesce(st.given_name,'') || ' ' || coalesce(st.paternal_surname,'') || ' ' || coalesce(st.maternal_surname,'')) ilike '%' || $4 || '%')
 		 order by st.paternal_surname, st.given_name
@@ -131,19 +120,11 @@ func GetSessionRoster(ctx context.Context, tx pgx.Tx, sessionID, classID uuid.UU
 
 	var roster []RosterEntry
 	var studentIDs []uuid.UUID
-	obsByStudent := make(map[uuid.UUID]uuid.UUID)
-	var obsIDs []uuid.UUID
 	for rows.Next() {
 		var e RosterEntry
-		var obsID *uuid.UUID
-		if err := rows.Scan(&e.StudentID, &e.Name,
-			&e.AttendanceStatus, &obsID, &e.ObservationNote); err != nil {
+		if err := rows.Scan(&e.StudentID, &e.Name, &e.AttendanceStatus); err != nil {
 			rows.Close()
 			return nil, nil, err
-		}
-		if obsID != nil {
-			obsByStudent[e.StudentID] = *obsID
-			obsIDs = append(obsIDs, *obsID)
 		}
 		roster = append(roster, e)
 		studentIDs = append(studentIDs, e.StudentID)
@@ -151,32 +132,6 @@ func GetSessionRoster(ctx context.Context, tx pgx.Tx, sessionID, classID uuid.UU
 	rows.Close()
 	if err := rows.Err(); err != nil {
 		return nil, nil, err
-	}
-
-	flagsByObs := make(map[uuid.UUID][]FlagRef)
-	if len(obsIDs) > 0 {
-		frows, err := tx.Query(ctx, `
-			select sof.observation_id, bft.id, bft.code, bft.label, bft.severity, bft.is_positive
-			  from session_observation_flags sof
-			  join behavior_flag_types bft on bft.id = sof.flag_type_id
-			 where sof.observation_id = any($1) and sof.deleted_at is null
-		`, obsIDs)
-		if err != nil {
-			return nil, nil, err
-		}
-		for frows.Next() {
-			var obsID uuid.UUID
-			var f FlagRef
-			if err := frows.Scan(&obsID, &f.ID, &f.Code, &f.Label, &f.Severity, &f.IsPositive); err != nil {
-				frows.Close()
-				return nil, nil, err
-			}
-			flagsByObs[obsID] = append(flagsByObs[obsID], f)
-		}
-		frows.Close()
-		if err := frows.Err(); err != nil {
-			return nil, nil, err
-		}
 	}
 
 	notesByStudent := make(map[uuid.UUID][]VoiceNoteRef)
@@ -204,9 +159,6 @@ func GetSessionRoster(ctx context.Context, tx pgx.Tx, sessionID, classID uuid.UU
 	}
 
 	for i := range roster {
-		if obsID, ok := obsByStudent[roster[i].StudentID]; ok {
-			roster[i].Flags = flagsByObs[obsID]
-		}
 		roster[i].VoiceNotes = notesByStudent[roster[i].StudentID]
 	}
 

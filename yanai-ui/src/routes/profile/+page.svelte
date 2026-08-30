@@ -76,13 +76,7 @@
 				value: `${a.asistencias_registradas} / ${a.asistencias_esperadas}`
 			},
 			{ icon: 'mic', label: 'Notas de voz', value: String(a.notas_de_voz) },
-			{ icon: 'checklist', label: 'Evaluaciones registradas', value: String(a.evaluaciones) },
-			{
-				icon: 'flag',
-				label: 'Alumnos en seguimiento',
-				value: String(a.alumnos_en_seguimiento),
-				danger: a.alumnos_en_seguimiento > 0
-			}
+			{ icon: 'checklist', label: 'Evaluaciones registradas', value: String(a.evaluaciones) }
 		];
 	});
 

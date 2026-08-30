@@ -203,9 +203,9 @@ docker compose --env-file .env -f deploy/docker-compose.prod.yml up -d
 curl -fsS https://$(grep ^DOMAIN .env | cut -d= -f2)/healthz
 ```
 
-Open `https://<your-domain>/` in a browser and walk all six screens
-(Home, class dashboard, lesson/attendance, grades, notifications,
-profile) against the live server.
+Open `https://<your-domain>/` in a browser and walk the app's screens
+(Home, class dashboard, lesson/attendance, criterios, evidence grid,
+grades, notifications, profile) against the live server.
 
 ## 5. Wire up GitHub Actions CI/CD
 

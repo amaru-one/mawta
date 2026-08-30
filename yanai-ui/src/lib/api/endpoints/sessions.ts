@@ -2,8 +2,6 @@ import { apiGet, apiSend, apiUpload } from '../client';
 import type {
 	AttendancePutDto,
 	AttendanceStatus,
-	FlagTypeDto,
-	ObservationPutDto,
 	SessionRosterDto,
 	SessionStatus,
 	VoiceNoteStatus,
@@ -34,14 +32,6 @@ export function markAllPresent(sessionId: string): Promise<{ marked: number }> {
 	return apiSend<{ marked: number }>('POST', `/sessions/${sessionId}/attendance/mark-all-present`);
 }
 
-export function putObservation(
-	sessionId: string,
-	studentId: string,
-	body: ObservationPutDto
-): Promise<{ ok: boolean }> {
-	return apiSend<{ ok: boolean }>('PUT', `/sessions/${sessionId}/observations/${studentId}`, body);
-}
-
 export function createVoiceNote(
 	sessionId: string,
 	studentId: string,
@@ -64,9 +54,4 @@ export function saveVoiceNote(voiceNoteId: string): Promise<{ status: VoiceNoteS
 
 export function discardVoiceNote(voiceNoteId: string): Promise<{ status: VoiceNoteStatus }> {
 	return apiSend<{ status: VoiceNoteStatus }>('POST', `/voice-notes/${voiceNoteId}/discard`);
-}
-
-// Requires the /api/v1/flag-types endpoint (added server-side in Phase 3).
-export function getFlagTypes(): Promise<{ flag_types: FlagTypeDto[] | null }> {
-	return apiGet<{ flag_types: FlagTypeDto[] | null }>('/flag-types');
 }

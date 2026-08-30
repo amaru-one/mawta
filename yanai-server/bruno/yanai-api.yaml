@@ -3,11 +3,12 @@ info:
   title: Yanai API
   version: "1.0"
   description: |
-    Dev-header, multi-tenant API for the six Yanai screens (Home, Class
-    dashboard, Lesson/attendance, Student grades, Notifications, Profile).
+    Dev-header, multi-tenant API for the Yanai app's screens (Home, Class
+    dashboard, Lesson/attendance, Criterios, Evidence grid, Student grades,
+    Notifications, Profile).
 
     Import: Bruno -> Import Collection -> OpenAPI Spec -> select this file.
-    Bruno groups operations by tag into folders (00 Health & Me .. 06
+    Bruno groups operations by tag into folders (00 Health & Me .. 08
     Perfil) and pre-fills every header/path/query/body example shown below.
 
     Run: `go run ./cmd/api` from yanai-server/ against the seeded Postgres
@@ -532,26 +533,6 @@ paths:
         - $ref: "#/components/parameters/TenantIdHeader"
         - $ref: "#/components/parameters/ActorIdHeader"
         - $ref: "#/components/parameters/SessionId"
-      responses:
-        "200": { description: OK }
-
-  /sessions/{sessionID}/observations/{studentID}:
-    put:
-      tags: [03 Leccion]
-      summary: Upsert observation
-      parameters:
-        - $ref: "#/components/parameters/TenantIdHeader"
-        - $ref: "#/components/parameters/ActorIdHeader"
-        - $ref: "#/components/parameters/SessionId"
-        - $ref: "#/components/parameters/StudentId"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { type: object }
-            example:
-              note: "Buen trabajo en grupo"
-              flag_type_ids: []
       responses:
         "200": { description: OK }
 

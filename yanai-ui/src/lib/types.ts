@@ -54,12 +54,6 @@ export type Entry = {
 	sessionId: string;
 	studentId: string;
 	attendance: Attendance | null;
-	// Teacher-raised behavior marker for this session; `flagTypeIds` carries the
-	// server's flag-type UUIDs behind the boolean, and observation PUTs are an
-	// authoritative set, so both must ride along on every mutation.
-	flagged: boolean;
-	flagTypeIds: string[];
-	observationNote: string | null;
 	notes: Note[];
 };
 

@@ -310,17 +310,17 @@ func CreateAssessment(ctx context.Context, tx pgx.Tx, a NewAssessment) (uuid.UUI
 	}
 
 	if len(a.CriterionIDs) > 0 {
-		if err := LinkAssessmentCriteria(ctx, tx, a.ClassID, id, a.CriterionIDs); err != nil {
+		if err := linkAssessmentCriteria(ctx, tx, a.ClassID, id, a.CriterionIDs); err != nil {
 			return uuid.Nil, err
 		}
 	}
 	return id, nil
 }
 
-// LinkAssessmentCriteria records which criterios de evaluación an assessment
+// linkAssessmentCriteria records which criterios de evaluación an assessment
 // evidences. Every criterio must belong to a competencia of the class's área
 // — the same guard CreateCriterion applies when the criterio is written.
-func LinkAssessmentCriteria(ctx context.Context, tx pgx.Tx, classID, assessmentID uuid.UUID, criterionIDs []uuid.UUID) error {
+func linkAssessmentCriteria(ctx context.Context, tx pgx.Tx, classID, assessmentID uuid.UUID, criterionIDs []uuid.UUID) error {
 	var inClass int
 	if err := tx.QueryRow(ctx, `
 		select count(*)

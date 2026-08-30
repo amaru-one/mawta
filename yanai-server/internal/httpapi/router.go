@@ -1,5 +1,5 @@
 // Package httpapi wires the chi router, middleware, and one handler file
-// per screen of yanai-views.html.
+// per screen of the app.
 package httpapi
 
 import (
@@ -45,7 +45,6 @@ func (a *API) Router() http.Handler {
 		r.Use(a.tenantAuth)
 
 		r.Get("/me", a.handleMe)
-		r.Get("/flag-types", a.handleListFlagTypes)
 
 		r.Get("/home", a.handleHome)
 
@@ -73,7 +72,6 @@ func (a *API) Router() http.Handler {
 		r.Get("/sessions/{sessionID}", a.handleSessionRoster)
 		r.Put("/sessions/{sessionID}/attendance/{studentID}", a.handleAttendanceUpsert)
 		r.Post("/sessions/{sessionID}/attendance/mark-all-present", a.handleMarkAllPresent)
-		r.Put("/sessions/{sessionID}/observations/{studentID}", a.handleObservationUpsert)
 		r.Post("/sessions/{sessionID}/students/{studentID}/voice-notes", a.handleCreateVoiceNote)
 
 		r.Get("/voice-notes/{voiceNoteID}/audio", a.handleVoiceNoteAudio)

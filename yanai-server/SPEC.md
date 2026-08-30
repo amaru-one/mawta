@@ -1,18 +1,17 @@
 ## Purpose
-Go API powering the six Yanai screens on top of the Postgres schema in `migrations/`. Stack: chi + pgx/v5, hand-written SQL (no ORM/sqlc), an in-process Postgres-backed job queue, forced row-level security per tenant.
+Go API powering the Yanai app's screens on top of the Postgres schema in `migrations/`. Stack: chi + pgx/v5, hand-written SQL (no ORM/sqlc), an in-process Postgres-backed job queue, forced row-level security per tenant.
 
 ## Contents
 - `cmd/api/` — the single binary entrypoint (see its SPEC.md).
 - `internal/` — packages: `config`, `db`, `domain`, `grading`, `httpapi`, `media`, `repo`, `worker` (each with its own SPEC.md).
-- `migrations/` — goose SQL migrations 00001–00006 + `ANALYSIS.md` (see its SPEC.md).
-- `seed/` — demo tenant seed script, add-on scripts for extra classes/sections, + onboarding runbook (see its SPEC.md).
+- `migrations/` — goose SQL migrations 00001–00007 + `ANALYSIS.md` (see its SPEC.md).
+- `seed/` — demo tenant seed script + onboarding runbook (see its SPEC.md).
 - `docs/` — local Postgres setup (see its SPEC.md).
 - `bruno/` — OpenAPI collection for the Bruno API client (see its SPEC.md).
 - `Dockerfile` — production image build (distroless, ships goose + migrations).
 - `README.md` — quick start, dev-header auth, route list.
-- `yanai-schema-prompt.md` — the original prompt used to generate the database schema from `yanai-views.html`.
 - `.env` — local dev config pointing at the `yanai-pg` container (port 55432); not committed patterns live in `.gitignore`.
-- `go.mod` / `go.sum` — module `yanai-server`; deps: chi, pgx/v5, google/uuid, joho/godotenv.
+- `go.mod` / `go.sum` — module `yanai-server`; deps: chi, go-chi/cors, pgx/v5, google/uuid, joho/godotenv.
 - `data/` — empty scratch dir.
 - `.vscode/` — editor launch config (no spec).
 
@@ -29,6 +28,7 @@ Consumes `DATABASE_URL` (Postgres 16 + pgvector) and env config (see `internal/c
 - No test suite exists yet; CI gate is `go vet` + `go build`.
 
 ## Change Log
+- 2026-08-29: Second purge pass. Fixed a live 500: `GET /profile` queried the dropped `risk_flags` table (see `internal/repo/SPEC.md`). Deleted the per-session observation subsystem whole (`migrations/00007`) — the flag catalog had no seed or provisioning path anywhere, and the free-text note had no writer in the UI. Deleted `yanai-schema-prompt.md`: it pointed readers at `yanai-views.html`, itself deleted from the repo, and is a single-use prompt nobody re-runs. Purged 13 more dead constant groups from `internal/domain`, the unused `progress` computation from the class dashboard, and `yanai-ui/src/lib/transcribe.ts`. Corrected a run of stale claims across this file, `README.md`, `DEPLOY.md`, `bruno/yanai-api.yaml` and several package SPEC.md files — a fixed "six screens" count, a Go 1.22 floor against an actual 1.26 module, a missing `go-chi/cors` dependency, an endpoint table missing five live routes, a worker "ticker" that never existed, and a migration number retired by the 2026-08-26 squash. See the SPEC.md of `internal/httpapi`, `internal/repo`, `internal/domain`, `internal/db`, `internal/media` and `migrations` for the per-package reasoning.
 - 2026-08-29: Purge pass. Deleted the end-of-period SIAGIE report end to end (`internal/repo/siagie.go`, its handler and route), eight further routes no client called, and the retired AI note-summary feature. The lesson roster stopped carrying a per-student nivel de logro, trend and participation rating, and `session_observations.participation_level` was dropped in `00006`. `internal/domain` lost the constant blocks for subsystems with no Go code left. The Contents line for `migrations/` had also been stale since the squash. See the SPEC.md of `internal/httpapi`, `internal/repo`, `internal/domain` and `migrations` for the reasoning.
 - 2026-08-27: Realigned grading with RVM 094-2020: criterios de evaluación per competencia are now a first-class surface (schema `00003`, `internal/repo/criteria.go`, `internal/httpapi/criteria.go`, and the criterios screen in `yanai-ui`), the weighted result was demoted to a labelled internal system, and everything predictive was removed — `internal/promotion` (with the repo's only test file), both risk job kinds, and the `risk_*` tables. `internal/grading` survives as the internal system's math.
 - 2026-08-26: `seed/`'s add-on scripts were folded back into `seed_demo_tenant.sql`; Contents line updated. `migrations/` squashed its 18-file history into `00001_initial_schema.sql`.

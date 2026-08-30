@@ -1,5 +1,5 @@
 ## Purpose
-SvelteKit routes — the screens of `yanai-views.html`. All pages are client-rendered (static SPA).
+SvelteKit routes — the app's screens. All pages are client-rendered (static SPA).
 
 ## Contents
 - `+layout.ts` — disables SSR/prerender as needed for SPA mode; `+layout.svelte` — global shell (loads `app.css`, icon sprite, toast), loads the teacher identity and the school's `usesInternalGrading` switch from `GET /me`, polls notifications, and tracks `canGoBack` via `afterNavigate` for `TopBar`'s `useHistory` arrow.
@@ -16,7 +16,7 @@ SvelteKit routes — the screens of `yanai-views.html`. All pages are client-ren
 Pages call `lib/` orchestration modules and endpoints, render `lib/components`.
 
 ## Conventions & Constraints
-- Screen structure mirrors `yanai-views.html`; new screens should be added there first (it is the product spec).
+- Each route is documented by its own SPEC.md, which is the product spec for that screen — there is no separate mock or gallery to keep in step with. A new screen gets a SPEC.md in the same turn it's added.
 
 ## Change Log
 - 2026-08-29: Deleted `class/[courseId]/siagie-report/`. It was read-only over data the student's grades screen already owns, and the one thing it did that nothing else could — filing evidencia for the whole class — moved to the class dashboard, which is the other screen that speaks for a class rather than for a student. `class/[courseId]/criteria/` is back to a single entry point (the dashboard); its `useHistory` arrow still handles that correctly.

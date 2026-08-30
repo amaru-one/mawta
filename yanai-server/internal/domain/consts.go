@@ -3,10 +3,13 @@
 // would give us plain strings anyway; these constants exist so call sites
 // don't hand-roll the literals.
 //
-// The mirror covers the tables Go actually reads or writes, not the whole
-// schema: a block whose subsystem has no Go code left is deleted rather than
-// kept as a spelling nobody can reach. Re-add one alongside the code that
-// needs it.
+// The mirror covers values Go actually passes as a query parameter, not the
+// whole schema. A value embedded directly in the text of a SQL string (e.g.
+// `where status in ('present','late')`) can never be substituted by a Go
+// constant, so a block whose every use is like that is dead on arrival —
+// deleted rather than kept as a spelling nobody can reach. A block whose
+// subsystem has no Go code left goes the same way. Re-add either alongside
+// the code that needs it.
 package domain
 
 // class_sessions.status
@@ -18,62 +21,12 @@ const (
 	SessionRescheduled = "rescheduled"
 )
 
-// attendance_records.status
-const (
-	AttendancePresent   = "present"
-	AttendanceLate      = "late"
-	AttendanceAbsent    = "absent"
-	AttendanceExcused   = "excused"
-	AttendanceJustified = "justified"
-)
-
-// attendance_records.source / scores.source
-const (
-	SourceManual = "manual"
-	SourceBulk   = "bulk"
-	SourceImport = "import"
-	SourceVoice  = "voice"
-	SourceAuto   = "auto"
-)
-
-// assessments.status
-const (
-	AssessmentDraft     = "draft"
-	AssessmentPublished = "published"
-	AssessmentClosed    = "closed"
-	AssessmentCancelled = "cancelled"
-)
-
 // scores.status
 const (
 	ScoreGraded       = "graded"
 	ScoreExcused      = "excused"
 	ScoreAbsent       = "absent"
 	ScoreNotSubmitted = "not_submitted"
-)
-
-// grading_scheme_versions.absent_counts_as
-const (
-	AbsentCountsAsZero    = "zero"
-	AbsentCountsAsExcused = "excused"
-)
-
-// grading_scheme_versions.rounding_mode
-const (
-	RoundingHalfUp   = "half_up"
-	RoundingHalfEven = "half_even"
-	RoundingFloor    = "floor"
-	RoundingCeil     = "ceil"
-	RoundingNone     = "none"
-)
-
-// grading_scheme_component_weights.aggregation
-const (
-	AggregationMean         = "mean"
-	AggregationWeightedMean = "weighted_mean"
-	AggregationBest         = "best"
-	AggregationLast         = "last"
-	AggregationSum          = "sum"
 )
 
 // grade_scales.kind
@@ -89,13 +42,6 @@ const (
 	ScopeTermFinal   = "term_final"
 )
 
-// computed_grades.trend
-const (
-	TrendUp   = "up"
-	TrendDown = "down"
-	TrendFlat = "flat"
-)
-
 // voice_notes.status
 const (
 	VoiceNoteDraft     = "draft"
@@ -103,65 +49,15 @@ const (
 	VoiceNoteDiscarded = "discarded"
 )
 
-// notifications.kind
+// grade_scale_levels.code on the MINEDU ordinal scale. Ordered C < B < A < AD.
+// These are only the wire/database spellings: nothing in the codebase compares
+// them, and nothing should compare them as numbers — under RVM 094-2020 a
+// nivel de logro is asserted by a teacher, never arrived at by arithmetic.
 const (
-	NotificationAlert    = "alert"
-	NotificationReminder = "reminder"
-)
-
-// notifications.source
-const (
-	NotifSourceSystem  = "system"
-	NotifSourceRule    = "rule"
-	NotifSourceModel   = "model"
-	NotifSourceTeacher = "teacher"
-)
-
-// jobs.status
-const (
-	JobAvailable = "available"
-	JobRunning   = "running"
-	JobRetryable = "retryable"
-	JobScheduled = "scheduled"
-	JobCompleted = "completed"
-	JobCancelled = "cancelled"
-	JobDiscarded = "discarded"
-)
-
-// jobs.kind
-const (
-	JobKindGradeRecompute = "grade.recompute"
-)
-
-// memberships.role / status
-const (
-	RoleTeacher     = "teacher"
-	RoleCoordinator = "coordinator"
-	RoleDirector    = "director"
-	RoleAdmin       = "admin"
-	RoleSupport     = "support"
-
-	MembershipActive    = "active"
-	MembershipInvited   = "invited"
-	MembershipSuspended = "suspended"
-	MembershipRevoked   = "revoked"
-)
-
-// terms.status / academic_years.status
-const (
-	TermPlanned  = "planned"
-	TermActive   = "active"
-	TermClosed   = "closed"
-	TermArchived = "archived"
-)
-
-// competencies.kind — what a competency counts as for promotion
-// (RVM 094-2020 num. 5.1.3 p.9-11).
-const (
-	CompetencyArea           = "area"
-	CompetencyTransversal    = "transversal"
-	CompetencyAdicionalArea  = "adicional_area"
-	CompetencyAdicionalLibre = "adicional_libre"
+	LevelC  = "C"
+	LevelB  = "B"
+	LevelA  = "A"
+	LevelAD = "AD"
 )
 
 // descriptive_conclusions.requirement — why a conclusión descriptiva exists.
@@ -179,21 +75,14 @@ const (
 	ConclusionFinal = "final"
 )
 
-// grade_scale_levels.code on the MINEDU ordinal scale. Ordered C < B < A < AD.
-// These are only the wire/database spellings: nothing in the codebase compares
-// them, and nothing should compare them as numbers — under RVM 094-2020 a
-// nivel de logro is asserted by a teacher, never arrived at by arithmetic.
+// computed_grades.trend
 const (
-	LevelC  = "C"
-	LevelB  = "B"
-	LevelA  = "A"
-	LevelAD = "AD"
+	TrendUp   = "up"
+	TrendDown = "down"
+	TrendFlat = "flat"
 )
 
-// notifications.severity
+// jobs.kind
 const (
-	SeverityInfo   = "info"
-	SeverityLow    = "low"
-	SeverityMedium = "medium"
-	SeverityHigh   = "high"
+	JobKindGradeRecompute = "grade.recompute"
 )

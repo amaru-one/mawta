@@ -4,7 +4,7 @@
 
 const env = import.meta.env as Record<string, string | undefined>;
 
-export const API_BASE = env.PUBLIC_API_BASE_URL ?? '';
+const API_BASE = env.PUBLIC_API_BASE_URL ?? '';
 
 // Dev auth: the server has no real auth yet; every request carries the tenant
 // and actor as headers. Both are UUIDs from the seeded demo tenant.

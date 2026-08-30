@@ -10,10 +10,11 @@ Input: `DATABASE_URL`. Output: transactions handed to `repo`, `httpapi`, and `wo
 
 ## Conventions & Constraints
 - All tenant data access goes through `WithTenantTx`; never run tenant queries on the raw pool.
-- `WithSystemTx` is only for genuinely cross-tenant work (worker ticker, nil-tenant jobs) — never for request data.
+- `WithSystemTx` is only for genuinely cross-tenant work (the worker's dispatch of a nil-tenant job — there is no ticker or scheduler, see `internal/worker/SPEC.md`) — never for request data.
 - A zero `ActorID` means system/job actor (empty `app.actor_id`).
 
 ## Change Log
+- 2026-08-29: Corrected a stale claim in both this file and `db.go`'s own comment: `WithSystemTx`'s only caller is the worker's dispatch of a job with no `tenant_id`, not a "ticker" — the worker has never had one (see `internal/worker/SPEC.md`, removed 2026-08-25).
 - 2026-08-24: Initial spec created retroactively, describing current contents.
 
 ## Open Questions

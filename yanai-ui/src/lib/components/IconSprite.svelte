@@ -65,10 +65,6 @@
 		<circle cx="12" cy="12" r="9" />
 		<path d="M9 12l2 2 4-4" />
 	</symbol>
-	<symbol id="i-flag" viewBox="0 0 24 24">
-		<path d="M5 5a5 5 0 0 1 7 0a5 5 0 0 0 7 0v9a5 5 0 0 1-7 0a5 5 0 0 0-7 0z" />
-		<path d="M5 21v-7" />
-	</symbol>
 	<symbol id="i-mic" viewBox="0 0 24 24">
 		<rect x="9" y="2" width="6" height="11" rx="3" />
 		<path d="M5 10a7 7 0 0 0 14 0" />

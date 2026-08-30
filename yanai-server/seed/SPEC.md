@@ -43,4 +43,4 @@ Requires migrations applied first. Produces the demo tenant whose tenant/actor U
 - None.
 
 ## Resolved
-- *Arte's competencias were modelled only as `grading_components`, with no `competencies` rows, so the área couldn't take part in a promotion projection.* Fixed 2026-08-26: `ART-C1`/`ART-C2` are now real `competencies` rows (`kind = 'area'`); `grading_components` still exists for weighting, but the nivel-de-logro path now runs through the real competency rows. Historia, which had the same gap, is no longer in this file at all (see Change Log).
+- *Arte's competencias were modelled only as `grading_components`, with no `competencies` rows, so the área couldn't take part in a promotion projection.* Fixed 2026-08-26 (the promotion projection itself, `internal/promotion`, was removed 2026-08-27 — this entry is history, not a live feature): `ART-C1`/`ART-C2` are now real `competencies` rows (`kind = 'area'`); `grading_components` still exists for weighting, but the nivel-de-logro path now runs through the real competency rows. Historia, which had the same gap, is no longer in this file at all (see Change Log).

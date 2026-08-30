@@ -1,5 +1,5 @@
 ## Purpose
-SvelteKit SPA (Svelte 5, adapter-static, Bun, TypeScript) implementing the six Yanai screens against the Go API. Mobile-first, autosave everywhere, Spanish UI text.
+SvelteKit SPA (Svelte 5, adapter-static, Bun, TypeScript) implementing the Yanai app's screens against the Go API. Mobile-first, autosave everywhere, Spanish UI text.
 
 ## Contents
 - `src/` — application code (see its SPEC.md and children).
@@ -8,7 +8,6 @@ SvelteKit SPA (Svelte 5, adapter-static, Bun, TypeScript) implementing the six Y
 - `vite.config.ts` — Vite + SvelteKit; dev proxy routes `/api/*` (and `/healthz`) to the Go server so the app is same-origin in dev and prod.
 - `tsconfig.json`, `eslint.config.js`, `.eslintrc.json`, `.prettierrc`, `.prettierignore`, `.npmrc` — toolchain config. `.prettierignore` excludes `SPEC.md` — see Conventions.
 - `.env.example` / `.env.local` — `PUBLIC_API_BASE_URL` (empty = same origin), `PUBLIC_TENANT_ID`, `PUBLIC_ACTOR_ID` (dev-auth headers baked into every request).
-- `CLAUDE.md` — currently just a title placeholder.
 - `README.md` — SvelteKit boilerplate readme.
 - `.claude/` — project skills (format, verify) and settings; `.vscode/`, `.svelte-kit/` — tool/generated, no specs.
 
@@ -26,4 +25,4 @@ Consumes the yanai-server API under `/api/v1` with `X-Tenant-ID`/`X-Actor-ID` fr
 - 2026-08-24: Initial spec created retroactively, describing current contents.
 
 ## Open Questions
-- Should `CLAUDE.md` here get real content or be removed?
+- None.

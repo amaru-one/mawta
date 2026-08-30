@@ -13,7 +13,6 @@ export const ICON_NAMES = [
 	'world',
 	'checklist',
 	'circle-check',
-	'flag',
 	'mic',
 	'play',
 	'pause',

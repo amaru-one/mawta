@@ -1,14 +1,14 @@
 # Yanai API
 
-Go API powering the six screens in `yanai-views.html` (Home, Class dashboard,
-Lesson/attendance, Student grades, Notifications, Profile) on top of the
-Postgres schema in `migrations/`. Stack: `chi` + `pgx/v5`, hand-written SQL
-(no ORM/sqlc), an in-process Postgres-backed job queue, forced row-level
-security per tenant.
+Go API powering the Yanai app's eight screens (Home, Class dashboard,
+Lesson/attendance, Criterios, Evidence grid, Student grades, Notifications,
+Profile) on top of the Postgres schema in `migrations/`. Stack: `chi` +
+`pgx/v5`, hand-written SQL (no ORM/sqlc), an in-process Postgres-backed job
+queue, forced row-level security per tenant.
 
 ## Prereqs
 
-- Go 1.22+
+- Go 1.26+
 - The seeded local Postgres from `docs/postgres-setup.md` (container `yanai-pg`,
   migrations applied, `seed/seed_demo_tenant.sql` run).
 
@@ -38,10 +38,10 @@ the seed and survive a reseed:
 | `GET /me` | topbar |
 | `GET /home` | 01 Inicio |
 | `GET /classes/{id}/dashboard`, `POST /sessions/{id}/start` | 02 Clase |
-| `GET /sessions/{id}?q=`, `PUT .../attendance/{sid}`, `POST .../mark-all-present`, `PUT .../observations/{sid}`, `POST .../voice-notes`, `GET/POST /voice-notes/{id}/...` | 03 Lección |
-| `GET /classes/{id}/students/{sid}/grades`, `POST /classes/{id}/assessments`, `POST /assessments/{id}/scores`, `POST /scores/{id}/correct` | 04 Notas |
+| `GET /sessions/{id}?q=`, `PUT .../attendance/{sid}`, `POST .../mark-all-present`, `POST .../voice-notes`, `GET/POST /voice-notes/{id}/...` | 03 Lección |
+| `GET /classes/{id}/students/{sid}/grades`, `GET /classes/{id}/grading-components`, `POST /classes/{id}/assessments`, `POST /assessments/{id}/delete`, `POST /assessments/{id}/scores`, `POST /scores/{id}/correct`, `POST /classes/{id}/students/{sid}/practice-scores`, `POST /practice-scores/{id}/delete` | 04 Notas |
 | `GET /classes/{id}/students/{sid}/competencies`, `POST .../competency-levels`, `POST .../conclusions` | 05 Competencias |
-| `GET /classes/{id}/criteria`, `POST /classes/{id}/competencies/{cid}/criteria`, `POST /criteria/{id}/delete`, `POST /classes/{id}/students/{sid}/criterion-levels` | 06 Criterios |
+| `GET /classes/{id}/criteria`, `POST /classes/{id}/competencies/{cid}/criteria`, `POST /criteria/{id}/delete`, `POST /classes/{id}/students/{sid}/criterion-levels`, `GET /assessments/{id}/criteria-grid` | 06 Criterios |
 | `GET /notifications`, `POST .../read`, `POST /notifications/read-all` | 07 Notificaciones |
 | `GET /profile` | 08 Perfil |
 

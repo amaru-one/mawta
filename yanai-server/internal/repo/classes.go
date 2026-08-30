@@ -8,15 +8,15 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type ClassInfo struct {
+type classInfo struct {
 	ID        uuid.UUID
 	Name      string
 	SectionID uuid.UUID
 	IsTutoria bool
 }
 
-func GetClassInfo(ctx context.Context, tx pgx.Tx, classID uuid.UUID) (ClassInfo, error) {
-	var c ClassInfo
+func getClassInfo(ctx context.Context, tx pgx.Tx, classID uuid.UUID) (classInfo, error) {
+	var c classInfo
 	err := tx.QueryRow(ctx, `
 		select c.id, c.name, c.section_id, s.is_tutoria
 		  from classes c
@@ -49,19 +49,6 @@ type AttendanceUnmarkedSession struct {
 	SessionDate string    `json:"session_date"`
 }
 
-// ComponentProgress is one component's share of the grade registration for a
-// class: how many of the expected scores are in, and that as a 0-1 ratio.
-// Pct is null when nothing is due yet, which is distinct from "due but none
-// registered" (Expected > 0, Pct 0).
-type ComponentProgress struct {
-	ComponentID uuid.UUID `json:"component_id"`
-	Code        string    `json:"code"`
-	Name        string    `json:"name"`
-	Scored      int       `json:"scored"`
-	Expected    int       `json:"expected"`
-	Pct         *float64  `json:"pct"`
-}
-
 type SessionSummary struct {
 	SessionID        uuid.UUID `json:"session_id"`
 	SessionDate      string    `json:"session_date"`
@@ -84,7 +71,6 @@ type ClassDashboard struct {
 	TermID             uuid.UUID                   `json:"term_id"`
 	NextSession        *SessionSummary             `json:"next_session"`
 	Stats              DashboardStats              `json:"stats"`
-	Progress           []ComponentProgress         `json:"progress"`
 	Distribution       []LevelCount                `json:"distribution"`
 	GradesPending      []GradesPendingAssessment   `json:"grades_pending"`
 	AttendanceUnmarked []AttendanceUnmarkedSession `json:"attendance_unmarked"`
@@ -94,7 +80,7 @@ type ClassDashboard struct {
 
 func GetClassDashboard(ctx context.Context, tx pgx.Tx, classID uuid.UUID, term Term, today time.Time) (ClassDashboard, error) {
 	var d ClassDashboard
-	class, err := GetClassInfo(ctx, tx, classID)
+	class, err := getClassInfo(ctx, tx, classID)
 	if err != nil {
 		return d, err
 	}
@@ -212,60 +198,6 @@ func GetClassDashboard(ctx context.Context, tx pgx.Tx, classID uuid.UUID, term T
 		}
 	}
 
-	// progress: how much of the grade registration is done, per component of the
-	// class's effective scheme. expected = one cell per (assessment, student it
-	// applies to) — the whole roster for a class-wide assessment, one student for
-	// a per-student one; scored = how many of those have a live score.
-	// Components with no published assessment yet report expected = 0, which the
-	// panel renders as an empty ring.
-	if !class.IsTutoria {
-		rows, err := tx.Query(ctx, `
-			with due as (
-			  select a.id, a.component_id, a.student_id from assessments a
-			   where a.class_id = $1 and a.term_id = $2 and a.status = 'published'
-			     and a.deleted_at is null
-			),
-			roster_ids as (select unnest($3::uuid[]) as student_id),
-			expected as (
-			  select d.id, d.component_id, r.student_id
-			    from due d cross join roster_ids r
-			   where d.student_id is null or d.student_id = r.student_id
-			)
-			select gc.id, gc.code, gc.name,
-			       (select count(*) from expected e where e.component_id = gc.id) as expected,
-			       (select count(*) from expected e
-			         where e.component_id = gc.id
-			           and exists (
-			             select 1 from scores s
-			              where s.assessment_id = e.id and s.student_id = e.student_id
-			                and s.superseded_at is null and s.deleted_at is null
-			           )) as scored
-			  from grading_components gc
-			  join class_effective_grading_schemes ceg on ceg.scheme_id = gc.scheme_id
-			 where ceg.class_id = $1 and ceg.term_id = $2 and gc.deleted_at is null
-			 order by gc.sort_order
-		`, classID, term.ID, roster)
-		if err != nil {
-			return d, err
-		}
-		for rows.Next() {
-			var cp ComponentProgress
-			if err := rows.Scan(&cp.ComponentID, &cp.Code, &cp.Name, &cp.Expected, &cp.Scored); err != nil {
-				rows.Close()
-				return d, err
-			}
-			if cp.Expected > 0 {
-				pct := float64(cp.Scored) / float64(cp.Expected)
-				cp.Pct = &pct
-			}
-			d.Progress = append(d.Progress, cp)
-		}
-		rows.Close()
-		if err := rows.Err(); err != nil {
-			return d, err
-		}
-	}
-
 	// pendientes: grades pending.
 	rows, err := tx.Query(ctx, `
 		select a.id, a.title, count(*) as missing
@@ -322,13 +254,13 @@ func GetClassDashboard(ctx context.Context, tx pgx.Tx, classID uuid.UUID, term T
 		return d, err
 	}
 
-	upcoming, err := ListSessions(ctx, tx, classID, today, "upcoming", 10)
+	upcoming, err := listSessions(ctx, tx, classID, today, "upcoming", 10)
 	if err != nil {
 		return d, err
 	}
 	d.Upcoming = upcoming
 
-	past, err := ListSessions(ctx, tx, classID, today, "past", 10)
+	past, err := listSessions(ctx, tx, classID, today, "past", 10)
 	if err != nil {
 		return d, err
 	}
@@ -337,11 +269,11 @@ func GetClassDashboard(ctx context.Context, tx pgx.Tx, classID uuid.UUID, term T
 	return d, nil
 }
 
-// ListSessions returns upcoming (session_date > d, ascending) or past
+// listSessions returns upcoming (session_date > d, ascending) or past
 // (session_date < d, descending) sessions for a class — d itself is
 // today's session, surfaced separately as next_session. Past rows carry
 // attendance and pending-grade chips.
-func ListSessions(ctx context.Context, tx pgx.Tx, classID uuid.UUID, d time.Time, dir string, limit int) ([]SessionSummary, error) {
+func listSessions(ctx context.Context, tx pgx.Tx, classID uuid.UUID, d time.Time, dir string, limit int) ([]SessionSummary, error) {
 	var query string
 	if dir == "past" {
 		query = `
