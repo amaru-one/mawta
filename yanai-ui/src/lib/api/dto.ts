@@ -5,7 +5,6 @@
 // ---- shared enums ----
 
 export type SessionStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'rescheduled';
-export type AttendanceStatus = 'present' | 'late' | 'absent' | 'excused' | 'justified';
 export type ScoreStatus = 'graded' | 'excused' | 'absent' | 'not_submitted';
 export type AssessmentKind =
 	| 'quiz'
@@ -40,29 +39,44 @@ export type MeDto = {
 
 // ---- home ----
 
+// The server also sends `icon_key` and `is_tutoria` on every home entry; the
+// agenda renders neither, so neither is declared here (see Conventions).
 export type HomeTodayDto = {
 	class_id: string;
 	name: string;
-	icon_key: string | null;
 	session_id: string | null;
 	scheduled_start_at: string | null;
 	scheduled_end_at: string | null;
 	status: SessionStatus | null;
+	room: string | null;
+	topic: string | null;
 };
 
-export type HomeWeekSlotDto = { weekday: number; starts_at: string; ends_at: string };
-
-export type HomeWeekDto = {
+// A dated session elsewhere in the week. Everything is present: the row exists
+// because a session does, unlike a today entry for a class with none.
+export type HomeWeekSessionDto = {
 	class_id: string;
 	name: string;
-	icon_key: string | null;
-	slots: HomeWeekSlotDto[] | null;
+	session_id: string;
+	scheduled_start_at: string;
+	scheduled_end_at: string;
+	status: SessionStatus;
+	room: string | null;
+	topic: string | null;
+};
+
+export type HomeWeekDayDto = {
+	date: string;
+	/** ISO-8601 weekday: 1 = Monday .. 7 = Sunday. */
+	weekday: number;
+	sessions: HomeWeekSessionDto[] | null;
 };
 
 export type HomeDto = {
 	date: string;
 	today: HomeTodayDto[] | null;
-	week: HomeWeekDto[] | null;
+	/** The rest of the current ISO week, one entry per day that has sessions. */
+	week: HomeWeekDayDto[] | null;
 };
 
 // ---- class panel ----
@@ -113,10 +127,13 @@ export type RosterVoiceNoteDto = {
 export type RosterEntryDto = {
 	student_id: string;
 	name: string;
-	attendance_status: AttendanceStatus | null;
 	voice_notes: RosterVoiceNoteDto[] | null;
 };
 
+// The server still sends `attendance_status` per row and `section_average_code`
+// / `attendance_marked` / `attendance_total` on the header. Nothing reads them
+// since the lesson screen became a recording screen, so they are off the DTO
+// per this folder's read-nowhere rule — the wire is unchanged.
 export type SessionRosterDto = {
 	header: {
 		session_id: string;
@@ -126,16 +143,8 @@ export type SessionRosterDto = {
 		topic: string | null;
 		session_date: string;
 		status: SessionStatus;
-		section_average_code: string | null;
-		attendance_marked: number;
-		attendance_total: number;
 	};
 	roster: RosterEntryDto[] | null;
-};
-
-export type AttendancePutDto = {
-	status: AttendanceStatus;
-	note?: string | null;
 };
 
 // ---- grades ----

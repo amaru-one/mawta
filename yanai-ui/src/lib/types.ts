@@ -6,20 +6,6 @@ import type { Tier } from './grades';
 
 // --- View models built from the API ---
 
-export type CourseStatus = 'live' | 'pending' | 'idle';
-
-// One card on the Home screen, built from GET /home.
-export type HomeCourse = {
-	id: string;
-	name: string;
-	icon: IconName;
-	schedule: string[];
-	status: CourseStatus;
-	bucket: 'today' | 'week';
-	// Today's session, when one exists — links straight into the lesson screen.
-	sessionId: string | null;
-};
-
 export type Course = {
 	id: string;
 	name: string; // "Math 8B"
@@ -41,19 +27,16 @@ export type Session = {
 	topic: string | null;
 	date: Date;
 	status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'rescheduled';
-	// MINEDU level code (AD/A/B/C) averaged across the section, when computed.
-	sectionAverageCode: string | null;
 };
 
-export type Attendance = 'present' | 'absent';
-
-// One entry per student per session, built from the session roster.
+// One entry per student per session, built from the session roster. It carries
+// no attendance: the lesson screen is a recording screen and nothing in the app
+// captures asistencia any more (see the route's SPEC.md).
 export type Entry = {
 	// Natural key `${sessionId}:${studentId}` — the server has no entry id.
 	id: string;
 	sessionId: string;
 	studentId: string;
-	attendance: Attendance | null;
 	notes: Note[];
 };
 

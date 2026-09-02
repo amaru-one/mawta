@@ -21,6 +21,12 @@
 		/** Home shows a larger avatar and a logout shortcut. */
 		variant?: 'default' | 'home';
 		showBell?: boolean;
+		/**
+		 * A recording is in progress: the bell is replaced by a blinking marker.
+		 * It takes the bell's slot rather than being layered over the bar by the
+		 * screen, so nothing has to absolutely position over another component.
+		 */
+		recording?: boolean;
 	}
 
 	let {
@@ -28,7 +34,8 @@
 		useHistory = false,
 		title,
 		variant = 'default',
-		showBell = true
+		showBell = true,
+		recording = false,
 	}: Props = $props();
 
 	function onBack(event: MouseEvent): void {
@@ -64,7 +71,12 @@
 		</a>
 	{/if}
 
-	{#if showBell}
+	{#if recording}
+		<span class="rec" role="status" aria-label="Grabando">
+			<span class="rec-dot"></span>
+			<span class="rec-label">REC</span>
+		</span>
+	{:else if showBell}
 		<a
 			class="nav bell pressable"
 			href="/notifications"
@@ -151,6 +163,44 @@
 
 	.bell {
 		position: relative;
+	}
+
+	/* Takes the bell's slot while a recording is running. */
+	.rec {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		flex-shrink: 0;
+	}
+
+	.rec-dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: var(--fill-accent);
+		animation: rec-blink 700ms ease-in-out infinite;
+	}
+
+	.rec-label {
+		font-family: var(--font-mono);
+		font-size: 10px;
+		letter-spacing: 0.08em;
+	}
+
+	@keyframes rec-blink {
+		0%,
+		100% {
+			opacity: 0.5;
+		}
+		50% {
+			opacity: 1;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rec-dot {
+			animation: none;
+		}
 	}
 
 	/* The unread marker is an assistant signal, hence the accent. */

@@ -5,29 +5,20 @@
 
 import { get } from 'svelte/store';
 import { ApiError, fetchAudioBlob, list } from './api/client';
-import type { AttendanceStatus, RosterEntryDto, SessionRosterDto } from './api/dto';
+import type { RosterEntryDto, SessionRosterDto } from './api/dto';
 import {
 	createVoiceNote,
 	discardVoiceNote,
 	getSession,
-	markAllPresent as apiMarkAllPresent,
-	putAttendance,
 	saveVoiceNote,
 	startSession,
 } from './api/endpoints/sessions';
 import { parseDateOnly, splitDisplayName } from './api/mappers';
 import { currentCourse, currentSession, entries, entryKey, notes, students } from './stores';
 import { showToast } from './toast';
-import type { Attendance, Entry, Note, Session, Student } from './types';
+import type { Entry, Note, Session, Student } from './types';
 
 const SAVE_ERROR = 'No se pudo guardar — revisa tu conexión';
-
-// The UI keeps attendance binary; the server's late/excused/justified statuses
-// collapse into the nearest bucket and are overwritten if the teacher toggles.
-function toAttendance(status: AttendanceStatus | null): Attendance | null {
-	if (status === null) return null;
-	return status === 'present' || status === 'late' ? 'present' : 'absent';
-}
 
 function toEntry(sessionId: string, dto: RosterEntryDto): { entry: Entry; noteList: Note[] } {
 	const id = entryKey(sessionId, dto.student_id);
@@ -42,13 +33,7 @@ function toEntry(sessionId: string, dto: RosterEntryDto): { entry: Entry; noteLi
 			status: n.status === 'saved' ? 'saved' : 'draft',
 		}));
 	return {
-		entry: {
-			id,
-			sessionId,
-			studentId: dto.student_id,
-			attendance: toAttendance(dto.attendance_status),
-			notes: noteList,
-		},
+		entry: { id, sessionId, studentId: dto.student_id, notes: noteList },
 		noteList,
 	};
 }
@@ -62,7 +47,6 @@ function applyRoster(sessionId: string, dto: SessionRosterDto): void {
 		topic: h.topic,
 		date: parseDateOnly(h.session_date),
 		status: h.status,
-		sectionAverageCode: h.section_average_code,
 	};
 	currentSession.set(session);
 	currentCourse.set({ id: h.class_id, name: h.class_name });
@@ -96,83 +80,6 @@ export async function loadSession(sessionId: string): Promise<void> {
 			.catch(() => {
 				// A parallel device may have started it already; harmless.
 			});
-	}
-}
-
-// --- entry mutations (optimistic, revert on server rejection) ---
-
-function patchEntry(studentId: string, patch: Partial<Entry>): Entry | null {
-	const session = get(currentSession);
-	if (!session) return null;
-	const key = entryKey(session.id, studentId);
-	let previous: Entry | null = null;
-	entries.update(($entries) => {
-		const entry = $entries.get(key);
-		if (!entry) return $entries;
-		previous = entry;
-		$entries.set(key, { ...entry, ...patch });
-		return new Map($entries);
-	});
-	return previous;
-}
-
-function restoreEntry(previous: Entry): void {
-	entries.update(($entries) => {
-		$entries.set(previous.id, previous);
-		return new Map($entries);
-	});
-}
-
-function runMutation(previous: Entry | null, call: Promise<unknown>): void {
-	void call.catch((err: unknown) => {
-		if (previous) restoreEntry(previous);
-		showToast(err instanceof ApiError && err.hint ? err.hint : SAVE_ERROR);
-	});
-}
-
-export function setAttendance(studentId: string, value: Attendance): void {
-	const session = get(currentSession);
-	if (!session) return;
-	const previous = patchEntry(studentId, { attendance: value });
-	runMutation(previous, putAttendance(session.id, studentId, { status: value }));
-}
-
-// --- mark all present ---
-
-export function anyUnmarked(): boolean {
-	for (const entry of get(entries).values()) {
-		if (entry.attendance === null) return true;
-	}
-	return false;
-}
-
-// Attendance is a register: the server upserts but never unsets, so there is
-// no "clear all" and no undo — matching the API's append-only philosophy.
-export async function markAllPresent(): Promise<number> {
-	const session = get(currentSession);
-	if (!session) return 0;
-
-	const before = new Map<string, Entry>();
-	entries.update(($entries) => {
-		for (const [key, entry] of $entries) {
-			if (entry.attendance === null) {
-				before.set(key, entry);
-				$entries.set(key, { ...entry, attendance: 'present' });
-			}
-		}
-		return new Map($entries);
-	});
-
-	try {
-		const { marked } = await apiMarkAllPresent(session.id);
-		return marked;
-	} catch {
-		entries.update(($entries) => {
-			for (const [key, entry] of before) $entries.set(key, entry);
-			return new Map($entries);
-		});
-		showToast(SAVE_ERROR);
-		return 0;
 	}
 }
 

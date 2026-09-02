@@ -15,6 +15,7 @@ Compiled by Vite/SvelteKit into the static build.
 - Styling is plain CSS in `app.css` + component `<style>` blocks; no CSS framework.
 
 ## Change Log
+- 2026-09-02: `app.css` lost `.circ` and `@keyframes record-pulse`, whose sole consumer was the deleted `MicButton.svelte`, and `@keyframes ripple`, which was **already orphaned before this change** — nothing had referenced it for some time; it went out with the pass that made it visible. Cascade from `lib/components/`.
 - 2026-08-29: Dropped `.part` / `.part span` (the lesson roster's participation dots) and `@keyframes pulse-scale`, its only animation, from `app.css` — the control they styled is gone. Cascade from `lib/components/`.
 - 2026-08-27: Added the missing `a` reset to `app.css`. Anchors had been rendering with the browser default blue underline wherever a route styled the row but not the link colour — visible on the class dashboard's nav rows. `button` already had the equivalent reset; `a` had simply been overlooked.
 - 2026-08-24: Initial spec created retroactively, describing current contents.

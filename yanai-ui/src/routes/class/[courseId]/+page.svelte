@@ -7,9 +7,13 @@
 		ClassDashboardDto,
 		CompetencyCriteriaDto,
 		GradingComponentDto,
-		SessionSummaryDto
+		SessionSummaryDto,
 	} from '$lib/api/dto';
-	import { createAssessment, getClassDashboard, getGradingComponents } from '$lib/api/endpoints/classes';
+	import {
+		createAssessment,
+		getClassDashboard,
+		getGradingComponents,
+	} from '$lib/api/endpoints/classes';
 	import { getClassCriteria } from '$lib/api/endpoints/criteria';
 	import { formatTimeHHMM, parseDateOnly } from '$lib/api/mappers';
 	import AddEvidenceDialog from '$lib/components/AddEvidenceDialog.svelte';
@@ -37,7 +41,7 @@
 			const [dashboard, components, crits] = await Promise.all([
 				getClassDashboard(courseId),
 				getGradingComponents(courseId),
-				getClassCriteria(courseId)
+				getClassCriteria(courseId),
 			]);
 			d = dashboard;
 			gradingComponents = list(components.components);
@@ -48,7 +52,18 @@
 		}
 	}
 
-	onMount(load);
+	// Wall-clock reference for the hero phase label, refreshed on an interval so
+	// the "HOY · …" line flips SIN INICIAR → EN CURSO → FINALIZADA while the page
+	// stays open, without a reload.
+	let now = $state(Date.now());
+
+	onMount(() => {
+		load();
+		const id = setInterval(() => {
+			now = Date.now();
+		}, 60_000);
+		return () => clearInterval(id);
+	});
 
 	// Evidence filed from here is for the whole class — this is the screen that
 	// speaks for the class rather than for one student. A single student's
@@ -65,17 +80,25 @@
 		}
 	}
 
-	const TIER_FILL: Record<string, string> = {
-		AD: 'var(--fill-accent)',
-		A: 'var(--fill-success)',
-		B: 'var(--fill-warning)',
-		C: 'var(--fill-tier-c)'
+	type SessionPhase = 'before' | 'during' | 'after';
+
+	const PHASE_LABEL: Record<SessionPhase, string> = {
+		before: 'Sin iniciar',
+		during: 'En curso',
+		after: 'Finalizada',
 	};
 
-	const STATUS_LABEL: Record<string, string> = {
-		scheduled: 'SIN INICIAR',
-		in_progress: 'EN CURSO',
-		completed: 'FINALIZADA'
+	// Clock-derived, not status-derived. `next_session` only exists because the
+	// server query filters `status` to scheduled/in_progress; the label itself is
+	// purely where the wall clock sits between the two RFC3339 instants.
+	// new Date(ts).getTime() is safe here — these are full instants, unlike the
+	// bare `session_date` that goes through parseDateOnly.
+	const sessionPhase = (s: SessionSummaryDto, ref: number): SessionPhase => {
+		const start = new Date(s.scheduled_start_at).getTime();
+		const end = new Date(s.scheduled_end_at).getTime();
+		if (ref < start) return 'before';
+		if (ref > end) return 'after';
+		return 'during';
 	};
 
 	const timeRange = (s: SessionSummaryDto): string =>
@@ -85,11 +108,11 @@
 		const date = parseDateOnly(s.session_date);
 		return {
 			day: String(date.getDate()),
-			month: date.toLocaleDateString('es-PE', { month: 'short' }).replace('.', '').toUpperCase()
+			month: date.toLocaleDateString('es-PE', { month: 'short' }).replace('.', '').toUpperCase(),
 		};
 	};
 
-	const pastChips =(s: SessionSummaryDto): Array<{ text: string; tone: 'ok' | 'bad' }> => {
+	const pastChips = (s: SessionSummaryDto): Array<{ text: string; tone: 'ok' | 'bad' }> => {
 		const chips: Array<{ text: string; tone: 'ok' | 'bad' }> = [];
 		if (s.present_count != null && s.roster_count != null) {
 			chips.push({ text: `${s.present_count}/${s.roster_count} presente`, tone: 'ok' });
@@ -112,115 +135,107 @@
 
 <div class="body">
 	{#if ready && d}
-		<p class="title">{d.name}</p>
-		<p class="subtitle">{d.roster_count} alumnos · {d.sessions_per_week} sesiones/semana</p>
+		<h1 class="clsname">{d.name}</h1>
+		<span class="clscount">{d.roster_count} alumnos · {d.sessions_per_week} sesiones/semana</span>
 
 		{#if d.next_session}
-			<div class="today">
-				<p class="today-label">HOY · {STATUS_LABEL[d.next_session.status] ?? ''}</p>
-				<p class="today-time">{timeRange(d.next_session)}</p>
-				<p class="today-topic">
-					{d.next_session.topic ? `Lección: ${d.next_session.topic}` : 'Sin tema asignado'}
+			{@const ns = d.next_session}
+			{@const phase = sessionPhase(ns, now)}
+			<div class="hero">
+				<p class="hero-lbl">Hoy · {PHASE_LABEL[phase]}</p>
+				<p class="hero-time">{formatTimeHHMM(ns.scheduled_start_at)}</p>
+				<p class="hero-topic">
+					{ns.topic ?? 'Sin tema asignado'} · termina {formatTimeHHMM(ns.scheduled_end_at)}
 				</p>
 				<a
-					class="start pressable"
-					href="/class/{courseId}/lesson/{d.next_session.session_id}"
+					class="hero-start pressable"
+					href="/class/{courseId}/lesson/{ns.session_id}"
 					onclick={hapticTap}
 				>
-					Iniciar clase →
+					Ver alumnos
+					<Icon name="arrow-right" size={20} />
 				</a>
 			</div>
 		{/if}
 
-		{#if list(d.distribution).length > 0}
-			<div class="card section">
-				<p class="section-title">Distribución de logros</p>
-				<div class="bar">
-					{#each list(d.distribution) as slice (slice.code)}
-						<div style="flex:{slice.count};background:{TIER_FILL[slice.code] ?? 'var(--border)'}"></div>
-					{/each}
-				</div>
-				<div class="legend">
-					{#each list(d.distribution) as slice (slice.code)}
-						<div class="row legend-item">
-							<span
-								class="legend-dot"
-								class:outlined={slice.code === 'C'}
-								style="background:{TIER_FILL[slice.code] ?? 'var(--border)'}"
-							></span>
-							<span>{slice.code} · {slice.count}</span>
-						</div>
-					{/each}
-				</div>
-			</div>
-		{/if}
-
-		<div class="card section">
+		<nav class="quiet">
 			<a
-				class="row list-row"
+				class="quiet-row pressable"
 				href="/class/{courseId}/criteria?course={encodeURIComponent(d.name)}"
 				onclick={hapticTap}
 			>
-				<span class="icon-tile"><Icon name="clipboard-check" size={18} /></span>
-				<div class="grow">
-					<p class="list-title">Criterios de evaluación</p>
-					<p class="list-detail">Lo que valoras en cada competencia</p>
-				</div>
-				<span class="chevron"><Icon name="chevron-right" size={16} /></span>
+				<span class="quiet-t">
+					Criterios de evaluación
+					<span class="quiet-d">Lo que valoras en cada competencia</span>
+				</span>
+				<span class="chevron"><Icon name="chevron-right" size={18} /></span>
 			</a>
-			<div class="divider"></div>
-			<button type="button" class="row list-row pressable" onclick={() => (showAddEvidence = true)}>
-				<span class="icon-tile"><Icon name="plus" size={18} /></span>
-				<div class="grow">
-					<p class="list-title">Añadir evidencia</p>
-					<p class="list-detail">Para toda la clase — la nota se pone por alumno</p>
-				</div>
+			<button type="button" class="quiet-row pressable" onclick={() => (showAddEvidence = true)}>
+				<span class="quiet-t">
+					Añadir evidencia
+					<span class="quiet-d">Para toda la clase — la nota se pone por alumno</span>
+				</span>
+				<span class="chevron"><Icon name="plus" size={18} /></span>
 			</button>
-		</div>
+		</nav>
 
 		{#if list(d.upcoming).length > 0}
-			<p class="eyebrow">PRÓXIMAS CLASES</p>
-			<div class="session-scroll">
+			<p class="eyebrow">Próximas clases</p>
+			<div class="hscroll">
 				{#each list(d.upcoming) as s (s.session_id)}
 					{@const dp = dateParts(s)}
-					<div class="card mini-session">
-						<p class="mini-date">{dp.day} {dp.month}</p>
-						<p class="mini-title">{s.topic ?? 'Clase'}</p>
-						<p class="mini-detail">{timeRange(s)}</p>
-					</div>
+					<a
+						class="lcard pressable"
+						href="/class/{courseId}/lesson/{s.session_id}"
+						onclick={hapticTap}
+					>
+						<span class="lcard-date">
+							<span class="lcard-day">{dp.day}</span>
+							<span class="lcard-mon">{dp.month}</span>
+						</span>
+						<span class="lcard-info">
+							<span class="lcard-topic">{s.topic ?? 'Clase'}</span>
+							<span class="lcard-sub">{timeRange(s)}</span>
+						</span>
+					</a>
 				{/each}
 			</div>
 		{/if}
 
 		{#if list(d.past).length > 0}
-			<p class="eyebrow">CLASES ANTERIORES</p>
-			<div class="session-scroll">
+			<p class="eyebrow">Clases anteriores</p>
+			<div class="hscroll">
 				{#each list(d.past) as s (s.session_id)}
 					{@const dp = dateParts(s)}
 					<a
-						class="card mini-session mini-session-link"
+						class="lcard pressable"
 						href="/class/{courseId}/lesson/{s.session_id}"
 						onclick={hapticTap}
 					>
-						<p class="mini-date">{dp.day} {dp.month}</p>
-						<p class="mini-title tight">{s.topic ?? 'Clase'}</p>
-						<div class="chips">
-							{#each pastChips(s) as chip (chip.text)}
-								<span
-									class="chip"
-									class:chip-ok={chip.tone === 'ok'}
-									class:chip-bad={chip.tone === 'bad'}
-								>
-									{chip.text}
-								</span>
-							{/each}
-						</div>
+						<span class="lcard-date">
+							<span class="lcard-day">{dp.day}</span>
+							<span class="lcard-mon">{dp.month}</span>
+						</span>
+						<span class="lcard-info">
+							<span class="lcard-topic">{s.topic ?? 'Clase'}</span>
+							<span class="chips">
+								{#each pastChips(s) as chip (chip.text)}
+									<span
+										class="chip"
+										class:chip-ok={chip.tone === 'ok'}
+										class:chip-bad={chip.tone === 'bad'}
+									>
+										{chip.text}
+									</span>
+								{/each}
+							</span>
+						</span>
 					</a>
 				{/each}
 			</div>
 		{/if}
 	{:else if loadError}
-		<p class="subtitle">
+		<p class="clscount">
 			No se pudo cargar el panel.
 			<button class="pill-light pressable" onclick={load}>Reintentar</button>
 		</p>
@@ -239,180 +254,189 @@
 {/if}
 
 <style>
-	.title {
-		margin: 0;
-		font-weight: 500;
-		font-size: 20px;
+	/* This screen sets its own gutter: the session rails bleed to the phone edge
+	   by cancelling it with a negative margin, so the number has to be known here
+	   rather than inherited from the global .body padding. */
+	.body {
+		padding: 22px 18px 30px;
 	}
 
-	.subtitle {
-		margin: 2px 0 var(--space-lg);
-		font-size: 13px;
-		color: var(--text-secondary);
-	}
-
-
-
-	.today {
-		background: var(--text-primary);
-		border-radius: var(--radius-lg);
-		padding: var(--space-lg);
-		margin-bottom: 20px;
-	}
-
-	.today-label {
-		margin: 0 0 var(--space-sm);
+	/* Section labels here are smaller, bolder and wider-tracked than the app-wide
+	   .eyebrow, and are uppercased by CSS rather than in the markup. */
+	.eyebrow {
+		margin: 0 0 12px;
 		font-size: 11px;
-		letter-spacing: 0.05em;
-		color: var(--surface-1);
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+
+	.clsname {
+		margin: 0;
+		font-size: 30px;
+		font-weight: 600;
+		letter-spacing: -0.02em;
+		line-height: 1.12;
+	}
+
+	.clscount {
+		display: block;
+		margin-top: 8px;
+		font-size: 13px;
+		color: var(--text-muted);
 		font-family: var(--font-mono);
 	}
 
-	.today-time {
+	/* Hero — today's session. The block itself is plain; the button is the only
+	   dark element on the screen, which is what makes it the one obvious action. */
+	.hero {
+		margin: 32px 0 8px;
+	}
+
+	.hero-lbl {
+		margin: 0 0 14px;
+		font-size: 12px;
+		letter-spacing: 0.12em;
+		color: var(--text-muted);
+		font-family: var(--font-mono);
+		text-transform: uppercase;
+	}
+
+	.hero-time {
 		margin: 0;
-		font-weight: 500;
-		font-size: 18px;
-		color: var(--surface-2);
+		font-size: 40px;
+		font-weight: 600;
+		letter-spacing: -0.02em;
+		line-height: 1;
 	}
 
-	.today-topic {
-		margin: 2px 0 var(--space-lg);
-		font-size: 13px;
-		color: var(--surface-1);
-	}
-
-	.start {
-		display: block;
-		width: 100%;
-		background: var(--surface-2);
-		color: var(--text-primary);
-		padding: var(--space-md);
-		border-radius: var(--radius);
-		font-size: 14px;
-		font-weight: 500;
-		text-align: center;
-		text-decoration: none;
-	}
-
-	.section {
-		padding: 14px var(--space-lg);
-		margin-bottom: var(--space-lg);
-	}
-
-	.section-title {
-		margin: 0 0 10px;
-		font-size: 13px;
-		font-weight: 500;
-	}
-
-
-
-
-	.bar {
-		display: flex;
-		width: 100%;
-		height: 10px;
-		border-radius: 6px;
-		overflow: hidden;
-	}
-
-	.legend {
-		display: flex;
-		justify-content: space-between;
-		margin-top: 10px;
-	}
-
-	.legend-item {
-		gap: 5px;
-		font-size: 11px;
+	.hero-topic {
+		margin: 12px 0 28px;
+		font-size: 17px;
 		color: var(--text-secondary);
 	}
 
-	.legend-dot {
-		width: 8px;
-		height: 8px;
-		border-radius: 50%;
-	}
-
-	.legend-dot.outlined {
-		border: 1px solid var(--border-strong);
-	}
-
-	.list-row {
+	.hero-start {
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		gap: 10px;
-		padding: var(--space-sm) 0;
+		width: 100%;
+		background: var(--text-primary);
+		color: var(--on-primary);
+		padding: 20px;
+		border-radius: 14px;
+		font-size: 19px;
+		font-weight: 600;
 	}
 
-	/* The one row that acts instead of navigating. A <button> does not get the
-	   full width and left alignment an <a> gets for free in this card. */
-	button.list-row {
+	/* Quiet nav list — hairline-ruled rows, top and bottom. */
+	.quiet {
+		margin-top: 16px;
+		margin-bottom: 34px;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.quiet-row {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 20px 4px;
+		color: inherit;
+		border-bottom: 0.5px solid var(--border);
+		/* A <button> does not get full width or left alignment from the row layout
+		   the way an <a> does — the second row is the "Añadir evidencia" action. */
 		width: 100%;
 		text-align: left;
 	}
 
-	.grow {
+	.quiet-row:first-child {
+		border-top: 0.5px solid var(--border);
+	}
+
+	.quiet-t {
+		flex: 1;
+		font-size: 17px;
+		font-weight: 500;
+	}
+
+	.quiet-d {
+		display: block;
+		margin-top: 2px;
+		font-size: 13px;
+		font-weight: 400;
+		color: var(--text-muted);
+	}
+
+	.chevron {
+		display: flex;
+		flex-shrink: 0;
+		color: var(--text-muted);
+	}
+
+	/* Session rails — bleed past the body gutter so a card can sit half-cut at the
+	   edge, which is what tells you the row scrolls. */
+	.hscroll {
+		display: flex;
+		gap: 12px;
+		overflow-x: auto;
+		padding: 0 18px 8px;
+		margin: 0 -18px 30px;
+		scroll-snap-type: x proximity;
+	}
+
+	.hscroll::-webkit-scrollbar {
+		height: 0;
+	}
+
+	.lcard {
+		display: flex;
+		gap: 16px;
+		min-width: 210px;
+		flex: 0 0 auto;
+		scroll-snap-align: start;
+		padding: 16px;
+		border: 0.5px solid var(--border);
+		border-radius: 14px;
+		color: inherit;
+	}
+
+	.lcard-date {
+		width: 46px;
+		flex-shrink: 0;
+		text-align: center;
+	}
+
+	.lcard-day {
+		display: block;
+		font-size: 24px;
+		font-weight: 600;
+		line-height: 1;
+	}
+
+	.lcard-mon {
+		font-size: 11px;
+		color: var(--text-muted);
+		font-family: var(--font-mono);
+	}
+
+	.lcard-info {
 		flex: 1;
 		min-width: 0;
 	}
 
-
-	.list-title {
-		margin: 0;
-		font-size: 14px;
-	}
-
-	.list-detail {
-		margin: 0;
-		font-size: 12px;
-		color: var(--text-secondary);
-	}
-
-
-	.chevron {
-		color: var(--text-muted);
-		display: flex;
-		flex-shrink: 0;
-	}
-
-	.session-scroll {
-		display: flex;
-		gap: 10px;
-		overflow-x: auto;
-		padding-bottom: 4px;
-		margin-bottom: 20px;
-	}
-
-	.mini-session {
-		min-width: 120px;
-		flex-shrink: 0;
-		padding: var(--space-md) var(--space-lg);
-		color: inherit;
-		text-decoration: none;
-	}
-
-	.mini-session-link {
-		min-width: 150px;
-	}
-
-	.mini-date {
-		margin: 0;
-		font-size: 10px;
-		color: var(--text-muted);
-	}
-
-	.mini-title {
-		margin: 6px 0 0;
-		font-size: 13px;
+	.lcard-topic {
+		display: block;
+		font-size: 16px;
 		font-weight: 500;
+		line-height: 1.25;
 	}
 
-	.mini-title.tight {
-		margin-bottom: var(--space-xs);
-	}
-
-	.mini-detail {
-		margin: 2px 0 0;
-		font-size: 11px;
+	.lcard-sub {
+		display: block;
+		margin-top: 4px;
+		font-size: 13px;
 		color: var(--text-secondary);
 	}
 
@@ -420,5 +444,12 @@
 		display: flex;
 		gap: 6px;
 		flex-wrap: wrap;
+		margin-top: 10px;
+	}
+
+	/* Slightly roomier than the app-wide .chip, and never wrapped mid-chip. */
+	.chip {
+		padding: 3px 9px;
+		white-space: nowrap;
 	}
 </style>

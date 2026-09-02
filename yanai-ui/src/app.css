@@ -314,17 +314,6 @@ select {
 	flex-shrink: 0;
 }
 
-/* Round icon action (flag, mic). */
-.circ {
-	width: 26px;
-	height: 26px;
-	border-radius: 50%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-shrink: 0;
-}
-
 /* Mono metadata line — timestamps, counts, version. */
 .meta {
 	font-size: 11px;
@@ -348,25 +337,4 @@ select {
 .pressable:active {
 	transform: scale(0.95);
 	opacity: 0.9;
-}
-
-@keyframes ripple {
-	0% {
-		transform: scale(0);
-		opacity: 0.6;
-	}
-	100% {
-		transform: scale(4);
-		opacity: 0;
-	}
-}
-
-@keyframes record-pulse {
-	0%,
-	100% {
-		opacity: 0.6;
-	}
-	50% {
-		opacity: 1;
-	}
 }

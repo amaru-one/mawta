@@ -1,11 +1,5 @@
 import { apiGet, apiSend, apiUpload } from '../client';
-import type {
-	AttendancePutDto,
-	AttendanceStatus,
-	SessionRosterDto,
-	SessionStatus,
-	VoiceNoteStatus,
-} from '../dto';
+import type { SessionRosterDto, SessionStatus, VoiceNoteStatus } from '../dto';
 
 export function getSession(sessionId: string, q?: string): Promise<SessionRosterDto> {
 	const qs = q ? `?q=${encodeURIComponent(q)}` : '';
@@ -16,21 +10,9 @@ export function startSession(sessionId: string): Promise<{ status: SessionStatus
 	return apiSend<{ status: SessionStatus }>('POST', `/sessions/${sessionId}/start`);
 }
 
-export function putAttendance(
-	sessionId: string,
-	studentId: string,
-	body: AttendancePutDto
-): Promise<{ status: AttendanceStatus }> {
-	return apiSend<{ status: AttendanceStatus }>(
-		'PUT',
-		`/sessions/${sessionId}/attendance/${studentId}`,
-		body
-	);
-}
-
-export function markAllPresent(sessionId: string): Promise<{ marked: number }> {
-	return apiSend<{ marked: number }>('POST', `/sessions/${sessionId}/attendance/mark-all-present`);
-}
+// The two attendance routes (PUT .../attendance/{studentID} and
+// POST .../attendance/mark-all-present) are live server-side and deliberately
+// have no wrapper here — see this folder's SPEC.md.
 
 export function createVoiceNote(
 	sessionId: string,

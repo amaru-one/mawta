@@ -21,8 +21,17 @@
 		<path d="M5 12l6 6" />
 		<path d="M5 12l6-6" />
 	</symbol>
+	<symbol id="i-arrow-right" viewBox="0 0 24 24">
+		<path d="M5 12h14" />
+		<path d="M19 12l-6 6" />
+		<path d="M19 12l-6-6" />
+	</symbol>
 	<symbol id="i-chevron-right" viewBox="0 0 24 24">
 		<path d="M9 6l6 6-6 6" />
+	</symbol>
+	<symbol id="i-x" viewBox="0 0 24 24">
+		<path d="M6 6l12 12" />
+		<path d="M18 6L6 18" />
 	</symbol>
 	<symbol id="i-calculator" viewBox="0 0 24 24">
 		<rect x="4" y="3" width="16" height="18" rx="2" />
@@ -60,10 +69,6 @@
 		<path d="M14 19l2 2 4-4" />
 		<path d="M9 8h4" />
 		<path d="M9 12h2" />
-	</symbol>
-	<symbol id="i-circle-check" viewBox="0 0 24 24">
-		<circle cx="12" cy="12" r="9" />
-		<path d="M9 12l2 2 4-4" />
 	</symbol>
 	<symbol id="i-mic" viewBox="0 0 24 24">
 		<rect x="9" y="2" width="6" height="11" rx="3" />

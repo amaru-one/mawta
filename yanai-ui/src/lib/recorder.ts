@@ -2,6 +2,14 @@
 // The mic stream is kept warm after the first grant so subsequent
 // recordings start instantly.
 
+/**
+ * Hard cap on a voice note, in seconds. The server enforces the same number,
+ * so this is a recording fact rather than a view one — it lives here because
+ * both the control that stops at the cap and the screen that counts down to it
+ * need to agree with the server.
+ */
+export const MAX_RECORD_SEC = 60;
+
 let stream: MediaStream | null = null;
 
 async function getStream(): Promise<MediaStream | null> {

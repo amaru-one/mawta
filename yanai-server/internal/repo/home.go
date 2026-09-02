@@ -29,23 +29,32 @@ type HomeTodayEntry struct {
 	ScheduledStartAt *time.Time `json:"scheduled_start_at"`
 	ScheduledEndAt   *time.Time `json:"scheduled_end_at"`
 	Status           *string    `json:"status"`
+	Room             *string    `json:"room"`
+	Topic            *string    `json:"topic"`
 }
 
-type ScheduleSlot struct {
-	Weekday  int16  `json:"weekday"`
-	StartsAt string `json:"starts_at"`
-	EndsAt   string `json:"ends_at"`
-}
-
-type HomeWeekEntry struct {
+// One dated session elsewhere in the week. Unlike HomeTodayEntry every field is
+// present: these rows exist because a class_sessions row does.
+type HomeWeekSession struct {
 	HomeClass
-	Slots []ScheduleSlot `json:"slots"`
+	SessionID        uuid.UUID `json:"session_id"`
+	ScheduledStartAt time.Time `json:"scheduled_start_at"`
+	ScheduledEndAt   time.Time `json:"scheduled_end_at"`
+	Status           string    `json:"status"`
+	Room             *string   `json:"room"`
+	Topic            *string   `json:"topic"`
+}
+
+type HomeWeekDay struct {
+	Date     string            `json:"date"`
+	Weekday  int16             `json:"weekday"`
+	Sessions []HomeWeekSession `json:"sessions"`
 }
 
 type HomeResponse struct {
 	Date  string           `json:"date"`
 	Today []HomeTodayEntry `json:"today"`
-	Week  []HomeWeekEntry  `json:"week"`
+	Week  []HomeWeekDay    `json:"week"`
 }
 
 // myClasses returns the teacher's active classes as of date d.
@@ -96,8 +105,11 @@ func GetHome(ctx context.Context, tx pgx.Tx, teacherID uuid.UUID, d time.Time) (
 		byID[c.ClassID] = c
 	}
 
+	// Status is deliberately not filtered: home shows the day as it stands,
+	// cancelled and finished sessions included. The client renders those states,
+	// it does not hide them.
 	rows, err := tx.Query(ctx, `
-		select class_id, id, scheduled_start_at, scheduled_end_at, status
+		select class_id, id, scheduled_start_at, scheduled_end_at, status, room, topic
 		  from class_sessions
 		 where class_id = any($1) and session_date = $2 and deleted_at is null
 		 order by scheduled_start_at
@@ -105,72 +117,69 @@ func GetHome(ctx context.Context, tx pgx.Tx, teacherID uuid.UUID, d time.Time) (
 	if err != nil {
 		return resp, err
 	}
-	todaySeen := make(map[uuid.UUID]bool)
 	for rows.Next() {
 		var classID, sessionID uuid.UUID
 		var start, end time.Time
 		var status string
-		if err := rows.Scan(&classID, &sessionID, &start, &end, &status); err != nil {
+		var room, topic *string
+		if err := rows.Scan(&classID, &sessionID, &start, &end, &status, &room, &topic); err != nil {
 			rows.Close()
 			return resp, err
 		}
 		resp.Today = append(resp.Today, HomeTodayEntry{
 			HomeClass: byID[classID], SessionID: &sessionID,
 			ScheduledStartAt: &start, ScheduledEndAt: &end, Status: &status,
+			Room: room, Topic: topic,
 		})
-		todaySeen[classID] = true
 	}
 	rows.Close()
 	if err := rows.Err(); err != nil {
 		return resp, err
 	}
 
-	var remaining []uuid.UUID
-	for _, id := range classIDs {
-		if !todaySeen[id] {
-			remaining = append(remaining, id)
-		}
-	}
-	if len(remaining) == 0 {
-		return resp, nil
-	}
-
+	// The rest of the ISO week (date_trunc('week') starts Monday, which is the
+	// weekday convention the schema uses throughout) as concrete dated sessions
+	// rather than the recurring class_schedules pattern. A class that
+	// also meets today appears in both buckets — the week is an agenda of days,
+	// not a list of classes the teacher has not seen yet.
 	rows, err = tx.Query(ctx, `
-		select class_id, weekday, to_char(starts_at, 'HH24:MI'), to_char(ends_at, 'HH24:MI')
-		  from class_schedules
-		 where class_id = any($1)
-		   and effective_from <= $2
-		   and (effective_to is null or effective_to > $2)
-		   and deleted_at is null
-		 order by class_id, weekday, starts_at
-	`, remaining, d)
+		select cs.class_id, cs.id, cs.session_date,
+		       extract(isodow from cs.session_date)::smallint,
+		       cs.scheduled_start_at, cs.scheduled_end_at, cs.status, cs.room, cs.topic
+		  from class_sessions cs
+		 where cs.class_id = any($1)
+		   and cs.deleted_at is null
+		   and cs.session_date >= date_trunc('week', $2::date)::date
+		   and cs.session_date <  date_trunc('week', $2::date)::date + 7
+		   and cs.session_date <> $2
+		 order by cs.session_date, cs.scheduled_start_at
+	`, classIDs, d)
 	if err != nil {
 		return resp, err
 	}
 	defer rows.Close()
 
-	weekByClass := make(map[uuid.UUID]*HomeWeekEntry)
-	var order []uuid.UUID
 	for rows.Next() {
 		var classID uuid.UUID
-		var slot ScheduleSlot
-		if err := rows.Scan(&classID, &slot.Weekday, &slot.StartsAt, &slot.EndsAt); err != nil {
+		var date time.Time
+		var weekday int16
+		var s HomeWeekSession
+		if err := rows.Scan(&classID, &s.SessionID, &date, &weekday,
+			&s.ScheduledStartAt, &s.ScheduledEndAt, &s.Status, &s.Room, &s.Topic); err != nil {
 			return resp, err
 		}
-		entry, ok := weekByClass[classID]
-		if !ok {
-			hc := byID[classID]
-			entry = &HomeWeekEntry{HomeClass: hc}
-			weekByClass[classID] = entry
-			order = append(order, classID)
+		s.HomeClass = byID[classID]
+
+		// Rows arrive ordered by date, so a new day is always the last one.
+		day := date.Format("2006-01-02")
+		if n := len(resp.Week); n == 0 || resp.Week[n-1].Date != day {
+			resp.Week = append(resp.Week, HomeWeekDay{Date: day, Weekday: weekday})
 		}
-		entry.Slots = append(entry.Slots, slot)
+		last := &resp.Week[len(resp.Week)-1]
+		last.Sessions = append(last.Sessions, s)
 	}
 	if err := rows.Err(); err != nil {
 		return resp, err
-	}
-	for _, id := range order {
-		resp.Week = append(resp.Week, *weekByClass[id])
 	}
 	return resp, nil
 }
