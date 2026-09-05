@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -78,14 +79,18 @@ func (a *API) handleGradingComponents(w http.ResponseWriter, r *http.Request) {
 // class. CriterionIDs are the criterios de evaluación it speaks to — evidence
 // for the teacher's judgement, never rolled up into a level.
 type createAssessmentRequest struct {
-	Title         string   `json:"title"`
-	Kind          string   `json:"kind"`
-	ComponentCode string   `json:"component_code"`
-	MaxScore      float64  `json:"max_score"`
-	DueAt         *string  `json:"due_at"`
-	TermID        *string  `json:"term_id"`
-	StudentID     *string  `json:"student_id"`
-	CriterionIDs  []string `json:"criterion_ids"`
+	Title         string `json:"title"`
+	Kind          string `json:"kind"`
+	ComponentCode string `json:"component_code"`
+	// ValueScale is 'numeric' (a mark out of MaxScore), 'ordinal' (a letter) or
+	// 'none' (registered, never valued). Omitted means numeric, which is what
+	// every assessment was before the column existed.
+	ValueScale   string   `json:"value_scale"`
+	MaxScore     *float64 `json:"max_score"`
+	DueAt        *string  `json:"due_at"`
+	TermID       *string  `json:"term_id"`
+	StudentID    *string  `json:"student_id"`
+	CriterionIDs []string `json:"criterion_ids"`
 	// CountsTowardInternal defaults to true when omitted — the historical
 	// behaviour, and the right one for ordinary class work. Set it false for
 	// evidence that should inform the competencia but not the school's own
@@ -105,12 +110,30 @@ func (a *API) handleCreateAssessment(w http.ResponseWriter, r *http.Request) {
 		badRequest(w, "invalid JSON body")
 		return
 	}
-	if req.Title == "" || req.ComponentCode == "" || req.MaxScore <= 0 {
-		badRequest(w, "title, component_code and max_score are required")
+	if req.Title == "" || req.ComponentCode == "" {
+		badRequest(w, "title and component_code are required")
 		return
 	}
 	if req.Kind == "" {
 		req.Kind = "otro"
+	}
+	if req.ValueScale == "" {
+		req.ValueScale = domain.ValueScaleNumeric
+	}
+	// The denominator belongs to the numeric scale and to nothing else, in both
+	// directions: a numeric piece without one is unmarkable, and a max on a
+	// letter-valued one is a number later readers would try to interpret.
+	switch req.ValueScale {
+	case domain.ValueScaleNumeric:
+		if req.MaxScore == nil || *req.MaxScore <= 0 {
+			badRequest(w, "max_score is required and must be positive for value_scale numeric")
+			return
+		}
+	case domain.ValueScaleOrdinal, domain.ValueScaleNone:
+		req.MaxScore = nil
+	default:
+		badRequest(w, "value_scale must be numeric, ordinal or none")
+		return
 	}
 
 	var termIDParam uuid.UUID
@@ -161,11 +184,16 @@ func (a *API) handleCreateAssessment(w http.ResponseWriter, r *http.Request) {
 			StudentID:    studentID,
 			Title:        req.Title,
 			Kind:         req.Kind,
+			ValueScale:   req.ValueScale,
 			MaxScore:     req.MaxScore,
 			DueAt:        req.DueAt,
 			CriterionIDs: criterionIDs,
 
-			CountsTowardInternal: req.CountsTowardInternal == nil || *req.CountsTowardInternal,
+			// Only a numeric piece can feed a weighted average at all, so the flag
+			// is forced off for the other two rather than left claiming something
+			// the recompute could never act on.
+			CountsTowardInternal: req.ValueScale == domain.ValueScaleNumeric &&
+				(req.CountsTowardInternal == nil || *req.CountsTowardInternal),
 		})
 		if err != nil {
 			return err
@@ -233,11 +261,30 @@ func (a *API) handleDeleteAssessment(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// createScoreRequest carries the value of one piece of work: RawValue for a
+// numeric assessment, Level (AD/A/B/C) for a literal one, neither for a status
+// like not_submitted. The DB rejects the wrong one for the assessment's scale.
 type createScoreRequest struct {
 	StudentID string   `json:"student_id"`
 	Status    string   `json:"status"`
 	RawValue  *float64 `json:"raw_value"`
+	Level     *string  `json:"level"`
 	LateDays  int16    `json:"late_days"`
+}
+
+// normalizeLevel upper-cases a level and checks it against the MINEDU
+// vocabulary before it reaches SQL.
+func normalizeLevel(level *string) (*string, bool) {
+	if level == nil {
+		return nil, true
+	}
+	l := strings.ToUpper(strings.TrimSpace(*level))
+	switch l {
+	case domain.LevelAD, domain.LevelA, domain.LevelB, domain.LevelC:
+		return &l, true
+	default:
+		return nil, false
+	}
 }
 
 func (a *API) handleCreateScore(w http.ResponseWriter, r *http.Request) {
@@ -260,12 +307,17 @@ func (a *API) handleCreateScore(w http.ResponseWriter, r *http.Request) {
 	if req.Status == "" {
 		req.Status = domain.ScoreGraded
 	}
+	level, ok := normalizeLevel(req.Level)
+	if !ok {
+		badRequest(w, "level must be AD, A, B or C")
+		return
+	}
 
 	var scoreID uuid.UUID
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
 		var classID, termID uuid.UUID
 		var err error
-		scoreID, classID, termID, err = repo.CreateScore(r.Context(), tx, assessmentID, studentID, tc.TeacherID, req.Status, req.RawValue, req.LateDays)
+		scoreID, classID, termID, err = repo.CreateScore(r.Context(), tx, assessmentID, studentID, tc.TeacherID, req.Status, req.RawValue, level, req.LateDays)
 		if err != nil {
 			return err
 		}
@@ -284,6 +336,7 @@ func (a *API) handleCreateScore(w http.ResponseWriter, r *http.Request) {
 
 type correctScoreRequest struct {
 	RawValue *float64 `json:"raw_value"`
+	Level    *string  `json:"level"`
 	Status   *string  `json:"status"`
 	LateDays *int16   `json:"late_days"`
 }
@@ -301,11 +354,17 @@ func (a *API) handleCorrectScore(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	level, ok := normalizeLevel(req.Level)
+	if !ok {
+		badRequest(w, "level must be AD, A, B or C")
+		return
+	}
+
 	var newScoreID uuid.UUID
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
 		var studentID, classID, termID uuid.UUID
 		var err error
-		newScoreID, studentID, classID, termID, err = repo.CorrectScore(r.Context(), tx, scoreID, tc.TeacherID, req.RawValue, req.Status, req.LateDays)
+		newScoreID, studentID, classID, termID, err = repo.CorrectScore(r.Context(), tx, scoreID, tc.TeacherID, req.RawValue, level, req.Status, req.LateDays)
 		if err != nil {
 			return err
 		}

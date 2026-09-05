@@ -149,21 +149,28 @@ export type SessionRosterDto = {
 
 // ---- grades ----
 
+/** How one piece of evidencia is valued. `ordinal` is a letter ON THAT WORK and
+ *  is not a nivel de logro: the level of a competencia is asserted separately,
+ *  after reading the whole period. Nothing converts between them. */
+export type ValueScale = 'numeric' | 'ordinal' | 'none';
+
 export type AttemptDto = {
 	score_id: string;
 	attempt_number: number;
 	status: ScoreStatus;
+	/** Set when the assessment's `value_scale` is `numeric`. */
 	raw_value: number | null;
+	/** Set when it is `ordinal`. Exactly one of the two is ever non-null. */
+	level: NivelLogro | null;
 };
 
-/** One criterio de evaluación an assessment evidences, with the level this
- *  student reached against it *on that evidence* — one cell of the evidencia ×
- *  criterio grid. `level: null` means unjudged; never render it as C. */
+/** One criterio de evaluación a piece of evidencia is tagged with: what the
+ *  teacher said to look at in this work. It carries no level — a criterio is
+ *  the ruler, never the thing marked (RVM 094-2020, 5.1.1.3 p.3). */
 export type CriterionRefDto = {
 	criterion_id: string;
 	code: string | null;
 	description: string;
-	level: NivelLogro | null;
 };
 
 /** A graded item as *evidence*. Carries no weight: under RVM 094-2020 a mark
@@ -172,7 +179,10 @@ export type EvaluationDto = {
 	assessment_id: string;
 	title: string;
 	kind: AssessmentKind;
-	max_score: number;
+	value_scale: ValueScale;
+	/** The denominator, present only when `value_scale` is `numeric`. */
+	max_score: number | null;
+	due_at: string | null;
 	component_code: string;
 	component_name: string;
 	/** True when the assessment was created for this student alone rather than
@@ -225,7 +235,10 @@ export type AssessmentCreateDto = {
 	title: string;
 	kind?: AssessmentKind;
 	component_code: string;
-	max_score: number;
+	/** Omitted means `numeric`, which every assessment was before scales existed. */
+	value_scale?: ValueScale;
+	/** Required for `numeric`, and must be omitted for the other two. */
+	max_score?: number | null;
 	due_at?: string | null;
 	term_id?: string | null;
 	/** Omitted or null files the evidence for the whole class; set, it is
@@ -248,14 +261,19 @@ export type PracticeScoreCreateDto = {
 	note?: string | null;
 };
 
+/** The value of one piece of work: `raw_value` on a numeric assessment, `level`
+ *  on a literal one, neither for a status like `not_submitted`. Sending both is
+ *  rejected — a piece of work carries one value, not two readings of it. */
 export type ScoreCreateDto = {
 	student_id: string;
 	status?: ScoreStatus;
-	raw_value: number | null;
+	raw_value?: number | null;
+	level?: NivelLogro | null;
 };
 
 export type ScoreCorrectDto = {
 	raw_value?: number | null;
+	level?: NivelLogro | null;
 	status?: ScoreStatus | null;
 };
 
@@ -349,36 +367,16 @@ export type ConclusionCreateDto = {
 };
 
 // --- Criterios de evaluación ------------------------------------------------
-// The criterios a teacher writes per competencia, and the level a student
-// reached against each one this period. These are the *evidence* the teacher
-// weighs before asserting the competency level; nothing rolls them up
-// automatically, because RVM 094-2020 makes that a judgement, not an average.
-
-/** One cell of the evidencia × criterio grid: what this student showed against
- *  one criterio, on one piece of evidence. */
-export type CriterionEvidenceDto = {
-	assessment_id: string;
-	title: string;
-	kind: AssessmentKind;
-	due_at: string | null;
-	is_personal: boolean;
-	level: NivelLogro;
-};
+// The criterios a teacher writes per competencia: what evidence is read
+// against, and what a piece of evidencia is tagged with when it is filed.
+// Criterios are NOT graded. The only judgement recorded anywhere is the nivel
+// de logro of the competencia, which the teacher asserts after reading the
+// period's evidence (RVM 094-2020, 5.1.1.3 p.2-3).
 
 export type CriterionDto = {
 	criterion_id: string;
 	code: string | null;
 	description: string;
-	// This criterio's row across the period's evidence, oldest first, when the
-	// listing is scoped to a student. Read left to right it is a trajectory —
-	// C → B → A → A is a student who learned to justify — which is why the
-	// criterio itself no longer carries a single level. Empty means nothing has
-	// been judged against it yet: a real state, never a C.
-	evidence: CriterionEvidenceDto[] | null;
-	// The legacy period-grain judgement, written before 2026-08-28 when the app
-	// still let a teacher grade a criterio with no evidence in hand. Read-only
-	// history; there is no writer for it any more.
-	period_level: NivelLogro | null;
 };
 
 export type CompetencyCriteriaDto = {
@@ -393,51 +391,28 @@ export type CompetencyCriteriaDto = {
 
 export type ClassCriteriaDto = { competencies: CompetencyCriteriaDto[] | null };
 
-// --- Evidencia × criterio grid ----------------------------------------------
-// One piece of evidence across its whole roster: the criterios it declares as
-// columns, the students as rows. This is the marking view — one criterio at a
-// time down thirty scripts. It carries no mark: the school's numeric system is
-// the other reading of the same evidence, captured on the student's screen.
+// --- The class list and one student's evidence -------------------------------
 
-export type GridCriterionDto = {
-	criterion_id: string;
-	code: string | null;
-	description: string;
-	competency_id: string;
-	competency_name: string;
-};
-
-export type GridStudentDto = {
+/** One row of the class list, scoped to the competencia being looked at.
+ *  `level: null` means the teacher has not judged it this period — a real state
+ *  (RVM 048-2024, 5.1.2.2), rendered as a dash and never as C. */
+export type ClassStudentDto = {
 	student_id: string;
+	/** "Apellidos, Nombres", as a Peruvian register lists them. */
 	full_name: string;
-	/** criterion_id → level. A criterio absent from the map is unjudged, which
-	 *  is a real state and must never render as C. */
-	levels: Record<string, NivelLogro>;
+	level: NivelLogro | null;
+	/** How much evidence stands behind the judgement. Context, never an input:
+	 *  nothing is computed from the count. */
+	evidence_count: number;
 };
 
-export type AssessmentCriteriaGridDto = {
-	assessment_id: string;
-	title: string;
-	kind: AssessmentKind;
-	class_id: string;
-	term_id: string;
-	due_at: string | null;
-	is_personal: boolean;
-	criteria: GridCriterionDto[] | null;
-	students: GridStudentDto[] | null;
-};
+export type ClassStudentsDto = { students: ClassStudentDto[] | null };
+
+/** The period's evidencia for one student in one competencia. Same shape as the
+ *  grades screen's rows: it is the same evidence, read for a different job. */
+export type StudentEvidenceDto = { evidence: EvaluationDto[] | null };
 
 export type CriterionCreateDto = {
 	description: string;
 	code?: string | null;
-};
-
-export type AssertCriterionLevelDto = {
-	criterion_id: string;
-	/** Required. A criterio level always names the evidencia it was read from:
-	 *  the criterio is the ruler, never the thing being marked (RVM 094-2020,
-	 *  5.1.1.3 p.3). There is no term_id — the evidencia carries the periodo. */
-	assessment_id: string;
-	level: NivelLogro;
-	note?: string | null;
 };

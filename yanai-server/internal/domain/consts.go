@@ -36,6 +36,20 @@ const (
 	ScalePercentage = "percentage"
 )
 
+// assessments.value_scale — how one piece of evidencia is valued. Deliberately
+// a separate vocabulary from grade_scales.kind above, which describes a scale
+// the school configured; this describes what a single piece of work carries.
+//
+// ValueScaleOrdinal is a letter on that piece of work and is NOT a nivel de
+// logro: the level of a competencia is asserted in competency_term_levels after
+// reading the whole period (RVM 094-2020, 5.1.1.3 p.2-3). Nothing may convert
+// between them.
+const (
+	ValueScaleNumeric = "numeric"
+	ValueScaleOrdinal = "ordinal"
+	ValueScaleNone    = "none"
+)
+
 // computed_grades.scope
 const (
 	ScopeTermPartial = "term_partial"

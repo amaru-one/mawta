@@ -159,11 +159,21 @@
 </svelte:head>
 
 <div class="screen">
-	<TopBar back="/class/{courseId}" recording={phase === 'recording'} />
+	<!-- Reached from Home as often as from the área now, so a fixed back
+	     destination would send the teacher to a screen they never saw. -->
+	<TopBar back="/class/{courseId}" useHistory recording={phase === 'recording'} />
 
 	<div class="stage">
 		<div class="head" class:receded={stage === 'recording'}>
-			<p class="metaline">{metaLine}</p>
+			<div class="metarow">
+				<p class="metaline">{metaLine}</p>
+				{#if stage !== 'recording'}
+					<a class="area pressable" href="/class/{courseId}" onclick={hapticTap}>
+						Ver área
+						<Icon name="chevron-right" size={13} />
+					</a>
+				{/if}
+			</div>
 
 			<div class="nameline" class:live={stage === 'recording'}>
 				<input
@@ -282,12 +292,51 @@
 		opacity: 0.45;
 	}
 
-	.metaline {
+	/* Holds the pill's height even while recording hides it — a row that shrank
+	   by 7px there is exactly the reflow this stage forbids. Same device as
+	   `.subline`'s min-height. */
+	.metarow {
+		display: flex;
+		align-items: center;
+		gap: 12px;
 		margin: 0 0 14px;
+		min-height: 24px;
+	}
+
+	.metaline {
+		flex: 1;
+		min-width: 0;
+		margin: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 		font-family: var(--font-mono);
 		font-size: 11px;
 		letter-spacing: 0.08em;
 		color: var(--text-muted);
+	}
+
+	/* The way back up to the class. It is the only navigation on the stage, so
+	   it stays as quiet as a .pill-light and never competes with the bubble. */
+	.area {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		flex-shrink: 0;
+		background: var(--surface-1);
+		color: var(--text-secondary);
+		padding: 6px 12px;
+		border-radius: 999px;
+		font-size: 12px;
+		font-weight: 500;
+	}
+
+	/* 44px minimum tap target via an invisible halo, as `.clear` does. */
+	.area::after {
+		content: '';
+		position: absolute;
+		inset: -10px;
 	}
 
 	.nameline {

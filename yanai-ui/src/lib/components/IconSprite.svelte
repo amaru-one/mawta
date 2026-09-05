@@ -3,6 +3,10 @@
 	time from +layout.svelte; <Icon /> references these by id.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+	<symbol id="i-home" viewBox="0 0 24 24">
+		<path d="M4 11l8-7 8 7" />
+		<path d="M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9" />
+	</symbol>
 	<symbol id="i-bell" viewBox="0 0 24 24">
 		<path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3H4a4 4 0 0 0 2-3v-3a7 7 0 0 1 4-6" />
 		<path d="M9 17v1a3 3 0 0 0 6 0v-1" />
@@ -21,17 +25,15 @@
 		<path d="M5 12l6 6" />
 		<path d="M5 12l6-6" />
 	</symbol>
-	<symbol id="i-arrow-right" viewBox="0 0 24 24">
-		<path d="M5 12h14" />
-		<path d="M19 12l-6 6" />
-		<path d="M19 12l-6-6" />
-	</symbol>
 	<symbol id="i-chevron-right" viewBox="0 0 24 24">
 		<path d="M9 6l6 6-6 6" />
 	</symbol>
 	<symbol id="i-x" viewBox="0 0 24 24">
 		<path d="M6 6l12 12" />
 		<path d="M18 6L6 18" />
+	</symbol>
+	<symbol id="i-check" viewBox="0 0 24 24">
+		<path d="M5 12l5 5 9-9" />
 	</symbol>
 	<symbol id="i-calculator" viewBox="0 0 24 24">
 		<rect x="4" y="3" width="16" height="18" rx="2" />

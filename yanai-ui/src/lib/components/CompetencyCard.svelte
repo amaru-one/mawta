@@ -6,18 +6,13 @@
 	import Icon from './Icon.svelte';
 	import LevelBadge from './LevelBadge.svelte';
 	import LevelPicker from './LevelPicker.svelte';
-	import CriterionTimeline from './CriterionTimeline.svelte';
 
 	interface Props {
 		competency: CompetencyLevel;
-		/** The criterios the teacher wrote for this competencia, each with the
-		 *  row of evidence judged against it. This is what the competency level
-		 *  is read from — never summed or averaged into it. Read-only here:
-		 *  levels are recorded inside each piece of evidencia, which is where
-		 *  the norm puts them. */
+		/** The criterios the teacher wrote for this competencia — what the level
+		 *  is read against, listed here as text. Nothing is graded per criterio:
+		 *  the criterio is the ruler, not the thing being marked. */
 		criteria?: CriterionDto[];
-		/** Opens one piece of evidencia from a cell of the grid. */
-		onopenevidence?: (assessmentId: string) => void;
 		onLevelChange: (competencyId: string, level: Tier) => Promise<void>;
 		onSaveConclusion: (
 			competencyId: string,
@@ -27,13 +22,7 @@
 		) => Promise<void>;
 	}
 
-	let {
-		competency,
-		criteria = [],
-		onopenevidence,
-		onLevelChange,
-		onSaveConclusion
-	}: Props = $props();
+	let { competency, criteria = [], onLevelChange, onSaveConclusion }: Props = $props();
 
 	let expanded = $state(false);
 	// Uncontrolled after first render on purpose: the parent only patches the
@@ -49,7 +38,7 @@
 		level_c: 'Conclusión descriptiva obligatoria (nivel C)',
 		consecutive_c: 'Conclusión descriptiva obligatoria — sustenta por qué no hay avance',
 		inclusion_support: 'Conclusión descriptiva obligatoria — incluye apoyos y ajustes',
-		optional: 'Conclusión descriptiva (opcional)'
+		optional: 'Conclusión descriptiva (opcional)',
 	};
 
 	async function selectLevel(level: Tier): Promise<void> {
@@ -67,7 +56,12 @@
 		if (status === 'final' && !includesRecommendations) return;
 		saving = true;
 		try {
-			await onSaveConclusion(competency.competencyId, bodyDraft.trim(), includesRecommendations, status);
+			await onSaveConclusion(
+				competency.competencyId,
+				bodyDraft.trim(),
+				includesRecommendations,
+				status
+			);
 		} finally {
 			saving = false;
 		}
@@ -109,21 +103,29 @@
 			<p class="eyebrow section">Criterios de evaluación</p>
 			{#if criteria.length === 0}
 				<p class="empty">
-					Aún no has definido criterios para esta competencia. Sin criterios no hay
-					referencia contra la cual valorar la evidencia.
+					Aún no has definido criterios para esta competencia. Sin criterios no hay referencia
+					contra la cual valorar la evidencia.
 				</p>
 			{:else}
-				{#each criteria as c (c.criterion_id)}
-					<CriterionTimeline criterion={c} {onopenevidence} />
-				{/each}
+				<!-- Read-only, and deliberately so: a criterio says what to look at in
+				     a piece of work, it is not itself graded (RVM 094-2020, 5.1.1.3
+				     p.3). Putting a picker back on this row would have the teacher
+				     marking the ruler instead of the work. -->
+				<ul class="crits">
+					{#each criteria as c (c.criterion_id)}
+						<li class="crit">
+							{#if c.code}<span class="crit-code">{c.code}</span> ·
+							{/if}{c.description}
+						</li>
+					{/each}
+				</ul>
 			{/if}
 
 			<p class="eyebrow section">Nivel de logro</p>
 			<LevelPicker level={competency.level} disabled={saving} onselect={selectLevel} />
 			<p class="official">
-				Tu juicio sobre la evidencia del periodo, leyendo cada criterio en el
-				tiempo. No se calcula ni se promedia a partir de los criterios ni de las
-				notas.
+				Tu juicio sobre la evidencia del periodo, leída contra estos criterios. No se calcula ni se
+				promedia a partir de ellos ni de las notas.
 			</p>
 
 			{#if showConclusion}
@@ -136,8 +138,7 @@
 						bind:value={bodyDraft}
 						rows="3"
 						placeholder="Avances, dificultades y recomendaciones..."
-						disabled={saving}
-					></textarea>
+						disabled={saving}></textarea>
 					<label class="check row">
 						<input type="checkbox" bind:checked={includesRecommendations} disabled={saving} />
 						<span>Incluye recomendaciones personalizadas</span>
@@ -162,7 +163,11 @@
 					</div>
 				</div>
 			{:else}
-				<button type="button" class="add-conclusion pressable" onclick={() => (showConclusionForm = true)}>
+				<button
+					type="button"
+					class="add-conclusion pressable"
+					onclick={() => (showConclusionForm = true)}
+				>
 					+ Agregar conclusión
 				</button>
 			{/if}
@@ -184,6 +189,30 @@
 		font-size: 12px;
 		line-height: 1.4;
 		color: var(--text-muted);
+	}
+
+	.crits {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.crit {
+		padding: var(--space-sm) 0;
+		border-top: 0.5px solid var(--border);
+		font-size: 13px;
+		line-height: 1.35;
+		color: var(--text-primary);
+		text-wrap: pretty;
+	}
+
+	.crit:first-child {
+		border-top: none;
+	}
+
+	.crit-code {
+		font-weight: 600;
+		color: var(--text-secondary);
 	}
 
 	.official {

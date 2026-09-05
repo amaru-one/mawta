@@ -104,7 +104,11 @@ func GetClassDashboard(ctx context.Context, tx pgx.Tx, classID uuid.UUID, term T
 		return d, err
 	}
 
-	// next_session: today's scheduled/in_progress session.
+	// next_session: today's earliest session that has not yet ended. A class can
+	// meet more than once in a day, so this is a wall-clock pick (scheduled_end_at
+	// >= now()), not just the first row of the date — once a session ends it drops
+	// to the "Clases anteriores" rail and the next one takes the hero. The status
+	// filter still keeps a cancelled/rescheduled session out of the hero.
 	var ns SessionSummary
 	var nsFound bool
 	var nsDate time.Time
@@ -112,6 +116,7 @@ func GetClassDashboard(ctx context.Context, tx pgx.Tx, classID uuid.UUID, term T
 		select id, session_date, scheduled_start_at, scheduled_end_at, topic, status
 		  from class_sessions
 		 where class_id = $1 and session_date = $2 and status in ('scheduled','in_progress')
+		   and scheduled_end_at >= now()
 		   and deleted_at is null
 		 order by scheduled_start_at limit 1
 	`, classID, today).Scan(&ns.SessionID, &nsDate, &ns.ScheduledStartAt, &ns.ScheduledEndAt, &ns.Topic, &ns.Status)
@@ -258,6 +263,18 @@ func GetClassDashboard(ctx context.Context, tx pgx.Tx, classID uuid.UUID, term T
 	if err != nil {
 		return d, err
 	}
+	// A later, not-yet-ended session today is legitimately "próxima", but the
+	// earliest such session is already the hero — drop that one row so it is not
+	// shown twice.
+	if nsFound {
+		kept := upcoming[:0]
+		for _, s := range upcoming {
+			if s.SessionID != ns.SessionID {
+				kept = append(kept, s)
+			}
+		}
+		upcoming = kept
+	}
 	d.Upcoming = upcoming
 
 	past, err := listSessions(ctx, tx, classID, today, "past", 10)
@@ -269,10 +286,13 @@ func GetClassDashboard(ctx context.Context, tx pgx.Tx, classID uuid.UUID, term T
 	return d, nil
 }
 
-// listSessions returns upcoming (session_date > d, ascending) or past
-// (session_date < d, descending) sessions for a class — d itself is
-// today's session, surfaced separately as next_session. Past rows carry
-// attendance and pending-grade chips.
+// listSessions returns upcoming (ascending) or past (descending) sessions for a
+// class. The split is by wall clock, not by date alone: a session of day d that
+// has already ended counts as past, and one that has not yet ended counts as
+// upcoming, so a class that meets twice in a day has its finished session in the
+// "anteriores" rail while the other is the hero / "próxima". The hero row itself
+// is stripped from upcoming by the caller. Past rows carry attendance and
+// pending-grade chips.
 func listSessions(ctx context.Context, tx pgx.Tx, classID uuid.UUID, d time.Time, dir string, limit int) ([]SessionSummary, error) {
 	var query string
 	if dir == "past" {
@@ -309,7 +329,9 @@ func listSessions(ctx context.Context, tx pgx.Tx, classID uuid.UUID, d time.Time
 			       and (a.student_id is null or a.student_id = sm.student_id)
 			       and s.id is null
 			  ) pg on true
-			 where cs.class_id = $1 and cs.session_date < $2 and cs.deleted_at is null
+			 where cs.class_id = $1 and cs.deleted_at is null
+			   and (cs.session_date < $2::date
+			        or (cs.session_date = $2::date and cs.scheduled_end_at < now()))
 			 order by cs.session_date desc, cs.scheduled_start_at desc
 			 limit $3
 		`
@@ -318,7 +340,9 @@ func listSessions(ctx context.Context, tx pgx.Tx, classID uuid.UUID, d time.Time
 			select cs.id, cs.session_date, cs.scheduled_start_at, cs.scheduled_end_at, cs.topic, cs.status,
 			       null::int, null::int, null::int, null::bool
 			  from class_sessions cs
-			 where cs.class_id = $1 and cs.session_date > $2 and cs.deleted_at is null
+			 where cs.class_id = $1 and cs.deleted_at is null
+			   and (cs.session_date > $2::date
+			        or (cs.session_date = $2::date and cs.scheduled_end_at >= now()))
 			 order by cs.session_date asc, cs.scheduled_start_at asc
 			 limit $3
 		`

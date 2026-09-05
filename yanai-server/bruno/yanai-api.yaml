@@ -358,67 +358,57 @@ paths:
         "204": { description: No Content }
         "404": { description: not_found }
 
-  /classes/{classID}/students/{studentID}/criterion-levels:
-    post:
-      tags: [06 Criterios]
-      summary: Asertar nivel por criterio, en una evidencia
+  /classes/{classID}/students:
+    get:
+      tags: [03 Clase]
+      summary: Lista de alumnos con su nivel en una competencia
       description: >
-        Una celda de la grilla evidencia × criterio: el nivel AD/A/B/C que el
-        estudiante mostró en un criterio, **en una evidencia concreta**.
-        `assessment_id` es obligatorio — la RVM 094-2020 (5.1.1.3 p.3) valora la
-        evidencia *a través* del criterio, así que el criterio es la regla y
-        nunca lo calificado. No lleva `term_id`: el periodo lo aporta la
-        evidencia. Es evidencia para el juicio del docente, no el registro
-        oficial: nada lo promedia ni lo agrega al nivel de logro de la
-        competencia. Append-only.
+        La nómina de la clase a día de hoy, con el nivel de logro de cada
+        alumno en la competencia pedida y cuántas evidencias la sostienen. Es
+        la pantalla «Alumnos»: reporta y navega, no evalúa.
+
+        `competency_id` es opcional — una clase cuya área todavía no tiene
+        competencias configuradas igual tiene nómina, y devolverla sin niveles
+        es más útil que un error. `level: null` significa "no evaluada este
+        periodo" (RVM 048-2024, 5.1.2.2): se dibuja como raya, nunca como C.
+      parameters:
+        - $ref: "#/components/parameters/TenantIdHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/ClassId"
+        - name: competency_id
+          in: query
+          required: false
+          schema: { type: string, format: uuid }
+        - $ref: "#/components/parameters/TermIdQuery"
+      responses:
+        "200": { description: OK }
+
+  /classes/{classID}/students/{studentID}/evidence:
+    get:
+      tags: [03 Clase]
+      summary: Evidencias de un alumno en una competencia
+      description: >
+        Las evidencias del periodo para un alumno, acotadas a una competencia
+        **a través de los criterios con que están etiquetadas**, cada una con su
+        propio valor en su propia escala (`value_scale`: `numeric` con
+        `max_score` y `raw_value`, `ordinal` con una letra en `scale_level_id`,
+        o `none` sin valor).
+
+        Es el material que el docente lee antes de asertar el nivel de logro.
+        Nada aquí se agrega ni sugiere un nivel: la norma lo hace un juicio, no
+        un promedio (RVM 094-2020, 5.1.1.3 p.2-3).
       parameters:
         - $ref: "#/components/parameters/TenantIdHeader"
         - $ref: "#/components/parameters/ActorIdHeader"
         - $ref: "#/components/parameters/ClassId"
         - $ref: "#/components/parameters/StudentId"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { type: object }
-            example:
-              criterion_id: "00000000-0000-0000-0000-000000000000"
-              assessment_id: "00000000-0000-0000-0000-000000000000"
-              level: "A"
-              note: null
-      responses:
-        "201": { description: Created }
-        "400":
-          description: >
-            criterion_level_needs_evidence (falta `assessment_id`) |
-            criterion_not_in_evidence (la evidencia no declara ese criterio) |
-            evidence_not_for_student (evidencia personal de otro alumno) |
-            level must be AD, A, B or C
-
-  /assessments/{assessmentID}/criteria-grid:
-    get:
-      tags: [06 Criterios]
-      summary: Grilla evidencia × criterio de una evidencia
-      description: >
-        Una evidencia sobre toda su nómina: los criterios que declara como
-        columnas, los estudiantes como filas y los niveles ya registrados como
-        celdas. Es la vista de corrección — un criterio a la vez sobre treinta
-        trabajos, en lugar de treinta pantallas. Una evidencia personal
-        (`assessments.student_id`) devuelve un solo estudiante.
-
-        No devuelve nota, a propósito: el sistema interno del colegio es la
-        *otra* lectura de la misma evidencia y se captura en la pantalla del
-        estudiante.
-      parameters:
-        - $ref: "#/components/parameters/TenantIdHeader"
-        - $ref: "#/components/parameters/ActorIdHeader"
-        - name: assessmentID
-          in: path
-          required: true
+        - name: competency_id
+          in: query
+          required: false
           schema: { type: string, format: uuid }
+        - $ref: "#/components/parameters/TermIdQuery"
       responses:
         "200": { description: OK }
-        "404": { description: not_found }
 
   /classes/{classID}/grading-components:
     get:
@@ -442,15 +432,22 @@ paths:
       description: >
         Files one piece of evidencia. Omit student_id for a column covering the
         whole class; set it to scope the evidence to that student alone (a
-        recovery task, a re-done project). criterion_ids links the criterios de
-        evaluación it evidences — evidence for the teacher's judgement, never
-        rolled up into a nivel de logro, and the set of criterios the
-        criteria-grid will let you value it against.
+        recovery task, a re-done project). criterion_ids tags it with the
+        criterios de evaluación it speaks to — what the teacher said to look at
+        in this work, never itself graded, and what groups the evidence under
+        the competencia it informs.
+
+        value_scale (default numeric) says how the work is valued: numeric needs
+        a positive max_score and takes a raw_value per student; ordinal takes a
+        letter and must NOT carry a max_score; none carries no value at all. A
+        letter here is not a nivel de logro.
 
         counts_toward_internal (default true) is about the school's own weighted
-        average only. False keeps the evidence in the official judgement and out
-        of that number — the recovery task given to one student, which would
-        otherwise lift only their average.
+        average only, and is forced false for ordinal and none — only a numeric
+        piece has anything an average can use. False on a numeric one keeps the
+        evidence in the official judgement and out of that number: the recovery
+        task given to one student, which would otherwise lift only their
+        average.
       parameters:
         - $ref: "#/components/parameters/TenantIdHeader"
         - $ref: "#/components/parameters/ActorIdHeader"
@@ -464,6 +461,7 @@ paths:
               title: "Quiz 2"
               kind: "quiz"
               component_code: "quiz"
+              value_scale: "numeric"
               max_score: 20
               due_at: "2026-09-01T23:59:00Z"
               student_id: null
@@ -471,7 +469,11 @@ paths:
               criterion_ids: []
       responses:
         "201": { description: Created }
-        "400": { description: student_not_in_class / criterion_not_in_class }
+        "400":
+          description: >
+            student_not_in_class | criterion_not_in_class |
+            max_score is required and must be positive for value_scale numeric |
+            value_scale must be numeric, ordinal or none
 
   /sessions/{sessionID}/start:
     post:

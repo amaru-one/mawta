@@ -73,6 +73,18 @@ export type AppNotification = {
 	read: boolean;
 };
 
+// One entry of the competency index — the typographic control that scopes a
+// whole screen to one competencia. `hasLevel` deliberately means different
+// things per screen (closed for the class / this student has a level); the
+// component only renders the three states, the screen decides which is which.
+export type CompetencyIndexItem = {
+	id: string;
+	// Área competencias show a numeral, transversales a short mono code.
+	label: string;
+	kind: 'area' | 'transversal' | 'adicional_area' | 'adicional_libre';
+	hasLevel: boolean;
+};
+
 // --- Niveles de logro por competencia (RVM 094-2020 / 048-2024) ---
 
 // The teacher's asserted MINEDU level for one competency in one period, plus

@@ -2,13 +2,14 @@
 // <Icon name="…" /> resolves to `#i-${name}` in that sprite.
 
 export const ICON_NAMES = [
+	'home',
 	'bell',
 	'logout',
 	'search',
 	'arrow-left',
-	'arrow-right',
 	'chevron-right',
 	'x',
+	'check',
 	'calculator',
 	'book',
 	'bank',

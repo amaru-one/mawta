@@ -30,14 +30,14 @@
 --    regularidad/equivalencia/cambio — also gets its desempeños
 --    (`performance_standards`, grade 5) and the teacher's own criterios de
 --    evaluación (`evaluation_criteria`) precising them. `Quiz 0` — already
---    taken and scored, both on the numeric scale (`scores`) and per
---    criterio (`evaluation_criterion_scores`, on the MINEDU AD/A/B/C scale)
---    — is the "already recording" half of the scenario; Quizzes 1-4 stay
+--    taken and scored on the numeric scale (`scores`) and tagged with the
+--    criterios it was read against (`assessment_criteria`) — is the
+--    "already recording" half of the scenario; Quizzes 1-4 stay
 --    published and unscored, the "still planned" half. Students
 --    EST-2026-001..010. Sessions seeded around a "today" of 2026-08-24
 --    (Monday): one week completed, three weeks scheduled. Also the two grade
---    scales: minedu_ad_a_b_c, which both the official niveles de logro and
---    the criterio levels are recorded on, and vigesimal_0_20 for the school's
+--    scales: minedu_ad_a_b_c, which the official niveles de logro are
+--    recorded on, and vigesimal_0_20 for the school's
 --    own optional internal weighted system — never the official CNEB record.
 -- 2. Arte 3ro A — a second subject, with the two CNEB Arte y Cultura
 --    competencias modelled properly (not just as grading_components): real
@@ -482,66 +482,21 @@ begin
          (v_tenant, v_quiz0, v_s10, 20, 11, 'graded', 0, v_teacher, timestamptz '2026-08-20 09:00:00-05');
 
   -- =========================================================================
-  -- Quiz 0, per criterio: the rubric-level record on the MINEDU AD/A/B/C
-  -- scale, independent of the numeric quiz score above. Diego is skipped
-  -- entirely (not just marked C): he submitted nothing, so there is no
-  -- evidence to evaluate against any criterio — absence is meaningful, the
-  -- same principle competency_term_levels already follows.
+  -- No per-criterio levels. There is no such thing any more: a criterio is a
+  -- tag on a piece of evidencia saying what to look at in it, and the only
+  -- judgement recorded anywhere is the nivel de logro of the competencia
+  -- below. See migration 00009.
   --
-  -- Level is kept the same across all three criteria per student here, a
-  -- simplification; a real rubric would vary cell by cell.
+  -- What Janice has to go on for MAT-C2 is therefore exactly what a real
+  -- teacher has: Quiz 0's marks above, and the criterios those marks were read
+  -- against (assessment_criteria, seeded further up).
   -- =========================================================================
-  insert into evaluation_criterion_scores (tenant_id, assessment_id, criterion_id, student_id, scale_level_id, recorded_by_id)
-  select v_tenant, v_quiz0, c.criterion_id, x.student_id, l.id, v_teacher
-    from (values
-            (v_s1,  'A'),   -- 15/20
-            (v_s2,  'B'),   -- 12/20
-            (v_s3,  'AD'),  -- 18/20
-            (v_s4,  'C'),   -- 9/20
-            (v_s5,  'AD'),  -- 20/20
-            (v_s7,  'A'),   -- 14/20
-            (v_s8,  'C'),   -- 7/20
-            (v_s9,  'A'),   -- 17/20
-            (v_s10, 'B')    -- 11/20
-         ) as x(student_id, level_code)
-    cross join (values (v_crit1), (v_crit2), (v_crit3)) as c(criterion_id)
-    join grade_scale_levels l on l.tenant_id = v_tenant and l.scale_id = v_scale_ord and l.code = x.level_code;
-
-  -- =========================================================================
-  -- The teacher's judgement per criterio, for the whole periodo.
-  --
-  -- Distinct from the rows above: those are what one quiz showed, this is
-  -- what Janice concluded about each criterio over Bimestre III as a whole,
-  -- weighing everything she saw. assessment_id is null, which is what makes
-  -- it a period judgement rather than a reading off one piece of evidence.
-  -- These are the rows the registration screen fills in, and the ones she
-  -- looks at before asserting the competency level below.
-  --
-  -- Not a copy of the Quiz 0 levels: Alonso and Sebastián came up over the
-  -- period, Mateo's CRIT3 stayed behind the other two. That divergence is the
-  -- point -- a level is a judgement, never a transcription of a mark.
-  -- =========================================================================
-  insert into evaluation_criterion_scores
-    (tenant_id, criterion_id, student_id, class_id, term_id, scale_level_id, recorded_by_id)
-  select v_tenant, x.criterion_id, x.student_id, v_class_mat, v_b3, l.id, v_teacher
-    from (values
-            (v_crit1, v_s1,  'A'),  (v_crit2, v_s1,  'A'),  (v_crit3, v_s1,  'B'),
-            (v_crit1, v_s2,  'B'),  (v_crit2, v_s2,  'A'),  (v_crit3, v_s2,  'B'),
-            (v_crit1, v_s3,  'AD'), (v_crit2, v_s3,  'AD'), (v_crit3, v_s3,  'A'),
-            (v_crit1, v_s4,  'C'),  (v_crit2, v_s4,  'C'),  (v_crit3, v_s4,  'B'),
-            (v_crit1, v_s5,  'AD'), (v_crit2, v_s5,  'AD'), (v_crit3, v_s5,  'AD'),
-            (v_crit1, v_s7,  'A'),  (v_crit2, v_s7,  'A'),  (v_crit3, v_s7,  'A'),
-            (v_crit1, v_s8,  'C'),  (v_crit2, v_s8,  'B'),  (v_crit3, v_s8,  'C'),
-            (v_crit1, v_s9,  'A'),  (v_crit2, v_s9,  'AD'), (v_crit3, v_s9,  'A'),
-            (v_crit1, v_s10, 'B'),  (v_crit2, v_s10, 'B'),  (v_crit3, v_s10, 'A')
-         ) as x(criterion_id, student_id, level_code)
-    join grade_scale_levels l on l.tenant_id = v_tenant and l.scale_id = v_scale_ord and l.code = x.level_code;
 
   -- =========================================================================
   -- The official record: the nivel de logro per competencia.
   --
-  -- Asserted by the teacher after weighing the criterio levels above -- not
-  -- computed from them, and not an average of them (RVM 094-2020 5.1.1.3).
+  -- Asserted by the teacher after reading the period's evidence -- not
+  -- computed from it, and not an average of the marks (RVM 094-2020 5.1.1.3).
   -- Diego has no row at all: he submitted nothing and MAT-C2 was never
   -- evaluated for him this period. That absence is meaningful and must never
   -- be rendered as C (5.1.2.2 p.1).
@@ -934,3 +889,429 @@ begin
                                            'code', 'ART-3A', 'students', 10));
 end
 $add$;
+
+
+-- ===========================================================================
+-- 3. Las seis áreas de 5to B — the teacher's real weekday.
+--
+-- Blocks 1 and 2 leave the demo teacher with two classes of one hour each, so
+-- Home has almost nothing to draw. This block gives 5to B the six áreas a
+-- Peruvian secondary section actually takes, all taught by the same teacher to
+-- the same ten students, on a real 08:00-16:00 timetable:
+--
+--     A  08:00 - 09:30      B  10:00 - 11:30      C  11:30 - 12:15
+--     D  13:15 - 14:00      E  14:30 - 16:00
+--     recreos 09:30-10:00 and 14:00-14:30, almuerzo 12:15-13:15
+--
+--          Lun          Mar          Mié          Jue          Vie
+--     A    Comunic.     C. y Tec.    C. Soc.      Comunic.     C. y Tec.
+--     B    C. Soc.      Matemática*  Arte         C. y Tec.    Matemática*
+--     C    C. y Tec.    Comunic.     Tutoría      C. Soc.      Arte
+--     D    Tutoría      Arte         Comunic.     Tutoría      C. Soc.
+--     E    Arte         C. Soc.      Matemática   Matemática   Comunic.
+--
+-- * Matemática's Tue/Fri 10:00-11:00 sessions already exist from block 1 and
+--   are NOT touched: this block is additive. They run 60 min inside a 90 min
+--   slot, which is why those two days have a free half hour at 11:00 — real
+--   timetables are irregular, and it keeps the block from rewriting rows that
+--   carry the only scored data in the seed.
+--
+-- Matemática 5to B counts as one of the six, so only five classes are new. No
+-- new students and no new section_memberships: the ten of 5to B are already
+-- enrolled, and section_memberships_one_at_a_time rejects a second row. The
+-- six classes share a roster through the section, not through re-enrolment.
+--
+-- Deliberately NOT seeded: criterios de evaluación, assessments and scores for
+-- the five new áreas. Their competencias show on the criterios screen as
+-- explicit gaps, which is this file's documented demo state (see SPEC.md);
+-- Matemática stays the one área with a filled register.
+--
+-- DATES ARE FIXED, like the rest of the file, around a "today" of Thursday
+-- 2026-09-03: the week of 24 Aug is completed, the week of 31 Aug is the one
+-- in progress, the week of 7 Sep is scheduled. That means this block goes
+-- stale — after mid-September Home is empty again. Anchoring `v_weeks` to
+-- date_trunc('week', current_date) is the one-line fix if that starts to hurt.
+-- ===========================================================================
+do $areas$
+declare
+  v_tenant   constant uuid := '11111111-1111-4111-8111-111111111111';
+  -- Sessions dated before this land as `completed`, the rest as `scheduled`.
+  v_today    constant date := date '2026-09-03';
+  v_year     uuid;
+  v_b3       uuid;
+  v_g5       uuid;
+  v_teacher  uuid;
+  v_scale    uuid;
+  v_section  uuid;
+  v_mat      uuid;
+  v_art3     uuid;
+  v_subj     uuid;
+  v_scheme   uuid;
+  v_version  uuid;
+  v_course   uuid;
+  v_class    uuid;
+  v_c1       uuid;
+  v_c2       uuid;
+  v_cmp1     uuid;
+  v_cmp2     uuid;
+  r          record;
+begin
+  perform set_config('app.tenant_id', v_tenant::text, true);
+
+  -- =========================================================================
+  -- Resolve what blocks 1 and 2 created. A null here means this block is
+  -- running first, and every insert below would fail on a foreign key with a
+  -- far less useful message.
+  -- =========================================================================
+  select id into v_year from academic_years
+   where tenant_id = v_tenant and year = 2026 and deleted_at is null;
+  if v_year is null then
+    raise exception 'academic year 2026 not found — apply the base block of this file first';
+  end if;
+
+  select id into v_b3 from terms
+   where tenant_id = v_tenant and academic_year_id = v_year and sequence = 3 and deleted_at is null;
+  if v_b3 is null then
+    raise exception 'Bimestre III not found for academic year 2026';
+  end if;
+
+  select id into v_g5 from grade_levels
+   where tenant_id = v_tenant and code = '5' and deleted_at is null;
+  if v_g5 is null then
+    raise exception 'grade level 5 not found';
+  end if;
+
+  select id into v_teacher from teachers
+   where tenant_id = v_tenant and employee_code = 'DOC-0142' and deleted_at is null;
+  if v_teacher is null then
+    raise exception 'teacher DOC-0142 (Janice Quispe) not found';
+  end if;
+
+  select id into v_scale from grade_scales
+   where tenant_id = v_tenant and code = 'minedu_ad_a_b_c' and deleted_at is null;
+  if v_scale is null then
+    raise exception 'grade scale minedu_ad_a_b_c not found';
+  end if;
+
+  select id into v_section from sections
+   where tenant_id = v_tenant and academic_year_id = v_year and name = '5to B' and deleted_at is null;
+  if v_section is null then
+    raise exception 'section 5to B not found — apply the base block of this file first';
+  end if;
+
+  select id into v_mat from classes
+   where tenant_id = v_tenant and code = 'MAT-5B' and deleted_at is null;
+  if v_mat is null then
+    raise exception 'class MAT-5B not found — apply the base block of this file first';
+  end if;
+
+  select id into v_art3 from classes
+   where tenant_id = v_tenant and code = 'ART-3A' and deleted_at is null;
+  if v_art3 is null then
+    raise exception 'class ART-3A not found — apply the Arte block of this file first';
+  end if;
+
+  -- =========================================================================
+  -- The five new áreas.
+  --
+  -- Arte y Cultura reuses the subject, competencias and grading scheme the
+  -- Arte block already created (subjects_tenant_code_key would reject a second
+  -- ART row anyway) — hence the "look up, insert only if missing" shape. Its
+  -- course and class are new, because 3ro A and 5to B are different sections
+  -- at different grades.
+  --
+  -- Two competencias per área, no criterios: see the block header.
+  -- =========================================================================
+  for r in
+    select * from (values
+      ('COM',  'Comunicación',           'Comunicación',          'book',         false, 3,
+       'COM-5', 'Comunicación 5to', 'COM-5B', 'Comunicación 5to B', 'Aula 8',
+       'comunicacion_competencias', 'Evaluación de Comunicación por competencias',
+       'COM-C1', 'Se comunica oralmente en su lengua materna',
+       'COM-C2', 'Lee diversos tipos de textos escritos en su lengua materna',
+       array['El texto argumentativo: tesis y argumentos',
+             'Lectura: inferencias en textos discontinuos',
+             'Debate: turnos, escucha y réplica',
+             'El ensayo escolar: estructura',
+             'Cohesión y coherencia en el párrafo',
+             'Lectura crítica: intención del autor',
+             'Exposición oral con soporte visual',
+             'Revisión y edición del ensayo']),
+
+      ('CYT',  'Ciencia y Tecnología',   'Ciencia y Tecnología',  'presentation', false, 4,
+       'CYT-5', 'Ciencia y Tecnología 5to', 'CYT-5B', 'Ciencia y Tecnología 5to B', 'Lab 1',
+       'cyt_competencias', 'Evaluación de Ciencia y Tecnología por competencias',
+       'CYT-C1', 'Indaga mediante métodos científicos para construir conocimientos',
+       'CYT-C2', 'Explica el mundo físico basándose en conocimientos sobre los seres vivos, materia y energía',
+       array['La célula: estructura y función',
+             'Diseño de una indagación: variables',
+             'Laboratorio: observación al microscopio',
+             'Energía y transformaciones',
+             'Registro y análisis de datos',
+             'Ecosistemas y flujo de energía',
+             'Informe de indagación',
+             'Materia: propiedades y cambios']),
+
+      ('CCSS', 'Ciencias Sociales',      'Ciencias Sociales',     'world',        false, 5,
+       'CCSS-5', 'Ciencias Sociales 5to', 'CCSS-5B', 'Ciencias Sociales 5to B', 'Aula 9',
+       'ccss_competencias', 'Evaluación de Ciencias Sociales por competencias',
+       'CCSS-C1', 'Construye interpretaciones históricas',
+       'CCSS-C2', 'Gestiona responsablemente el espacio y el ambiente',
+       array['El Perú del siglo XX: procesos',
+             'Fuentes históricas: primarias y secundarias',
+             'Migración interna y crecimiento urbano',
+             'Interpretación de mapas temáticos',
+             'Gestión de riesgos en el territorio',
+             'Cambio climático y comunidad local',
+             'Línea de tiempo: hitos republicanos',
+             'Debate: memoria y ciudadanía']),
+
+      ('ART',  'Arte y Cultura',         'Arte y Cultura',        'sparkles',     false, 2,
+       'ART-5', 'Arte 5to', 'ART-5B', 'Arte 5to B', 'Aula 7',
+       'arte_competencias', 'Evaluación de Arte y Cultura por competencias',
+       'ART-C1', 'Aprecia de manera crítica manifestaciones artístico-culturales',
+       'ART-C2', 'Crea proyectos desde los lenguajes artísticos',
+       array['Lenguajes artísticos: introducción',
+             'Arte popular cusqueño: contexto',
+             'Técnicas de dibujo y color',
+             'Boceto del proyecto personal',
+             'Composición y encuadre',
+             'Desarrollo del proyecto',
+             'Apreciación crítica de obra',
+             'Socialización de avances']),
+
+      ('TUT',  'Tutoría y Orientación Educativa', 'Tutoría',      'checklist',    true,  6,
+       'TUT-5', 'Tutoría 5to', 'TUT-5B', 'Tutoría 5to B', 'Aula 12',
+       'tutoria_competencias', 'Evaluación de Tutoría por competencias',
+       'TUT-C1', 'Construye su identidad',
+       'TUT-C2', 'Convive y participa democráticamente en la búsqueda del bien común',
+       array['Proyecto de vida: primeras decisiones',
+             'Convivencia: acuerdos del aula',
+             'Manejo de conflictos entre pares',
+             'Orientación vocacional: intereses',
+             'Uso responsable de redes sociales',
+             'Salud emocional y autocuidado',
+             'Participación estudiantil',
+             'Balance del bimestre'])
+    ) as a(subj_code, subj_name, area_curricular, icon, tutoria, subj_sort,
+           course_code, course_name, class_code, class_name, room,
+           scheme_code, scheme_name,
+           c1_code, c1_name, c2_code, c2_name, topics)
+  loop
+    -- ---- subject + competencias (reused when the code already exists) ----
+    select id into v_subj from subjects
+     where tenant_id = v_tenant and code = r.subj_code and deleted_at is null;
+    if v_subj is null then
+      insert into subjects (tenant_id, code, name, area_curricular, icon_key, is_tutoria, sort_order)
+      values (v_tenant, r.subj_code, r.subj_name, r.area_curricular, r.icon, r.tutoria, r.subj_sort)
+      returning id into v_subj;
+
+      insert into competencies (tenant_id, subject_id, code, name, kind, sort_order)
+      values (v_tenant, v_subj, r.c1_code, r.c1_name, 'area', 1),
+             (v_tenant, v_subj, r.c2_code, r.c2_name, 'area', 2);
+    end if;
+
+    select id into v_c1 from competencies where tenant_id = v_tenant and code = r.c1_code;
+    select id into v_c2 from competencies where tenant_id = v_tenant and code = r.c2_code;
+    if v_c1 is null or v_c2 is null then
+      raise exception 'competencias % / % missing for subject %', r.c1_code, r.c2_code, r.subj_code;
+    end if;
+
+    -- ---- grading scheme: the two competencias at 50% each ----
+    select id into v_scheme from grading_schemes
+     where tenant_id = v_tenant and code = r.scheme_code and deleted_at is null;
+    if v_scheme is null then
+      insert into grading_schemes (tenant_id, scale_id, code, name, description)
+      values (v_tenant, v_scale, r.scheme_code, r.scheme_name,
+              'Las dos competencias CNEB del área, a peso igual, en la escala MINEDU AD/A/B/C.')
+      returning id into v_scheme;
+
+      insert into grading_components (tenant_id, scheme_id, code, name, sort_order)
+      values (v_tenant, v_scheme, r.c1_code, r.c1_name, 1),
+             (v_tenant, v_scheme, r.c2_code, r.c2_name, 2);
+
+      select id into v_cmp1 from grading_components where scheme_id = v_scheme and code = r.c1_code;
+      select id into v_cmp2 from grading_components where scheme_id = v_scheme and code = r.c2_code;
+
+      -- effective_from is the start of the school year, not today:
+      -- class_effective_grading_schemes resolves by term.starts_on, and
+      -- Bimestre III started 2026-07-27. Dated later, the class would have a
+      -- scheme but no version.
+      insert into grading_scheme_versions (tenant_id, scheme_id, version, effective_from,
+                                           rounding_mode, absent_counts_as, retake_policy, notes)
+      values (v_tenant, v_scheme, 1, date '2026-03-02', 'half_up', 'zero', 'best',
+              'Versión inicial 2026. Dos competencias CNEB a 50% cada una.')
+      returning id into v_version;
+
+      -- check_weights_sum is deferred and requires exactly 1.
+      insert into grading_scheme_component_weights (tenant_id, scheme_version_id, component_id,
+                                                    weight, aggregation, drop_lowest_n)
+      values (v_tenant, v_version, v_cmp1, 0.500000, 'mean', 0),
+             (v_tenant, v_version, v_cmp2, 0.500000, 'mean', 0);
+
+      update grading_scheme_versions
+         set published_at = now(), published_by_id = v_teacher
+       where id = v_version;
+    end if;
+
+    -- ---- course, class, titular ----
+    insert into courses (tenant_id, academic_year_id, subject_id, grade_level_id,
+                         name, code, weekly_hours, grading_scheme_id)
+    values (v_tenant, v_year, v_subj, v_g5, r.course_name, r.course_code, 5, v_scheme)
+    returning id into v_course;
+
+    insert into classes (tenant_id, academic_year_id, course_id, section_id, name, code, default_room)
+    values (v_tenant, v_year, v_course, v_section, r.class_name, r.class_code, r.room)
+    returning id into v_class;
+
+    insert into class_teachers (tenant_id, class_id, teacher_id, role, starts_on)
+    values (v_tenant, v_class, v_teacher, 'titular', date '2026-03-02');
+
+    -- ---- the weekly pattern, and three weeks of dated sessions ----
+    -- Schedules are inserted first, then every session is generated from them
+    -- by crossing the pattern with the three week-Mondays. Topics cycle
+    -- through the área's list in date order.
+    insert into class_schedules (tenant_id, class_id, weekday, starts_at, ends_at, room, effective_from)
+    select v_tenant, v_class, s.weekday, s.starts_at, s.ends_at, r.room, date '2026-03-02'
+      from (values
+              ('COM-5B', 1, time '08:00', time '09:30'),
+              ('COM-5B', 2, time '11:30', time '12:15'),
+              ('COM-5B', 3, time '13:15', time '14:00'),
+              ('COM-5B', 4, time '08:00', time '09:30'),
+              ('COM-5B', 5, time '14:30', time '16:00'),
+
+              ('CYT-5B', 1, time '11:30', time '12:15'),
+              ('CYT-5B', 2, time '08:00', time '09:30'),
+              ('CYT-5B', 4, time '10:00', time '11:30'),
+              ('CYT-5B', 5, time '08:00', time '09:30'),
+
+              ('CCSS-5B', 1, time '10:00', time '11:30'),
+              ('CCSS-5B', 2, time '14:30', time '16:00'),
+              ('CCSS-5B', 3, time '08:00', time '09:30'),
+              ('CCSS-5B', 4, time '11:30', time '12:15'),
+              ('CCSS-5B', 5, time '13:15', time '14:00'),
+
+              ('ART-5B', 1, time '14:30', time '16:00'),
+              ('ART-5B', 2, time '13:15', time '14:00'),
+              ('ART-5B', 3, time '10:00', time '11:30'),
+              ('ART-5B', 5, time '11:30', time '12:15'),
+
+              ('TUT-5B', 1, time '13:15', time '14:00'),
+              ('TUT-5B', 3, time '11:30', time '12:15'),
+              ('TUT-5B', 4, time '13:15', time '14:00')
+           ) as s(class_code, weekday, starts_at, ends_at)
+     where s.class_code = r.class_code;
+
+    insert into class_sessions (tenant_id, class_id, schedule_id, term_id, session_date,
+                                scheduled_start_at, scheduled_end_at, status, topic, room,
+                                actual_start_at, actual_end_at, started_by_id)
+    select v_tenant, v_class, x.sched_id, v_b3, x.day,
+           (x.day + x.starts_at) at time zone 'America/Lima',
+           (x.day + x.ends_at)   at time zone 'America/Lima',
+           x.status,
+           r.topics[((x.n - 1) % array_length(r.topics, 1)) + 1],
+           r.room,
+           case when x.status = 'completed' then (x.day + x.starts_at) at time zone 'America/Lima' end,
+           case when x.status = 'completed' then (x.day + x.ends_at)   at time zone 'America/Lima' end,
+           case when x.status = 'completed' then v_teacher end
+      from (
+        select sc.id as sched_id, sc.starts_at, sc.ends_at,
+               (w.mon + (sc.weekday - 1)) as day,
+               case when (w.mon + (sc.weekday - 1)) < v_today then 'completed' else 'scheduled' end as status,
+               row_number() over (order by (w.mon + (sc.weekday - 1)), sc.starts_at) as n
+          from class_schedules sc
+          cross join (values (date '2026-08-24'), (date '2026-08-31'), (date '2026-09-07')) as w(mon)
+         where sc.class_id = v_class and sc.deleted_at is null
+      ) as x;
+
+    perform app.log_event('class.created', 'class', v_class,
+                          jsonb_build_object('source', 'seed/seed_demo_tenant.sql (áreas block)',
+                                             'code', r.class_code, 'students', 10));
+  end loop;
+
+  -- =========================================================================
+  -- Matemática 5to B joins the timetable in blocks Wed E and Thu E.
+  --
+  -- Additive only: its Tue/Fri 10:00-11:00 pattern and every session block 1
+  -- created stay exactly as they are, because those sessions are the ones the
+  -- scored Quiz 0 hangs off the same class as.
+  -- =========================================================================
+  insert into class_schedules (tenant_id, class_id, weekday, starts_at, ends_at, room, effective_from)
+  values (v_tenant, v_mat, 3, time '14:30', time '16:00', 'Aula 12', date '2026-08-24'),
+         (v_tenant, v_mat, 4, time '14:30', time '16:00', 'Aula 12', date '2026-08-24');
+
+  insert into class_sessions (tenant_id, class_id, schedule_id, term_id, session_date,
+                              scheduled_start_at, scheduled_end_at, status, topic, room,
+                              actual_start_at, actual_end_at, started_by_id)
+  select v_tenant, v_mat, x.sched_id, v_b3, x.day,
+         (x.day + time '14:30') at time zone 'America/Lima',
+         (x.day + time '16:00') at time zone 'America/Lima',
+         x.status,
+         (array['Práctica dirigida: sistemas de ecuaciones',
+                'Inecuaciones lineales',
+                'Funciones lineales: gráfica',
+                'Funciones cuadráticas: vértice',
+                'Modelamiento con funciones',
+                'Taller de resolución de problemas'])[((x.n - 1) % 6) + 1],
+         'Aula 12',
+         case when x.status = 'completed' then (x.day + time '14:30') at time zone 'America/Lima' end,
+         case when x.status = 'completed' then (x.day + time '16:00') at time zone 'America/Lima' end,
+         case when x.status = 'completed' then v_teacher end
+    from (
+      select sc.id as sched_id,
+             (w.mon + (sc.weekday - 1)) as day,
+             case when (w.mon + (sc.weekday - 1)) < v_today then 'completed' else 'scheduled' end as status,
+             row_number() over (order by (w.mon + (sc.weekday - 1))) as n
+        from class_schedules sc
+        cross join (values (date '2026-08-24'), (date '2026-08-31'), (date '2026-09-07')) as w(mon)
+       where sc.class_id = v_mat and sc.effective_from = date '2026-08-24' and sc.deleted_at is null
+    ) as x;
+
+  -- =========================================================================
+  -- Arte 3ro A moves out of the way.
+  --
+  -- Block 2 put it on Mon/Thu 09:00-10:00, which was clear of Matemática's
+  -- Tue/Fri 10:00 slot but sits inside 5to B's new 08:00-09:30 block. Moved to
+  -- Wed/Fri 16:15-17:15 — after 5to B's day ends — so the demo timetable has
+  -- no overlapping sessions anywhere. The grid would draw two overlapping
+  -- classes on top of each other; how to split them is an open design
+  -- question, and the seed should not be what forces it.
+  --
+  -- The two schedule rows are moved in place, so every session's schedule_id
+  -- stays valid; only weekday, times and dates change. Monday sessions shift
+  -- +2 days and Thursday ones +1.
+  --
+  -- The ad-hoc update is pinned to block 2's own row (schedule_id null AND
+  -- session_date 2026-08-26) rather than to every ad-hoc session of the class.
+  -- On a fresh database those are the same thing, but a database that has been
+  -- used has ad-hoc sessions a person created through the app: moving them all
+  -- to 16:15 collides the moment two share a date (class_sessions_class_start_key),
+  -- and rewriting rows a teacher entered is not the seed's business anyway.
+  -- Such a session can still overlap 5to B's new timetable; that is left alone
+  -- deliberately.
+  -- =========================================================================
+  update class_schedules set weekday = 3, starts_at = time '16:15', ends_at = time '17:15'
+   where class_id = v_art3 and weekday = 1 and deleted_at is null;
+  update class_schedules set weekday = 5, starts_at = time '16:15', ends_at = time '17:15'
+   where class_id = v_art3 and weekday = 4 and deleted_at is null;
+
+  update class_sessions cs
+     set session_date = d.nd,
+         scheduled_start_at = (d.nd + time '16:15') at time zone 'America/Lima',
+         scheduled_end_at   = (d.nd + time '17:15') at time zone 'America/Lima'
+    from (
+      select id,
+             session_date + (case extract(isodow from session_date)
+                               when 1 then 2 when 4 then 1 else 0 end)::int as nd
+        from class_sessions
+       where class_id = v_art3 and schedule_id is not null and deleted_at is null
+    ) as d
+   where cs.id = d.id;
+
+  update class_sessions
+     set scheduled_start_at = (session_date + time '16:15') at time zone 'America/Lima',
+         scheduled_end_at   = (session_date + time '17:15') at time zone 'America/Lima'
+   where class_id = v_art3 and schedule_id is null
+     and session_date = date '2026-08-26' and deleted_at is null;
+end
+$areas$;

@@ -11,6 +11,10 @@
 	--text-primary: #141414;
 	--text-secondary: #4a4a4a;
 	--text-muted: rgba(74, 74, 74, 0.6);
+	/* One step past muted, for the *unset* member of a set whose other members
+	   are muted — an unpicked level, a competencia with no nivel yet. Muted alone
+	   could not say "present but not chosen" without also looking disabled. */
+	--text-faint: rgba(74, 74, 74, 0.35);
 	--text-success: #5b5fc7;
 	--text-danger: #141414;
 	--text-warning: #4a4a4a;
@@ -280,22 +284,6 @@ select {
 
 .divider {
 	border-top: 0.5px solid var(--border);
-}
-
-.chip {
-	font-size: 11px;
-	padding: 2px var(--space-sm);
-	border-radius: 20px;
-}
-
-.chip-ok {
-	color: var(--text-success);
-	background: var(--bg-success);
-}
-
-.chip-bad {
-	color: var(--text-danger);
-	background: var(--bg-danger);
 }
 
 .row {

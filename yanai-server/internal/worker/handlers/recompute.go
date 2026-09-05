@@ -142,9 +142,16 @@ func recomputeOne(ctx context.Context, tx pgx.Tx, jobID int64, classID, termID, 
 		  left join retake_authorizations ra on ra.id = s.retake_authorization_id
 		 where a.class_id = $1 and a.term_id = $2 and a.status = 'published' and a.deleted_at is null
 		   -- The school's own average only. Evidence flagged out of it still
-		   -- counts for the official judgement, which is recorded per criterio
-		   -- and never passes through here.
+		   -- informs the official judgement, which is the teacher's nivel de logro
+		   -- per competencia and never passes through here.
 		   and a.counts_toward_internal
+		   -- Only a numeric piece has anything a weighted average can use. A
+		   -- letter is not a small number: converting one into the average is the
+		   -- arithmetic RVM 094-2020 refuses, and an unvalued piece has no value
+		   -- at all. The API already forces counts_toward_internal off for both,
+		   -- so this is the same rule stated where it is relied on — and it is
+		   -- what keeps the not-null scan of s.max_value below safe.
+		   and a.value_scale = 'numeric'
 		 order by a.id, s.attempt_number
 	`, classID, termID, studentID)
 	if err != nil {

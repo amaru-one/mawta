@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -28,30 +29,38 @@ type ScoreAttempt struct {
 	AttemptNumber int16     `json:"attempt_number"`
 	AttemptKind   string    `json:"attempt_kind"`
 	Status        string    `json:"status"`
-	RawValue      *float64  `json:"raw_value"`
+	// Exactly one of these carries the value, decided by the assessment's
+	// value_scale: RawValue for 'numeric', Level for 'ordinal', neither for
+	// 'none'. A Level here is a value on a piece of work and nothing more — the
+	// nivel de logro of a competencia lives in competency_term_levels.
+	RawValue *float64 `json:"raw_value"`
+	Level    *string  `json:"level"`
 }
 
-// CriterionRef names one criterio de evaluación an assessment evidences, with
-// the level this student reached against it *on this evidence* — one cell of
-// the evidencia × criterio grid. Null means unjudged, which is a real state
-// and must never render as C.
+// CriterionRef names one criterio de evaluación a piece of evidencia is tagged
+// with: what the teacher set out to look at in this work. It carries no level
+// and must not grow one.
 type CriterionRef struct {
 	CriterionID uuid.UUID `json:"criterion_id"`
 	Code        *string   `json:"code"`
 	Description string    `json:"description"`
-	Level       *string   `json:"level"`
 }
 
 // EvaluationEntry is one graded item — a quiz, an exam — as *evidence*. It
 // carries no weight: under RVM 094-2020 a mark informs the teacher's
 // judgement of the criterios and never feeds a final grade arithmetically.
 type EvaluationEntry struct {
-	AssessmentID  uuid.UUID `json:"assessment_id"`
-	Title         string    `json:"title"`
-	Kind          string    `json:"kind"`
-	MaxScore      float64   `json:"max_score"`
-	ComponentCode string    `json:"component_code"`
-	ComponentName string    `json:"component_name"`
+	AssessmentID uuid.UUID `json:"assessment_id"`
+	Title        string    `json:"title"`
+	Kind         string    `json:"kind"`
+	// ValueScale is how this evidence is valued: 'numeric' (a mark out of
+	// MaxScore), 'ordinal' (a letter) or 'none' (registered, never valued).
+	ValueScale string `json:"value_scale"`
+	// MaxScore is the denominator, present only when ValueScale is 'numeric'.
+	MaxScore      *float64   `json:"max_score"`
+	DueAt         *time.Time `json:"due_at"`
+	ComponentCode string     `json:"component_code"`
+	ComponentName string     `json:"component_name"`
 	// IsPersonal is true when the assessment was created for this student
 	// alone (assessments.student_id set) rather than for the whole class.
 	IsPersonal bool `json:"is_personal"`
@@ -99,13 +108,14 @@ func GetStudentGrades(ctx context.Context, tx pgx.Tx, classID, studentID, termID
 	}
 
 	rows, err := tx.Query(ctx, `
-		select a.id, a.title, a.kind, a.max_score, gc.code, gc.name,
+		select a.id, a.title, a.kind, a.value_scale, a.max_score, a.due_at, gc.code, gc.name,
 		       a.student_id is not null as is_personal, a.counts_toward_internal,
-		       s.id, s.attempt_number, s.attempt_kind, s.status, s.raw_value
+		       s.id, s.attempt_number, s.attempt_kind, s.status, s.raw_value, sl.code
 		  from assessments a
 		  join grading_components gc on gc.id = a.component_id
 		  left join scores s on s.assessment_id = a.id and s.student_id = $2
 		                     and s.superseded_at is null and s.deleted_at is null
+		  left join grade_scale_levels sl on sl.id = s.scale_level_id
 		 where a.class_id = $1 and a.term_id = $3 and a.status = 'published' and a.deleted_at is null
 		   and (a.student_id is null or a.student_id = $2)
 		 order by a.due_at nulls last, a.title, s.attempt_number
@@ -121,11 +131,11 @@ func GetStudentGrades(ctx context.Context, tx pgx.Tx, classID, studentID, termID
 		var e EvaluationEntry
 		var scoreID *uuid.UUID
 		var attemptNumber *int16
-		var attemptKind, status *string
+		var attemptKind, status, level *string
 		var rawValue *float64
-		if err := rows.Scan(&e.AssessmentID, &e.Title, &e.Kind, &e.MaxScore, &e.ComponentCode, &e.ComponentName,
-			&e.IsPersonal, &e.CountsTowardInternal,
-			&scoreID, &attemptNumber, &attemptKind, &status, &rawValue); err != nil {
+		if err := rows.Scan(&e.AssessmentID, &e.Title, &e.Kind, &e.ValueScale, &e.MaxScore, &e.DueAt,
+			&e.ComponentCode, &e.ComponentName, &e.IsPersonal, &e.CountsTowardInternal,
+			&scoreID, &attemptNumber, &attemptKind, &status, &rawValue, &level); err != nil {
 			return resp, err
 		}
 		entry, ok := byAssessment[e.AssessmentID]
@@ -137,7 +147,7 @@ func GetStudentGrades(ctx context.Context, tx pgx.Tx, classID, studentID, termID
 		if scoreID != nil {
 			entry.Attempts = append(entry.Attempts, ScoreAttempt{
 				ScoreID: *scoreID, AttemptNumber: *attemptNumber, AttemptKind: *attemptKind,
-				Status: *status, RawValue: rawValue,
+				Status: *status, RawValue: rawValue, Level: level,
 			})
 		}
 	}
@@ -145,21 +155,15 @@ func GetStudentGrades(ctx context.Context, tx pgx.Tx, classID, studentID, termID
 		return resp, err
 	}
 
-	// Which criterios each assessment evidences, and where this student stands
-	// against each one on that evidence. Read separately rather than joined
-	// above: an assessment links to zero or many criterios, and folding that
-	// into the scores join would multiply the attempt rows.
+	// Which criterios each assessment is tagged with — what the teacher set out
+	// to look at in that work. Read separately rather than joined above: an
+	// assessment links to zero or many criterios, and folding that into the
+	// scores join would multiply the attempt rows.
 	critRows, err := tx.Query(ctx, `
-		select ac.assessment_id, ec.id, ec.code, ec.description, l.code
+		select ac.assessment_id, ec.id, ec.code, ec.description
 		  from assessment_criteria ac
 		  join assessments a on a.id = ac.assessment_id
 		  join evaluation_criteria ec on ec.id = ac.criterion_id
-		  left join evaluation_criterion_scores ecs
-		         on ecs.assessment_id = ac.assessment_id
-		        and ecs.criterion_id = ec.id
-		        and ecs.student_id = $3
-		        and ecs.superseded_at is null and ecs.deleted_at is null
-		  left join grade_scale_levels l on l.id = ecs.scale_level_id
 		 where a.class_id = $1 and a.term_id = $2
 		   and a.status = 'published' and a.deleted_at is null
 		   and (a.student_id is null or a.student_id = $3)
@@ -173,7 +177,7 @@ func GetStudentGrades(ctx context.Context, tx pgx.Tx, classID, studentID, termID
 	for critRows.Next() {
 		var assessmentID uuid.UUID
 		var ref CriterionRef
-		if err := critRows.Scan(&assessmentID, &ref.CriterionID, &ref.Code, &ref.Description, &ref.Level); err != nil {
+		if err := critRows.Scan(&assessmentID, &ref.CriterionID, &ref.Code, &ref.Description); err != nil {
 			return resp, err
 		}
 		if entry, ok := byAssessment[assessmentID]; ok {
@@ -255,15 +259,18 @@ func ListGradingComponents(ctx context.Context, tx pgx.Tx, classID, termID uuid.
 // are what the teacher's judgement is made against, and are never rolled up
 // into a level by anything downstream.
 type NewAssessment struct {
-	ClassID      uuid.UUID
-	TermID       uuid.UUID
-	SchemeID     uuid.UUID
-	ComponentID  uuid.UUID
-	TeacherID    uuid.UUID
-	StudentID    *uuid.UUID
-	Title        string
-	Kind         string
-	MaxScore     float64
+	ClassID     uuid.UUID
+	TermID      uuid.UUID
+	SchemeID    uuid.UUID
+	ComponentID uuid.UUID
+	TeacherID   uuid.UUID
+	StudentID   *uuid.UUID
+	Title       string
+	Kind        string
+	// ValueScale is 'numeric', 'ordinal' or 'none'. MaxScore is required for
+	// 'numeric' and must be nil for the other two — the DB enforces the pair.
+	ValueScale   string
+	MaxScore     *float64
 	DueAt        *string
 	CriterionIDs []uuid.UUID
 	// CountsTowardInternal feeds the school's own weighted average only. It
@@ -299,12 +306,12 @@ func CreateAssessment(ctx context.Context, tx pgx.Tx, a NewAssessment) (uuid.UUI
 	var id uuid.UUID
 	err := tx.QueryRow(ctx, `
 		insert into assessments (tenant_id, class_id, term_id, scheme_id, component_id, student_id,
-		                          title, kind, max_score, due_at, counts_toward_internal,
+		                          title, kind, value_scale, max_score, due_at, counts_toward_internal,
 		                          status, published_at, created_by_id)
-		values (app.current_tenant_id(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'published', now(), $11)
+		values (app.current_tenant_id(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'published', now(), $12)
 		returning id
 	`, a.ClassID, a.TermID, a.SchemeID, a.ComponentID, a.StudentID,
-		a.Title, a.Kind, a.MaxScore, a.DueAt, a.CountsTowardInternal, a.TeacherID).Scan(&id)
+		a.Title, a.Kind, a.ValueScale, a.MaxScore, a.DueAt, a.CountsTowardInternal, a.TeacherID).Scan(&id)
 	if err != nil {
 		return uuid.Nil, err
 	}
@@ -373,14 +380,66 @@ type DeletedAssessment struct {
 	StudentID *uuid.UUID
 }
 
-func CreateScore(ctx context.Context, tx pgx.Tx, assessmentID, studentID, teacherID uuid.UUID, status string, rawValue *float64, lateDays int16) (id, classID, termID uuid.UUID, err error) {
+// ordinalLevelID resolves an AD/A/B/C code to its row on the tenant's ordinal
+// scale. The same lookup AssertCompetencyLevel does: AD/A/B/C is one
+// vocabulary, whatever the standing of the row that points at it.
+func ordinalLevelID(ctx context.Context, tx pgx.Tx, levelCode string) (uuid.UUID, error) {
+	var id uuid.UUID
+	err := tx.QueryRow(ctx, `
+		select l.id
+		  from grade_scale_levels l
+		  join grade_scales g on g.id = l.scale_id
+		 where g.kind = 'ordinal' and l.code = $1
+		   and l.deleted_at is null and g.deleted_at is null
+		 limit 1
+	`, levelCode).Scan(&id)
+	if err == pgx.ErrNoRows {
+		return uuid.Nil, db.NewAppError(http.StatusBadRequest, "unknown_level",
+			"level must be one of AD, A, B or C")
+	}
+	return id, err
+}
+
+// scoreValue is the value being written: a number, a letter, or neither (for a
+// status like not_submitted). The assessment's value_scale decides which of the
+// first two is legal, and the DB rejects the wrong one — a letter on a
+// vigesimal practice is a data error, not a rendering choice.
+type scoreValue struct {
+	RawValue *float64
+	LevelID  *uuid.UUID
+}
+
+func resolveScoreValue(ctx context.Context, tx pgx.Tx, rawValue *float64, level *string) (scoreValue, error) {
+	var v scoreValue
+	if rawValue != nil && level != nil {
+		return v, db.NewAppError(http.StatusBadRequest, "two_values",
+			"a score carries a mark or a level, never both")
+	}
+	v.RawValue = rawValue
+	if level != nil {
+		id, err := ordinalLevelID(ctx, tx, *level)
+		if err != nil {
+			return v, err
+		}
+		v.LevelID = &id
+	}
+	return v, nil
+}
+
+func CreateScore(ctx context.Context, tx pgx.Tx, assessmentID, studentID, teacherID uuid.UUID, status string, rawValue *float64, level *string, lateDays int16) (id, classID, termID uuid.UUID, err error) {
+	v, err := resolveScoreValue(ctx, tx, rawValue, level)
+	if err != nil {
+		return
+	}
+	// max_value comes from the assessment and is null for a non-numeric one, so
+	// a letter score carries no denominator to misread later.
 	err = tx.QueryRow(ctx, `
 		insert into scores (tenant_id, assessment_id, student_id, attempt_number, attempt_kind,
-		                     status, raw_value, max_value, late_days, source, recorded_by_id)
-		select app.current_tenant_id(), $1, $2, 1, 'original', $3, $4, a.max_score, $5, 'manual', $6
+		                     status, raw_value, scale_level_id, max_value, late_days, source, recorded_by_id)
+		select app.current_tenant_id(), $1, $2, 1, 'original', $3, $4, $5, a.max_score, $6, 'manual', $7
 		  from assessments a where a.id = $1
 		returning id, class_id, term_id
-	`, assessmentID, studentID, status, rawValue, lateDays, teacherID).Scan(&id, &classID, &termID)
+	`, assessmentID, studentID, status, v.RawValue, v.LevelID, lateDays, teacherID).Scan(&id, &classID, &termID)
 	return
 }
 
@@ -389,10 +448,11 @@ type correctedOldScore struct {
 	StudentID             uuid.UUID
 	AttemptNumber         int16
 	AttemptKind           string
-	MaxValue              float64
+	MaxValue              *float64
 	RetakeAuthorizationID *uuid.UUID
 	Status                string
 	RawValue              *float64
+	LevelID               *uuid.UUID
 	LateDays              int16
 }
 
@@ -400,15 +460,15 @@ type correctedOldScore struct {
 // the live row first, then inserts the replacement with supersedes_id set —
 // in that order, in the same transaction — because scores_live_attempt_key
 // is a partial unique index and cannot be deferred.
-func CorrectScore(ctx context.Context, tx pgx.Tx, scoreID, teacherID uuid.UUID, rawValue *float64, status *string, lateDays *int16) (newScoreID, studentID, classID, termID uuid.UUID, err error) {
+func CorrectScore(ctx context.Context, tx pgx.Tx, scoreID, teacherID uuid.UUID, rawValue *float64, level *string, status *string, lateDays *int16) (newScoreID, studentID, classID, termID uuid.UUID, err error) {
 	var old correctedOldScore
 	err = tx.QueryRow(ctx, `
 		update scores set superseded_at = now()
 		 where id = $1 and superseded_at is null and deleted_at is null
 		returning assessment_id, student_id, attempt_number, attempt_kind, max_value,
-		          retake_authorization_id, status, raw_value, late_days
+		          retake_authorization_id, status, raw_value, scale_level_id, late_days
 	`, scoreID).Scan(&old.AssessmentID, &old.StudentID, &old.AttemptNumber, &old.AttemptKind, &old.MaxValue,
-		&old.RetakeAuthorizationID, &old.Status, &old.RawValue, &old.LateDays)
+		&old.RetakeAuthorizationID, &old.Status, &old.RawValue, &old.LevelID, &old.LateDays)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			err = db.NewAppError(http.StatusConflict, "already_superseded", "score already superseded; reload and try again")
@@ -420,24 +480,39 @@ func CorrectScore(ctx context.Context, tx pgx.Tx, scoreID, teacherID uuid.UUID, 
 	if status != nil {
 		newStatus = *status
 	}
-	newRawValue := old.RawValue
-	if rawValue != nil {
-		newRawValue = rawValue
-	}
 	newLateDays := old.LateDays
 	if lateDays != nil {
 		newLateDays = *lateDays
 	}
 	studentID = old.StudentID
 
+	// A correction that names neither value inherits the old one; naming either
+	// replaces the pair, so switching a score from a mark to a letter clears the
+	// mark rather than leaving both on the row.
+	newRawValue := old.RawValue
+	newLevelID := old.LevelID
+	if rawValue != nil || level != nil {
+		var v scoreValue
+		v, err = resolveScoreValue(ctx, tx, rawValue, level)
+		if err != nil {
+			return
+		}
+		newRawValue, newLevelID = v.RawValue, v.LevelID
+	}
+	// not_submitted and its siblings carry no value at all; keeping the old mark
+	// would leave a number on a row that says nothing was handed in.
+	if newStatus != "graded" {
+		newRawValue, newLevelID = nil, nil
+	}
+
 	err = tx.QueryRow(ctx, `
 		insert into scores (tenant_id, assessment_id, student_id, attempt_number, attempt_kind,
-		                     retake_authorization_id, status, raw_value, max_value, late_days,
-		                     source, recorded_by_id, supersedes_id)
-		values (app.current_tenant_id(), $1, $2, $3, $4, $5, $6, $7, $8, $9, 'manual', $10, $11)
+		                     retake_authorization_id, status, raw_value, scale_level_id, max_value,
+		                     late_days, source, recorded_by_id, supersedes_id)
+		values (app.current_tenant_id(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'manual', $11, $12)
 		returning id, class_id, term_id
 	`, old.AssessmentID, old.StudentID, old.AttemptNumber, old.AttemptKind, old.RetakeAuthorizationID,
-		newStatus, newRawValue, old.MaxValue, newLateDays, teacherID, scoreID,
+		newStatus, newRawValue, newLevelID, old.MaxValue, newLateDays, teacherID, scoreID,
 	).Scan(&newScoreID, &classID, &termID)
 	return
 }

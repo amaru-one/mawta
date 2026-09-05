@@ -49,6 +49,10 @@ func (a *API) Router() http.Handler {
 		r.Get("/home", a.handleHome)
 
 		r.Get("/classes/{classID}/dashboard", a.handleClassDashboard)
+		// The class list, and the evidence one student has in one competencia —
+		// the two reads the evaluating screens are built on.
+		r.Get("/classes/{classID}/students", a.handleClassStudents)
+		r.Get("/classes/{classID}/students/{studentID}/evidence", a.handleStudentEvidence)
 		r.Get("/classes/{classID}/students/{studentID}/grades", a.handleStudentGrades)
 		r.Get("/classes/{classID}/grading-components", a.handleGradingComponents)
 		r.Post("/classes/{classID}/assessments", a.handleCreateAssessment)
@@ -59,14 +63,12 @@ func (a *API) Router() http.Handler {
 		r.Post("/classes/{classID}/students/{studentID}/competency-levels", a.handleAssertCompetencyLevel)
 		r.Post("/classes/{classID}/students/{studentID}/conclusions", a.handleUpsertConclusion)
 
-		// Criterios de evaluación: what the teacher judges each competencia
-		// against, and the evidencia × criterio levels that evidence the
-		// judgement. A level always names the evidencia it was read from.
+		// Criterios de evaluación: what the teacher says to look at in a piece of
+		// work. Authoring only — a criterio is a tag on evidencia and is never
+		// itself graded, so there is deliberately no level route here.
 		r.Get("/classes/{classID}/criteria", a.handleClassCriteria)
 		r.Post("/classes/{classID}/competencies/{competencyID}/criteria", a.handleCreateCriterion)
 		r.Post("/criteria/{criterionID}/delete", a.handleDeleteCriterion)
-		r.Post("/classes/{classID}/students/{studentID}/criterion-levels", a.handleAssertCriterionLevel)
-		r.Get("/assessments/{assessmentID}/criteria-grid", a.handleAssessmentCriteriaGrid)
 
 		r.Post("/sessions/{sessionID}/start", a.handleSessionStart)
 		r.Get("/sessions/{sessionID}", a.handleSessionRoster)

@@ -71,6 +71,15 @@
 		</a>
 	{/if}
 
+	<!-- Shortcut out of any screen but Home itself. Hidden while a recording runs
+	     for the same reason the bell cedes its slot to the REC marker: leaving the
+	     lesson screen mid-hold would lose the note. -->
+	{#if !recording && variant !== 'home'}
+		<a class="nav pressable" href="/" onclick={hapticTap} aria-label="Ir al inicio">
+			<Icon name="home" size={20} />
+		</a>
+	{/if}
+
 	{#if recording}
 		<span class="rec" role="status" aria-label="Grabando">
 			<span class="rec-dot"></span>
