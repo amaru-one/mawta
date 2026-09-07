@@ -35,6 +35,12 @@
 	<symbol id="i-check" viewBox="0 0 24 24">
 		<path d="M5 12l5 5 9-9" />
 	</symbol>
+	<symbol id="i-calendar" viewBox="0 0 24 24">
+		<rect x="4" y="6" width="16" height="15" rx="2" />
+		<path d="M4 11h16" />
+		<path d="M8 3v4" />
+		<path d="M16 3v4" />
+	</symbol>
 	<symbol id="i-calculator" viewBox="0 0 24 24">
 		<rect x="4" y="3" width="16" height="18" rx="2" />
 		<rect x="8" y="7" width="8" height="3" />

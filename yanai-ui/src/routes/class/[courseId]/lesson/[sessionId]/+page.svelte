@@ -55,17 +55,22 @@
 
 	const panelOpen = $derived(ready && searching && stage !== 'recording');
 
-	const dateLabel = $derived.by(() => {
+	const areaName = $derived($currentCourse?.name ?? 'Clase');
+
+	// "Viernes 4 de setiembre", built from two calls rather than one
+	// weekday+day+month format: that format's separator is an ICU detail that
+	// varies by version, and this line is read at a glance every session.
+	const dateLine = $derived.by(() => {
 		const d = $currentSession?.date;
 		if (!d) return '';
-		const day = d.getDate();
-		const month = d.toLocaleDateString('es-PE', { month: 'short' }).replace('.', '').toUpperCase();
-		return `${day} ${month}`;
+		const weekday = d.toLocaleDateString('es-PE', { weekday: 'long' });
+		const rest = d.toLocaleDateString('es-PE', { day: 'numeric', month: 'long' });
+		return `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)} ${rest}`;
 	});
 
-	const metaLine = $derived(
-		[($currentCourse?.name ?? '').toUpperCase(), dateLabel].filter(Boolean).join(' · ')
-	);
+	// The class dashboard's wording for a session with no topic, deliberately
+	// the same string: it is the same absence.
+	const lessonName = $derived($currentSession?.topic?.trim() || 'Sin tema asignado');
 
 	const subLine = $derived.by(() => {
 		if (stage === 'searching') {
@@ -110,6 +115,58 @@
 		query = '';
 		searching = false;
 		field?.blur();
+	}
+
+	// A tap picks a name; a drag scrolls the list. Which of the two a touch is
+	// cannot be known at `pointerdown` — the finger has not moved yet — so the
+	// row commits on RELEASE, having held the student since the press. Same
+	// shape as `ScoreRuler`'s pointer-captured drag, except a `pointercancel`
+	// here ABORTS: a cancel means the browser took the gesture to scroll.
+	const TAP_SLOP = 10;
+
+	let pending: { id: number; x: number; y: number; student: Student } | null = null;
+
+	const travelled = (e: PointerEvent, from: { x: number; y: number }): number =>
+		Math.hypot(e.clientX - from.x, e.clientY - from.y);
+
+	function rowDown(event: PointerEvent, student: Student): void {
+		// Captured so the release lands on this row even if the layout shifts
+		// under the finger (the software keyboard closing is the usual cause).
+		if (event.currentTarget instanceof HTMLElement) {
+			try {
+				event.currentTarget.setPointerCapture(event.pointerId);
+			} catch {
+				// Pointer already gone — capture is best-effort, as in RecordBubble.
+			}
+		}
+		pending = { id: event.pointerId, x: event.clientX, y: event.clientY, student };
+	}
+
+	function rowMove(event: PointerEvent): void {
+		if (pending === null || event.pointerId !== pending.id) return;
+		if (travelled(event, pending) > TAP_SLOP) pending = null;
+	}
+
+	function rowUp(event: PointerEvent): void {
+		const held = pending;
+		pending = null;
+		if (held === null || event.pointerId !== held.id) return;
+		if (travelled(event, held) > TAP_SLOP) return;
+		// Suppress the compatibility click: the panel closes with this commit,
+		// and that click would land on whatever is now under the finger.
+		event.preventDefault();
+		pick(held.student);
+	}
+
+	// The browser claimed the gesture — it is a scroll, not a choice.
+	function rowCancel(): void {
+		pending = null;
+	}
+
+	// Keyboard and assistive tech only: those clicks carry no pointer detail,
+	// and every pointer-driven click is prevented in `rowUp`.
+	function rowClick(event: MouseEvent, student: Student): void {
+		if (event.detail === 0) pick(student);
 	}
 
 	// One meaning: start over. Clears the query AND the selection and re-opens
@@ -165,14 +222,24 @@
 
 	<div class="stage">
 		<div class="head" class:receded={stage === 'recording'}>
-			<div class="metarow">
-				<p class="metaline">{metaLine}</p>
-				{#if stage !== 'recording'}
-					<a class="area pressable" href="/class/{courseId}" onclick={hapticTap}>
-						Ver área
-						<Icon name="chevron-right" size={13} />
-					</a>
-				{/if}
+			<!-- The session's identity, in one card: which área, which day, which
+			     lesson. All three are constant for the whole session, so the card
+			     never changes height between the three stage states. -->
+			<div class="metacard">
+				<div class="metatop">
+					<span class="cal"><Icon name="calendar" size={19} /></span>
+					<span class="metatext">
+						<span class="areaname">{areaName}</span>
+						<span class="dateline">{dateLine}</span>
+					</span>
+				</div>
+
+				<div class="hair"></div>
+
+				<div class="lesson">
+					<span class="lessonlbl">Lección de hoy</span>
+					<span class="lessonname">{lessonName}</span>
+				</div>
 			</div>
 
 			<div class="nameline" class:live={stage === 'recording'}>
@@ -210,10 +277,11 @@
 							class="rrow"
 							role="option"
 							aria-selected={s.id === selectedId}
-							onpointerdown={(e) => {
-								e.preventDefault();
-								pick(s);
-							}}
+							onpointerdown={(e) => rowDown(e, s)}
+							onpointermove={rowMove}
+							onpointerup={rowUp}
+							onpointercancel={rowCancel}
+							onclick={(e) => rowClick(e, s)}
 						>
 							<span class="rav">{initials(s)}</span>
 							<span class="rname">
@@ -228,6 +296,15 @@
 						<p class="rempty">Ningún alumno coincide con «{query}».</p>
 					{/if}
 				</div>
+			{/if}
+
+			<!-- The only navigation on the stage. Last in the header, so hiding it
+			     moves nothing above it. -->
+			{#if stage !== 'recording' && !panelOpen}
+				<a class="area pressable" href="/class/{courseId}" onclick={hapticTap}>
+					<span class="areatxt">Ir a {areaName}</span>
+					<Icon name="chevron-right" size={19} />
+				</a>
 			{/if}
 		</div>
 
@@ -276,15 +353,35 @@
 		position: relative;
 		flex: 1;
 		min-height: 0;
+
+		/* The composition's anchors, in one place. The bubble, the hint, the
+		   countdown and the notes panel all hang off --bubble-anchor, so they
+		   move as one piece and cannot drift out of register. They never vary by
+		   state — only by viewport, below.
+
+		   The anchor is a fixed distance from the top, not a percentage of the
+		   stage: the header above it is a constant 324px tall, so px anchoring
+		   keeps the same gap under it on every screen and hands the slack on a
+		   tall screen to the notes panel, which is the only part that can use
+		   it. A percentage put the orb under the header on short screens and
+		   left a hole on tall ones. */
+		--bubble-anchor: 460px;
+		--bubble-scale: 1;
+		--hint-offset: 128px;
+		--count-offset: 158px;
+		--notes-offset: 172px;
 	}
 
+	/* Above the hint, not level with it: the results panel is part of this
+	   header, and at the same z-index the pinned hint printed through the list
+	   of names the panel is busy answering. */
 	.head {
 		position: absolute;
 		top: 0;
 		left: 0;
 		right: 0;
 		padding: 18px 18px 0;
-		z-index: 3;
+		z-index: 4;
 		transition: opacity 220ms ease-out;
 	}
 
@@ -292,51 +389,108 @@
 		opacity: 0.45;
 	}
 
-	/* Holds the pill's height even while recording hides it — a row that shrank
-	   by 7px there is exactly the reflow this stage forbids. Same device as
-	   `.subline`'s min-height. */
-	.metarow {
+	.metacard {
+		background: var(--aurora-tint);
+		border-radius: 16px;
+		padding: 12px 14px;
+		margin-bottom: 16px;
+	}
+
+	.metatop {
 		display: flex;
 		align-items: center;
 		gap: 12px;
-		margin: 0 0 14px;
-		min-height: 24px;
 	}
 
-	.metaline {
-		flex: 1;
+	.cal {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 38px;
+		height: 38px;
+		border-radius: 11px;
+		flex-shrink: 0;
+		background: linear-gradient(135deg, var(--aurora-1), var(--aurora-2));
+		color: var(--on-accent);
+	}
+
+	.metatext {
+		display: flex;
+		flex-direction: column;
+		gap: 1px;
 		min-width: 0;
-		margin: 0;
+	}
+
+	.areaname {
+		font-size: 16px;
+		font-weight: 800;
+		letter-spacing: -0.01em;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+	}
+
+	.dateline {
+		font-size: 13px;
+		font-weight: 600;
+		color: var(--aurora-deep);
+	}
+
+	.hair {
+		height: 1px;
+		background: rgba(74, 95, 214, 0.14);
+		margin: 11px 0 10px;
+	}
+
+	.lesson {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		min-width: 0;
+	}
+
+	.lessonlbl {
 		font-family: var(--font-mono);
-		font-size: 11px;
-		letter-spacing: 0.08em;
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
 		color: var(--text-muted);
 	}
 
-	/* The way back up to the class. It is the only navigation on the stage, so
-	   it stays as quiet as a .pill-light and never competes with the bubble. */
-	.area {
-		position: relative;
-		display: inline-flex;
-		align-items: center;
-		gap: 4px;
-		flex-shrink: 0;
-		background: var(--surface-1);
-		color: var(--text-secondary);
-		padding: 6px 12px;
-		border-radius: 999px;
-		font-size: 12px;
-		font-weight: 500;
+	.lessonname {
+		font-size: 16px;
+		font-weight: 700;
+		letter-spacing: -0.01em;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
-	/* 44px minimum tap target via an invisible halo, as `.clear` does. */
-	.area::after {
-		content: '';
-		position: absolute;
-		inset: -10px;
+	/* The way back up to the área, and the only navigation on the stage. It
+	   carries the bubble's own palette rather than a neutral pill: it is the one
+	   thing on the screen that is not the recording, and it has to be findable
+	   without hunting. */
+	.area {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
+		margin-top: 18px;
+		padding: 19px 22px;
+		border-radius: 999px;
+		background: linear-gradient(120deg, var(--aurora-deep), var(--aurora-1));
+		color: var(--on-accent);
+		font-size: 17px;
+		font-weight: 700;
+		box-shadow: 0 12px 26px rgba(74, 95, 214, 0.32);
+	}
+
+	.areatxt {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.nameline {
@@ -360,8 +514,8 @@
 		background: none;
 		padding: 0;
 		outline: none;
-		font-size: 26px;
-		font-weight: 600;
+		font-size: 34px;
+		font-weight: 700;
 		letter-spacing: -0.02em;
 		line-height: 1.15;
 		color: var(--text-primary);
@@ -369,7 +523,7 @@
 
 	.namefield::placeholder {
 		color: var(--text-muted);
-		font-weight: 600;
+		font-weight: 700;
 	}
 
 	.namefield:disabled {
@@ -384,8 +538,8 @@
 		position: absolute;
 		left: 0;
 		right: 36px;
-		font-size: 26px;
-		font-weight: 600;
+		font-size: 34px;
+		font-weight: 700;
 		letter-spacing: -0.02em;
 		line-height: 1.15;
 		overflow: hidden;
@@ -433,8 +587,16 @@
 		overflow-y: auto;
 		max-height: 46vh;
 		-webkit-overflow-scrolling: touch;
+		/* The bounce at either end stays in the panel rather than chaining out
+		   to the stage behind it. */
+		overscroll-behavior: contain;
 	}
 
+	/* `pan-y` states what the row does NOT handle, so the browser can start
+	   scrolling the panel on the first move instead of waiting on script; the
+	   selection idioms live in the pointer handlers. The callout/selection
+	   suppression stops a slow drag over a name from raising iOS's text-
+	   selection menu on top of the list. */
 	.rrow {
 		display: flex;
 		align-items: center;
@@ -443,6 +605,10 @@
 		padding: 13px 14px;
 		text-align: left;
 		border-bottom: 0.5px solid var(--border);
+		touch-action: pan-y;
+		user-select: none;
+		-webkit-user-select: none;
+		-webkit-touch-callout: none;
 	}
 
 	.rrow:last-child {
@@ -488,15 +654,15 @@
 		color: var(--text-secondary);
 	}
 
-	/* Both pinned off the stage centre, never off the bubble, so neither moves
+	/* Both pinned off the stage's anchor, never off the bubble, so neither moves
 	   when the bubble changes character. */
 	.hint {
 		position: absolute;
-		top: 50%;
+		top: var(--bubble-anchor);
 		left: 0;
 		right: 0;
 		margin: 0;
-		transform: translateY(122px);
+		transform: translateY(var(--hint-offset));
 		text-align: center;
 		font-size: 15px;
 		font-weight: 500;
@@ -511,11 +677,11 @@
 
 	.count {
 		position: absolute;
-		top: 50%;
+		top: var(--bubble-anchor);
 		left: 0;
 		right: 0;
 		margin: 0;
-		transform: translateY(152px);
+		transform: translateY(var(--count-offset));
 		text-align: center;
 		font-size: 13px;
 		color: var(--text-secondary);
@@ -523,11 +689,18 @@
 		z-index: 3;
 	}
 
+	/* Bounded above by the anchor, not by its own content: the list scrolls
+	   inside whatever the composition leaves it, so a student with six notes
+	   grows a scrollbar instead of growing up over the bubble. */
 	.notes {
 		position: absolute;
 		left: 0;
 		right: 0;
+		top: calc(var(--bubble-anchor) + var(--notes-offset));
 		bottom: 0;
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
 		padding: 0 18px 24px;
 		z-index: 3;
 		background: var(--surface-2);
@@ -546,6 +719,9 @@
 		display: flex;
 		flex-direction: column;
 		gap: 6px;
+		min-height: 0;
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
 	}
 
 	.loaderr {
@@ -561,12 +737,26 @@
 		background: var(--surface-2);
 	}
 
-	/* On a short viewport the bottom-pinned notes would collide with the
-	   countdown. Drop the notes rather than shrink the bubble — the bubble
-	   holding its size is the point of the screen. */
-	@media (max-height: 640px) {
+	/* A short viewport cannot hold the context card, the orb and the notes at
+	   once. The notes go first, as they always have — reading them is a
+	   different job, and the orb holding its size is the point of the screen.
+	   The breakpoint moved up from 640px when the header gained the
+	   área/fecha/lección card: below ~800px what was left for the panel was
+	   less than one row. */
+	@media (max-height: 800px) {
 		.notes {
 			display: none;
+		}
+	}
+
+	/* Shorter still, and the orb does give ground rather than run off the
+	   bottom: it shrinks in place and pulls the two pinned lines up with it. */
+	@media (max-height: 700px) {
+		.stage {
+			--bubble-anchor: 430px;
+			--bubble-scale: 0.74;
+			--hint-offset: 100px;
+			--count-offset: 126px;
 		}
 	}
 </style>

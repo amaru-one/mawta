@@ -31,6 +31,19 @@
 	--text-accent: #5b5fc7;
 	--bg-accent: rgba(91, 95, 199, 0.12);
 
+	/* AI aurora — the recording bubble's palette, and only its palette. The
+	   accent's neighbouring hues either side of it, so the Siri-like orb reads
+	   as the same voice as --fill-accent rather than as a second brand color.
+	   Used by RecordBubble and by the lesson screen's context card and button;
+	   nothing else in the app should reach for these. */
+	--aurora-1: #7c9bff;
+	--aurora-2: #7cf7d9;
+	--aurora-3: #9b7cff;
+	/* One step deeper than the accent — legible as text on --aurora-tint, where
+	   --text-accent is not. */
+	--aurora-deep: #4a5fd6;
+	--aurora-tint: #f2f2fb;
+
 	/* Foreground on fills */
 	--on-primary: #ffffff;
 	--on-success: #ffffff;

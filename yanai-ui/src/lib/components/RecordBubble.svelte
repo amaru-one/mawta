@@ -46,11 +46,12 @@
 		reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 	});
 
-	const RADIUS = 106;
+	// The gauge sits 16px outside the 232px orb, on the stage's own 360-unit
+	// grid (1 unit = 1px), so the ring the teacher already sees becomes the
+	// track the progress arc is drawn over.
+	const RADIUS = 132;
 	const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 	const arc = $derived(Math.min(elapsedSec / MAX_RECORD_SEC, 1) * CIRCUMFERENCE);
-
-	const filterKey = $derived(phase === 'recording' ? 'rec' : armed ? 'armed' : 'idle');
 
 	async function press(event: PointerEvent): Promise<void> {
 		if (phase !== 'idle' || !armed) return;
@@ -148,63 +149,36 @@
 	}
 </script>
 
-<div class="bubble">
-	<svg
-		class="art"
-		class:idle={!armed}
-		class:armed={armed && phase !== 'recording'}
-		class:rec={phase === 'recording'}
-		class:still={reducedMotion}
-		viewBox="0 0 360 360"
-		aria-hidden="true"
-	>
+<div
+	class="bubble"
+	class:idle={!armed}
+	class:armed={armed && phase !== 'recording'}
+	class:rec={phase === 'recording'}
+	class:still={reducedMotion}
+>
+	<!-- Light spilling from the orb onto the page. It is what the frosted
+	     surface has to refract: over flat white the glass would have nothing to
+	     blur and would read as a solid disc. -->
+	<div class="ambient" aria-hidden="true"></div>
+
+	<!-- Four drifting lights under one translucent surface. The colour lives
+	     below the glass, so what the teacher sees is the blur of it, never the
+	     blobs themselves. -->
+	<div class="orb" aria-hidden="true">
+		<div class="colorfield">
+			<span class="blob b1"></span>
+			<span class="blob b2"></span>
+			<span class="blob b3"></span>
+			<span class="blob b4"></span>
+		</div>
+		<div class="glass"></div>
+		<div class="specular"></div>
+	</div>
+
+	<svg class="gauge" viewBox="0 0 360 360" aria-hidden="true">
 		<defs>
-			<!-- userSpaceOnUse regions: an animated radius churns the bounding box
-			     every frame, and a fixed region is both cheaper and deterministic. -->
-			<filter id="{uid}-idle" filterUnits="userSpaceOnUse" x="60" y="60" width="240" height="240">
-				<feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="1" seed="5" result="n">
-					{#if !reducedMotion}
-						<animate
-							attributeName="baseFrequency"
-							values="0.010;0.016;0.010"
-							dur="14s"
-							repeatCount="indefinite"
-						/>
-					{/if}
-				</feTurbulence>
-				<feDisplacementMap in="SourceGraphic" in2="n" scale="12" />
-			</filter>
-
-			<filter id="{uid}-armed" filterUnits="userSpaceOnUse" x="60" y="60" width="240" height="240">
-				<feTurbulence type="fractalNoise" baseFrequency="0.010" numOctaves="1" seed="3" result="n">
-					{#if !reducedMotion}
-						<animate
-							attributeName="baseFrequency"
-							values="0.008;0.015;0.008"
-							dur="8s"
-							repeatCount="indefinite"
-						/>
-					{/if}
-				</feTurbulence>
-				<feDisplacementMap in="SourceGraphic" in2="n" scale="12" />
-			</filter>
-
-			<filter id="{uid}-rec" filterUnits="userSpaceOnUse" x="60" y="60" width="240" height="240">
-				<feTurbulence type="fractalNoise" baseFrequency="0.008" numOctaves="1" seed="2" result="n">
-					{#if !reducedMotion}
-						<animate
-							attributeName="baseFrequency"
-							values="0.007;0.012;0.007"
-							dur="1.9s"
-							repeatCount="indefinite"
-						/>
-					{/if}
-				</feTurbulence>
-				<feDisplacementMap in="SourceGraphic" in2="n" scale="14" />
-			</filter>
-
-			<!-- The ripples get a gentler wobble than the bubble: long wavelength,
-			     short displacement, so they read as circles that breathe. -->
+			<!-- The ripples get a gentle wobble: long wavelength, short
+			     displacement, so they read as circles that breathe. -->
 			<filter id="{uid}-ring" filterUnits="userSpaceOnUse" x="0" y="0" width="360" height="360">
 				<feTurbulence type="fractalNoise" baseFrequency="0.007" numOctaves="1" seed="19" result="n">
 					<animate
@@ -216,19 +190,12 @@
 				</feTurbulence>
 				<feDisplacementMap in="SourceGraphic" in2="n" scale="7" />
 			</filter>
-
-			<!-- The accent lightened and deepened; no new colour enters the palette. -->
-			<linearGradient id="{uid}-fill" x1="0%" y1="0%" x2="100%" y2="100%">
-				<stop offset="0%" stop-color={armed ? '#8286e3' : '#eef0fc'} />
-				<stop offset="52%" stop-color={armed ? '#5b5fc7' : '#dcdef4'} />
-				<stop offset="100%" stop-color={armed ? '#4145a8' : '#c3c6ea'} />
-			</linearGradient>
 		</defs>
 
 		{#if phase === 'recording' && !reducedMotion}
-			<g filter="url(#{uid}-ring)" fill="none" stroke="#5b5fc7" stroke-width="1.25">
-				<circle cx="180" cy="180" r="96" stroke-opacity="0.26">
-					<animate attributeName="r" values="92;168" dur="2.7s" repeatCount="indefinite" />
+			<g class="ripples" filter="url(#{uid}-ring)">
+				<circle cx="180" cy="180" r="120" stroke-opacity="0.26">
+					<animate attributeName="r" values="120;168" dur="2.7s" repeatCount="indefinite" />
 					<animate
 						attributeName="stroke-opacity"
 						values="0.26;0"
@@ -236,10 +203,10 @@
 						repeatCount="indefinite"
 					/>
 				</circle>
-				<circle cx="180" cy="180" r="96" stroke-opacity="0.26">
+				<circle cx="180" cy="180" r="120" stroke-opacity="0.26">
 					<animate
 						attributeName="r"
-						values="92;168"
+						values="120;168"
 						dur="2.7s"
 						begin="1.35s"
 						repeatCount="indefinite"
@@ -255,33 +222,20 @@
 			</g>
 		{/if}
 
-		<circle cx="180" cy="180" r="88" fill="url(#{uid}-fill)" filter="url(#{uid}-{filterKey})" />
+		<!-- The hairline ring is present in every state; while recording the arc
+		     is drawn over it, so time left reads as an angle on a ring the
+		     teacher was already looking at. One full turn is the cap. -->
+		<circle class="track" cx="180" cy="180" r={RADIUS} />
 
-		{#if phase === 'recording'}
-			<!-- The gauge: crisp and unfiltered against the deforming bubble. One
-			     full turn is the cap, so time left reads as an angle. -->
+		{#if phase === 'recording' && elapsedSec > 0.1}
 			<circle
+				class="arc"
 				cx="180"
 				cy="180"
 				r={RADIUS}
-				fill="none"
-				stroke="#5b5fc7"
-				stroke-opacity="0.14"
-				stroke-width="3"
+				transform="rotate(-90 180 180)"
+				stroke-dasharray="{arc} {CIRCUMFERENCE - arc}"
 			/>
-			{#if elapsedSec > 0.1}
-				<circle
-					cx="180"
-					cy="180"
-					r={RADIUS}
-					fill="none"
-					stroke="#5b5fc7"
-					stroke-width="3"
-					stroke-linecap="round"
-					transform="rotate(-90 180 180)"
-					stroke-dasharray="{arc} {CIRCUMFERENCE - arc}"
-				/>
-			{/if}
 		{/if}
 	</svg>
 
@@ -303,17 +257,166 @@
 </div>
 
 <style>
+	/* The stage keeps its 360×360 box in every state. Where it is anchored, and
+	   how much it is scaled on a short viewport, come from outside as variables
+	   the owning screen sets on the stage — see that route's SPEC. */
 	.bubble {
 		position: absolute;
-		top: 50%;
+		top: var(--bubble-anchor, 50%);
 		left: 50%;
-		transform: translate(-50%, -50%);
+		transform: translate(-50%, -50%) scale(var(--bubble-scale, 1));
 		width: 360px;
 		height: 360px;
 		z-index: 1;
 	}
 
-	.art {
+	/* Drift speeds are one multiplier per state, so the four blobs keep their
+	   relative rhythm and only the tempo changes. */
+	.bubble.idle {
+		--speed: 1.9;
+	}
+
+	.bubble.rec {
+		--speed: 0.45;
+	}
+
+	.ambient {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 520px;
+		height: 520px;
+		transform: translate(-50%, -50%);
+		border-radius: 50%;
+		/* The rgba forms of --aurora-1 and --aurora-2. */
+		background: radial-gradient(
+			circle,
+			rgba(124, 155, 255, 0.16) 0%,
+			rgba(124, 247, 217, 0.1) 40%,
+			transparent 68%
+		);
+		pointer-events: none;
+		transition: opacity 400ms ease-out;
+	}
+
+	.bubble.idle .ambient {
+		opacity: 0.3;
+	}
+
+	/* 232px inside the 360 stage; the gauge ring sits 16px outside it. */
+	.orb {
+		position: absolute;
+		inset: 64px;
+		border-radius: 50%;
+		pointer-events: none;
+		user-select: none;
+	}
+
+	.bubble.idle:not(.still) .orb {
+		animation: breathe-idle 14s ease-in-out infinite;
+	}
+
+	.bubble.armed:not(.still) .orb {
+		animation: breathe-armed 9s ease-in-out infinite;
+	}
+
+	.bubble.rec:not(.still) .orb {
+		animation: breathe-rec 2.2s ease-in-out infinite;
+	}
+
+	.colorfield {
+		position: absolute;
+		inset: 0;
+		border-radius: 50%;
+		overflow: hidden;
+		transition:
+			filter 450ms ease-out,
+			opacity 450ms ease-out;
+	}
+
+	/* Waiting for a student: the colour drains to a pale lilac but the movement
+	   does not stop — a still orb reads as a broken one. Draining further makes
+	   it white on white, which reads as nothing at all. */
+	.bubble.idle .colorfield {
+		filter: saturate(0.4) brightness(1.04);
+		opacity: 0.85;
+	}
+
+	/* No two durations share a common multiple, so the colour never repeats. */
+	.blob {
+		position: absolute;
+		width: 66%;
+		height: 66%;
+		border-radius: 50%;
+		/* Scaled with the orb: the approved artboard's 18px over 272px. Blurring
+		   further washes the four hues into one pale disc. */
+		filter: blur(15px);
+		opacity: 0.8;
+		mix-blend-mode: screen;
+		animation-timing-function: ease-in-out;
+		animation-iteration-count: infinite;
+	}
+
+	.b1 {
+		top: -6%;
+		left: 14%;
+		background: var(--aurora-1);
+		animation-name: drift-1;
+		animation-duration: calc(10s * var(--speed, 1));
+	}
+
+	.b2 {
+		top: 20%;
+		left: 40%;
+		background: var(--aurora-2);
+		animation-name: drift-2;
+		animation-duration: calc(8.5s * var(--speed, 1));
+	}
+
+	.b3 {
+		top: 44%;
+		left: 6%;
+		background: var(--aurora-3);
+		animation-name: drift-3;
+		animation-duration: calc(12s * var(--speed, 1));
+	}
+
+	.b4 {
+		top: 40%;
+		left: 34%;
+		background: var(--fill-accent);
+		animation-name: drift-4;
+		animation-duration: calc(9.5s * var(--speed, 1));
+	}
+
+	/* The whole point of the surface: it blurs the colour below it *and* the
+	   page behind it, which is what makes the orb read as glass rather than as
+	   a printed gradient. */
+	.glass {
+		position: absolute;
+		inset: 0;
+		border-radius: 50%;
+		background: rgba(255, 255, 255, 0.08);
+		backdrop-filter: blur(16px) saturate(1.35);
+		-webkit-backdrop-filter: blur(16px) saturate(1.35);
+		box-shadow:
+			inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+			inset 0 16px 36px rgba(255, 255, 255, 0.3),
+			0 18px 36px rgba(20, 20, 20, 0.1);
+	}
+
+	.specular {
+		position: absolute;
+		top: 15%;
+		left: 26%;
+		width: 30%;
+		height: 16%;
+		border-radius: 50%;
+		background: radial-gradient(ellipse, rgba(255, 255, 255, 0.85), transparent 70%);
+		filter: blur(1px);
+	}
+
+	.gauge {
 		position: absolute;
 		inset: 0;
 		width: 100%;
@@ -323,29 +426,38 @@
 		user-select: none;
 	}
 
-	.art.idle:not(.still) {
-		animation: breathe-idle 14s ease-in-out infinite;
+	.track {
+		fill: none;
+		stroke: var(--aurora-deep);
+		stroke-opacity: 0.14;
+		stroke-width: 1;
 	}
 
-	.art.armed:not(.still) {
-		animation: breathe-armed 9s ease-in-out infinite;
+	.arc {
+		fill: none;
+		stroke: var(--fill-accent);
+		stroke-width: 3;
+		stroke-linecap: round;
 	}
 
-	.art.rec:not(.still) {
-		animation: breathe-rec 2.2s ease-in-out infinite;
+	.ripples {
+		fill: none;
+		stroke: var(--fill-accent);
+		stroke-width: 1.25;
 	}
 
-	/* A generous circular target over the bubble. touch-action: none is required —
-	   `manipulation` still lets a hold that drifts a few px turn into a pan, which
-	   cancels the pointer and eats the note. Deliberately NOT .pressable: its
-	   :active scale composes with the breathe keyframes and the bubble jumps. */
+	/* The whole orb, so nothing that looks pressable is a dead zone.
+	   touch-action: none is required — `manipulation` still lets a hold that
+	   drifts a few px turn into a pan, which cancels the pointer and eats the
+	   note. Deliberately NOT .pressable: its :active scale composes with the
+	   breathe keyframes and the bubble jumps. */
 	.hit {
 		position: absolute;
 		top: 50%;
 		left: 50%;
 		transform: translate(-50%, -50%);
-		width: 220px;
-		height: 220px;
+		width: 232px;
+		height: 232px;
 		border-radius: 50%;
 		background: transparent;
 		touch-action: none;
@@ -363,7 +475,7 @@
 		outline-offset: 4px;
 	}
 
-	/* .art fills .bubble with inset:0 — the centring translate belongs to the
+	/* .orb fills .bubble with inset:56px — the centring translate belongs to the
 	   parent, so these scale only. */
 	@keyframes breathe-idle {
 		0%,
@@ -395,8 +507,49 @@
 		}
 	}
 
+	@keyframes drift-1 {
+		0%,
+		100% {
+			transform: translate(0, 0) scale(1);
+		}
+		50% {
+			transform: translate(16%, 18%) scale(1.12);
+		}
+	}
+
+	@keyframes drift-2 {
+		0%,
+		100% {
+			transform: translate(0, 0) scale(1);
+		}
+		50% {
+			transform: translate(-18%, 10%) scale(0.9);
+		}
+	}
+
+	@keyframes drift-3 {
+		0%,
+		100% {
+			transform: translate(0, 0) scale(1);
+		}
+		50% {
+			transform: translate(14%, -16%) scale(1.08);
+		}
+	}
+
+	@keyframes drift-4 {
+		0%,
+		100% {
+			transform: translate(0, 0) scale(1);
+		}
+		50% {
+			transform: translate(-12%, -12%) scale(0.94);
+		}
+	}
+
 	@media (prefers-reduced-motion: reduce) {
-		.art {
+		.orb,
+		.blob {
 			animation: none !important;
 		}
 	}
