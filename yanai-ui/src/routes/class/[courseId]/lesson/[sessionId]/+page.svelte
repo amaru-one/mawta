@@ -14,6 +14,10 @@
 
 	const courseId = $derived(page.params.courseId ?? '');
 	const sessionId = $derived(page.params.sessionId ?? '');
+	// The área's hero/rails mark their own links so this screen knows a forward
+	// path back to área already sits one step behind in history — see the
+	// "Ir a {área}" button below.
+	const cameFromArea = $derived(page.url.searchParams.get('from') === 'area');
 
 	let ready = $state(false);
 	let loadError = $state(false);
@@ -298,9 +302,12 @@
 				</div>
 			{/if}
 
-			<!-- The only navigation on the stage. Last in the header, so hiding it
-			     moves nothing above it. -->
-			{#if stage !== 'recording' && !panelOpen}
+			<!-- The only navigation on the stage — except when área is already one
+			     step behind in history (cameFromArea): then the back arrow is the
+			     sole way out, on purpose, so área↔burbuja can't push an ever-longer
+			     history chain. Last in the header, so hiding it moves nothing above
+			     it. -->
+			{#if stage !== 'recording' && !panelOpen && !cameFromArea}
 				<a class="area pressable" href="/class/{courseId}" onclick={hapticTap}>
 					<span class="areatxt">Ir a {areaName}</span>
 					<Icon name="chevron-right" size={19} />

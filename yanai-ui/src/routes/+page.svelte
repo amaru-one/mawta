@@ -4,7 +4,6 @@
 	import type { HomeDto, HomeTodayDto, HomeWeekSessionDto, SessionStatus } from '$lib/api/dto';
 	import { getHome } from '$lib/api/endpoints/home';
 	import { formatTimeHHMM, parseDateOnly } from '$lib/api/mappers';
-	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
 
@@ -52,27 +51,6 @@
 		}, 60_000);
 		return () => clearInterval(id);
 	});
-
-	// Search stays folded away until asked for; it filters the day on screen.
-	let searching = $state(false);
-	let query = $state('');
-
-	function toggleSearch(): void {
-		hapticTap();
-		searching = !searching;
-		if (!searching) query = '';
-	}
-
-	// The field is inserted on tap, and the `autofocus` attribute is ignored on
-	// an element added after load — opening the search has to land the caret.
-	function focusHere(node: HTMLInputElement): void {
-		node.focus();
-	}
-
-	const matches = (name: string): boolean => {
-		const q = query.trim().toLowerCase();
-		return q === '' || name.toLowerCase().includes(q);
-	};
 
 	// ---- dates ----
 
@@ -144,7 +122,7 @@
 		return raw.slice().sort((a, b) => a.start.localeCompare(b.start));
 	};
 
-	const slots = $derived(sessionsFor(selected).filter((s) => matches(s.name)));
+	const slots = $derived(sessionsFor(selected));
 
 	// ---- the week strip ----
 
@@ -282,30 +260,8 @@
 		<div class="head">
 			<div class="titlerow">
 				<h1 class="date">{longDate(selected)}</h1>
-				<button
-					type="button"
-					class="find pressable"
-					aria-label={searching ? 'Cerrar búsqueda' : 'Buscar por clase'}
-					aria-expanded={searching}
-					onclick={toggleSearch}
-				>
-					<Icon name="search" size={16} />
-				</button>
 			</div>
 			<p class="sum">{summary}</p>
-
-			{#if searching}
-				<div class="search-wrap">
-					<span class="search-icon"><Icon name="search" size={16} /></span>
-					<input
-						class="search"
-						type="text"
-						placeholder="Buscar por clase"
-						bind:value={query}
-						{@attach focusHere}
-					/>
-				</div>
-			{/if}
 
 			<!-- The strip is the whole of the day navigation: five days, the week on
 			     screen is the only week there is. -->
@@ -332,9 +288,7 @@
 		     and take the whole screen to do it. -->
 		{#if blocks.length === 0}
 			<div class="head">
-				<p class="none">
-					{query.trim() === '' ? 'Este día no tienes clases.' : 'Ninguna clase coincide.'}
-				</p>
+				<p class="none">Este día no tienes clases.</p>
 			</div>
 		{:else}
 			<div class="grid" bind:this={gridEl}>
@@ -417,28 +371,12 @@
 		line-height: 1.1;
 	}
 
-	.find {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 34px;
-		height: 34px;
-		flex-shrink: 0;
-		border-radius: 50%;
-		background: var(--aurora-tint);
-		color: var(--aurora-deep);
-	}
-
 	.sum {
 		margin: 10px 0 16px;
 		font-size: 11px;
 		font-family: var(--font-mono);
 		letter-spacing: 0.04em;
 		color: var(--text-muted);
-	}
-
-	.search-wrap {
-		margin: -8px 0 16px;
 	}
 
 	/* ---- the week strip ---- */

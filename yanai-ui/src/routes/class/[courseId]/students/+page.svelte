@@ -10,6 +10,7 @@
 	// deliberate: a list that also marked would either overflow or force the
 	// teacher to judge thirty students without the evidence in front of them.
 	import { onMount, untrack } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { list } from '$lib/api/client';
 	import type { ClassStudentDto, CompetencyCriteriaDto } from '$lib/api/dto';
@@ -24,6 +25,10 @@
 	import type { CompetencyIndexItem } from '$lib/types';
 
 	const courseId = $derived(page.params.courseId ?? '');
+	// `?comp=` names which competencia was being looked at, so it survives a
+	// remount (back navigation, a reload) the same way `?name=`/`?course=` do on
+	// the student screen this list opens.
+	const compParam = $derived(page.url.searchParams.get('comp') ?? '');
 
 	let ready = $state(false);
 	let loadError = $state(false);
@@ -42,7 +47,12 @@
 			]);
 			className = dash.name;
 			comps = list(crits.competencies);
-			if (selected === '' && comps.length > 0) selected = comps[0].competency_id;
+			if (selected === '' && comps.length > 0) {
+				selected =
+					compParam && comps.some((c) => c.competency_id === compParam)
+						? compParam
+						: comps[0].competency_id;
+			}
 			rows = list((await getClassStudents(courseId, selected || undefined)).students);
 			ready = true;
 		} catch {
@@ -76,6 +86,18 @@
 	});
 
 	// ---- the index ----
+
+	// Reflects the choice into `?comp=` with replaceState — no new history entry,
+	// so a back navigation (e.g. from a student's screen) lands on the URL that
+	// already names this competencia instead of on the pre-choice one. The
+	// existing `$effect` above (keyed on `selected`) still does the actual
+	// refetch; this only makes the choice survive a remount.
+	function selectCompetency(id: string): void {
+		selected = id;
+		const params = new URLSearchParams(page.url.searchParams);
+		params.set('comp', id);
+		void goto(`?${params.toString()}`, { replaceState: true, keepFocus: true, noScroll: true });
+	}
 
 	// Área competencias are numbered in the order the área lists them;
 	// transversales keep a short code, since they belong to no área.
@@ -125,7 +147,7 @@
 	});
 
 	const href = (r: ClassStudentDto): string =>
-		`/class/${courseId}/students/${r.student_id}?name=${encodeURIComponent(r.full_name)}&course=${encodeURIComponent(className)}`;
+		`/class/${courseId}/students/${r.student_id}?name=${encodeURIComponent(r.full_name)}&course=${encodeURIComponent(className)}&comp=${encodeURIComponent(selected)}`;
 
 	const evidenceLabel = (n: number): string =>
 		n === 0 ? 'Sin evidencias' : n === 1 ? '1 evidencia' : `${n} evidencias`;
@@ -168,11 +190,7 @@
 
 		{#if indexItems.length > 0}
 			<div class="idx">
-				<CompetencyIndex
-					items={indexItems}
-					selectedId={selected}
-					onselect={(id) => (selected = id)}
-				/>
+				<CompetencyIndex items={indexItems} selectedId={selected} onselect={selectCompetency} />
 			</div>
 			<p class="comp">{currentName}</p>
 			<p class="count">{withLevel} DE {rows.length} CON NIVEL</p>

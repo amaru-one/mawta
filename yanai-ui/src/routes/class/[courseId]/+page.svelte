@@ -90,7 +90,11 @@
 			{@const phase = sessionPhase(ns, now)}
 			<!-- Today's session is in neither rail, so the block itself has to be the
 			     way into it: this is the rails' card, just larger. -->
-			<a class="hero pressable" href="/class/{courseId}/lesson/{ns.session_id}" onclick={hapticTap}>
+			<a
+				class="hero pressable"
+				href="/class/{courseId}/lesson/{ns.session_id}?from=area"
+				onclick={hapticTap}
+			>
 				<p class="hero-lbl">Hoy · {PHASE_LABEL[phase]}</p>
 				<p class="hero-time">{formatTimeHHMM(ns.scheduled_start_at)}</p>
 				<span class="hero-row">
@@ -148,7 +152,7 @@
 					{@const dp = dateParts(s)}
 					<a
 						class="lcard pressable"
-						href="/class/{courseId}/lesson/{s.session_id}"
+						href="/class/{courseId}/lesson/{s.session_id}?from=area"
 						onclick={hapticTap}
 					>
 						<span class="lcard-date">
@@ -172,7 +176,7 @@
 					{@const dp = dateParts(s)}
 					<a
 						class="lcard pressable"
-						href="/class/{courseId}/lesson/{s.session_id}"
+						href="/class/{courseId}/lesson/{s.session_id}?from=area"
 						onclick={hapticTap}
 					>
 						<span class="lcard-date">

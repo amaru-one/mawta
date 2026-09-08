@@ -14,6 +14,7 @@
 	// argument — the marks inform it, none of them computes it (RVM 094-2020,
 	// 5.1.1.3 p.2-3).
 	import { onMount, untrack } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { ApiError, list } from '$lib/api/client';
 	import type { CompetencyCriteriaDto, CompetencyLevelDto, EvaluationDto } from '$lib/api/dto';
@@ -39,9 +40,13 @@
 	const courseId = $derived(page.params.courseId ?? '');
 	const studentId = $derived(page.params.studentId ?? '');
 	// No endpoint returns a student's name or the class name, so both travel as
-	// query params — the convention the grades screen already uses.
+	// query params — the convention the grades screen already uses. `comp` joins
+	// them for the same reason `selected` needs to survive a remount (back
+	// navigation, a reload): it names which competencia was being read, and
+	// nothing else remembers that once SvelteKit tears the component down.
 	const studentName = $derived(page.url.searchParams.get('name') ?? 'Alumno');
 	const courseName = $derived(page.url.searchParams.get('course') ?? '');
+	const compParam = $derived(page.url.searchParams.get('comp') ?? '');
 
 	let ready = $state(false);
 	let loadError = $state(false);
@@ -64,7 +69,12 @@
 			]);
 			levels = list(comp.competencies);
 			comps = list(crits.competencies);
-			if (selected === '' && comps.length > 0) selected = comps[0].competency_id;
+			if (selected === '' && comps.length > 0) {
+				selected =
+					compParam && comps.some((c) => c.competency_id === compParam)
+						? compParam
+						: comps[0].competency_id;
+			}
 			// The server narrows the evidence to the competencia through the
 			// criterio tags, so the screen never holds work it is not showing.
 			evidence = list(
@@ -98,6 +108,18 @@
 	});
 
 	// ---- competencia scope ----
+
+	// Reflects the choice into `?comp=` with replaceState — no new history entry,
+	// so a back navigation lands on the URL that already names this competencia
+	// instead of on the pre-choice one. The existing `$effect` above (keyed on
+	// `selected`) still does the actual refetch; this only makes the choice
+	// survive a remount.
+	function selectCompetency(id: string): void {
+		selected = id;
+		const params = new URLSearchParams(page.url.searchParams);
+		params.set('comp', id);
+		void goto(`?${params.toString()}`, { replaceState: true, keepFocus: true, noScroll: true });
+	}
 
 	const indexItems = $derived.by(() => {
 		let n = 0;
@@ -182,13 +204,31 @@
 		}
 	}
 
+	// Marking "no entregó" clears the value server-side (the live attempt becomes
+	// {status: not_submitted, raw_value: null, level: null}), so by the time the
+	// teacher unmarks it there is nothing left in `evidence` to read the old value
+	// back from — markOf/letterOf would just return the nulls that are already
+	// there. This is the one piece of state this screen keeps outside `evidence`:
+	// what the mark was, captured the moment before it is cleared, session-only.
+	let lastValue = $state<Map<string, { rawValue: number | null; level: Tier | null }>>(new Map());
+
 	// Marking "no entregó" clears the value; unmarking it restores whichever kind
-	// of value the piece carries.
+	// of value the piece carried, from `lastValue` — never from `markOf`/`letterOf`,
+	// which by then already read the cleared attempt. With nothing captured (the
+	// piece was never graded this session), there is nothing valid to send back —
+	// `graded` with no value at all is rejected by the DB's own constraint — so the
+	// ruler/letters, left enabled even while marked, are the way out instead.
 	function toggleNotSubmitted(e: EvaluationDto): void {
 		hapticTap();
-		void (notSubmitted(e)
-			? writeScore(e, 'graded', markOf(e), letterOf(e))
-			: writeScore(e, 'not_submitted', null, null));
+		if (notSubmitted(e)) {
+			const prev = lastValue.get(e.assessment_id);
+			if (prev && (prev.rawValue !== null || prev.level !== null)) {
+				void writeScore(e, 'graded', prev.rawValue, prev.level);
+			}
+		} else {
+			lastValue.set(e.assessment_id, { rawValue: markOf(e), level: letterOf(e) });
+			void writeScore(e, 'not_submitted', null, null);
+		}
 	}
 
 	// ---- the decision ----
@@ -298,11 +338,7 @@
 
 		{#if indexItems.length > 0}
 			<div class="idx">
-				<CompetencyIndex
-					items={indexItems}
-					selectedId={selected}
-					onselect={(id) => (selected = id)}
-				/>
+				<CompetencyIndex items={indexItems} selectedId={selected} onselect={selectCompetency} />
 			</div>
 		{/if}
 
@@ -322,7 +358,7 @@
 				<div class="cards" class:switching>
 					{#each evidence as e (e.assessment_id)}
 						{@const off = notSubmitted(e)}
-						{@const busy = off || savingScore.has(e.assessment_id)}
+						{@const busy = savingScore.has(e.assessment_id)}
 						<div class="card">
 							<div class="cardhead">
 								<span class="grow etitle">{e.title}</span>

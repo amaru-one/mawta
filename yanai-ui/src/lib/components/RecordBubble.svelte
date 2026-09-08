@@ -147,10 +147,42 @@
 		if (event.key !== ' ' && event.key !== 'Enter') return;
 		void release();
 	}
+
+	// The orb turns on its vertical axis at one constant CSS duration (22s) and
+	// speeds up for a hold by scaling *playback rate*, never by swapping
+	// `animation-duration` — a duration change restarts the animation's phase,
+	// which would make the orb visibly jump the instant a hold commits. Rate 8
+	// (≈2.75s/turn) recording, rate 1 (22s/turn) otherwise — idle and armed spin
+	// at the same slow tempo; only an actual recording is fast.
+	const IDLE_RATE = 1;
+	const REC_RATE = 8;
+
+	let root: HTMLDivElement | null = null;
+
+	function setSpin(rec: boolean): void {
+		if (!root) return;
+		const rate = rec ? REC_RATE : IDLE_RATE;
+		for (const blob of root.querySelectorAll<HTMLElement>('.blob')) {
+			for (const anim of blob.getAnimations()) {
+				try {
+					anim.updatePlaybackRate(rate);
+				} catch {
+					// Older engines lack updatePlaybackRate — a direct assignment
+					// still takes effect, just without the smooth ramp.
+					anim.playbackRate = rate;
+				}
+			}
+		}
+	}
+
+	$effect(() => {
+		setSpin(phase === 'recording');
+	});
 </script>
 
 <div
 	class="bubble"
+	bind:this={root}
 	class:idle={!armed}
 	class:armed={armed && phase !== 'recording'}
 	class:rec={phase === 'recording'}
@@ -496,43 +528,29 @@
 		}
 	}
 
-	@keyframes drift-1 {
-		0%,
-		100% {
-			transform: translate(0, 0) scale(1);
+	/* One light's whole loop: it enters compressed at the left edge (a sliver,
+	   the way colour looks wrapping round the side of a sphere), widens to full
+	   strength crossing the front, and exits compressed at the right. Four
+	   copies offset a quarter-loop apart (see the .b1–.b4 delays) is what reads
+	   as one continuous body turning rather than four blobs sliding past. */
+	@keyframes corriente {
+		0% {
+			transform: translateX(-135%) scaleX(0.42);
+			opacity: 0;
+		}
+		14% {
+			opacity: 0.85;
 		}
 		50% {
-			transform: translate(16%, 18%) scale(1.12);
+			transform: translateX(0) scaleX(1);
+			opacity: 0.85;
 		}
-	}
-
-	@keyframes drift-2 {
-		0%,
+		86% {
+			opacity: 0.85;
+		}
 		100% {
-			transform: translate(0, 0) scale(1);
-		}
-		50% {
-			transform: translate(-18%, 10%) scale(0.9);
-		}
-	}
-
-	@keyframes drift-3 {
-		0%,
-		100% {
-			transform: translate(0, 0) scale(1);
-		}
-		50% {
-			transform: translate(14%, -16%) scale(1.08);
-		}
-	}
-
-	@keyframes drift-4 {
-		0%,
-		100% {
-			transform: translate(0, 0) scale(1);
-		}
-		50% {
-			transform: translate(-12%, -12%) scale(0.94);
+			transform: translateX(135%) scaleX(0.42);
+			opacity: 0;
 		}
 	}
 
