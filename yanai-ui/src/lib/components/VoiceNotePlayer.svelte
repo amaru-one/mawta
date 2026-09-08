@@ -144,9 +144,9 @@
 <style>
 	.note {
 		gap: 10px;
-		background: var(--surface-1);
-		border-radius: var(--radius-md);
-		padding: var(--space-sm) 10px;
+		background: var(--aurora-tint);
+		border-radius: 12px;
+		padding: 10px 12px;
 		user-select: none;
 		-webkit-user-select: none;
 	}
@@ -155,7 +155,7 @@
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		color: var(--text-primary);
+		color: var(--aurora-deep);
 		position: relative;
 	}
 

@@ -555,14 +555,20 @@
 <style>
 	.title {
 		margin: 0;
-		font-weight: 500;
-		font-size: 20px;
+		padding-bottom: 14px;
+		border-bottom: 1.5px solid var(--text-primary);
+		font-size: 34px;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+		line-height: 1.1;
 	}
 
 	.subtitle {
-		margin: 2px 0 var(--space-lg);
-		font-size: 13px;
-		color: var(--text-secondary);
+		margin: 10px 0 var(--space-lg);
+		font-family: var(--font-mono);
+		font-size: 11px;
+		text-transform: uppercase;
+		color: var(--text-muted);
 	}
 
 	.stack {

@@ -14,13 +14,13 @@
 	const FILTERS: Array<{ id: Filter; label: string }> = [
 		{ id: 'all', label: 'Todas' },
 		{ id: 'alerts', label: 'Alertas' },
-		{ id: 'reminders', label: 'Recordatorios' }
+		{ id: 'reminders', label: 'Recordatorios' },
 	];
 
 	const ICON: Record<AppNotificationType, IconName> = {
 		risk: 'trending-down',
 		tip: 'sparkles',
-		reminder: 'clipboard-check'
+		reminder: 'clipboard-check',
 	};
 
 	// Alerts are the assistant's output; reminders are plain app to-dos.
@@ -129,19 +129,27 @@
 
 <style>
 	.head {
+		align-items: flex-end;
 		justify-content: space-between;
-		margin-bottom: 14px;
+		padding-bottom: 14px;
+		border-bottom: 1.5px solid var(--text-primary);
+		margin-bottom: 16px;
 	}
 
 	.title {
 		margin: 0;
-		font-weight: 500;
-		font-size: 20px;
+		font-size: 34px;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+		line-height: 1.1;
 	}
 
 	.mark-all {
 		font-size: 12px;
-		color: var(--text-secondary);
+		font-weight: 700;
+		color: var(--aurora-deep);
+		flex-shrink: 0;
+		padding-bottom: 4px;
 	}
 
 	.filters {
@@ -151,7 +159,6 @@
 	}
 
 	.filters button {
-		padding: 7px var(--space-lg);
 		font-size: 13px;
 	}
 
@@ -165,7 +172,8 @@
 	.item {
 		display: flex;
 		gap: var(--space-md);
-		padding: 14px var(--space-lg);
+		padding: 14px;
+		border-radius: 16px;
 		text-align: left;
 		align-items: flex-start;
 	}
@@ -174,11 +182,16 @@
 		opacity: 0.65;
 	}
 
+	/* Now that the whole app is indigo, the assistant is marked by SHAPE, not by
+	   colour alone: a reminder the app derived is an outlined badge on the page's
+	   own white, an assistant row is a filled one. The accent still fills it, but
+	   the fill is what carries the meaning. */
 	.badge {
 		width: 32px;
 		height: 32px;
-		border-radius: 50%;
-		background: var(--surface-1);
+		border-radius: 10px;
+		background: var(--surface-2);
+		border: 1px solid var(--border-strong);
 		color: var(--text-secondary);
 		display: flex;
 		align-items: center;
@@ -186,9 +199,9 @@
 		flex-shrink: 0;
 	}
 
-	/* #5B5FC7 marks assistant-generated items — and nothing else. */
 	.badge.ai {
 		background: var(--fill-accent);
+		border-color: transparent;
 		color: var(--on-accent);
 	}
 
@@ -213,7 +226,7 @@
 		width: 7px;
 		height: 7px;
 		border-radius: 50%;
-		background: var(--text-primary);
+		background: var(--text-muted);
 		flex-shrink: 0;
 		margin-top: 5px;
 	}

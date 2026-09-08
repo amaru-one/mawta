@@ -357,7 +357,7 @@
 	}
 
 	.btn-dark {
-		background: var(--fill-primary);
+		background: var(--gradient-action);
 		color: var(--on-primary);
 		border: none;
 	}

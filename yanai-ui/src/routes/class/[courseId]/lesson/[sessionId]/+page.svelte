@@ -583,7 +583,7 @@
 		background: var(--surface-2);
 		border: 0.5px solid var(--border);
 		border-radius: 14px;
-		box-shadow: 0 12px 34px rgba(20, 20, 20, 0.14);
+		box-shadow: 0 12px 34px rgba(35, 40, 90, 0.14);
 		overflow-y: auto;
 		max-height: 46vh;
 		-webkit-overflow-scrolling: touch;

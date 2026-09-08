@@ -68,8 +68,8 @@
 	}
 
 	.opt.on {
-		border-bottom-color: var(--fill-primary);
-		color: var(--text-primary);
+		border-bottom-color: var(--aurora-deep);
+		color: var(--aurora-deep);
 	}
 
 	.opt:disabled {

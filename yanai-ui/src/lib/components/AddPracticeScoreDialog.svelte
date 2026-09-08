@@ -18,7 +18,7 @@
 		{ value: 'exposicion', label: 'Exposición' },
 		{ value: 'participacion', label: 'Participación' },
 		{ value: 'rubrica', label: 'Rúbrica' },
-		{ value: 'otro', label: 'Otro' }
+		{ value: 'otro', label: 'Otro' },
 	];
 
 	let title = $state('');
@@ -41,7 +41,7 @@
 			kind,
 			raw_value: Number(rawValue),
 			max_value: Number(maxValue),
-			note: note.trim() === '' ? null : note.trim()
+			note: note.trim() === '' ? null : note.trim(),
 		});
 	}
 </script>
@@ -113,7 +113,7 @@
 	.backdrop {
 		position: absolute;
 		inset: 0;
-		background: rgba(20, 20, 20, 0.5);
+		background: rgba(22, 24, 58, 0.55);
 		border: none;
 		cursor: pointer;
 	}

@@ -4,8 +4,8 @@ under it the single judgement that reaches the official record — the nivel de 
 competencia (RVM 094-2020, 5.1.1.3 p.2-3). This is the screen where a teacher evaluates.
 
 ## Contents
-- `+page.svelte` — name at 30px, mono sub-line, `CompetencyIndex` over this student's competencias,
-  the competencia's name at 19px, then two sections: **EVIDENCIAS DEL PERIODO** (one hairline-ruled
+- `+page.svelte` — name at 34px over the shared rule, mono uppercase sub-line, `CompetencyIndex` over this student's competencias,
+  the competencia's name at 15px/600, then two sections: **EVIDENCIAS DEL PERIODO** (one hairline-ruled
   card per piece: title + a mono kind·date line, the criterios it is tagged with as read-only text,
   the control its scale calls for, and a "No entregó" row with a marker square) and **NIVEL DE LOGRO** (`LevelSelector`, then the
   conclusión descriptiva block: textarea, "incluye recomendaciones", *Guardar borrador* / *Marcar como

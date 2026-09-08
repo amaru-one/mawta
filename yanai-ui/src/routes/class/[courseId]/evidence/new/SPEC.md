@@ -3,12 +3,12 @@
 tarea. For the whole class, or for one student. It replaces `AddEvidenceDialog`.
 
 ## Contents
-- `+page.svelte` — a 30px title, a scope lede, then the form: **LA EVALUACIÓN** (título with the
+- `+page.svelte` — a 34px title over the shared rule, a scope lede, then the form: **LA EVALUACIÓN** (título with the
   strong stroke, tipo + componente, entrega), **CÓMO SE VALORA** (a three-cell segmented block:
   `0–20` vigesimal · `AD–C` literal · `—` sin nota, plus a "Sobre" field when numeric), **QUÉ
   COMPETENCIA AYUDA A VALORAR** (the chosen competencia in a 1px block with its criterios as marker
   squares, the other competencias as hairline rows below), the "cuenta para el promedio interno"
-  checkbox, and a dark submit with a mono caption.
+  checkbox, and the screen's one primary action — a gradient submit — with a mono caption.
 
 ## Inputs / Outputs
 Route param `courseId`. Query: `?course=` for the header; `?student=&name=` makes the evidence belong

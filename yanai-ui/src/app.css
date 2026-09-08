@@ -1,48 +1,63 @@
 /* Design system — Yanai. Tokens and shared primitives mirror yanai-views.html. */
 
 :root {
-	/* Surfaces & borders */
-	--surface-1: #e2e2e2;
+	/* Surfaces & borders. The whole neutral ladder sits on the aurora's hue
+	   (indigo ~272°, chroma falling as lightness rises): there is no pure grey
+	   and no black anywhere in the app. Only the page white is untinted. */
+	--surface-1: #e8eaf7;
 	--surface-2: #ffffff;
-	--border: #e2e2e2;
-	--border-strong: #4a4a4a;
+	--border: #e4e6f4;
+	--border-strong: #b2b7d2;
 
-	/* Text */
-	--text-primary: #141414;
-	--text-secondary: #4a4a4a;
-	--text-muted: rgba(74, 74, 74, 0.6);
+	/* Text. The ink IS --aurora-deep — the same indigo that opens the action
+	   gradient — so a title and the button under it are literally one colour.
+	   The hierarchy below it is made by dropping CHROMA, not by getting darker:
+	   --text-secondary is deeper than --text-primary (6.4:1 against 5.4:1) and
+	   still reads as the quieter of the two because it is duller. Don't
+	   "fix" that by darkening the primary; that inverts the system. */
+	--text-primary: #4a5fd6;
+	--text-secondary: #545a9c;
+	--text-muted: #6f74a4;
 	/* One step past muted, for the *unset* member of a set whose other members
 	   are muted — an unpicked level, a competencia with no nivel yet. Muted alone
 	   could not say "present but not chosen" without also looking disabled. */
-	--text-faint: rgba(74, 74, 74, 0.35);
+	--text-faint: #a3a8c8;
 	--text-success: #5b5fc7;
-	--text-danger: #141414;
-	--text-warning: #4a4a4a;
+	--text-danger: #2c3178;
+	--text-warning: #545a9c;
 
-	/* Fills */
-	--fill-primary: #141414;
-	--fill-success: #141414;
-	--fill-danger: #141414;
-	--fill-warning: #4a4a4a;
-	--fill-tier-c: #e2e2e2;
+	/* Fills. --ink-deep is the darkest tone the app owns — deep indigo, never
+	   black — and is what any filled surface carrying white text uses. */
+	--ink-deep: #2c3178;
+	--fill-primary: #2c3178;
+	--fill-success: #2c3178;
+	--fill-danger: #2c3178;
+	--fill-warning: #545a9c;
+	--fill-tier-c: #e8eaf7;
 
 	/* AI accent — the single signal color for anything the assistant generated. */
 	--fill-accent: #5b5fc7;
 	--text-accent: #5b5fc7;
 	--bg-accent: rgba(91, 95, 199, 0.12);
 
-	/* AI aurora — the recording bubble's palette, and only its palette. The
-	   accent's neighbouring hues either side of it, so the Siri-like orb reads
-	   as the same voice as --fill-accent rather than as a second brand color.
-	   Used by RecordBubble and by the lesson screen's context card and button;
-	   nothing else in the app should reach for these. */
+	/* AI aurora — born as the recording bubble's palette and now the app's own.
+	   The accent's neighbouring hues either side of it. */
 	--aurora-1: #7c9bff;
 	--aurora-2: #7cf7d9;
 	--aurora-3: #9b7cff;
-	/* One step deeper than the accent — legible as text on --aurora-tint, where
-	   --text-accent is not. */
+	/* The ink and the start of the action gradient; also what text and outlines
+	   use on top of --aurora-tint, where --text-accent would be too close. */
 	--aurora-deep: #4a5fd6;
-	--aurora-tint: #f2f2fb;
+	--aurora-tint: #f2f3fb;
+	/* The hairline *inside* a tinted surface and under the top bar, where
+	   --border would disappear. */
+	--hair: rgba(74, 95, 214, 0.14);
+
+	/* The two gradients, declared once. `action` is what you touch — every
+	   screen's primary control; `tile` is the icon square on a context card. */
+	--gradient-action: linear-gradient(120deg, var(--aurora-deep), var(--aurora-1));
+	--gradient-tile: linear-gradient(135deg, var(--aurora-1), var(--aurora-2));
+	--shadow-action: 0 12px 26px rgba(74, 95, 214, 0.32);
 
 	/* Foreground on fills */
 	--on-primary: #ffffff;
@@ -50,11 +65,11 @@
 	--on-danger: #ffffff;
 	--on-warning: #ffffff;
 	--on-accent: #ffffff;
-	--on-tier-c: #141414;
+	--on-tier-c: #2c3178;
 
 	/* Tinted backgrounds */
 	--bg-success: rgba(91, 95, 199, 0.12);
-	--bg-danger: rgba(20, 20, 20, 0.08);
+	--bg-danger: rgba(44, 49, 120, 0.08);
 
 	--font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 	--font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -75,9 +90,11 @@
 	--radius: 10px;
 	--radius-lg: 12px;
 
-	--shadow-sm: 0 1px 2px rgba(20, 20, 20, 0.05);
-	--shadow-md: 0 4px 6px rgba(20, 20, 20, 0.1);
-	--shadow-lg: 0 10px 15px rgba(20, 20, 20, 0.1);
+	/* Shadows are tinted too: a neutral-black shadow over a tinted surface reads
+	   as dirt. */
+	--shadow-sm: 0 1px 2px rgba(35, 40, 90, 0.06);
+	--shadow-md: 0 4px 6px rgba(35, 40, 90, 0.1);
+	--shadow-lg: 0 10px 15px rgba(35, 40, 90, 0.12);
 	--shadow-accent: 0 0 0 3px var(--bg-accent);
 
 	/* App shell — every spec frame is a phone. */
@@ -152,38 +169,68 @@ select {
 
 /* --- Shared primitives (spec stylesheet) --- */
 
+/* A fixed 64px band on its own tinted surface, closed by a hairline rather than
+   by the step in value a grey slab used to make. Its controls are 40px targets
+   (see TopBar). */
 .topbar {
 	background: var(--surface-1);
-	padding: var(--space-lg);
+	border-bottom: 1px solid var(--hair);
+	height: 64px;
+	padding: 0 10px;
 	display: flex;
 	align-items: center;
-	gap: var(--space-md);
+	gap: var(--space-sm);
 }
 
 .avatar {
-	width: 40px;
-	height: 40px;
+	width: 38px;
+	height: 38px;
 	border-radius: 50%;
 	background: var(--surface-2);
-	border: 0.5px solid var(--border);
+	border: 1px solid var(--border);
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-weight: 500;
+	font-weight: 700;
 	font-size: 13px;
+	color: var(--aurora-deep);
 	flex-shrink: 0;
 }
 
 .body {
-	padding: var(--space-lg);
+	padding: 18px 20px 24px;
 }
 
+/* Mono, small and tracked: a section label reads as a label, never as a small
+   heading competing with the screen's own title. */
 .eyebrow {
 	margin: 0 0 10px;
-	font-size: 12px;
-	font-weight: 500;
-	letter-spacing: 0.04em;
+	font-family: var(--font-mono);
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
 	color: var(--text-muted);
+}
+
+/* Every screen's title, and the rule under it. */
+.screen-title {
+	margin: 0;
+	padding-bottom: 14px;
+	border-bottom: 1.5px solid var(--text-primary);
+	font-size: 34px;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	line-height: 1.1;
+}
+
+/* The mono context line that sits under a title. */
+.screen-sub {
+	margin: 10px 0 0;
+	font-family: var(--font-mono);
+	font-size: 11px;
+	color: var(--text-muted);
+	text-transform: uppercase;
 }
 
 .card {
@@ -193,9 +240,9 @@ select {
 }
 
 .stat {
-	background: var(--surface-1);
-	border-radius: var(--radius);
-	padding: var(--space-md) 10px;
+	background: var(--aurora-tint);
+	border-radius: 16px;
+	padding: var(--space-lg) 10px;
 }
 
 .grid3 {
@@ -204,13 +251,26 @@ select {
 	gap: 10px;
 }
 
+/* What you touch carries the action gradient; what a screen merely offers
+   carries the tint. Both are pills — a square-cornered filled control no longer
+   exists in the app. */
 .btn-dark {
-	background: var(--fill-primary);
+	background: var(--gradient-action);
 	color: var(--on-primary);
-	padding: var(--space-sm) 14px;
-	border-radius: var(--radius);
+	padding: 10px 16px;
+	border-radius: 999px;
 	font-size: 13px;
-	font-weight: 500;
+	font-weight: 700;
+	box-shadow: var(--shadow-action);
+}
+
+.btn-light {
+	background: var(--aurora-tint);
+	color: var(--aurora-deep);
+	padding: 10px 16px;
+	border-radius: 999px;
+	font-size: 13px;
+	font-weight: 700;
 }
 
 .btn-block {
@@ -219,37 +279,47 @@ select {
 	align-items: center;
 	justify-content: center;
 	gap: var(--space-sm);
-	padding: var(--space-md);
-	border-radius: var(--radius);
-	font-size: 14px;
-	font-weight: 500;
+	padding: 16px;
+	border-radius: 999px;
+	font-size: 15px;
+	font-weight: 700;
+	background: var(--aurora-tint);
+	color: var(--aurora-deep);
+}
+
+/* The one primary action of a screen: wider, louder, on the gradient. */
+.btn-block.btn-primary {
+	background: var(--gradient-action);
+	color: var(--on-primary);
+	box-shadow: var(--shadow-action);
 }
 
 .pill-dark {
-	background: var(--fill-primary);
+	background: var(--gradient-action);
 	color: var(--on-primary);
-	padding: 6px var(--space-md);
+	padding: 9px 16px;
 	border-radius: 999px;
-	font-size: 12px;
-	font-weight: 500;
+	font-size: 13px;
+	font-weight: 700;
+	box-shadow: 0 8px 18px rgba(74, 95, 214, 0.26);
 }
 
 .pill-light {
-	background: var(--surface-1);
-	color: var(--text-secondary);
-	padding: 6px var(--space-md);
+	background: var(--aurora-tint);
+	color: var(--aurora-deep);
+	padding: 9px 16px;
 	border-radius: 999px;
-	font-size: 12px;
-	font-weight: 500;
+	font-size: 13px;
+	font-weight: 600;
 }
 
 .search {
 	width: 100%;
-	padding: 11px 14px 11px 36px;
-	border-radius: 20px;
-	border: 0.5px solid var(--border);
+	padding: 12px 14px 12px 38px;
+	border-radius: 14px;
+	border: 1px solid var(--border);
 	background: var(--surface-2);
-	font-size: 14px;
+	font-size: 15px;
 	color: var(--text-primary);
 }
 
@@ -259,7 +329,7 @@ select {
 
 .search:focus {
 	outline: none;
-	border-color: var(--border-strong);
+	border-color: var(--aurora-deep);
 }
 
 /* Search field + its leading icon. */
@@ -278,15 +348,23 @@ select {
 }
 
 .icon-tile {
-	width: 40px;
-	height: 40px;
-	border-radius: var(--radius);
-	background: var(--text-primary);
+	width: 38px;
+	height: 38px;
+	border-radius: 11px;
+	background: var(--gradient-tile);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
 	color: var(--surface-2);
+}
+
+/* Groups the facts a screen is about (área · fecha · lección, a date + its
+   room): a tinted block whose inner rules are --hair, not --border. */
+.context-card {
+	background: var(--aurora-tint);
+	border-radius: 16px;
+	padding: 12px 14px;
 }
 
 .dot {
@@ -305,9 +383,21 @@ select {
 	gap: var(--space-md);
 }
 
-/* Achievement tier square (AD / A / B / C). */
+/* The app's overflow idiom for a row whose text can run long beside a fixed
+   badge or chevron: the text takes the slack and the trailing element stays at
+   the edge. It was documented as a convention and used by four screens, but
+   only ever defined inside two components — so in those four the chevron hugged
+   the name instead of the row's edge. */
+.grow {
+	flex: 1;
+	min-width: 0;
+}
+
+/* Achievement tier badge (AD / A / B / C). A disc rather than a rounded square
+   since the palette change: the four tiers are one hue at four depths, and a
+   disc is what reads as a token of a record rather than as a button. */
 .lvl {
-	border-radius: 6px;
+	border-radius: 50%;
 	display: flex;
 	align-items: center;
 	justify-content: center;

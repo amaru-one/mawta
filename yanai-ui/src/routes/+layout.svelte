@@ -33,7 +33,7 @@
 						.join('')
 						.toUpperCase(),
 					shortName: name,
-					school: me.tenant.name
+					school: me.tenant.name,
 				});
 				usesInternalGrading.set(me.tenant.uses_internal_grading);
 			})

@@ -109,14 +109,17 @@
 </div>
 
 <style>
+	/* A 40px target, not a 32px glyph with a negative margin: the bar is the
+	   chrome every screen wears and its controls are the smallest things in the
+	   app anyone taps. */
 	.nav {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		width: 32px;
-		height: 32px;
-		margin: -6px;
-		color: var(--text-primary);
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
+		color: var(--text-secondary);
 		text-decoration: none;
 		flex-shrink: 0;
 	}
@@ -124,9 +127,10 @@
 	.identity {
 		display: flex;
 		align-items: center;
-		gap: var(--space-md);
+		gap: 10px;
 		flex: 1;
 		min-width: 0;
+		padding-left: 2px;
 		color: inherit;
 		text-decoration: none;
 	}
@@ -143,10 +147,13 @@
 		min-width: 0;
 	}
 
+	/* Secondary, not primary: over --surface-1 the saturated ink only reaches
+	   4.4:1, under AA for text this size. */
 	.name {
-		font-weight: 500;
+		font-weight: 600;
 		font-size: 15px;
 		line-height: 1.3;
+		color: var(--text-secondary);
 	}
 
 	.name.large {
@@ -156,7 +163,7 @@
 	.school {
 		font-size: 12px;
 		line-height: 1.3;
-		color: var(--text-secondary);
+		color: var(--text-muted);
 	}
 
 	.school.large {
@@ -166,8 +173,9 @@
 	.plain-title {
 		flex: 1;
 		margin: 0;
-		font-weight: 500;
-		font-size: 15px;
+		font-weight: 600;
+		font-size: 16px;
+		color: var(--text-secondary);
 	}
 
 	.bell {
@@ -212,14 +220,17 @@
 		}
 	}
 
-	/* The unread marker is an assistant signal, hence the accent. */
+	/* The unread marker is an assistant signal, hence the accent. The ring in
+	   the bar's own colour is what keeps it readable now that the ink beside it
+	   is the same family of indigo. */
 	.unread {
 		position: absolute;
-		top: 4px;
-		right: 4px;
+		top: 7px;
+		right: 7px;
 		width: 8px;
 		height: 8px;
 		border-radius: 50%;
 		background: var(--fill-accent);
+		border: 2px solid var(--surface-1);
 	}
 </style>

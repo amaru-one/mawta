@@ -49,7 +49,7 @@
 	.backdrop {
 		position: absolute;
 		inset: 0;
-		background: rgba(20, 20, 20, 0.5);
+		background: rgba(22, 24, 58, 0.55);
 		border: none;
 		cursor: pointer;
 	}

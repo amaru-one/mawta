@@ -13,14 +13,14 @@
 		AD: 'var(--fill-accent)',
 		A: 'var(--fill-success)',
 		B: 'var(--fill-warning)',
-		C: 'var(--fill-tier-c)'
+		C: 'var(--fill-tier-c)',
 	};
 
 	const ON: Record<Tier, string> = {
 		AD: 'var(--on-accent)',
 		A: 'var(--on-success)',
 		B: 'var(--on-warning)',
-		C: 'var(--on-tier-c)'
+		C: 'var(--on-tier-c)',
 	};
 </script>
 

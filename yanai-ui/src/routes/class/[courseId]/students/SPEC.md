@@ -4,9 +4,9 @@ student stands and it is the way into their screen. It deliberately **does not e
 no marking mode, no bulk action.
 
 ## Contents
-- `+page.svelte` — a `.titlerow` (30px "Alumnos" + a search icon that folds a `.search` field in),
+- `+page.svelte` — a `.titlerow` (34px "Alumnos" over the shared rule, + a search icon that folds a `.search` field in),
   a mono sub-line (`{clase} · N alumnos`), the `CompetencyIndex`, the selected competencia's name at
-  19px, a mono `N DE M CON NIVEL` counter, and the list: level badge, name, trailing `chevron-right`.
+  15px/600, a mono `N DE M CON NIVEL` counter, and the list: level badge, name, trailing `chevron-right`.
   Each row links to `students/{studentId}?name=&course=`.
 - `[studentId]/` — the student's screen, where evaluating happens (see its SPEC.md).
 
@@ -25,7 +25,7 @@ request, refetched when the competencia changes). **No mutations.**
 - On this screen the index's third state means **"closed for the whole class"** — every student has a
   level. On the student's screen the same glyph means "this student has a level". The component
   renders three states; each screen decides what they mean.
-- **A student with no level shows a dash, never a C** (RVM 048-2024, 5.1.2.2). The dashed square is
+- **A student with no level shows a dash, never a C** (RVM 048-2024, 5.1.2.2). The dashed disc is
   the same 26px as `LevelBadge` so the column stays aligned.
 - The level leads the row rather than trailing it: it is what the teacher scans down, and a badge on
   the right would have to be found past a ragged name column.
@@ -37,6 +37,7 @@ request, refetched when the competencia changes). **No mutations.**
   student, which is a much bigger query than the glyph is worth.
 
 ## Change Log
+- 2026-09-08: Restyled onto the app-wide palette and type (see `src/SPEC.md`). The trailing chevrons also moved to the row's edge, which was not a restyle but a fix: `.grow` was used here and never defined, so the name column never took the slack.
 - 2026-09-04: Moved onto `GET /classes/{classID}/students`. The four gaps this screen shipped with in
   the morning all closed at once: the roster no longer comes out of a session (so a class with no
   sessions has a list), the levels are one request instead of one per student, «N evidencias» is

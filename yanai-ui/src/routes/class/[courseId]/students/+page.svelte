@@ -221,14 +221,16 @@
 
 	.titlerow {
 		display: flex;
-		align-items: baseline;
+		align-items: flex-start;
 		justify-content: space-between;
+		padding-bottom: 14px;
+		border-bottom: 1.5px solid var(--text-primary);
 	}
 
 	.title {
 		margin: 0;
-		font-size: 30px;
-		font-weight: 600;
+		font-size: 34px;
+		font-weight: 700;
 		letter-spacing: -0.02em;
 		line-height: 1.12;
 	}
@@ -237,13 +239,12 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 32px;
-		height: 32px;
+		width: 34px;
+		height: 34px;
 		flex-shrink: 0;
 		border-radius: 50%;
-		color: var(--text-muted);
-		/* Baseline alignment puts a bare icon too high beside 30px type. */
-		transform: translateY(5px);
+		background: var(--aurora-tint);
+		color: var(--aurora-deep);
 	}
 
 	.sub {
@@ -273,7 +274,7 @@
 
 	.count {
 		margin: 6px 0 0;
-		font-size: 12px;
+		font-size: 11px;
 		color: var(--text-muted);
 		font-family: var(--font-mono);
 	}
@@ -308,7 +309,8 @@
 	.name {
 		display: block;
 		font-size: 16px;
-		font-weight: 500;
+		font-weight: 600;
+		letter-spacing: -0.01em;
 		line-height: 1.25;
 	}
 
@@ -328,8 +330,8 @@
 		width: 26px;
 		height: 26px;
 		flex-shrink: 0;
-		border: 1px dashed var(--text-faint);
-		border-radius: 6px;
+		border: 1px dashed var(--border-strong);
+		border-radius: 50%;
 		font-size: 15px;
 		font-weight: 600;
 		color: var(--text-muted);

@@ -164,7 +164,7 @@
 	}
 
 	.track:focus-visible {
-		outline: 2px solid var(--fill-primary);
+		outline: 2px solid var(--aurora-deep);
 		outline-offset: 4px;
 		border-radius: var(--radius-sm);
 	}
@@ -201,14 +201,14 @@
 		width: 3px;
 		height: 24px;
 		border-radius: 2px;
-		background: var(--fill-primary);
+		background: var(--aurora-deep);
 	}
 
 	.dot {
 		width: 8px;
 		height: 8px;
 		border-radius: 50%;
-		background: var(--fill-primary);
+		background: var(--aurora-deep);
 	}
 
 	.labels {

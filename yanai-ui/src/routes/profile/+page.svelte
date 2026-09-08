@@ -59,7 +59,7 @@
 			? [
 					{ value: String(profile.top_stats.classes), label: 'Clases' },
 					{ value: String(profile.top_stats.students), label: 'Alumnos' },
-					{ value: `${Math.round(profile.top_stats.weekly_hours)}h`, label: 'Semanales' }
+					{ value: `${Math.round(profile.top_stats.weekly_hours)}h`, label: 'Semanales' },
 				]
 			: []
 	);
@@ -73,10 +73,10 @@
 			{
 				icon: 'clipboard-check',
 				label: 'Asistencias registradas',
-				value: `${a.asistencias_registradas} / ${a.asistencias_esperadas}`
+				value: `${a.asistencias_registradas} / ${a.asistencias_esperadas}`,
 			},
 			{ icon: 'mic', label: 'Notas de voz', value: String(a.notas_de_voz) },
-			{ icon: 'checklist', label: 'Evaluaciones registradas', value: String(a.evaluaciones) }
+			{ icon: 'checklist', label: 'Evaluaciones registradas', value: String(a.evaluaciones) },
 		];
 	});
 
@@ -178,24 +178,36 @@
 		padding-top: 20px;
 	}
 
+	/* The identity block IS this screen's title, so it carries the same 34px and
+	   the same rule under it as every other screen's h1. */
 	.identity {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
+		padding-bottom: 22px;
+		border-bottom: 1.5px solid var(--text-primary);
 		margin-bottom: 20px;
 	}
 
 	.avatar.big {
-		width: 72px;
-		height: 72px;
-		font-size: 22px;
-		margin-bottom: 10px;
+		width: 76px;
+		height: 76px;
+		font-size: 26px;
+		font-weight: 800;
+		margin-bottom: 8px;
+		background: var(--gradient-tile);
+		border: none;
+		color: var(--on-primary);
+		box-shadow: 0 12px 26px rgba(74, 95, 214, 0.26);
 	}
 
 	.name {
 		margin: 0;
-		font-weight: 500;
-		font-size: 18px;
+		font-weight: 700;
+		font-size: 34px;
+		letter-spacing: -0.02em;
+		line-height: 1.1;
+		text-align: center;
 	}
 
 	.line {
@@ -222,14 +234,19 @@
 
 	.stat-value {
 		margin: 0;
-		font-size: 19px;
-		font-weight: 500;
+		font-size: 24px;
+		font-weight: 800;
+		letter-spacing: -0.02em;
+		color: var(--aurora-deep);
 	}
 
 	.stat-label {
 		margin: 2px 0 0;
-		font-size: 11px;
-		color: var(--text-secondary);
+		font-family: var(--font-mono);
+		font-size: 10px;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--text-muted);
 	}
 
 	.activity {
@@ -241,9 +258,18 @@
 		padding: 13px var(--space-lg);
 	}
 
+	/* A tinted tile, so the four activity rows read as one group rather than as
+	   four loose glyphs. */
 	.activity-icon {
 		display: flex;
-		color: var(--text-secondary);
+		align-items: center;
+		justify-content: center;
+		width: 30px;
+		height: 30px;
+		border-radius: 9px;
+		background: var(--aurora-tint);
+		color: var(--aurora-deep);
+		flex-shrink: 0;
 	}
 
 	.activity-label {
@@ -260,10 +286,12 @@
 		color: var(--text-danger);
 	}
 
+	/* Not the primary action of the screen, and deliberately not tinted with the
+	   aurora either: it is the one thing here you should not reach for by
+	   accident. */
 	.logout {
-		background: var(--surface-2);
-		color: var(--text-danger);
-		border: 0.5px solid var(--border-strong);
+		background: var(--surface-1);
+		color: var(--text-secondary);
 		margin-bottom: var(--space-xl);
 	}
 

@@ -77,8 +77,11 @@
 		border-right: none;
 	}
 
+	/* The chosen cell takes the action gradient: this is the one control on the
+	   screen that decides the record, and it should read as the thing you
+	   pressed. */
 	.cell.on {
-		background: var(--fill-primary);
+		background: var(--gradient-action);
 		color: var(--on-primary);
 	}
 

@@ -199,37 +199,35 @@
 </div>
 
 <style>
-	/* This screen sets its own gutter: the session rails bleed to the phone edge
-	   by cancelling it with a negative margin, so the number has to be known here
-	   rather than inherited from the global .body padding. */
+	/* This screen still sets its own gutter, but now at the app's number: the
+	   session rails bleed to the phone edge by cancelling it with a negative
+	   margin, so the value has to be known here rather than inherited. */
 	.body {
-		padding: 22px 18px 30px;
+		padding: 18px 20px 30px;
 	}
 
-	/* Section labels here are smaller, bolder and wider-tracked than the app-wide
-	   .eyebrow, and are uppercased by CSS rather than in the markup. */
+	/* Only the bottom margin is local now; the type is the app-wide .eyebrow. */
 	.eyebrow {
 		margin: 0 0 12px;
-		font-size: 11px;
-		font-weight: 600;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
 	}
 
 	.clsname {
 		margin: 0;
-		font-size: 30px;
-		font-weight: 600;
+		padding-bottom: 14px;
+		border-bottom: 1.5px solid var(--text-primary);
+		font-size: 34px;
+		font-weight: 700;
 		letter-spacing: -0.02em;
-		line-height: 1.12;
+		line-height: 1.1;
 	}
 
 	.clscount {
 		display: block;
-		margin-top: 8px;
-		font-size: 13px;
+		margin-top: 10px;
+		font-size: 11px;
 		color: var(--text-muted);
 		font-family: var(--font-mono);
+		text-transform: uppercase;
 	}
 
 	/* Section labels sit tight above a hint line where one follows. */
@@ -243,43 +241,53 @@
 		color: var(--text-muted);
 	}
 
-	/* Hero — today's session, and a link into it. The screen has no dark element
-	   at all now: it is a launcher, not a screen with one obvious action. */
+	/* Hero — today's session, and a link into it. It carries the action gradient:
+	   it is the one block on the screen that leads into the work, and the rails
+	   below it are reference. */
 	.hero {
 		display: block;
-		margin: 32px 0 8px;
-		color: inherit;
+		margin: 18px 0 8px;
+		padding: 18px 20px;
+		border-radius: 20px;
+		background: var(--gradient-action);
+		color: var(--on-primary);
+		box-shadow: var(--shadow-action);
 	}
 
 	.hero-row {
 		display: flex;
 		align-items: center;
 		gap: 12px;
-		margin-top: 12px;
+		margin-top: 10px;
 	}
 
 	.hero-lbl {
-		margin: 0 0 14px;
-		font-size: 12px;
-		letter-spacing: 0.12em;
-		color: var(--text-muted);
+		margin: 0;
+		font-size: 11px;
+		letter-spacing: 0.08em;
+		color: rgba(255, 255, 255, 0.72);
 		font-family: var(--font-mono);
 		text-transform: uppercase;
 	}
 
 	.hero-time {
-		margin: 0;
-		font-size: 40px;
-		font-weight: 600;
+		margin: 2px 0 0;
+		font-size: 34px;
+		font-weight: 800;
 		letter-spacing: -0.02em;
-		line-height: 1;
+		line-height: 1.05;
 	}
 
 	.hero-topic {
 		flex: 1;
 		min-width: 0;
-		font-size: 17px;
-		color: var(--text-secondary);
+		font-size: 13px;
+		font-weight: 600;
+		color: rgba(255, 255, 255, 0.9);
+	}
+
+	.hero .chevron {
+		color: var(--on-primary);
 	}
 
 	/* Quiet nav list — hairline-ruled rows, top and bottom. */
@@ -294,7 +302,7 @@
 		display: flex;
 		align-items: center;
 		gap: 12px;
-		padding: 20px 4px;
+		padding: 15px 2px;
 		color: inherit;
 		border-bottom: 0.5px solid var(--border);
 		width: 100%;
@@ -307,14 +315,15 @@
 
 	.quiet-t {
 		flex: 1;
-		font-size: 17px;
-		font-weight: 500;
+		font-size: 16px;
+		font-weight: 700;
+		letter-spacing: -0.01em;
 	}
 
 	.quiet-d {
 		display: block;
 		margin-top: 2px;
-		font-size: 13px;
+		font-size: 12px;
 		font-weight: 400;
 		color: var(--text-muted);
 	}
@@ -331,8 +340,8 @@
 		display: flex;
 		gap: 12px;
 		overflow-x: auto;
-		padding: 0 18px 8px;
-		margin: 0 -18px 30px;
+		padding: 0 20px 8px;
+		margin: 0 -20px 30px;
 		scroll-snap-type: x proximity;
 	}
 
@@ -351,8 +360,8 @@
 		max-width: 300px;
 		flex: 0 0 auto;
 		scroll-snap-align: start;
-		padding: 16px;
-		border: 0.5px solid var(--border);
+		padding: 14px 16px;
+		background: var(--aurora-tint);
 		border-radius: 14px;
 		color: inherit;
 	}
@@ -365,9 +374,11 @@
 
 	.lcard-day {
 		display: block;
-		font-size: 24px;
-		font-weight: 600;
-		line-height: 1;
+		font-size: 22px;
+		font-weight: 800;
+		letter-spacing: -0.02em;
+		line-height: 1.1;
+		color: var(--aurora-deep);
 	}
 
 	.lcard-mon {
@@ -387,23 +398,25 @@
 		line-clamp: 2;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
-		font-size: 16px;
-		font-weight: 500;
+		font-size: 14px;
+		font-weight: 700;
+		letter-spacing: -0.01em;
 		line-height: 1.25;
 	}
 
 	.lcard-sub {
 		display: flex;
 		align-items: center;
-		gap: 8px;
+		gap: 6px;
 		margin-top: 4px;
-		font-size: 13px;
-		color: var(--text-secondary);
+		font-family: var(--font-mono);
+		font-size: 11px;
+		color: var(--text-muted);
 	}
 
 	/* Only past cards carry it: it says the card leads somewhere you can record,
 	   which is not yet true of a session that has not happened. */
 	.lcard-sub :global(.ic) {
-		color: var(--text-muted);
+		color: var(--aurora-deep);
 	}
 </style>

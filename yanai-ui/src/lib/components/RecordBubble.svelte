@@ -402,7 +402,7 @@
 		box-shadow:
 			inset 0 0 0 1px rgba(255, 255, 255, 0.5),
 			inset 0 16px 36px rgba(255, 255, 255, 0.3),
-			0 18px 36px rgba(20, 20, 20, 0.1);
+			0 18px 36px rgba(35, 40, 90, 0.1);
 	}
 
 	.specular {

@@ -94,9 +94,9 @@
 		<p class="subtitle">{courseName}</p>
 
 		<p class="intro">
-			Cada competencia se valora contra los criterios que tú defines. Son la
-			referencia para tu juicio docente sobre la evidencia del periodo
-			(RVM 094-2020); no se promedian ni se convierten en nota.
+			Cada competencia se valora contra los criterios que tú defines. Son la referencia para tu
+			juicio docente sobre la evidencia del periodo (RVM 094-2020); no se promedian ni se convierten
+			en nota.
 		</p>
 
 		{#if withoutCriteria > 0}
@@ -143,8 +143,7 @@
 							bind:value={draft}
 							rows="3"
 							placeholder="Ej.: Traduce un problema verbal con dos incógnitas a un sistema de ecuaciones."
-							disabled={saving}
-						></textarea>
+							disabled={saving}></textarea>
 						<div class="row actions">
 							<button
 								class="btn-light"
@@ -190,14 +189,20 @@
 <style>
 	.title {
 		margin: 0;
-		font-size: 20px;
-		font-weight: 500;
+		padding-bottom: 14px;
+		border-bottom: 1.5px solid var(--text-primary);
+		font-size: 34px;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+		line-height: 1.1;
 	}
 
 	.subtitle {
-		margin: 2px 0 var(--space-md);
-		font-size: 13px;
-		color: var(--text-secondary);
+		margin: 10px 0 var(--space-lg);
+		font-family: var(--font-mono);
+		font-size: 11px;
+		text-transform: uppercase;
+		color: var(--text-muted);
 	}
 
 	.intro {
@@ -271,9 +276,9 @@
 	.draft {
 		width: 100%;
 		margin-top: var(--space-sm);
-		padding: 10px 12px;
-		border-radius: var(--radius);
-		border: 0.5px solid var(--border-strong);
+		padding: 12px 14px;
+		border-radius: 12px;
+		border: 1px solid var(--border);
 		font-family: inherit;
 		font-size: 13px;
 		color: var(--text-primary);
@@ -287,13 +292,17 @@
 	}
 
 	.add {
-		margin-top: var(--space-sm);
+		display: inline-flex;
+		align-items: center;
+		margin-top: var(--space-md);
 		border: none;
-		background: none;
-		padding: 0;
+		padding: 10px 16px;
+		border-radius: 999px;
+		background: var(--aurora-tint);
 		font-family: inherit;
-		font-size: 13px;
-		color: var(--text-secondary);
+		font-size: 14px;
+		font-weight: 700;
+		color: var(--aurora-deep);
 		cursor: pointer;
 	}
 </style>

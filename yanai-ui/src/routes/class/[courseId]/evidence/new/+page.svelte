@@ -352,7 +352,7 @@
 
 			<button
 				type="submit"
-				class="btn-block btn-dark pressable submit"
+				class="btn-block btn-primary pressable submit"
 				disabled={!canSubmit || submitting}
 			>
 				Guardar evidencia
@@ -377,18 +377,21 @@
 
 	.title {
 		margin: 0;
-		font-size: 30px;
-		font-weight: 600;
+		padding-bottom: 14px;
+		border-bottom: 1.5px solid var(--text-primary);
+		font-size: 34px;
+		font-weight: 700;
 		letter-spacing: -0.02em;
-		line-height: 1.12;
+		line-height: 1.1;
 	}
 
 	.sub {
 		display: block;
-		margin-top: 8px;
-		font-size: 13px;
-		color: var(--text-muted);
+		margin: 10px 0 0;
 		font-family: var(--font-mono);
+		font-size: 11px;
+		text-transform: uppercase;
+		color: var(--text-muted);
 	}
 
 	.lede {
@@ -424,18 +427,23 @@
 	}
 
 	.lbl {
-		font-size: 12px;
-		color: var(--text-secondary);
+		font-family: var(--font-mono);
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--text-muted);
 	}
 
 	.in {
 		width: 100%;
-		padding: 10px 12px;
-		border: 0.5px solid var(--border);
-		border-radius: var(--radius-md);
-		background: var(--surface-1);
+		height: 48px;
+		padding: 0 14px;
+		border: 1px solid var(--border);
+		border-radius: 12px;
+		background: var(--surface-2);
 		font-family: inherit;
-		font-size: 14px;
+		font-size: 15px;
 		color: var(--text-primary);
 	}
 
@@ -487,7 +495,7 @@
 	}
 
 	.scell.on {
-		background: var(--fill-primary);
+		background: var(--gradient-action);
 		color: var(--on-primary);
 	}
 
@@ -526,9 +534,11 @@
 
 	/* The chosen competencia is the only 1px-stroked block of the form: it is the
 	   decision that makes the evidence usable later. */
+	/* The competencia block is the decision that makes the evidence usable
+	   later, so it sits on the tint rather than inside a stroke. */
 	.comp {
-		border: 1px solid var(--border-strong);
-		border-radius: var(--radius-lg);
+		background: var(--aurora-tint);
+		border-radius: 16px;
 		padding: 14px;
 	}
 
@@ -585,8 +595,8 @@
 	}
 
 	.box.on {
-		border-color: var(--fill-primary);
-		background: var(--fill-primary);
+		border-color: var(--aurora-deep);
+		background: var(--aurora-deep);
 		color: var(--on-primary);
 	}
 

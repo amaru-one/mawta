@@ -437,19 +437,22 @@
 
 	.title {
 		margin: 0;
-		font-size: 30px;
-		font-weight: 600;
+		padding-bottom: 14px;
+		border-bottom: 1.5px solid var(--text-primary);
+		font-size: 34px;
+		font-weight: 700;
 		letter-spacing: -0.02em;
-		line-height: 1.12;
+		line-height: 1.1;
 		text-wrap: pretty;
 	}
 
 	.sub {
 		display: block;
-		margin-top: 8px;
-		font-size: 13px;
-		color: var(--text-muted);
+		margin: 10px 0 0;
 		font-family: var(--font-mono);
+		font-size: 11px;
+		text-transform: uppercase;
+		color: var(--text-muted);
 	}
 
 	.idx {
@@ -458,8 +461,8 @@
 
 	.comp {
 		margin: 16px 0 0;
-		font-size: 19px;
-		font-weight: 500;
+		font-size: 15px;
+		font-weight: 600;
 		line-height: 1.3;
 		letter-spacing: -0.01em;
 		text-wrap: pretty;

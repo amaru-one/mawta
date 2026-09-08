@@ -397,39 +397,41 @@
 
 	.head {
 		flex-shrink: 0;
-		padding: 22px 18px 0;
+		padding: 18px 20px 0;
 	}
 
 	.titlerow {
 		display: flex;
-		align-items: baseline;
+		align-items: flex-start;
 		justify-content: space-between;
-		margin-bottom: 6px;
+		gap: 12px;
+		padding-bottom: 14px;
+		border-bottom: 1.5px solid var(--text-primary);
 	}
 
 	.date {
 		margin: 0;
-		font-size: 22px;
-		font-weight: 600;
-		letter-spacing: -0.01em;
+		font-size: 34px;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+		line-height: 1.1;
 	}
 
 	.find {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 32px;
-		height: 32px;
+		width: 34px;
+		height: 34px;
 		flex-shrink: 0;
 		border-radius: 50%;
-		color: var(--text-muted);
-		/* Baseline alignment puts a bare icon too high beside 22px type. */
-		transform: translateY(4px);
+		background: var(--aurora-tint);
+		color: var(--aurora-deep);
 	}
 
 	.sum {
-		margin: 0 0 16px;
-		font-size: 12px;
+		margin: 10px 0 16px;
+		font-size: 11px;
 		font-family: var(--font-mono);
 		letter-spacing: 0.04em;
 		color: var(--text-muted);
@@ -484,13 +486,15 @@
 	}
 
 	.num.on {
-		background: var(--fill-primary);
+		background: var(--gradient-action);
 		color: var(--on-primary);
+		font-weight: 700;
+		box-shadow: 0 6px 14px rgba(74, 95, 214, 0.28);
 	}
 
 	/* Where "today" sits while another day is being looked at. */
 	.num.ring {
-		border: 1px solid rgba(74, 74, 74, 0.4);
+		border: 1px solid var(--aurora-deep);
 		color: var(--text-primary);
 	}
 
@@ -502,11 +506,11 @@
 	}
 
 	.dot.has {
-		background: var(--text-muted);
+		background: var(--text-faint);
 	}
 
 	.dot.has.on {
-		background: var(--fill-primary);
+		background: var(--aurora-deep);
 	}
 
 	/* ---- the hour grid ---- */
@@ -559,19 +563,35 @@
 		flex-direction: column;
 		gap: 2px;
 		justify-content: center;
-		padding: 4px 10px;
-		border-radius: var(--radius);
-		background: var(--surface-1);
-		border: 1px solid var(--border-strong);
+		padding: 6px 12px;
+		border-radius: 12px;
+		background: var(--aurora-tint);
+		border: 1px solid var(--hair);
 		overflow: hidden;
 		color: inherit;
 	}
 
-	/* The one loud element on the screen, as everywhere else in the app. */
+	/* The one loud element on the screen: the class happening right now takes
+	   the action gradient, so the day reads at a glance without a legend. */
 	.box.live {
-		border-color: var(--fill-primary);
-		border-left-width: 3px;
-		padding-left: 8px;
+		background: var(--gradient-action);
+		border-color: transparent;
+		box-shadow: 0 10px 22px rgba(74, 95, 214, 0.28);
+	}
+
+	.box.live .bname {
+		color: var(--on-primary);
+	}
+
+	.box.live .btime {
+		color: rgba(255, 255, 255, 0.75);
+	}
+
+	/* A finished class steps back to the page's own white. */
+	.box.done,
+	.box.off {
+		background: var(--surface-2);
+		border-color: var(--border);
 	}
 
 	.btime {
@@ -583,13 +603,14 @@
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
-		color: var(--text-secondary);
+		color: var(--aurora-deep);
 	}
 
 	.bname {
 		display: block;
-		font-size: 14px;
-		font-weight: 500;
+		font-size: 15px;
+		font-weight: 700;
+		letter-spacing: -0.01em;
 		line-height: 1.15;
 		white-space: nowrap;
 		overflow: hidden;
@@ -599,6 +620,7 @@
 	.box.done .bname,
 	.box.off .bname {
 		color: var(--text-secondary);
+		font-weight: 600;
 	}
 
 	.box.done .btime,
