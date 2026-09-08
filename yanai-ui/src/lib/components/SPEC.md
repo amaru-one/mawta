@@ -31,6 +31,17 @@ Props/events from route pages and `lib/` modules; no direct endpoint calls excep
 - **`ConfirmDialog` ports its root node to `document.body` on mount** (`$effect` + `bind:this`, removed on unmount) rather than rendering it where the `{#if}` sits. `position: fixed` alone does not guarantee a true page-level overlay: without a transformed/filtered ancestor it still positions against the viewport, but *stacking* is a separate mechanism — a fixed descendant's `z-index` is only compared inside the nearest ancestor that already opened its own stacking context (any `position` + `z-index` pair). Any screen that renders this dialog under such an ancestor would silently cap its `z-index: 2000` there. Porting the node sidesteps this for every caller, present or future, rather than requiring each screen to keep its z-index scale clear of 2000.
 
 ## Change Log
+- 2026-09-08: **`RecordBubble`'s orb showed a square in Safari on iOS/iPadOS instead of a clean circle.**
+  Reported directly (no screenshot, confirmed the platform as iOS/iPadOS Safari specifically — not
+  reproduced in this session's own Chrome, since the bug does not occur there). Root cause: `.colorfield`
+  clips the four `.blob` lights with `border-radius: 50%; overflow: hidden`, and each `.blob` carries its
+  own `filter: blur(15px)` and `mix-blend-mode: screen` — a known WebKit gap where `overflow: hidden` on
+  a rounded box does not reliably clip a filtered/blended child, letting it bleed to the element's square
+  bounding box. Fix: `.colorfield` also clips with `clip-path: circle(50%)` (`-webkit-clip-path` too),
+  which WebKit does honor for filtered content; `overflow: hidden` stays as a harmless second clip on
+  engines that never had the bug. Verified in this session's Chrome that nothing changed there (the orb
+  renders identically) — **verifying the actual fix on Safari/iOS is still open**, since this session has
+  no Safari to test against; confirm on a real iPhone/iPad before considering this closed.
 - 2026-09-08: **`ConfirmDialog` fixed a real stacking bug, and `VoiceNotePlayer` lost its "Guardar" button.**
   Reported with a screenshot: deleting a voice note showed the lesson screen's "Ir a {área}" button in
   full colour, pasted over the top of the delete-confirmation dialog, instead of dimmed behind a single

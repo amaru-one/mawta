@@ -356,6 +356,15 @@
 		inset: 0;
 		border-radius: 50%;
 		overflow: hidden;
+		/* Safari does not reliably clip a child that carries its own `filter`
+		   (the blobs' blur, below) or `mix-blend-mode` to a rounded
+		   `overflow: hidden` box — the filtered content can bleed out to the
+		   element's square bounding box instead of staying inside the circle.
+		   `clip-path` does not have that gap in WebKit, so it does the actual
+		   clipping there; `overflow: hidden` stays as the (harmless) clip on
+		   engines that never had the bug. */
+		clip-path: circle(50%);
+		-webkit-clip-path: circle(50%);
 		transition:
 			filter 450ms ease-out,
 			opacity 450ms ease-out;
