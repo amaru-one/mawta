@@ -270,15 +270,10 @@
 		z-index: 1;
 	}
 
-	/* Drift speeds are one multiplier per state, so the four blobs keep their
-	   relative rhythm and only the tempo changes. */
-	.bubble.idle {
-		--speed: 1.9;
-	}
-
-	.bubble.rec {
-		--speed: 0.45;
-	}
+	/* The rotation's tempo is NOT set here. One duration lives in CSS and the
+	   state changes `playbackRate` instead (see `setSpin`), because swapping
+	   `animation-duration` restarts the phase: the orb would jump the moment a
+	   hold commits, which is exactly the seam this animation exists to avoid. */
 
 	.ambient {
 		position: absolute;
@@ -342,51 +337,45 @@
 		opacity: 0.85;
 	}
 
-	/* No two durations share a common multiple, so the colour never repeats. */
+	/* The four lights cross the orb on the same 22s loop, a quarter-turn apart,
+	   so the field is never empty and never repeats a frame exactly. */
 	.blob {
 		position: absolute;
+		left: 17%;
 		width: 66%;
 		height: 66%;
 		border-radius: 50%;
 		/* Scaled with the orb: the approved artboard's 18px over 272px. Blurring
 		   further washes the four hues into one pale disc. */
 		filter: blur(15px);
-		opacity: 0.8;
 		mix-blend-mode: screen;
-		animation-timing-function: ease-in-out;
+		animation-name: corriente;
+		animation-duration: 22s;
+		animation-timing-function: linear;
 		animation-iteration-count: infinite;
 	}
 
 	.b1 {
-		top: -6%;
-		left: 14%;
+		top: 17%;
 		background: var(--aurora-1);
-		animation-name: drift-1;
-		animation-duration: calc(10s * var(--speed, 1));
 	}
 
 	.b2 {
-		top: 20%;
-		left: 40%;
+		top: 6%;
 		background: var(--aurora-2);
-		animation-name: drift-2;
-		animation-duration: calc(8.5s * var(--speed, 1));
+		animation-delay: -5.5s;
 	}
 
 	.b3 {
-		top: 44%;
-		left: 6%;
+		top: 26%;
 		background: var(--aurora-3);
-		animation-name: drift-3;
-		animation-duration: calc(12s * var(--speed, 1));
+		animation-delay: -11s;
 	}
 
 	.b4 {
-		top: 40%;
-		left: 34%;
+		top: 14%;
 		background: var(--fill-accent);
-		animation-name: drift-4;
-		animation-duration: calc(9.5s * var(--speed, 1));
+		animation-delay: -16.5s;
 	}
 
 	/* The whole point of the surface: it blurs the colour below it *and* the
