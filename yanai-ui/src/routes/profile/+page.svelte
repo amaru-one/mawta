@@ -128,10 +128,6 @@
 			{/each}
 		</div>
 
-		<button class="btn-block logout pressable" onclick={() => (showLogoutConfirm = true)}>
-			<Icon name="logout" size={16} />Cerrar sesión
-		</button>
-
 		<p class="eyebrow classes-head">MIS CLASES · {totalClasses}</p>
 
 		{#each classGroups as group (group.grade_label)}
@@ -150,6 +146,10 @@
 				{/each}
 			</div>
 		{/each}
+
+		<button class="btn-block logout pressable" onclick={() => (showLogoutConfirm = true)}>
+			<Icon name="logout" size={16} />Cerrar sesión
+		</button>
 
 		<p class="meta version">{APP_VERSION}</p>
 	{:else if loadError}
@@ -292,6 +292,7 @@
 	.logout {
 		background: var(--surface-1);
 		color: var(--text-secondary);
+		margin-top: var(--space-xl);
 		margin-bottom: var(--space-xl);
 	}
 
