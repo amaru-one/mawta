@@ -91,11 +91,6 @@
 		<rect x="7" y="4" width="4" height="16" rx="1" fill="currentColor" stroke="none" />
 		<rect x="13" y="4" width="4" height="16" rx="1" fill="currentColor" stroke="none" />
 	</symbol>
-	<symbol id="i-save" viewBox="0 0 24 24">
-		<path d="M6 4h10l4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />
-		<circle cx="12" cy="14" r="2" />
-		<path d="M14 4v4H8V4" />
-	</symbol>
 	<symbol id="i-trash" viewBox="0 0 24 24">
 		<path d="M4 7h16" />
 		<path d="M10 11v6" />

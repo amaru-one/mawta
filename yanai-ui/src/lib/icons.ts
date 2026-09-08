@@ -19,7 +19,6 @@ export const ICON_NAMES = [
 	'mic',
 	'play',
 	'pause',
-	'save',
 	'trash',
 	'sparkles',
 	'plus',

@@ -12,11 +12,28 @@
 	let { title, text, confirmLabel, onconfirm, oncancel }: Props = $props();
 
 	const titleId = `confirm-${Math.random().toString(36).slice(2, 8)}`;
+
+	// Ported to `document.body` on mount: `position: fixed` still measures
+	// against the viewport with no positioned/transformed ancestor in this
+	// tree, but *stacking* does not work the same way — a fixed descendant's
+	// z-index is only compared within the stacking context its nearest
+	// `position`+`z-index` ancestor already opened. The lesson screen's notes
+	// panel is exactly that ancestor (`position: absolute; z-index: 3`, below
+	// its own header's `z-index: 4`), which pinned this dialog's z-index:2000
+	// under the header instead of over the whole page. Moving the node itself
+	// escapes any such ancestor, present or future, in every caller.
+	let root: HTMLDivElement | null = null;
+	$effect(() => {
+		if (!root) return;
+		document.body.appendChild(root);
+		return () => root?.remove();
+	});
 </script>
 
 <svelte:window onkeydown={(e) => e.key === 'Escape' && oncancel()} />
 
 <div
+	bind:this={root}
 	class="dialog"
 	in:scale={{ start: 0.95, duration: 150 }}
 	out:scale={{ start: 0.95, duration: 150 }}

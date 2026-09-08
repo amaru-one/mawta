@@ -128,21 +128,22 @@ export async function addNote(studentId: string, blob: Blob, durationSec: number
 
 	try {
 		const { id } = await createVoiceNote(session.id, studentId, blob, durationMs);
-		replaceNote(entryId, localId, { ...note, id });
+		// Saving is automatic: there is no "Guardar" control on the note row
+		// any more, so the note is immediately taken through to 'saved' here,
+		// as a second call right after the create that made it. The status
+		// flips optimistically like the rest of this module; if the save leg
+		// itself fails, one silent retry follows, and if that also fails the
+		// note stays 'draft' server-side — still playable and deletable, only
+		// missing from área's "tiene comentarios" indicator for this one note,
+		// which is not worth a toast the teacher cannot act on.
+		replaceNote(entryId, localId, { ...note, id, status: 'saved' });
+		void saveVoiceNote(id).catch(() => void saveVoiceNote(id).catch(() => {}));
 	} catch (err) {
 		replaceNote(entryId, localId, null);
 		// Validation rejections (over 1 min, empty/near-empty audio) carry a
 		// specific server message worth showing instead of the generic one.
 		showToast(err instanceof ApiError ? err.message : SAVE_ERROR);
 	}
-}
-
-export function saveNote(note: Note): void {
-	replaceNote(note.entryId, note.id, { ...note, status: 'saved' });
-	void saveVoiceNote(note.id).catch(() => {
-		replaceNote(note.entryId, note.id, note);
-		showToast(SAVE_ERROR);
-	});
 }
 
 // Discard is final server-side; the confirm dialog already says so.

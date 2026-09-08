@@ -10,18 +10,14 @@
 	interface Props {
 		note: Note;
 		ondelete: (note: Note) => void;
-		onsave: (note: Note) => void;
 	}
 
-	let { note, ondelete, onsave }: Props = $props();
+	let { note, ondelete }: Props = $props();
 
 	let playing = $state(false);
 	let position = $state(0);
 	let measuredDuration = $state(0);
 	let showDeleteConfirm = $state(false);
-
-	// The store swaps in the updated note after a save, so this flows down.
-	const isSaved = $derived(note.status === 'saved');
 
 	const duration = $derived(measuredDuration || note.durationMs / 1000);
 
@@ -110,15 +106,6 @@
 	</button>
 
 	<button
-		class="action pressable"
-		class:saved={isSaved}
-		onclick={() => onsave(note)}
-		aria-label="Guardar nota"
-		title="Guardar nota"
-	>
-		<Icon name="save" size={15} />
-	</button>
-	<button
 		class="action delete pressable"
 		onclick={() => (showDeleteConfirm = true)}
 		aria-label="Eliminar nota"
@@ -195,10 +182,6 @@
 		align-items: center;
 		justify-content: center;
 		color: var(--text-muted);
-	}
-
-	.action.saved {
-		color: var(--text-primary);
 	}
 
 	.delete {

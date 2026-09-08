@@ -6,7 +6,7 @@
 	import TopBar from '$lib/components/TopBar.svelte';
 	import VoiceNotePlayer from '$lib/components/VoiceNotePlayer.svelte';
 	import { hapticTap } from '$lib/haptics';
-	import { addNote, loadSession, removeNote, saveNote } from '$lib/lesson';
+	import { addNote, loadSession, removeNote } from '$lib/lesson';
 	import { MAX_RECORD_SEC, formatDuration } from '$lib/recorder';
 	import { currentCourse, currentSession, entryKey, notes, students } from '$lib/stores';
 	import { showToast } from '$lib/toast';
@@ -190,12 +190,6 @@
 		showToast('Nota guardada');
 	}
 
-	function handleSave(note: Note): void {
-		hapticTap();
-		saveNote(note);
-		showToast('Nota guardada');
-	}
-
 	function handleDelete(note: Note): void {
 		removeNote(note);
 		showToast('Nota eliminada');
@@ -241,7 +235,6 @@
 				<div class="hair"></div>
 
 				<div class="lesson">
-					<span class="lessonlbl">Lección de hoy</span>
 					<span class="lessonname">{lessonName}</span>
 				</div>
 			</div>
@@ -328,7 +321,7 @@
 				<p class="eyebrow">Notas de hoy</p>
 				<div class="notelist">
 					{#each selectedNotes as note (note.id)}
-						<VoiceNotePlayer {note} ondelete={handleDelete} onsave={handleSave} />
+						<VoiceNotePlayer {note} ondelete={handleDelete} />
 					{/each}
 				</div>
 			</div>
@@ -454,15 +447,6 @@
 		flex-direction: column;
 		gap: 2px;
 		min-width: 0;
-	}
-
-	.lessonlbl {
-		font-family: var(--font-mono);
-		font-size: 10px;
-		font-weight: 700;
-		letter-spacing: 0.1em;
-		text-transform: uppercase;
-		color: var(--text-muted);
 	}
 
 	.lessonname {
