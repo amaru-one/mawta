@@ -26,12 +26,27 @@ Route params `courseId`, `sessionId`; every mutation goes through `lib/lesson.ts
 - **`.rrow` carries `touch-action: pan-y`** so the browser may start scrolling the panel on the first move instead of waiting on script, plus `user-select`/`-webkit-touch-callout: none` so a slow drag over a name does not raise iOS's text-selection menu over the list. `.results` carries `overscroll-behavior: contain`. Re-verified 2026-09-08 (see Change Log): no `preventDefault()` on `pointerdown`/`pointermove`, only on the confirmed-tap branch of `pointerup`, so nothing here blocks native scroll on either iOS or Android.
 - **A voice note saves in full automatically — recording it is the only action.** `VoiceNotePlayer` has no "Guardar" control; `lib/lesson.ts`'s `addNote` creates the note (`status: 'draft'`) and immediately chains the call that marks it `'saved'`, with one silent retry if that second call fails. The row's only control besides playback is delete, via `ConfirmDialog` (ported to `document.body` — see `lib/components/SPEC.md` — so it always renders as a true page-level overlay regardless of this screen's own `.head`/`.notes` z-index layering below).
 - **The name line is the search field.** The chosen name is painted over an empty input as an `aria-hidden` overlay rather than set as its value, which keeps "typing replaces the name" true without a did-they-edit-it state machine.
+- **The "x" button (`clearAll`) means two different things, chosen by whether a student is already
+  picked.** With a selection, it starts over: clears the selection and re-opens the picker, because with
+  no roster on screen the panel is the only way to reach a student. Without one, the panel is already
+  open, and the button actually closes it (`searching = false`) instead of re-opening what was already
+  open — closing loses nothing, since the field's own `onfocus` re-opens the panel on the next tap. Its
+  `aria-label` follows the same split ("Borrar y elegir otro alumno" / "Cerrar lista de alumnos").
 - **Recording is gated on a student being chosen and on nothing else.** It is never gated on attendance — there is no attendance here or anywhere else in the app (see the Change Log).
 - Nothing about achievement is shown. There is no `PROMEDIO DE SECCIÓN` card and no per-student level: a nivel de logro is a judgement over a period's evidence (RVM 094-2020, 5.1.1.3 p.2-3) and does not belong beside a name being recorded against. It is read and written on the student's grades screen, where the evidence is.
 - No scroll position is persisted, because there is no scroll.
 - Nothing here is risk-driven. The predictive subsystem (`risk.detect` and everything behind it) was removed whole in `migrations/00003`.
 
 ## Change Log
+- 2026-09-08: **The "x" button now actually closes the student picker when nothing is selected.**
+  Reported: with the panel open and no student chosen yet, tapping "x" did nothing visible — `clearAll`
+  reset `selectedId` and `searching` to the values they already held (`null`/`true`) and just refocused
+  the field, so the list never left the screen. It now branches on whether a student is already picked
+  (see the rule above): with one, unchanged (clear it, re-open the picker); without one, it closes the
+  panel for real. Verified in the running app: opening the picker with no selection and tapping "x" now
+  collapses it back to the "Buscar alumno" prompt; picking a student first and tapping "x" still clears
+  the selection and re-opens the picker exactly as before. No cascade — the fix is local to `clearAll`
+  and the button's `aria-label`.
 - 2026-09-08: **Deleting a voice note no longer shows the "Ir a área" button pasted over the confirm
   dialog, and saving a note has no manual step any more.** Reported with a screenshot; reproduced live
   and root-caused with `getComputedStyle`: `ConfirmDialog` was nested inside this screen's `.notes`

@@ -173,15 +173,24 @@
 		if (event.detail === 0) pick(student);
 	}
 
-	// One meaning: start over. Clears the query AND the selection and re-opens
-	// the picker — with no roster on screen this panel is the only way to reach
-	// a student, so the clear button has to be able to get back to it.
+	// Two meanings, chosen by whether a student is already picked. With a
+	// selection: start over — clear it and re-open the picker, since with no
+	// roster on screen the panel is the only way to reach a student. Without
+	// one: the panel is already open and this really is a close button, so it
+	// closes the panel instead of re-opening it (a no-op the button's own
+	// "x" promised but never did). Either way it is reachable again — the
+	// field's own `onfocus` re-opens the panel — so closing loses nothing.
 	function clearAll(): void {
 		hapticTap();
 		query = '';
-		selectedId = null;
-		searching = true;
-		field?.focus();
+		if (selected) {
+			selectedId = null;
+			searching = true;
+			field?.focus();
+		} else {
+			searching = false;
+			field?.blur();
+		}
 	}
 
 	function handleRecorded(blob: Blob, durationSec: number): void {
@@ -257,7 +266,11 @@
 					<span class="namefill" aria-hidden="true">{fullName(selected)}</span>
 				{/if}
 				{#if stage !== 'recording'}
-					<button class="clear" onclick={clearAll} aria-label="Borrar y elegir otro alumno">
+					<button
+						class="clear"
+						onclick={clearAll}
+						aria-label={selected ? 'Borrar y elegir otro alumno' : 'Cerrar lista de alumnos'}
+					>
 						<Icon name="x" size={13} />
 					</button>
 				{/if}
