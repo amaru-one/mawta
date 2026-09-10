@@ -59,6 +59,11 @@
 
 	const panelOpen = $derived(ready && searching && stage !== 'recording');
 
+	// The selected student has notes to show right now. Drives both the panel
+	// below and — on a short viewport — whether the stage becomes scrollable so
+	// the list is reachable at all (see the `@media (max-height: 800px)` block).
+	const showNotes = $derived(!!selected && stage !== 'recording' && selectedNotes.length > 0);
+
 	const areaName = $derived($currentCourse?.name ?? 'Clase');
 
 	// "Viernes 4 de setiembre", built from two calls rather than one
@@ -222,7 +227,7 @@
 	<title>{$currentCourse?.name ?? 'Clase'} — Lección</title>
 </svelte:head>
 
-<div class="screen">
+<div class="screen" class:withnotes={showNotes}>
 	<!-- Reached from Home as often as from the área now, so a fixed back
 	     destination would send the teacher to a screen they never saw. -->
 	<TopBar back="/class/{courseId}" useHistory recording={phase === 'recording'} />
@@ -329,7 +334,7 @@
 			<p class="count" aria-hidden="true">quedan {remainingSec} s</p>
 		{/if}
 
-		{#if selected && stage !== 'recording' && selectedNotes.length > 0}
+		{#if showNotes}
 			<div class="notes">
 				<p class="eyebrow">Notas de hoy</p>
 				<div class="notelist">
@@ -742,14 +747,33 @@
 	}
 
 	/* A short viewport cannot hold the context card, the orb and the notes at
-	   once. The notes go first, as they always have — reading them is a
-	   different job, and the orb holding its size is the point of the screen.
-	   The breakpoint moved up from 640px when the header gained the
-	   área/fecha/lección card: below ~800px what was left for the panel was
-	   less than one row. */
+	   once — and on a phone that is every note the teacher just recorded, so
+	   dropping them is not an option. Instead the stage scrolls: the fixed
+	   composition still fills the first screenful (`.stage` is `flex: 1` in a
+	   100dvh column, so its own scrollbox is exactly one viewport tall), and
+	   `.notes` leaves its `bottom: 0` pin to flow below it, its `margin-top`
+	   reserving the space the absolutely-positioned header, orb and hint take
+	   up above. Everything on the stage is absolutely positioned off
+	   `--bubble-anchor`, so those elements scroll away with the stage content
+	   while `TopBar` stays put. Only applied when there are notes to reach
+	   (`.screen.withnotes`); during recording and in the empty state the stage
+	   is the untouched fixed stage. */
 	@media (max-height: 800px) {
-		.notes {
-			display: none;
+		.screen.withnotes .stage {
+			overflow-y: auto;
+			overflow-x: hidden;
+			-webkit-overflow-scrolling: touch;
+		}
+
+		.screen.withnotes .notes {
+			position: static;
+			margin-top: calc(var(--bubble-anchor) + var(--notes-offset));
+		}
+
+		/* The page scrolls now, so the list expands in full instead of growing
+		   its own scrollbar. */
+		.screen.withnotes .notelist {
+			overflow-y: visible;
 		}
 	}
 
