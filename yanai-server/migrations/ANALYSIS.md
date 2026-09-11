@@ -6,12 +6,25 @@ the HTML was ambiguous, and the constraints from the brief I would argue with.
 2026-08-29 — see root `SPEC.md`. This document is a dated design record and
 is left as originally written; the per-folder SPEC.md files are now the
 product spec of record.)
-Predates `00002_evaluation_criteria.sql` (added 2026-08-26, after the squash);
-the reasoning below still holds, but object counts are from before it — see
-`SPEC.md`'s Change Log for what `00002` added. Live count after `00002`: 60
-base tables in `public` (incl. `goose_db_version`), i.e. the squash's 55 plus
-the five new tables (`capabilities`, `performance_standards`,
-`evaluation_criteria`, `assessment_criteria`, `evaluation_criterion_scores`).
+Predates `00002_evaluation_criteria.sql` (added 2026-08-26, after the first
+squash); the reasoning below still holds, but every object count in this
+document is from before it — see `SPEC.md`'s Change Log for what `00002` and
+everything after it added and removed.
+
+Superseded counts, kept only to date this document: the first squash's 55 base
+tables became 60 after `00002` added five, then 78 after the **second squash
+(2026-09-10)** folded `00002`–`00009` back into `00001`. A **third pass
+(2026-09-11)**, a dead-schema cleanup rather than a squash — see
+`SPEC.md`'s Change Log — dropped six more whole tables and 27 individual
+columns that no Go or `yanai-ui` code referenced. The live figure is now
+**72 base tables** in `public` (including `goose_db_version` and the `events`
+partitions), 45 with FORCE RLS, 333 indexes, 431 constraints, 18 `app.*`
+functions and **no `privacy.*` function** (`privacy.anonymize_student()` was
+one of the drops; the three `privacy.*` views survive) and 81 non-internal
+triggers. `evaluation_criterion_scores` is gone (a criterio is a tag, never a
+score), as are the predictive and per-session-observation subsystems this
+document still describes below, along with `assessment_templates`,
+`note_summaries`, `deletion_requests` and `term_grade_snapshots` (2026-09-11).
 
 ## Verification
 
