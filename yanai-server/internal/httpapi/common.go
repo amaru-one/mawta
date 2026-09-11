@@ -20,5 +20,6 @@ func (a *API) handleMe(w http.ResponseWriter, r *http.Request) {
 		writeError(w, err)
 		return
 	}
+	resp.Role = tc.Role
 	writeJSON(w, http.StatusOK, resp)
 }

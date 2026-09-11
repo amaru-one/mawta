@@ -37,6 +37,7 @@ type TenantCtx struct {
 	ActorID   uuid.UUID // zero value when acting as a system/job (no app.actor_id set)
 	TeacherID uuid.UUID
 	RequestID string
+	Role      string // the acting user_sessions.role; empty for a system/job actor
 }
 
 // WithTenantTx opens a transaction, drops to the non-owner yanai_app role,
@@ -74,15 +75,52 @@ func (d *DB) WithTenantTx(ctx context.Context, tc TenantCtx, fn func(tx pgx.Tx) 
 	return tx.Commit(ctx)
 }
 
-// WithSystemTx opens a transaction as the pool owner (bypasses RLS). Use
-// only for genuinely cross-tenant maintenance work (the worker's dispatch of
-// a nil-tenant job) — never for handling request data.
+// WithSystemTx opens a transaction as the pool's own connection role, with
+// no role drop and no tenant GUCs set. This does NOT bypass RLS on any table
+// that used app.enable_tenant_rls: FORCE ROW LEVEL SECURITY binds the table
+// owner too, so it only reaches tables that carry no policy at all (jobs is
+// the only one). Whatever cross-tenant power it does have today is an
+// artifact of the pool's connection role (see internal/db/SPEC.md) — never
+// rely on that, and never use this for request data; the worker's dispatch
+// of a nil-tenant job is its only legitimate caller. For a pre-tenant lookup
+// on request data, use WithAuthTx instead.
 func (d *DB) WithSystemTx(ctx context.Context, fn func(tx pgx.Tx) error) error {
 	tx, err := d.Pool.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("db: begin system tx: %w", err)
 	}
 	defer tx.Rollback(ctx) //nolint:errcheck
+
+	if err := fn(tx); err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
+}
+
+// WithAuthTx opens a transaction as the non-owner yanai_app role with no
+// tenant set and app.auth_lookup='on' — the one mode that can read a users
+// row or a user_sessions row before a tenant is known, via the narrow
+// login_lookup policy on users (see migrations/00002_auth.sql). Every other
+// tenant-scoped table's policy evaluates tenant_id = NULL in this
+// transaction and returns nothing, so a bug on the login/session path here
+// cannot read across tenants the way a WithSystemTx bug could. Used only by
+// internal/repo/auth.go.
+func (d *DB) WithAuthTx(ctx context.Context, requestID string, fn func(tx pgx.Tx) error) error {
+	tx, err := d.Pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("db: begin auth tx: %w", err)
+	}
+	defer tx.Rollback(ctx) //nolint:errcheck
+
+	if _, err := tx.Exec(ctx, "set local role yanai_app"); err != nil {
+		return fmt.Errorf("db: set role: %w", err)
+	}
+	if _, err := tx.Exec(ctx,
+		`select set_config('app.auth_lookup', 'on', true), set_config('app.request_id', $1, true)`,
+		requestID,
+	); err != nil {
+		return fmt.Errorf("db: set auth lookup context: %w", err)
+	}
 
 	if err := fn(tx); err != nil {
 		return err

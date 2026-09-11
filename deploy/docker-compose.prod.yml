@@ -14,7 +14,6 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ../yanai-server/seed:/seed:ro
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres -d yanai']
       interval: 5s
@@ -37,6 +36,7 @@ services:
       STORAGE_DIR: /data/audio
       CORS_ORIGINS: https://${DOMAIN}
       LOG_LEVEL: info
+      SESSION_COOKIE_SECURE: 'true'
       # Lets `docker compose run --rm --entrypoint goose api up` migrate with
       # zero CLI args — no shell needed to expand a $DATABASE_URL argument
       # over SSH, and the distroless image has no shell to do it anyway.

@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -19,6 +20,14 @@ type Config struct {
 	StorageDir        string
 	CORSOrigins       []string
 	LogLevel          string
+
+	SessionCookieName   string
+	SessionCookieSecure bool
+	SessionTTL          time.Duration
+	SessionIdleTimeout  time.Duration
+	LoginMaxFailures    int
+	LoginLockout        time.Duration
+	BcryptCost          int
 }
 
 func Load() (Config, error) {
@@ -33,11 +42,35 @@ func Load() (Config, error) {
 		StorageDir:        getenv("STORAGE_DIR", "./data/audio"),
 		CORSOrigins:       splitcsv(getenv("CORS_ORIGINS", "http://localhost:5173")),
 		LogLevel:          getenv("LOG_LEVEL", "info"),
+
+		SessionCookieName: getenv("SESSION_COOKIE_NAME", "yanai_session"),
+		// Fails closed: a production deploy that forgets to set this still
+		// ships Secure cookies. Dev sets SESSION_COOKIE_SECURE=false in .env
+		// because Safari refuses a Secure cookie over plain http://localhost.
+		SessionCookieSecure: getbool("SESSION_COOKIE_SECURE", true),
+		SessionTTL:          getdur("SESSION_TTL", 720*time.Hour),
+		SessionIdleTimeout:  getdur("SESSION_IDLE_TIMEOUT", 336*time.Hour),
+		LoginMaxFailures:    getint("LOGIN_MAX_FAILURES", 8),
+		LoginLockout:        getdur("LOGIN_LOCKOUT", 15*time.Minute),
+		BcryptCost:          getint("BCRYPT_COST", 12),
 	}
 
 	if cfg.DatabaseURL == "" {
 		return cfg, fmt.Errorf("config: DATABASE_URL is required")
 	}
+
+	// AllowCredentials with a wildcard origin is rejected by every browser
+	// anyway, and combined with Secure cookies it's the classic CORS
+	// footgun — refuse to start rather than ship a config that silently
+	// can't set cookies at all.
+	if cfg.SessionCookieSecure {
+		for _, origin := range cfg.CORSOrigins {
+			if origin == "*" {
+				return cfg, fmt.Errorf("config: CORS_ORIGINS may not contain \"*\" when SESSION_COOKIE_SECURE is true")
+			}
+		}
+	}
+
 	return cfg, nil
 }
 
@@ -70,6 +103,18 @@ func getint(key string, def int) int {
 		return def
 	}
 	return n
+}
+
+func getdur(key string, def time.Duration) time.Duration {
+	v, ok := os.LookupEnv(key)
+	if !ok || v == "" {
+		return def
+	}
+	d, err := time.ParseDuration(v)
+	if err != nil {
+		return def
+	}
+	return d
 }
 
 func splitcsv(v string) []string {

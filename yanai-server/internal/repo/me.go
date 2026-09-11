@@ -8,6 +8,7 @@ import (
 )
 
 type MeResponse struct {
+	Role string `json:"role"`
 	User struct {
 		DisplayName string `json:"display_name"`
 		Email       string `json:"email"`

@@ -100,3 +100,32 @@ const (
 const (
 	JobKindGradeRecompute = "grade.recompute"
 )
+
+// memberships.role and user_sessions.role. Re-added 2026-09-11 for real
+// authentication: unlike the block deleted 2026-08-29, Go now genuinely
+// branches on these (internal/httpapi.sessionAuth's role gate) and passes
+// them as query parameters (repo.CreateSession), so they are live call
+// sites rather than literals embedded in SQL text.
+const (
+	RoleTeacher    = "teacher"
+	RoleStudent    = "student"
+	RoleSupervisor = "supervisor"
+	RoleAdmin      = "admin"
+)
+
+// LoginEnabledRoles is the whole of the role gate on login. Adding a role
+// here is the only change needed to let it log in; every other check
+// (sessionAuth, handleLogin) is written against the session's role
+// generically rather than against RoleTeacher specifically.
+var LoginEnabledRoles = map[string]bool{
+	RoleTeacher: true,
+}
+
+// user_sessions.revoked_reason
+const (
+	SessionRevokeLogout         = "logout"
+	SessionRevokeExpired        = "expired"
+	SessionRevokeIdle           = "idle"
+	SessionRevokePasswordChange = "password_change"
+	SessionRevokeAdmin          = "admin"
+)

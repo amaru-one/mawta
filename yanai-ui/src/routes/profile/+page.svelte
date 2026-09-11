@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { list } from '$lib/api/client';
 	import type { ProfileDto } from '$lib/api/dto';
+	import { logout } from '$lib/api/endpoints/auth';
 	import { getProfile } from '$lib/api/endpoints/profile';
 	import { parseDateOnly } from '$lib/api/mappers';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
@@ -10,6 +11,7 @@
 	import TopBar from '$lib/components/TopBar.svelte';
 	import type { IconName } from '$lib/icons';
 	import { hapticTap } from '$lib/haptics';
+	import { session, teacher } from '$lib/stores';
 	import { showToast } from '$lib/toast';
 
 	const APP_VERSION = 'Yanai v1.0.4';
@@ -83,11 +85,18 @@
 	const classGroups = $derived(list(profile?.classes_by_grade));
 	const totalClasses = $derived(classGroups.reduce((sum, g) => sum + g.classes.length, 0));
 
-	// UI-only for now — no auth/session backend exists yet to actually log out of.
-	function confirmLogout(): void {
+	async function confirmLogout(): Promise<void> {
 		showLogoutConfirm = false;
+		try {
+			await logout();
+		} catch {
+			// The cookie is cleared server-side either way (handleLogout is
+			// idempotent); proceed to the login screen regardless.
+		}
+		session.set({ status: 'anonymous' });
+		teacher.set(null);
 		showToast('Sesión cerrada');
-		void goto('/');
+		await goto('/login', { replaceState: true });
 	}
 </script>
 

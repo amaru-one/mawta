@@ -2,7 +2,8 @@
 Typed wrappers over the API routes, one module per area, all built on `../client.ts`.
 
 ## Contents
-- `home.ts` — `getMe`, `getHome(date?)`.
+- `auth.ts` — `login(username, password)` (`POST /auth/login`, returns the same shape `getMe` does), `logout()` (`POST /auth/logout`, idempotent). The only two routes mounted outside session auth server-side — see `internal/httpapi/SPEC.md`.
+- `home.ts` — `getMe`, `getHome(date?)`. `getMe` doubles as the session probe the root layout calls on mount — there is no separate endpoint for that.
 - `classes.ts` — `getClassDashboard`, `getGradingComponents`, `createAssessment` (omit `student_id` for the whole class, set it for one student), `deleteAssessment` (soft).
 - `sessions.ts` — `getSession`, `startSession`, `createVoiceNote`, save/discard.
 - `grades.ts` — `getStudentGrades`, `createScore`, `correctScore`, `createPracticeScore`, `deletePracticeScore`.
@@ -23,6 +24,7 @@ Thin: DTO in/out, no mapping, no state. Routes must match `yanai-server/internal
 - `assertCompetencyLevel` always sends an explicit level, chosen by the teacher. There is no suggestion to accept: the level is a judgement of the period's evidence against the criterios (RVM 094-2020, 5.1.1.3 p.2-3), and the UI must never auto-assert one — not from criterio levels, not from marks.
 
 ## Change Log
+- 2026-09-11: Added `auth.ts` for real authentication. Cascade: `lib/api/client.ts`, `lib/stores.ts`, `routes/+layout.svelte`, `routes/login/` (new), `routes/profile/`.
 - 2026-09-04: Added `students.ts` — `getClassStudents` and `getStudentEvidence`, the two reads the evaluating screens are built on. `getClassCriteria` dropped its `studentId` parameter. The two criterio-level wrappers deleted this morning are now gone server-side too, so the note about them being untouched no longer applies.
 - 2026-09-04: Deleted `assertCriterionLevel` and `getAssessmentCriteriaGrid` from `criteria.ts`, which is now authoring-only. Criterio grading is gone from the product: what is evaluated is the competencia, and a criterio is a tag on evidence. **Both routes are untouched server-side for now** — same situation as the attendance wrappers below, and Phase 2 deletes them properly. Cascade from `lib/api/dto.ts`, `routes/`.
 - 2026-09-02: Deleted `putAttendance` and `markAllPresent` from `sessions.ts`. Both lost their only caller when the lesson screen became a recording screen and attendance left the app. **Their routes are untouched server-side** — see the new Conventions note, which exists so a later purge pass does not read the missing wrappers as evidence that the routes are dead. Cascade from `lib/lesson.ts`, `lib/api/dto.ts`.

@@ -1,13 +1,15 @@
 <script lang="ts">
 	import '../app.css';
 	import { onMount } from 'svelte';
-	import { afterNavigate } from '$app/navigation';
+	import { afterNavigate, goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import favicon from '$lib/assets/favicon.svg';
 	import IconSprite from '$lib/components/IconSprite.svelte';
 	import Toast from '$lib/components/Toast.svelte';
 	import { getMe } from '$lib/api/endpoints/home';
+	import { setUnauthorizedHandler } from '$lib/api/client';
 	import { loadNotifications } from '$lib/notifications';
-	import { canGoBack, teacher, usesInternalGrading } from '$lib/stores';
+	import { canGoBack, session, teacher, usesInternalGrading } from '$lib/stores';
 
 	let { children } = $props();
 
@@ -21,7 +23,28 @@
 		if (nav.type !== 'enter') canGoBack.set(true);
 	});
 
+	let pollHandle: ReturnType<typeof setInterval> | undefined;
+
+	function goAnonymous(): void {
+		session.set({ status: 'anonymous' });
+		teacher.set(null);
+		if (pollHandle) {
+			clearInterval(pollHandle);
+			pollHandle = undefined;
+		}
+		if (page.url.pathname !== '/login') void goto('/login', { replaceState: true });
+	}
+
 	onMount(() => {
+		setUnauthorizedHandler(goAnonymous);
+
+		// /login is never probed: firing GET /me there would 401 on a page
+		// that's supposed to be reachable with no session at all.
+		if (page.url.pathname === '/login') {
+			session.set({ status: 'anonymous' });
+			return;
+		}
+
 		getMe()
 			.then((me) => {
 				const name = me.user.display_name;
@@ -36,13 +59,24 @@
 					school: me.tenant.name,
 				});
 				usesInternalGrading.set(me.tenant.uses_internal_grading);
-			})
-			.catch(() => {});
+				session.set({ status: 'authenticated', role: me.role });
 
-		// The feed also drives the unread badge; a slow poll keeps both fresh.
-		void loadNotifications().catch(() => {});
-		const poll = setInterval(() => void loadNotifications().catch(() => {}), 60_000);
-		return () => clearInterval(poll);
+				// Only polls once signed in — unconditional polling would spam
+				// /notifications with 401s (each one re-triggering the redirect)
+				// for as long as a viewer sits on /login.
+				void loadNotifications().catch(() => {});
+				pollHandle = setInterval(() => void loadNotifications().catch(() => {}), 60_000);
+			})
+			.catch(() => {
+				// A non-401 failure (network, 5xx) also lands here since
+				// setUnauthorizedHandler only fires on 401; either way there is
+				// no usable session, so the shell falls back the same way.
+				goAnonymous();
+			});
+
+		return () => {
+			if (pollHandle) clearInterval(pollHandle);
+		};
 	});
 </script>
 
@@ -54,7 +88,9 @@
 <IconSprite />
 
 <div class="app-shell">
-	{@render children()}
+	{#if $session.status !== 'unknown'}
+		{@render children()}
+	{/if}
 </div>
 
 <Toast />

@@ -66,16 +66,22 @@ set local app.actor_id  = '<user uuid>';
 Queries without `app.tenant_id` set return **zero rows** — that's the isolation
 working, not a bug. This applies to psql sessions and backfill scripts too.
 
-`seed/seed_demo_tenant.sql` (not a goose migration — run it directly, see
-`seed/README.md`) creates the demo tenant
-`11111111-1111-4111-8111-111111111111` (I.E. Cristo Rey) with teacher, roster,
-sessions, published assessments and both grading schemes:
+There is no seed any more. Create a tenant row by hand (or with a script of
+your own), then create the first account with `cmd/useradd` — it hashes a
+real password, so it has to be Go rather than a SQL file:
 
 ```sh
-psql "$DATABASE_URL" -f seed/seed_demo_tenant.sql
+psql "$DATABASE_URL" -c "insert into tenants (name) values ('I.E. Cristo Rey') returning id;"
+go run ./cmd/useradd -tenant '<tenant-uuid-from-above>' -username jquispe \
+  -email janice.quispe@cristorey.edu.pe -given-name Janice -family-name Quispe \
+  -role teacher -password 'a real password, 10+ chars'
 ```
 
-No local `psql` client? Pipe the file into the container's own — see
+`useradd` creates only the account (users + memberships + teachers rows) —
+not an academic year, terms, competencias or classes. See
+`cmd/useradd/SPEC.md`.
+
+No local `psql` client? Pipe commands into the container's own — see
 [Working inside the container](#working-inside-the-container).
 
 ## Working inside the container
@@ -99,7 +105,7 @@ docker exec yanai-pg psql -U postgres -d yanai -c 'select count(*) from classes;
 To pipe a whole file in from the host, use `-i` (stdin, no TTY) with `-f -`:
 
 ```sh
-docker exec -i yanai-pg psql -U postgres -d yanai -v ON_ERROR_STOP=1 -f - < seed/seed_demo_tenant.sql
+docker exec -i yanai-pg psql -U postgres -d yanai -v ON_ERROR_STOP=1 -f - < some_script.sql
 ```
 
 ## Quick sanity check
@@ -107,18 +113,18 @@ docker exec -i yanai-pg psql -U postgres -d yanai -v ON_ERROR_STOP=1 -f - < seed
 ```sh
 docker exec yanai-pg psql -U postgres -d yanai -c "
   set role yanai_app;
-  set app.tenant_id = '11111111-1111-4111-8111-111111111111';
+  set app.tenant_id = '<tenant-uuid>';
   select name from classes;"
 ```
 
-Expected: `Inglés 5to B` and `Matemática 5to B`.
+Expected: whatever classes you've loaded against that tenant.
 
 ## Resetting the database
 
 While the project is in development this is a routine operation, not an
 emergency one: there is no hard-delete rule in the schema to work around, and
-the seed is the only source of data worth keeping. **Dev only** — see the
-warning at the end before running any of this against a deployed stack.
+there is no seed to worry about losing. **Dev only** — see the warning at the
+end before running any of this against a deployed stack.
 
 ### Drop and recreate the database (the usual way)
 
@@ -137,17 +143,12 @@ docker exec yanai-pg psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
 Note the `-d postgres`: you cannot drop the database you're connected to, so
 this connects to the default `postgres` maintenance database instead.
 
-Then re-apply the schema and the seed:
+Then re-apply the schema and recreate your account (see above):
 
 ```sh
 goose -dir migrations postgres "$DATABASE_URL" up
-docker exec -i yanai-pg psql -U postgres -d yanai -v ON_ERROR_STOP=1 -f - < seed/seed_demo_tenant.sql
+go run ./cmd/useradd -tenant '<tenant-uuid>' -username jquispe -password '...' ...
 ```
-
-`seed_demo_tenant.sql` is one file containing both dataset blocks (the base
-tenant with `Matemática 5to B`, plus `Arte 3ro A`), applied in dependency
-order inside it — nothing else to run. `../seed/README.md` covers what each
-block contains, and how to dry-run or undo it.
 
 `yanai_app` is a **cluster-wide** role, so it outlives the database it was
 created for. That's fine: migration `00001` creates it only `if not exists`
@@ -167,7 +168,7 @@ docker run -d --name yanai-pg -e POSTGRES_PASSWORD=yanai -e POSTGRES_DB=yanai \
   -p 55432:5432 -v yanai-pgdata:/var/lib/postgresql/data pgvector/pgvector:pg16
 docker exec yanai-pg pg_isready -U postgres
 goose -dir migrations postgres "$DATABASE_URL" up
-docker exec -i yanai-pg psql -U postgres -d yanai -v ON_ERROR_STOP=1 -f - < seed/seed_demo_tenant.sql
+go run ./cmd/useradd -tenant '<tenant-uuid>' -username jquispe -password '...' ...
 ```
 
 ### Not on the deployed stack

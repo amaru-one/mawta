@@ -9,7 +9,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
+	authpkg "yanai-server/internal/auth"
 	"yanai-server/internal/db"
+	"yanai-server/internal/domain"
+	"yanai-server/internal/repo"
 )
 
 type ctxKey int
@@ -71,38 +74,79 @@ func (w *statusWriter) WriteHeader(status int) {
 	w.ResponseWriter.WriteHeader(status)
 }
 
-// tenantAuth implements the dev-header auth model: X-Tenant-ID and
-// X-Actor-ID must be valid UUIDs, and the actor must have an active
-// membership (and a teacher profile) in that tenant. users RLS is only
-// visible through memberships, so validation goes through memberships
-// directly rather than selecting from users.
-func (a *API) tenantAuth(next http.Handler) http.Handler {
+// sessionAuth replaces the old dev-header tenantAuth. It resolves the
+// session cookie to a live user_sessions row (via db.WithAuthTx, the one
+// pre-tenant lookup mode — see internal/db/SPEC.md), enforces absolute and
+// idle expiry, gates on domain.LoginEnabledRoles so a role revoked or
+// downgraded after login takes effect immediately, then resolves the
+// teacher profile exactly as the old tenantAuth query did, inside a real
+// tenant transaction.
+func (a *API) sessionAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tenantID, err := uuid.Parse(r.Header.Get("X-Tenant-ID"))
-		if err != nil {
-			writeAppError(w, db.NewAppError(http.StatusUnauthorized, "missing_tenant", "X-Tenant-ID header is required and must be a UUID"))
-			return
-		}
-		actorID, err := uuid.Parse(r.Header.Get("X-Actor-ID"))
-		if err != nil {
-			writeAppError(w, db.NewAppError(http.StatusUnauthorized, "missing_actor", "X-Actor-ID header is required and must be a UUID"))
-			return
-		}
-
 		reqID := requestIDFrom(r)
-		tc := db.TenantCtx{TenantID: tenantID, ActorID: actorID, RequestID: reqID}
 
+		token := a.sessionTokenFrom(r)
+		if token == "" {
+			writeAppError(w, db.NewAppError(http.StatusUnauthorized, "missing_session", "no hay una sesión activa"))
+			return
+		}
+		tokenHash := authpkg.HashSessionToken(token)
+
+		var session repo.SessionRow
+		err := a.db.WithAuthTx(r.Context(), reqID, func(tx pgx.Tx) error {
+			var err error
+			session, err = repo.FindLiveSession(r.Context(), tx, tokenHash)
+			return err
+		})
+		if err == pgx.ErrNoRows {
+			a.clearSessionCookie(w)
+			writeAppError(w, db.NewAppError(http.StatusUnauthorized, "invalid_session", "sesión inválida"))
+			return
+		}
+		if err != nil {
+			writeError(w, err)
+			return
+		}
+
+		now := time.Now()
+		expired := session.ExpiresAt.Before(now)
+		idle := now.Sub(session.LastSeenAt) > a.cfg.SessionIdleTimeout
+		if expired || idle {
+			reason := domain.SessionRevokeExpired
+			if idle && !expired {
+				reason = domain.SessionRevokeIdle
+			}
+			revokeErr := a.db.WithAuthTx(r.Context(), reqID, func(tx pgx.Tx) error {
+				return repo.RevokeSession(r.Context(), tx, session.ID, reason)
+			})
+			if revokeErr != nil {
+				a.logger.Error("revoke expired session", "error", revokeErr)
+			}
+			a.clearSessionCookie(w)
+			writeAppError(w, db.NewAppError(http.StatusUnauthorized, "session_expired", "tu sesión expiró"))
+			return
+		}
+
+		if !domain.LoginEnabledRoles[session.Role] {
+			writeAppError(w, db.NewAppError(http.StatusForbidden, "role_not_enabled", "el acceso para tu rol aún no está disponible"))
+			return
+		}
+
+		// Throttled — see repo.TouchSession — and done in the auth tx, not
+		// the tenant tx below, so a handler rollback can't undo it.
+		touchErr := a.db.WithAuthTx(r.Context(), reqID, func(tx pgx.Tx) error {
+			return repo.TouchSession(r.Context(), tx, session.ID, time.Hour)
+		})
+		if touchErr != nil {
+			a.logger.Warn("touch session", "error", touchErr)
+		}
+
+		tc := db.TenantCtx{TenantID: session.TenantID, ActorID: session.UserID, RequestID: reqID, Role: session.Role}
 		var teacherID uuid.UUID
 		err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
-			return tx.QueryRow(r.Context(), `
-				select t.id
-				  from memberships m
-				  join teachers t on t.membership_id = m.id and t.deleted_at is null
-				 where m.user_id = $1
-				   and m.tenant_id = app.current_tenant_id()
-				   and m.status = 'active'
-				   and m.deleted_at is null
-			`, actorID).Scan(&teacherID)
+			var err error
+			teacherID, err = repo.ResolveTeacher(r.Context(), tx, session.UserID)
+			return err
 		})
 		if err != nil {
 			if err == pgx.ErrNoRows {

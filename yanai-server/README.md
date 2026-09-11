@@ -9,8 +9,8 @@ queue, forced row-level security per tenant.
 ## Prereqs
 
 - Go 1.26+
-- The seeded local Postgres from `docs/postgres-setup.md` (container `yanai-pg`,
-  migrations applied, `seed/seed_demo_tenant.sql` run).
+- A local Postgres from `docs/postgres-setup.md` (container `yanai-pg`, migrations applied).
+  There is no seed any more — create an account with `cmd/useradd` (below).
 
 ## Quick start
 
@@ -22,14 +22,25 @@ curl localhost:8080/healthz
 Config comes from `.env` (already populated for the local container) — see
 that file for all variables.
 
-## Auth (dev headers)
+## Auth
 
-Every `/api/v1/*` route requires `X-Tenant-ID` and `X-Actor-ID` (UUIDs); the
-actor must have an active teaching membership in the tenant. Both are fixed by
-the seed and survive a reseed:
+Real authentication: username + bcrypt password hash, an HttpOnly session
+cookie (`yanai_session`), a server-side `user_sessions` table. `POST
+/auth/login` and `POST /auth/logout` are the only two routes outside the
+session check; every other `/api/v1/*` route requires the cookie, resolved
+to an active `teacher` membership. See `internal/httpapi/SPEC.md` for the
+full login sequence and error codes, and `migrations/SPEC.md` for the schema.
 
-- Tenant (demo tenant): `11111111-1111-4111-8111-111111111111`
-- Actor (demo teacher `janice.quispe@cristorey.edu.pe`): `22222222-2222-4222-8222-222222222222`
+Create the first account (the tenant must already exist):
+
+```sh
+go run ./cmd/useradd -tenant <tenant-uuid> -username jquispe \
+  -email janice.quispe@cristorey.edu.pe -given-name Janice -family-name Quispe \
+  -role teacher -password 'a real password, 10+ chars'
+```
+
+`cmd/useradd -h` lists every flag, including `-generate-password` and
+`-reset-password`. See `cmd/useradd/SPEC.md`.
 
 ## Endpoints
 
@@ -74,20 +85,17 @@ until discarded, which is expected.
 ## Verification
 
 ```sh
-T=11111111-1111-4111-8111-111111111111
-A=22222222-2222-4222-8222-222222222222
-H='-H "X-Tenant-ID: '$T'" -H "X-Actor-ID: '$A'"'
-
-curl $H localhost:8080/api/v1/me
-curl $H "localhost:8080/api/v1/classes/<inglés-class-id>/dashboard?date=2026-08-08"
-curl $H "localhost:8080/api/v1/sessions/<8-aug-session-id>?q=agus"
+curl -i -c cookies.txt -X POST localhost:8080/api/v1/auth/login \
+  -H 'Content-Type: application/json' -d '{"username":"jquispe","password":"..."}'
+curl -b cookies.txt localhost:8080/api/v1/me
+curl -b cookies.txt "localhost:8080/api/v1/classes/<class-id>/dashboard"
 ```
 
-Expect: 10-student roster and two classes (Inglés 5to B, Matemática 5to B),
-each with 2 completed and 6 upcoming sessions and a full set of published,
-unscored assessments (Inglés: 4 listening / 2 reading / 2 writing / 1 speaking;
-Matemática: 4 quizzes / 2 tareas / 1 examen final). Score a student and the
-worker recomputes their grade within ~2s.
+Expect: `POST /auth/login` sets an `HttpOnly` `yanai_session` cookie and
+returns the same shape `GET /me` does; subsequent requests with that cookie
+succeed, and the same request with no cookie 401s (`missing_session`). There
+is no seeded data any more — the roster and classes above depend on whatever
+you've loaded against the tenant `useradd` pointed at.
 
 ## Notes
 
