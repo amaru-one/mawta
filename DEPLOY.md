@@ -29,11 +29,10 @@ dashboard adds aggregate queries against Postgres on top of the API's own
 load, and 1 GB leaves very little headroom once Postgres, the API, and
 Caddy are all resident. Same Ubuntu 24.04 image, same commands below.
 
-**Known limitation, by design (see CLAUDE.md / the project's stated
-gaps):** there is no real authentication yet. The deployed app should only
-ever hold the seeded demo tenant, never real student data, until auth
-ships. Every request is dev-authenticated by baking a fixed
-`X-Tenant-ID`/`X-Actor-ID` into the SPA build.
+Authentication is real: username + password against a bcrypt hash, an
+HttpOnly session cookie (`yanai_session`), server-side sessions. There is no
+seed — create the first account with `cmd/useradd` (see step 6 below) after
+you've created a tenant row.
 
 ---
 
@@ -138,10 +137,9 @@ its own read access to pull it: either make the package public after the
 first push (repo → Packages → yanai-api → Package settings → Change
 visibility), or `docker login ghcr.io` on the server with a PAT that has
 `read:packages`. **This repo went with the latter** — the image bakes in
-`migrations/` and `seed/` (see `Dockerfile`), including real seed data,
-so the package stays private. Classic PAT (fine-grained tokens don't
-currently support GHCR), scoped to `read:packages` only, then on the
-server as `deploy`:
+`migrations/` (see `Dockerfile`), so the package stays private. Classic PAT
+(fine-grained tokens don't currently support GHCR), scoped to
+`read:packages` only, then on the server as `deploy`:
 ```sh
 ssh deploy@<your-server> "docker login ghcr.io -u <github-owner> --password-stdin"
 # paste the token, Enter, Ctrl+D
@@ -168,15 +166,21 @@ docker compose --env-file .env -f deploy/docker-compose.prod.yml build api
 docker compose --env-file .env -f deploy/docker-compose.prod.yml \
   run --rm --entrypoint /usr/local/bin/goose api up
 
-# Seed the demo tenant (NOT a goose migration — run directly, same as dev).
+# Create the tenant, then the first account (no seed — cmd/useradd hashes
+# a real password, which no SQL file can do). See cmd/useradd/SPEC.md.
 docker compose --env-file .env -f deploy/docker-compose.prod.yml \
-  exec -T postgres psql -U postgres -d yanai -f /seed/seed_demo_tenant.sql
+  exec -T postgres psql -U postgres -d yanai \
+  -c "insert into tenants (name) values ('Your School Name') returning id;"
+
+docker compose --env-file .env -f deploy/docker-compose.prod.yml \
+  run --rm --entrypoint /usr/local/bin/useradd api \
+  -tenant '<tenant-uuid-from-above>' -username <username> \
+  -email <email> -given-name <given> -family-name <family> \
+  -role teacher -generate-password
 ```
 
-The seed fixes both dev-auth ids, so there is nothing to look up:
-tenant `11111111-1111-4111-8111-111111111111`, actor (the demo
-teacher's `users.id`) `22222222-2222-4222-8222-222222222222`. They
-survive any future reseed.
+**[HUMAN]** Save the generated password somewhere safe — it's printed once,
+to stderr, and never stored anywhere in plaintext.
 
 The VPS never needs `bun` installed — only this first build does, and it's
 built on whichever machine already has the toolchain (your laptop, or this
@@ -185,10 +189,7 @@ From `yanai-ui/` on that machine:
 
 ```sh
 bun install
-PUBLIC_API_BASE_URL='' \
-PUBLIC_TENANT_ID='11111111-1111-4111-8111-111111111111' \
-PUBLIC_ACTOR_ID='22222222-2222-4222-8222-222222222222' \
-bun run build
+PUBLIC_API_BASE_URL='' bun run build
 rsync -az --delete build/ deploy@<your-server>:/srv/yanai/ui/
 ```
 
@@ -203,9 +204,10 @@ docker compose --env-file .env -f deploy/docker-compose.prod.yml up -d
 curl -fsS https://$(grep ^DOMAIN .env | cut -d= -f2)/healthz
 ```
 
-Open `https://<your-domain>/` in a browser and walk the app's screens
-(Home, class dashboard, lesson/attendance, criterios, evidence grid,
-grades, notifications, profile) against the live server.
+Open `https://<your-domain>/` in a browser — it should land on `/login`.
+Sign in with the account created above, then walk the app's screens (Home,
+class dashboard, lesson/attendance, criterios, evidence grid, grades,
+notifications, profile) against the live server.
 
 ## 5. Wire up GitHub Actions CI/CD
 
@@ -217,7 +219,9 @@ The workflows already exist in the repo:
 - **`.github/workflows/deploy.yml`** — on push to `main`: builds and
   pushes the API image to GHCR, builds the SPA, rsyncs the SPA and
   `deploy/` config to the server, pulls the new image, runs migrations,
-  restarts the stack, and smoke-tests `/healthz` + `/api/v1/me`.
+  restarts the stack, and smoke-tests `/healthz` + a `401` from
+  `/api/v1/me` (CI holds no real credential — see
+  `.github/workflows/SPEC.md`).
 
 **[HUMAN]** Add these repository secrets (Settings → Secrets and variables
 → Actions → New repository secret):
@@ -228,8 +232,10 @@ The workflows already exist in the repo:
 | `SSH_USER` | `deploy` |
 | `SSH_KEY` | contents of the private half of the deploy keypair from §1 |
 | `DOMAIN` | same value as `.env`'s `DOMAIN` on the server |
-| `PUBLIC_TENANT_ID` | `11111111-1111-4111-8111-111111111111` |
-| `PUBLIC_ACTOR_ID` | `22222222-2222-4222-8222-222222222222` (fixed by the seed) |
+
+`PUBLIC_TENANT_ID`/`PUBLIC_ACTOR_ID` are gone — auth is a runtime session
+cookie now, nothing tenant/actor-specific is baked into the SPA build. If
+you added those secrets under a pre-auth version of this app, delete them.
 
 `GITHUB_TOKEN` (used to push to GHCR) is provided automatically — nothing
 to add for it.

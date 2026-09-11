@@ -18,10 +18,15 @@ export type AssessmentKind =
 	| 'otro';
 export type VoiceNoteStatus = 'draft' | 'saved' | 'discarded';
 export type NotificationKind = 'alert' | 'reminder';
+// memberships.role / user_sessions.role — mirrors internal/domain/consts.go.
+// Only 'teacher' can complete a login today; the other three are modelled
+// for later.
+export type Role = 'teacher' | 'student' | 'supervisor' | 'admin';
 
 // ---- identity ----
 
 export type MeDto = {
+	role: Role;
 	user: { display_name: string; email: string };
 	teacher: { id: string; title: string | null };
 	tenant: {

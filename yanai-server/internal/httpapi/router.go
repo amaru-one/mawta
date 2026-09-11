@@ -33,64 +33,72 @@ func (a *API) Router() http.Handler {
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   a.cfg.CORSOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"X-Tenant-ID", "X-Actor-ID", "X-Request-ID", "Content-Type"},
+		AllowedHeaders:   []string{"X-Request-ID", "Content-Type"},
 		ExposedHeaders:   []string{"X-Request-ID"},
-		AllowCredentials: false,
+		AllowCredentials: true,
 		MaxAge:           300,
 	}))
 
 	r.Get("/healthz", a.handleHealthz)
 
 	r.Route("/api/v1", func(r chi.Router) {
-		r.Use(a.tenantAuth)
+		// Outside sessionAuth by necessity: there is no session yet.
+		r.Post("/auth/login", a.handleLogin)
+		r.Post("/auth/logout", a.handleLogout)
 
-		r.Get("/me", a.handleMe)
+		// chi panics on Use() after routes are registered on the same
+		// router, so the protected surface needs its own Group.
+		r.Group(func(r chi.Router) {
+			r.Use(a.sessionAuth)
 
-		r.Get("/home", a.handleHome)
+			r.Get("/me", a.handleMe)
 
-		r.Get("/classes/{classID}/dashboard", a.handleClassDashboard)
-		// The class list, and the evidence one student has in one competencia —
-		// the two reads the evaluating screens are built on.
-		r.Get("/classes/{classID}/students", a.handleClassStudents)
-		r.Get("/classes/{classID}/students/{studentID}/evidence", a.handleStudentEvidence)
-		r.Get("/classes/{classID}/students/{studentID}/grades", a.handleStudentGrades)
-		r.Get("/classes/{classID}/grading-components", a.handleGradingComponents)
-		r.Post("/classes/{classID}/assessments", a.handleCreateAssessment)
-		r.Post("/assessments/{assessmentID}/delete", a.handleDeleteAssessment)
+			r.Get("/home", a.handleHome)
 
-		// Niveles de logro: the official MINEDU record (RVM 094-2020 / 048-2024).
-		r.Get("/classes/{classID}/students/{studentID}/competencies", a.handleStudentCompetencies)
-		r.Post("/classes/{classID}/students/{studentID}/competency-levels", a.handleAssertCompetencyLevel)
-		r.Post("/classes/{classID}/students/{studentID}/conclusions", a.handleUpsertConclusion)
+			r.Get("/classes/{classID}/dashboard", a.handleClassDashboard)
+			// The class list, and the evidence one student has in one competencia —
+			// the two reads the evaluating screens are built on.
+			r.Get("/classes/{classID}/students", a.handleClassStudents)
+			r.Get("/classes/{classID}/students/{studentID}/evidence", a.handleStudentEvidence)
+			r.Get("/classes/{classID}/students/{studentID}/grades", a.handleStudentGrades)
+			r.Get("/classes/{classID}/grading-components", a.handleGradingComponents)
+			r.Post("/classes/{classID}/assessments", a.handleCreateAssessment)
+			r.Post("/assessments/{assessmentID}/delete", a.handleDeleteAssessment)
 
-		// Criterios de evaluación: what the teacher says to look at in a piece of
-		// work. Authoring only — a criterio is a tag on evidencia and is never
-		// itself graded, so there is deliberately no level route here.
-		r.Get("/classes/{classID}/criteria", a.handleClassCriteria)
-		r.Post("/classes/{classID}/competencies/{competencyID}/criteria", a.handleCreateCriterion)
-		r.Post("/criteria/{criterionID}/delete", a.handleDeleteCriterion)
+			// Niveles de logro: the official MINEDU record (RVM 094-2020 / 048-2024).
+			r.Get("/classes/{classID}/students/{studentID}/competencies", a.handleStudentCompetencies)
+			r.Post("/classes/{classID}/students/{studentID}/competency-levels", a.handleAssertCompetencyLevel)
+			r.Post("/classes/{classID}/students/{studentID}/conclusions", a.handleUpsertConclusion)
 
-		r.Post("/sessions/{sessionID}/start", a.handleSessionStart)
-		r.Get("/sessions/{sessionID}", a.handleSessionRoster)
-		r.Put("/sessions/{sessionID}/attendance/{studentID}", a.handleAttendanceUpsert)
-		r.Post("/sessions/{sessionID}/attendance/mark-all-present", a.handleMarkAllPresent)
-		r.Post("/sessions/{sessionID}/students/{studentID}/voice-notes", a.handleCreateVoiceNote)
+			// Criterios de evaluación: what the teacher says to look at in a piece of
+			// work. Authoring only — a criterio is a tag on evidencia and is never
+			// itself graded, so there is deliberately no level route here.
+			r.Get("/classes/{classID}/criteria", a.handleClassCriteria)
+			r.Post("/classes/{classID}/competencies/{competencyID}/criteria", a.handleCreateCriterion)
+			r.Post("/criteria/{criterionID}/delete", a.handleDeleteCriterion)
 
-		r.Get("/voice-notes/{voiceNoteID}/audio", a.handleVoiceNoteAudio)
-		r.Post("/voice-notes/{voiceNoteID}/save", a.handleVoiceNoteSave)
-		r.Post("/voice-notes/{voiceNoteID}/discard", a.handleVoiceNoteDiscard)
+			r.Post("/sessions/{sessionID}/start", a.handleSessionStart)
+			r.Get("/sessions/{sessionID}", a.handleSessionRoster)
+			r.Put("/sessions/{sessionID}/attendance/{studentID}", a.handleAttendanceUpsert)
+			r.Post("/sessions/{sessionID}/attendance/mark-all-present", a.handleMarkAllPresent)
+			r.Post("/sessions/{sessionID}/students/{studentID}/voice-notes", a.handleCreateVoiceNote)
 
-		r.Post("/assessments/{assessmentID}/scores", a.handleCreateScore)
-		r.Post("/scores/{scoreID}/correct", a.handleCorrectScore)
+			r.Get("/voice-notes/{voiceNoteID}/audio", a.handleVoiceNoteAudio)
+			r.Post("/voice-notes/{voiceNoteID}/save", a.handleVoiceNoteSave)
+			r.Post("/voice-notes/{voiceNoteID}/discard", a.handleVoiceNoteDiscard)
 
-		r.Post("/classes/{classID}/students/{studentID}/practice-scores", a.handleCreatePracticeScore)
-		r.Post("/practice-scores/{practiceScoreID}/delete", a.handleDeletePracticeScore)
+			r.Post("/assessments/{assessmentID}/scores", a.handleCreateScore)
+			r.Post("/scores/{scoreID}/correct", a.handleCorrectScore)
 
-		r.Get("/notifications", a.handleListNotifications)
-		r.Post("/notifications/{notificationID}/read", a.handleMarkNotificationRead)
-		r.Post("/notifications/read-all", a.handleMarkAllNotificationsRead)
+			r.Post("/classes/{classID}/students/{studentID}/practice-scores", a.handleCreatePracticeScore)
+			r.Post("/practice-scores/{practiceScoreID}/delete", a.handleDeletePracticeScore)
 
-		r.Get("/profile", a.handleProfile)
+			r.Get("/notifications", a.handleListNotifications)
+			r.Post("/notifications/{notificationID}/read", a.handleMarkNotificationRead)
+			r.Post("/notifications/read-all", a.handleMarkAllNotificationsRead)
+
+			r.Get("/profile", a.handleProfile)
+		})
 	})
 
 	return r

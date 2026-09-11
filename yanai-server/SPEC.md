@@ -3,20 +3,20 @@ Go API powering the Yanai app's screens on top of the Postgres schema in `migrat
 
 ## Contents
 - `cmd/api/` — the single binary entrypoint (see its SPEC.md).
-- `internal/` — packages: `config`, `db`, `domain`, `grading`, `httpapi`, `media`, `repo`, `worker` (each with its own SPEC.md).
-- `migrations/` — the schema as a single squashed goose migration, `00001_initial_schema.sql`, + `ANALYSIS.md` (see its SPEC.md).
-- `seed/` — demo tenant seed script + onboarding runbook (see its SPEC.md).
+- `cmd/useradd/` — creates or resets an account; the only way to a first login now `seed/` is gone (see its SPEC.md).
+- `internal/` — packages: `auth`, `config`, `db`, `domain`, `grading`, `httpapi`, `media`, `repo`, `worker` (each with its own SPEC.md).
+- `migrations/` — the schema as goose migrations: `00001_initial_schema.sql` (a single squashed baseline) + `00002_auth.sql` (real authentication) (see its SPEC.md).
 - `docs/` — local Postgres setup (see its SPEC.md).
 - `bruno/` — OpenAPI collection for the Bruno API client (see its SPEC.md).
-- `Dockerfile` — production image build (distroless, ships goose + migrations).
-- `README.md` — quick start, dev-header auth, route list.
+- `Dockerfile` — production image build (distroless, ships `api`, `useradd`, goose + migrations).
+- `README.md` — quick start, auth, route list.
 - `.env` — local dev config pointing at the `yanai-pg` container (port 55432); not committed patterns live in `.gitignore`.
-- `go.mod` / `go.sum` — module `yanai-server`; deps: chi, go-chi/cors, pgx/v5, google/uuid, joho/godotenv.
+- `go.mod` / `go.sum` — module `yanai-server`; deps: chi, go-chi/cors, pgx/v5, google/uuid, joho/godotenv, golang.org/x/crypto (bcrypt), golang.org/x/term (hidden password prompt in `cmd/useradd`).
 - `data/` — empty scratch dir.
 - `.vscode/` — editor launch config (no spec).
 
 ## Inputs / Outputs
-Consumes `DATABASE_URL` (Postgres 16 + pgvector) and env config (see `internal/config`). Serves HTTP on `HTTP_ADDR` (default :8080): `/healthz` plus `/api/v1/*` requiring `X-Tenant-ID` / `X-Actor-ID` dev headers. Runs the background worker in-process when `WORKER_ENABLED`.
+Consumes `DATABASE_URL` (Postgres 16 + pgvector) and env config (see `internal/config`). Serves HTTP on `HTTP_ADDR` (default :8080): `/healthz` plus `POST /api/v1/auth/login`/`logout` are public; every other `/api/v1/*` route requires the `yanai_session` HttpOnly cookie those set. Runs the background worker in-process when `WORKER_ENABLED`.
 
 ## Conventions & Constraints
 - All SQL is hand-written in `internal/repo` and handlers; no ORM or code generation.
@@ -28,6 +28,7 @@ Consumes `DATABASE_URL` (Postgres 16 + pgvector) and env config (see `internal/c
 - No test suite exists yet; CI gate is `go vet` + `go build`.
 
 ## Change Log
+- 2026-09-11: **Real authentication.** Username + bcrypt password, an HttpOnly session cookie, a server-side `user_sessions` table (`migrations/00002_auth.sql`). `internal/httpapi.sessionAuth` replaces the old dev-header `tenantAuth`. New `internal/auth` (hashing/tokens) and `cmd/useradd` (the seed's replacement for creating a first account — it creates only the account, not academic data). `memberships.role` collapsed to `('teacher','student','supervisor','admin')`; only `teacher` can log in today. `seed/` is gone; the Dockerfile no longer copies it and now ships `useradd`. See `migrations/SPEC.md`, `internal/httpapi/SPEC.md`, `internal/db/SPEC.md`, `internal/repo/SPEC.md`, `internal/domain/SPEC.md`, `internal/config/SPEC.md`, `internal/auth/SPEC.md`, `cmd/useradd/SPEC.md`.
 - 2026-09-11: **Dead-schema cleanup in `migrations/`** — six whole tables (`assessment_templates`, `assessment_template_competencies`, `note_summaries`, `note_summary_sources`, `deletion_requests`, `term_grade_snapshots`) and 27 columns across 12 surviving tables dropped, none of them referenced by any Go or `yanai-ui` code. `go build ./...` and `go vet ./...` clean against the resulting schema — nothing here needed a change, confirming the columns really were unread. Full accounting in `migrations/SPEC.md`'s Change Log.
 - 2026-09-10: **`migrations/` is one file again.** `00001`–`00009` squashed back into `00001_initial_schema.sql`: the eight migrations added since the 2026-08-26 squash had re-accumulated the create-then-drop churn that squash existed to remove (the whole predictive subsystem, the whole per-session observation subsystem and `evaluation_criterion_scores` were each created and then dropped inside the chain). The resulting schema is catalog-identical to what the nine migrations produced, bar one deliberate change: `quiz` and `rubrica` are gone from the assessment `kind` vocabulary in all three tables that carry it. Server code needed no change — nothing in Go validates or names those two kinds. **Two cascades were deliberately left undone**, both recorded as Open Questions: `seed/seed_demo_tenant.sql` writes both kinds and therefore no longer applies, and `yanai-ui` still offers both in two dropdowns. This file's `migrations/` Contents line, stale since the first squash, was corrected at the same time. See `migrations/SPEC.md` for the verification method and the full object-by-object account.
 - 2026-08-29: Second purge pass. Fixed a live 500: `GET /profile` queried the dropped `risk_flags` table (see `internal/repo/SPEC.md`). Deleted the per-session observation subsystem whole (`migrations/00007`) — the flag catalog had no seed or provisioning path anywhere, and the free-text note had no writer in the UI. Deleted `yanai-schema-prompt.md`: it pointed readers at `yanai-views.html`, itself deleted from the repo, and is a single-use prompt nobody re-runs. Purged 13 more dead constant groups from `internal/domain`, the unused `progress` computation from the class dashboard, and `yanai-ui/src/lib/transcribe.ts`. Corrected a run of stale claims across this file, `README.md`, `DEPLOY.md`, `bruno/yanai-api.yaml` and several package SPEC.md files — a fixed "six screens" count, a Go 1.22 floor against an actual 1.26 module, a missing `go-chi/cors` dependency, an endpoint table missing five live routes, a worker "ticker" that never existed, and a migration number retired by the 2026-08-26 squash. See the SPEC.md of `internal/httpapi`, `internal/repo`, `internal/domain`, `internal/db`, `internal/media` and `migrations` for the per-package reasoning.

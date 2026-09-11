@@ -41,8 +41,6 @@ jobs:
         working-directory: yanai-ui
         env:
           PUBLIC_API_BASE_URL: ''
-          PUBLIC_TENANT_ID: ${{ secrets.PUBLIC_TENANT_ID }}
-          PUBLIC_ACTOR_ID: ${{ secrets.PUBLIC_ACTOR_ID }}
         run: bun run build
       - uses: actions/upload-artifact@v4
         with:
@@ -85,10 +83,13 @@ jobs:
       - name: Smoke test
         env:
           DOMAIN: ${{ secrets.DOMAIN }}
-          PUBLIC_TENANT_ID: ${{ secrets.PUBLIC_TENANT_ID }}
-          PUBLIC_ACTOR_ID: ${{ secrets.PUBLIC_ACTOR_ID }}
         run: |
           curl -fsS "https://$DOMAIN/healthz"
-          curl -fsS "https://$DOMAIN/api/v1/me" \
-            -H "X-Tenant-ID: $PUBLIC_TENANT_ID" \
-            -H "X-Actor-ID: $PUBLIC_ACTOR_ID"
+          # No credential in CI: real auth means there's nothing to log in
+          # as here, so the smoke test just confirms the route requires a
+          # session rather than trusting a header.
+          status=$(curl -s -o /dev/null -w '%{http_code}' "https://$DOMAIN/api/v1/me")
+          if [ "$status" != "401" ]; then
+            echo "expected 401 (no session) from /api/v1/me, got $status" >&2
+            exit 1
+          fi
