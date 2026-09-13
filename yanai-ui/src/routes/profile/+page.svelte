@@ -148,10 +148,14 @@
 			<div class="card group">
 				{#each group.classes as klass, i (klass.class_id)}
 					{#if i > 0}<div class="divider"></div>{/if}
-					<div class="row class-row">
-						<span class="class-name">{klass.name}</span>
+					<!-- The only date-independent way into an área: Home is bounded to the
+					     current ISO week, so a class whose sessions are all past is
+					     unreachable from there. See this screen's SPEC. -->
+					<a class="row class-row pressable" href="/class/{klass.class_id}" onclick={hapticTap}>
+						<span class="class-name grow">{klass.name}</span>
 						<span class="class-meta">{klass.roster_count} · {klass.slots_per_week}/sem</span>
-					</div>
+						<span class="chevron"><Icon name="chevron-right" size={18} /></span>
+					</a>
 				{/each}
 			</div>
 		{/each}
@@ -337,15 +341,24 @@
 
 	.class-row {
 		padding: 10px 14px;
+		gap: var(--space-sm);
+		color: inherit;
+		text-decoration: none;
 	}
 
 	.class-name {
-		flex: 1;
 		font-size: 13px;
 	}
 
 	.class-meta {
 		font-size: 11px;
+		color: var(--text-muted);
+		flex-shrink: 0;
+	}
+
+	.chevron {
+		display: flex;
+		flex-shrink: 0;
 		color: var(--text-muted);
 	}
 
