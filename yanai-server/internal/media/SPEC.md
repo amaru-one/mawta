@@ -11,9 +11,5 @@ Input: raw uploaded audio bytes from `httpapi/session.go` (voice-note creation).
 - Requires `ffmpeg` on PATH (present in the production image).
 - Everything stored downstream assumes `audio/mpeg`; don't bypass this on upload.
 
-## Change Log
-- 2026-08-29: Dropped the reference to migration `00015`, which no longer exists after the 2026-08-26 squash into `00001_initial_schema.sql`.
-- 2026-08-24: Initial spec created retroactively, describing current contents.
-
 ## Open Questions
 - None.

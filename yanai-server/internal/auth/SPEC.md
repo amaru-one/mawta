@@ -14,8 +14,5 @@ Input: a plaintext password or a raw session token. Output: a bcrypt hash string
 - The login handler must always call `VerifyPassword` exactly once per attempt — against a real hash when the username matched, against `DummyHash()` when it didn't — so a wrong username and a wrong password take the same time and a caller can't time-distinguish "no such account" from "wrong password".
 - No composition rules (forced uppercase/digit/symbol) — length is the property that actually resists brute force.
 
-## Change Log
-- 2026-09-11: Package created for real authentication (`migrations/00002_auth.sql`). See `internal/repo/SPEC.md` and `internal/httpapi/SPEC.md` for how it's used in the login/session flow.
-
 ## Open Questions
 - None.

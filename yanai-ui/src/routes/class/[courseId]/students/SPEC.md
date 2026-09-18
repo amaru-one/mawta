@@ -42,17 +42,3 @@ request, refetched when the competencia changes). **No mutations.**
 - The index can only mark the competencia being looked at as "closed for the whole class": only that
   one's levels are loaded. Marking the others would mean reading every competencia's levels for every
   student, which is a much bigger query than the glyph is worth.
-
-## Change Log
-- 2026-09-08: The selected competencia now survives a remount, via `?comp=` (see the rule above), and
-  the same value rides the link to each student so their screen opens already scoped to it. Verified:
-  pick competencia 2, open a student, go back — still on 2, not reset to 1. Cascade:
-  `routes/class/[courseId]/students/[studentId]/`.
-- 2026-09-08: Restyled onto the app-wide palette and type (see `src/SPEC.md`). The trailing chevrons also moved to the row's edge, which was not a restyle but a fix: `.grow` was used here and never defined, so the name column never took the slack.
-- 2026-09-04: Moved onto `GET /classes/{classID}/students`. The four gaps this screen shipped with in
-  the morning all closed at once: the roster no longer comes out of a session (so a class with no
-  sessions has a list), the levels are one request instead of one per student, «N evidencias» is
-  rendered, and the name arrives as `Apellidos, Nombres` the way a Peruvian register lists it.
-  Switching competencia refetches and dims the list rather than blanking it — the names do not change.
-- 2026-09-04: Created, as the first of the two screens the área gained. See the parent
-  `routes/SPEC.md` for the model change this screen belongs to.

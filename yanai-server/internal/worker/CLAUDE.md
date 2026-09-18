@@ -16,23 +16,33 @@ migrations).
 (`jobID int64`, `payload []byte`) and `registry.go` adapts them to `HandlerFunc`.
 Adding a `worker.Job` parameter to a handler creates an import cycle.
 
-There is exactly one job kind:
+There are two job kinds:
 
 ```
 score saved (httpapi)
   └─ grade.recompute
        writes computed_grades (+ components)
+
+voice note created (httpapi)
+  └─ voice_note.transcribe
+       writes voice_notes.transcript / .transcription_status
 ```
 
-That chain maintains the school's **optional internal weighted system** only. Under
-RVM 094-2020 achievement is the teacher's judgement of evidence against the criterios
-de evaluación, recorded per competencia in `competency_term_levels` — asserted through
-the HTTP API, never by a job. **No handler may write, suggest or imply a nivel de
-logro.**
+`grade.recompute` maintains the school's **optional internal weighted system** only.
+Under RVM 094-2020 achievement is the teacher's judgement of evidence against the
+criterios de evaluación, recorded per competencia in `competency_term_levels` —
+asserted through the HTTP API, never by a job. **No handler may write, suggest or
+imply a nivel de logro.**
+
+`voice_note.transcribe` calls out to OpenAI (`internal/stt`) to transcribe a note's
+audio to Spanish text — the first job kind whose handler needs a dependency the
+plain-argument signature can't carry directly (an HTTP client with an API key). See
+"Handlers with external dependencies" below.
 
 **There is no ticker and no scheduler.** Nothing in this package runs periodically or
-enumerates tenants. All work descends from a teacher saving a score. This is deliberate: each verdict is a pure function of rows that only
-change when a teacher acts.
+enumerates tenants. All work descends from a teacher action (saving a score, recording
+a voice note). This is deliberate: each job is a reaction to something a teacher just
+did, not a sweep over stored state.
 
 ## Runtime
 
@@ -88,6 +98,32 @@ inserts and never filters by tenant explicitly — and why a handler that forget
 context sees zero rows rather than an error.
 
 The nullable-tenant path now has no users. Don't reach for it just to make a query simpler.
+
+## Handlers with external dependencies
+
+`grade.recompute` needs nothing but `ctx`/`tx`/`payload`, which is why the "handlers
+take plain arguments" rule above exists in the first place — it's what lets
+`registry.go` build the map as a flat literal. `voice_note.transcribe` breaks that:
+its handler needs an `*stt.Client` (an `http.Client` plus an API key from `cfg`), and
+that must not be constructed per job.
+
+The pattern: the handler function becomes a **factory**. It takes the dependency and
+returns a closure with the original plain-argument shape:
+
+```go
+func VoiceNoteTranscribe(client *stt.Client) func(ctx context.Context, tx pgx.Tx, jobID int64, payload []byte) error {
+    return func(ctx context.Context, tx pgx.Tx, jobID int64, payload []byte) error {
+        // ... uses client ...
+    }
+}
+```
+
+`defaultRegistry` now takes `cfg config.Config`, builds the client once, calls the
+factory once, and closes over the resulting function in the registry map — the same
+`context`/`tx`/`jobID`/`payload` call shape every other handler entry has. The next
+handler that needs a dependency (another API client, a second provider) follows the
+same shape rather than inventing a DI container: this project adds structure when a
+second real case shows up, not before.
 
 ## Enqueueing
 
@@ -159,14 +195,45 @@ Gotchas:
 - When `result.BelowMinEvaluated`, both `scale_level_id` and `display_value` are left
   null — the row still exists, carrying the weights it was computed over.
 
+### `voice_note.transcribe` — `handlers/transcribe.go`
+
+| | |
+| --- | --- |
+| Enqueued by | `httpapi.enqueueVoiceNoteTranscribe` (voice-note create in `internal/httpapi/session.go`) |
+| Priority | 3 (lower than `grade.recompute`'s 2 — nothing on screen is waiting on a transcript) |
+| Unique key | `voice_note.transcribe:<voice_note_id>` |
+| Payload | `{voice_note_id}` |
+
+1. `repo.GetVoiceNoteFile` loads the audio. `pgx.ErrNoRows` (the note was discarded —
+   soft-deleted — before the job ran) is not an error here: the handler returns `nil`,
+   nothing left to do.
+2. `file.Audio == nil` means the note predates audio moving into the row (legacy
+   `storage_key` on disk). The handler does not read `STORAGE_DIR` for this — not
+   worth the dependency for a handful of historical rows — and marks the transcription
+   `failed`.
+3. `client.Transcribe` (`internal/stt`) makes exactly one HTTP call. A wrapped
+   `stt.ErrPermanent` (bad audio, no API key configured) is recorded as `failed` and
+   the handler returns `nil` — see "A handler returns nil..." in `SPEC.md`'s
+   Conventions for why. Any other error is returned as-is, so the job's normal
+   backoff retries it.
+4. On success, `repo.SetVoiceNoteTranscript` writes the text and flips
+   `transcription_status` to `completed` in the same update.
+
+Nothing chains off this job. The transcript is read later by whatever generates
+conclusiones descriptivas — not built yet.
+
 ## Adding a job kind
 
 1. Add the constant to `internal/domain/consts.go` (`JobKind*`) — kinds are strings in
    the DB, so the constant is the only guard against typos.
 2. Write `handlers/<kind>.go` with signature `func X(ctx, tx pgx.Tx, [jobID int64,] payload []byte) error`.
    Keep the rules in a pure package (`internal/grading`) and the handler to I/O — that is what makes the rules testable without a database.
-   Take `jobID` only if you need to stamp `*_by_job_id`.
-3. Wire it into `defaultRegistry()` in `registry.go`.
+   Take `jobID` only if you need to stamp `*_by_job_id`. If the handler needs an
+   external dependency (an HTTP client, anything from `cfg`), make it a factory that
+   returns a function of this same shape instead — see "Handlers with external
+   dependencies" above.
+3. Wire it into `defaultRegistry(cfg)` in `registry.go` (construct any dependency the
+   factory needs here, once).
 4. Enqueue with `repo.EnqueueJob` from inside the triggering transaction; pick a
    coalescing unique key.
 5. Add a migration updating the `jobs.kind` column comment. `jobs.kind` is plain text
@@ -197,6 +264,18 @@ select display_value, total_weight, evaluated_weight
 ```
 
 Use `HTTP_ADDR=:8099` to run alongside an API already holding port 8080.
+
+For `voice_note.transcribe`: set `OPENAI_API_KEY`, record a voice note through the
+app, and after a couple of seconds —
+
+```sql
+select id, status, attempts, errors from jobs where kind = 'voice_note.transcribe' order by id desc limit 5;
+select transcription_status, transcript from voice_notes order by created_at desc limit 5;
+```
+
+Without `OPENAI_API_KEY` set, expect the job `completed` anyway and
+`transcription_status = 'failed'` — see the Conventions bullet on why a permanent
+failure is not a job failure.
 
 To run the API without background work, set `WORKER_ENABLED=false`; jobs then accumulate
 as `available` and can be inspected before any handler touches them.

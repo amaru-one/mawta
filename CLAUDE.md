@@ -1,13 +1,20 @@
 ## SPEC PROTOCOL — MANDATORY, NO EXCEPTIONS
 
 This project uses per-folder specs. A spec file named `SPEC.md` must exist in
-every folder that contains source, analysis, or content files. These rules
-override convenience, speed, or your own judgment about whether a spec is
-"needed." They apply to every task, every session, every file change,
-regardless of how small.
+every folder that contains code or scripting files — including but not
+limited to `.go`, `.sql`, `.ts`, `.svelte`, `.yaml`/`.yml`, `Dockerfile`, and
+other source/config/script formats. The determining factor is whether the
+folder contains code or scripting, not the file extension list above — new
+formats that are code/scripting still require a SPEC.md even if unlisted.
+Folders containing only non-code content (prose docs, static assets, images,
+etc.) do NOT require a SPEC.md. These rules override convenience, speed, or
+your own judgment about whether a spec is "needed" once a folder qualifies.
+They apply to every task, every session, every file change, regardless of
+how small.
 
-### RULE 1 — A SPEC MUST EXIST BEFORE YOU WORK IN A FOLDER
-Before reading, writing, or editing any file inside a folder:
+### RULE 1 — A SPEC MUST EXIST BEFORE YOU WORK IN A QUALIFYING FOLDER
+Before reading, writing, or editing any file inside a folder that contains
+code or scripting files:
 1. Check whether `SPEC.md` exists in that folder.
 2. If it does NOT exist, STOP. Do not write code or content first.
    Create `SPEC.md` using the template below, ask me to confirm it if
@@ -16,6 +23,9 @@ Before reading, writing, or editing any file inside a folder:
    other file in that folder. Do not skim. Do not assume you remember it
    from an earlier turn in this session — re-read it every time you re-enter
    that folder, since it may have changed.
+
+Folders with only non-code content are exempt from this rule entirely — do
+not create a SPEC.md for them.
 
 ### RULE 2 — THE SPEC IS SOURCE OF TRUTH, NOT THE CODE
 If a file's behavior conflicts with what `SPEC.md` says, the spec wins.
@@ -62,9 +72,6 @@ files, dependencies on other folders).
 
 ## Conventions & Constraints
 Rules specific to this folder — naming, format, must/must-not behaviors.
-
-## Change Log
-- YYYY-MM-DD: what changed and why (append-only, most recent at top)
 
 ## Open Questions
 Anything ambiguous or pending a decision — remove once resolved.

@@ -21,11 +21,5 @@ Consumes the yanai-server API under `/api/v1`, authenticated by the `yanai_sessi
 - **Prettier never touches `SPEC.md`.** Its markdown printer inserts a blank line after every heading, which is not how the per-folder specs are written, so a `bun prettier --write .` rewrote every spec in the tree and buried the actual change in whitespace. The specs are prose under a protocol (`CLAUDE.md`), not code, and nothing gains from machine-formatting them.
 - Real auth: `POST /auth/login` sets the session cookie, `src/routes/login/` is the only unguarded route, and the root layout gates every other route on a `GET /me` probe — see `src/routes/SPEC.md` and `src/lib/SPEC.md`.
 
-## Change Log
-- 2026-09-11: Real authentication. Dropped `PUBLIC_TENANT_ID`/`PUBLIC_ACTOR_ID` — the app no longer builds with a fixed identity baked in. Added `src/routes/login/`. Cascade: `src/SPEC.md`, `src/lib/SPEC.md`, `src/lib/api/SPEC.md`, `src/lib/api/endpoints/SPEC.md`, `src/routes/SPEC.md`, `src/routes/login/SPEC.md` (new), `src/routes/profile/SPEC.md`.
-- 2026-09-01: Added `prettier-plugin-svelte` (dev-dep) and wired it in `.prettierrc` with a `*.svelte` → `svelte` parser override. Until now Prettier could not parse a single `.svelte` file in this project — the `format` skill's `bun prettier --write .` errored on each one and formatted only the `.ts`/`.css`/`.json` around them, so the components had gone unformatted since the repo was created. 13 of 26 `.svelte` files are dirty as a result; they are deliberately left alone (see Conventions). No change to the gates: `bun run check` and `bun eslint .` still pass.
-- 2026-08-29: `.prettierignore` now excludes `SPEC.md`. The `format` skill runs `bun prettier --write .`, which reformatted all 13 specs under `src/` as a side effect of an unrelated change; the noise had to be undone by hand. Two files, `src/lib/toast.ts` and `src/lib/notifications.ts`, are still flagged by `prettier --check` and were already flagged before this change — left alone rather than reformatted inside someone else's diff.
-- 2026-08-24: Initial spec created retroactively, describing current contents.
-
 ## Open Questions
 - None.

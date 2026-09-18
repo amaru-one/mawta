@@ -14,8 +14,5 @@ Calls `lib/api/endpoints/auth.ts`'s `login`. Writes `lib/stores.ts`'s `session` 
 - No `TopBar`, no back navigation, no secondary action. A teacher who can't log in has nothing else to do on this screen.
 - Uses only existing `app.css` tokens and the shared `.btn-block`/`.screen-title`/`.screen-sub` classes — no new shared token or class.
 
-## Change Log
-- 2026-09-11: Created for real authentication. See `yanai-server/internal/httpapi/SPEC.md` for the login sequence and error codes this screen mirrors, `src/routes/SPEC.md` for the layout's auth gate, and `src/lib/api/SPEC.md` for the client-side session plumbing.
-
 ## Open Questions
 - None.

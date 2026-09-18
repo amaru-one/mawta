@@ -15,9 +15,5 @@ Called only by `internal/worker/handlers/recompute.go`, which loads inputs from 
 - No projections. `Result` deliberately carries no "range at term close": the norm has no notion of a forecast grade, and the columns that stored one were dropped in `00003`.
 - Nothing here may write, suggest, or imply a nivel de logro. Keep the weighted result and the official record strictly separate.
 
-## Change Log
-- 2026-08-27: Dropped `ProjectedMinNormalized`/`ProjectedMaxNormalized` from `Result` and the lines computing them — the forecast was cut along with the rest of the predictive subsystem in `00003`. Package doc rewritten to state plainly that this is the optional internal system and not the MINEDU record, since the previous wording ("the grade.recompute math") read as though it produced the grade that matters.
-- 2026-08-24: Initial spec created retroactively, describing current contents.
-
 ## Open Questions
 - None.

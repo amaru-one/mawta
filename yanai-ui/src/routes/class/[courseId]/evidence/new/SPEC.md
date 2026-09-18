@@ -43,13 +43,3 @@ mutation, `createAssessment`, then `goto` back to the área. Reads `usesInternal
 ## Open Questions
 - The caption counts criterios but not students: the roster count would need a third call
   (`getClassDashboard`) for one line of text.
-
-## Change Log
-- 2026-09-04: `AD–C` is live — `assessments.value_scale` exists (`migrations/00008`), so the button is
-  no longer disabled and the form sends the scale. `sin nota` stopped sending a fake `max_score: 20`:
-  a non-numeric piece now carries no denominator at all. The note under the selector changed from
-  "not available yet" to saying what each scale means.
-- 2026-09-04: Created, replacing `lib/components/AddEvidenceDialog.svelte` for both scopes (the área
-  and the grades screen). Phase 1 of the «Alumnos y evidencia» design. The dialog's "Sobre" field
-  moved under the new scale control, and the criterio checkboxes became marker squares. See
-  `routes/SPEC.md`.

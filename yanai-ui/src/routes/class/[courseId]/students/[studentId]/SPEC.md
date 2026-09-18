@@ -78,25 +78,3 @@ Mutations: `createScore`/`correctScore`, `assertCompetencyLevel`, `upsertConclus
   it. Fixing it properly means adding the field to the DTO.
 - The sub-line names the class but not the periodo: no read on this screen returns a term label, only
   `term_id`. Inventing "Bimestre III" would be a lie, so it is omitted.
-
-## Change Log
-- 2026-09-08: Two fixes. **"No entregó" can be undone again** — see the rewritten rule above for the
-  root cause (a DB check rejecting the empty "graded" row the undo used to send) and the fix
-  (`lastValue`, plus the ruler/letters no longer disabled while marked). Verified against the running
-  app and its DB: mark, unmark, mark again on a piece with a real prior grade restores the exact value
-  each time; on a never-graded piece the ruler stays clickable and picking a value clears the mark.
-  **The selected competencia now survives a remount** via `?comp=` — see the rule above. Verified: pick
-  competencia 3, hard-reload, still on 3; pick it from `students/`, arrive already on it. Neither touched
-  `writeScore`'s server contract or the evidence-fetch flow. This entry also retroactively documents the
-  2026-09-08 palette restyle (title 30 → 34px with the shared rule, mono uppercase sub-line, competencia
-  name 19 → 15px/600, `LevelSelector`'s chosen cell on the action gradient — see `src/SPEC.md` and
-  `lib/components/SPEC.md`), which shipped the same day with no Change Log entry here.
-- 2026-09-04: Moved onto `GET /classes/{classID}/students/{studentID}/evidence`, which narrows by
-  competencia server-side instead of the screen filtering `getStudentGrades` client-side, and the
-  three scales went live: a ruler for `numeric`, `LevelScale` for `ordinal`, a named blank for `none`.
-  `LevelScale` was written for this screen in the morning and deleted the same hour because
-  `assessments` had no `value_scale` yet; it returns with the migration. `writeScore` now carries a
-  mark or a letter and the server refuses the wrong one for the assessment's scale.
-- 2026-09-04: Created. Phase 1 of the «Alumnos y evidencia» design, and the screen that carries its
-  central correction: the competencia is what gets evaluated, evidence only informs it, and criterios
-  are tags rather than things to grade. See `routes/SPEC.md`.

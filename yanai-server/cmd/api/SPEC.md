@@ -10,8 +10,5 @@ Inputs: environment variables (and `.env` in dev) per `internal/config`. Outputs
 ## Conventions & Constraints
 - Keep `main.go` thin: composition only, no business logic. The worker lives behind `worker.Run(ctx, ...)` so it could later become its own binary.
 
-## Change Log
-- 2026-08-24: Initial spec created retroactively, describing current contents.
-
 ## Open Questions
 - None.

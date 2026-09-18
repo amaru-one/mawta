@@ -2,7 +2,7 @@
 Loads runtime configuration from the environment (plus `.env` in dev via godotenv).
 
 ## Contents
-- `config.go` — `Config` struct and `Load()`, with helpers `getenv`/`getbool`/`getint`/`getdur`/`splitcsv`. Keys include `DATABASE_URL`, `HTTP_ADDR`, `LOG_LEVEL`, `CORS_ORIGINS`, `STORAGE_DIR`, `WORKER_ENABLED` (default true), `WORKER_CONCURRENCY` (default 2), `WORKER_QUEUE` (default "default"), plus the session/auth keys below.
+- `config.go` — `Config` struct and `Load()`, with helpers `getenv`/`getbool`/`getint`/`getdur`/`splitcsv`. Keys include `DATABASE_URL`, `HTTP_ADDR`, `LOG_LEVEL`, `CORS_ORIGINS`, `STORAGE_DIR`, `WORKER_ENABLED` (default true), `WORKER_CONCURRENCY` (default 2), `WORKER_QUEUE` (default "default"), `OPENAI_API_KEY` (default `""`), `OPENAI_TRANSCRIBE_MODEL` (default `"gpt-4o-mini-transcribe"`), plus the session/auth keys below.
 
 ### Session/auth keys (added for real authentication)
 | Key | Default | Note |
@@ -22,10 +22,6 @@ Inputs: process env and optional `.env`. Output: one immutable `Config` consumed
 - Every key has a sane dev default; production overrides via compose env.
 - New config goes here with a default — nothing else reads `os.Getenv` directly.
 - `Load()` refuses to start if `SESSION_COOKIE_SECURE` is true and any `CORS_ORIGINS` entry is `"*"` — `AllowCredentials` with a wildcard origin is rejected by every browser anyway, and is the classic footgun combined with `Secure` cookies.
-
-## Change Log
-- 2026-09-11: Added the seven session/auth keys and the `getdur` helper for real authentication (`migrations/00002_auth.sql`); added the `SESSION_COOKIE_SECURE`+wildcard-origin startup refusal. See `internal/httpapi/SPEC.md` and `internal/auth/SPEC.md`.
-- 2026-08-24: Initial spec created retroactively, describing current contents.
 
 ## Open Questions
 - None.
