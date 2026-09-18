@@ -37,7 +37,7 @@ type HandlerFunc func(ctx context.Context, tx pgx.Tx, job Job) error
 const pollInterval = 2 * time.Second
 
 func Run(ctx context.Context, database *db.DB, cfg config.Config, logger *slog.Logger) {
-	registry := defaultRegistry()
+	registry := defaultRegistry(cfg)
 	workerName, _ := os.Hostname()
 	if workerName == "" {
 		workerName = "worker"

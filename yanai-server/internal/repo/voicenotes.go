@@ -12,9 +12,9 @@ func CreateVoiceNote(ctx context.Context, tx pgx.Tx, sessionID, studentID, class
 	err := tx.QueryRow(ctx, `
 		insert into voice_notes (tenant_id, session_id, student_id, class_id, teacher_id,
 		                          duration_ms, audio, mime_type, byte_size,
-		                          status, transcription_status, retention_until)
+		                          transcription_status)
 		values (app.current_tenant_id(), $1, $2, $3, $4, $5, $6, $7, $8,
-		        'draft', 'pending', current_date + interval '1 year')
+		        'pending')
 		returning id
 	`, sessionID, studentID, classID, teacherID, durationMs, audio, mimeType, byteSize).Scan(&id)
 	return id, err
@@ -34,10 +34,51 @@ func GetVoiceNoteFile(ctx context.Context, tx pgx.Tx, id uuid.UUID) (VoiceNoteFi
 	return f, err
 }
 
-func SetVoiceNoteStatus(ctx context.Context, tx pgx.Tx, id uuid.UUID, status string) error {
+func VoiceNoteExists(ctx context.Context, tx pgx.Tx, id uuid.UUID) error {
+	var exists bool
+	err := tx.QueryRow(ctx, `
+		select exists (select 1 from voice_notes where id = $1 and deleted_at is null)
+	`, id).Scan(&exists)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return pgx.ErrNoRows
+	}
+	return nil
+}
+
+func DeleteVoiceNote(ctx context.Context, tx pgx.Tx, id uuid.UUID) error {
 	ct, err := tx.Exec(ctx, `
-		update voice_notes set status = $2 where id = $1 and deleted_at is null
-	`, id, status)
+		update voice_notes set deleted_at = now() where id = $1 and deleted_at is null
+	`, id)
+	if err != nil {
+		return err
+	}
+	if ct.RowsAffected() == 0 {
+		return pgx.ErrNoRows
+	}
+	return nil
+}
+
+func SetVoiceNoteTranscript(ctx context.Context, tx pgx.Tx, id uuid.UUID, transcript string) error {
+	ct, err := tx.Exec(ctx, `
+		update voice_notes set transcript = $2, transcription_status = 'completed'
+		 where id = $1 and deleted_at is null
+	`, id, transcript)
+	if err != nil {
+		return err
+	}
+	if ct.RowsAffected() == 0 {
+		return pgx.ErrNoRows
+	}
+	return nil
+}
+
+func MarkVoiceNoteTranscriptionFailed(ctx context.Context, tx pgx.Tx, id uuid.UUID) error {
+	ct, err := tx.Exec(ctx, `
+		update voice_notes set transcription_status = 'failed' where id = $1 and deleted_at is null
+	`, id)
 	if err != nil {
 		return err
 	}

@@ -301,7 +301,7 @@ func listSessions(ctx context.Context, tx pgx.Tx, classID uuid.UUID, d time.Time
 			       att.present_count, att.roster_count, coalesce(pg.missing, 0),
 			       exists (
 			         select 1 from voice_notes vn
-			          where vn.session_id = cs.id and vn.status = 'saved'
+			          where vn.session_id = cs.id and vn.deleted_at is null
 			       ) as has_comments
 			  from class_sessions cs
 			  cross join lateral (

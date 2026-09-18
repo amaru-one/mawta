@@ -5,7 +5,9 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
+	"yanai-server/internal/config"
 	"yanai-server/internal/domain"
+	"yanai-server/internal/stt"
 	"yanai-server/internal/worker/handlers"
 )
 
@@ -13,10 +15,21 @@ import (
 // (jobID, payload) to HandlerFunc. Handlers take plain arguments rather
 // than a worker.Job so the handlers package never needs to import worker,
 // which would otherwise cycle back through this registry.
-func defaultRegistry() map[string]HandlerFunc {
+//
+// voice_note.transcribe is the first kind whose handler needs a dependency
+// beyond ctx/tx/payload (an *stt.Client) — it's built once here, not per
+// job, and closed over by the plain-argument function handlers.VoiceNoteTranscribe
+// returns.
+func defaultRegistry(cfg config.Config) map[string]HandlerFunc {
+	sttClient := stt.NewClient(cfg.OpenAIAPIKey, cfg.STTModel)
+	transcribe := handlers.VoiceNoteTranscribe(sttClient)
+
 	return map[string]HandlerFunc{
 		domain.JobKindGradeRecompute: func(ctx context.Context, tx pgx.Tx, job Job) error {
 			return handlers.GradeRecompute(ctx, tx, job.ID, job.Payload)
+		},
+		domain.JobKindVoiceNoteTranscribe: func(ctx context.Context, tx pgx.Tx, job Job) error {
+			return transcribe(ctx, tx, job.ID, job.Payload)
 		},
 	}
 }

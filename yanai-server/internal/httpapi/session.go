@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -129,6 +130,12 @@ func (a *API) handleMarkAllPresent(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"marked": marked})
 }
 
+func enqueueVoiceNoteTranscribe(ctx context.Context, tx pgx.Tx, tenantID, voiceNoteID uuid.UUID) error {
+	payload, _ := json.Marshal(map[string]any{"voice_note_id": voiceNoteID})
+	return repo.EnqueueJob(ctx, tx, tenantID, domain.JobKindVoiceNoteTranscribe, 3, payload,
+		"voice_note.transcribe:"+voiceNoteID.String())
+}
+
 func (a *API) handleCreateVoiceNote(w http.ResponseWriter, r *http.Request) {
 	tc := tenantCtxFrom(r)
 	sessionID, err := pathUUID(r, "sessionID")
@@ -232,6 +239,9 @@ func (a *API) handleCreateVoiceNote(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return err
 		}
+		if err := enqueueVoiceNoteTranscribe(r.Context(), tx, tc.TenantID, voiceNoteID); err != nil {
+			return err
+		}
 		vid := voiceNoteID
 		return repo.LogEvent(r.Context(), tx, "voice_note.recorded", "voice_note", &vid, nil, &studentID, &classID, &sessionID)
 	})
@@ -288,14 +298,6 @@ func (a *API) handleVoiceNoteAudio(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) handleVoiceNoteSave(w http.ResponseWriter, r *http.Request) {
-	a.setVoiceNoteStatus(w, r, domain.VoiceNoteSaved, "voice_note.saved")
-}
-
-func (a *API) handleVoiceNoteDiscard(w http.ResponseWriter, r *http.Request) {
-	a.setVoiceNoteStatus(w, r, domain.VoiceNoteDiscarded, "voice_note.discarded")
-}
-
-func (a *API) setVoiceNoteStatus(w http.ResponseWriter, r *http.Request, status, action string) {
 	tc := tenantCtxFrom(r)
 	voiceNoteID, err := pathUUID(r, "voiceNoteID")
 	if err != nil {
@@ -304,17 +306,39 @@ func (a *API) setVoiceNoteStatus(w http.ResponseWriter, r *http.Request, status,
 	}
 
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
-		if err := repo.SetVoiceNoteStatus(r.Context(), tx, voiceNoteID, status); err != nil {
+		if err := repo.VoiceNoteExists(r.Context(), tx, voiceNoteID); err != nil {
 			return err
 		}
 		vid := voiceNoteID
-		return repo.LogEvent(r.Context(), tx, action, "voice_note", &vid, nil, nil, nil, nil)
+		return repo.LogEvent(r.Context(), tx, "voice_note.saved", "voice_note", &vid, nil, nil, nil, nil)
 	})
 	if err != nil {
 		writeError(w, err)
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"status": status})
+	writeJSON(w, http.StatusOK, map[string]any{"status": "saved"})
+}
+
+func (a *API) handleVoiceNoteDiscard(w http.ResponseWriter, r *http.Request) {
+	tc := tenantCtxFrom(r)
+	voiceNoteID, err := pathUUID(r, "voiceNoteID")
+	if err != nil {
+		badRequest(w, "invalid voiceNoteID")
+		return
+	}
+
+	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := repo.DeleteVoiceNote(r.Context(), tx, voiceNoteID); err != nil {
+			return err
+		}
+		vid := voiceNoteID
+		return repo.LogEvent(r.Context(), tx, "voice_note.discarded", "voice_note", &vid, nil, nil, nil, nil)
+	})
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func parseSessionDate(s string) (time.Time, error) {

@@ -56,13 +56,6 @@ const (
 	ScopeTermFinal   = "term_final"
 )
 
-// voice_notes.status
-const (
-	VoiceNoteDraft     = "draft"
-	VoiceNoteSaved     = "saved"
-	VoiceNoteDiscarded = "discarded"
-)
-
 // grade_scale_levels.code on the MINEDU ordinal scale. Ordered C < B < A < AD.
 // These are only the wire/database spellings: nothing in the codebase compares
 // them, and nothing should compare them as numbers — under RVM 094-2020 a
@@ -98,7 +91,8 @@ const (
 
 // jobs.kind
 const (
-	JobKindGradeRecompute = "grade.recompute"
+	JobKindGradeRecompute      = "grade.recompute"
+	JobKindVoiceNoteTranscribe = "voice_note.transcribe"
 )
 
 // memberships.role and user_sessions.role. Re-added 2026-09-11 for real

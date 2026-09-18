@@ -24,7 +24,6 @@ type SessionHeader struct {
 type VoiceNoteRef struct {
 	ID         uuid.UUID `json:"id"`
 	DurationMs int32     `json:"duration_ms"`
-	Status     string    `json:"status"`
 	Transcript *string   `json:"transcript"`
 }
 
@@ -136,9 +135,9 @@ func GetSessionRoster(ctx context.Context, tx pgx.Tx, sessionID, classID uuid.UU
 
 	notesByStudent := make(map[uuid.UUID][]VoiceNoteRef)
 	vrows, err := tx.Query(ctx, `
-		select student_id, id, duration_ms, status, transcript
+		select student_id, id, duration_ms, transcript
 		  from voice_notes
-		 where session_id = $1 and status in ('draft','saved') and deleted_at is null
+		 where session_id = $1 and deleted_at is null
 		 order by recorded_at
 	`, sessionID)
 	if err != nil {
@@ -147,7 +146,7 @@ func GetSessionRoster(ctx context.Context, tx pgx.Tx, sessionID, classID uuid.UU
 	for vrows.Next() {
 		var sid uuid.UUID
 		var v VoiceNoteRef
-		if err := vrows.Scan(&sid, &v.ID, &v.DurationMs, &v.Status, &v.Transcript); err != nil {
+		if err := vrows.Scan(&sid, &v.ID, &v.DurationMs, &v.Transcript); err != nil {
 			vrows.Close()
 			return nil, nil, err
 		}

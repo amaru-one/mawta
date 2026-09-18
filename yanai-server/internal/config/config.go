@@ -21,6 +21,9 @@ type Config struct {
 	CORSOrigins       []string
 	LogLevel          string
 
+	OpenAIAPIKey string
+	STTModel     string
+
 	SessionCookieName   string
 	SessionCookieSecure bool
 	SessionTTL          time.Duration
@@ -42,6 +45,11 @@ func Load() (Config, error) {
 		StorageDir:        getenv("STORAGE_DIR", "./data/audio"),
 		CORSOrigins:       splitcsv(getenv("CORS_ORIGINS", "http://localhost:5173")),
 		LogLevel:          getenv("LOG_LEVEL", "info"),
+
+		// Empty is a valid default: the process must still boot without STT
+		// configured. See internal/stt/SPEC.md for what happens then.
+		OpenAIAPIKey: getenv("OPENAI_API_KEY", ""),
+		STTModel:     getenv("OPENAI_TRANSCRIBE_MODEL", "gpt-4o-mini-transcribe"),
 
 		SessionCookieName: getenv("SESSION_COOKIE_NAME", "yanai_session"),
 		// Fails closed: a production deploy that forgets to set this still
