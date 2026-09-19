@@ -157,7 +157,7 @@ export type SessionRosterDto = {
 /** How one piece of evidencia is valued. `ordinal` is a letter ON THAT WORK and
  *  is not a nivel de logro: the level of a competencia is asserted separately,
  *  after reading the whole period. Nothing converts between them. */
-export type ValueScale = 'numeric' | 'ordinal' | 'none';
+export type ValueScale = 'numeric' | 'ordinal';
 
 export type AttemptDto = {
 	score_id: string;

@@ -28,12 +28,11 @@ import (
 )
 
 type Attempt struct {
-	ScoreID             uuid.UUID
-	AttemptNumber       int16
-	Status              string // graded | excused | absent | not_submitted
-	RawValue            *float64
-	MaxValue            float64
-	RetakeCapNormalized *float64 // from retake_authorizations, if this attempt used one
+	ScoreID       uuid.UUID
+	AttemptNumber int16
+	Status        string // graded | excused | absent | not_submitted
+	RawValue      *float64
+	MaxValue      float64
 }
 
 type AssessmentInput struct {
@@ -99,7 +98,6 @@ func resolveAssessment(a AssessmentInput, policy Policy) assessmentOutcome {
 		scoreID       uuid.UUID
 		attemptNumber int16
 		value         float64
-		cap           *float64
 	}
 	var candidates []candidate
 
@@ -111,11 +109,11 @@ func resolveAssessment(a AssessmentInput, policy Policy) assessmentOutcome {
 			if policy.AbsentCountsAs == "excused" {
 				out.excusedScoreIDs = append(out.excusedScoreIDs, at.ScoreID)
 			} else {
-				candidates = append(candidates, candidate{at.ScoreID, at.AttemptNumber, 0, at.RetakeCapNormalized})
+				candidates = append(candidates, candidate{at.ScoreID, at.AttemptNumber, 0})
 			}
 		case "graded":
 			if at.RawValue != nil && at.MaxValue > 0 {
-				candidates = append(candidates, candidate{at.ScoreID, at.AttemptNumber, *at.RawValue / at.MaxValue, at.RetakeCapNormalized})
+				candidates = append(candidates, candidate{at.ScoreID, at.AttemptNumber, *at.RawValue / at.MaxValue})
 			}
 		}
 	}
@@ -155,11 +153,7 @@ func resolveAssessment(a AssessmentInput, policy Policy) assessmentOutcome {
 
 	value := chosen.value
 	if policy.RetakePolicy == "capped" && chosen.attemptNumber > 1 {
-		cap := policy.RetakeCapNormalized
-		if chosen.cap != nil {
-			cap = chosen.cap
-		}
-		if cap != nil && value > *cap {
+		if cap := policy.RetakeCapNormalized; cap != nil && value > *cap {
 			value = *cap
 		}
 	}

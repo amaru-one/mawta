@@ -135,11 +135,10 @@ func recomputeOne(ctx context.Context, tx pgx.Tx, jobID int64, classID, termID, 
 
 	arows, err := tx.Query(ctx, `
 		select a.id, a.component_id, a.weight_within_component, a.due_at,
-		       s.id, s.attempt_number, s.status, s.raw_value, s.max_value, ra.max_normalized_cap
+		       s.id, s.attempt_number, s.status, s.raw_value, s.max_value
 		  from assessments a
 		  join scores s on s.assessment_id = a.id and s.student_id = $3
 		                and s.superseded_at is null and s.deleted_at is null
-		  left join retake_authorizations ra on ra.id = s.retake_authorization_id
 		 where a.class_id = $1 and a.term_id = $2 and a.status = 'published' and a.deleted_at is null
 		   -- The school's own average only. Evidence flagged out of it still
 		   -- informs the official judgement, which is the teacher's nivel de logro
@@ -166,7 +165,7 @@ func recomputeOne(ctx context.Context, tx pgx.Tx, jobID int64, classID, termID, 
 		var dueAt *time.Time
 		var att grading.Attempt
 		if err := arows.Scan(&assessmentID, &componentID, &weightWithinComponent, &dueAt,
-			&att.ScoreID, &att.AttemptNumber, &att.Status, &att.RawValue, &att.MaxValue, &att.RetakeCapNormalized); err != nil {
+			&att.ScoreID, &att.AttemptNumber, &att.Status, &att.RawValue, &att.MaxValue); err != nil {
 			arows.Close()
 			return false, err
 		}

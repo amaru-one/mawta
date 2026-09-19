@@ -124,11 +124,10 @@ func (a *API) handleAssertCompetencyLevel(w http.ResponseWriter, r *http.Request
 }
 
 type conclusionRequest struct {
-	CompetencyID            string  `json:"competency_id"`
-	Body                    string  `json:"body"`
-	IncludesRecommendations bool    `json:"includes_recommendations"`
-	Status                  string  `json:"status"`
-	TermID                  *string `json:"term_id"`
+	CompetencyID string  `json:"competency_id"`
+	Body         string  `json:"body"`
+	Status       string  `json:"status"`
+	TermID       *string `json:"term_id"`
 }
 
 // POST /classes/{classID}/students/{studentID}/conclusions
@@ -184,7 +183,7 @@ func (a *API) handleUpsertConclusion(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 		id, err = repo.UpsertConclusion(r.Context(), tx, classID, studentID, competencyID,
-			term.ID, tc.TeacherID, strings.TrimSpace(req.Body), req.IncludesRecommendations, status)
+			term.ID, tc.TeacherID, strings.TrimSpace(req.Body), status)
 		if err != nil {
 			return err
 		}

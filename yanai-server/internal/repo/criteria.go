@@ -11,21 +11,75 @@ import (
 	"yanai-server/internal/db"
 )
 
+// CapabilityRow is one MINEDU capacidad under a competencia — what a criterio
+// must relate to.
+type CapabilityRow struct {
+	CapabilityID uuid.UUID `json:"capability_id"`
+	Code         string    `json:"code"`
+	Name         string    `json:"name"`
+}
+
+// ListCompetencyCapabilities returns the capacidades of one competencia, for
+// the picker a teacher uses when writing a criterio.
+func ListCompetencyCapabilities(ctx context.Context, tx pgx.Tx, competencyID uuid.UUID) ([]CapabilityRow, error) {
+	rows, err := tx.Query(ctx, `
+		select id, code, name from capabilities
+		 where competency_id = $1 and is_active and deleted_at is null
+		 order by sort_order, code
+	`, competencyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []CapabilityRow
+	for rows.Next() {
+		var c CapabilityRow
+		if err := rows.Scan(&c.CapabilityID, &c.Code, &c.Name); err != nil {
+			return nil, err
+		}
+		out = append(out, c)
+	}
+	return out, rows.Err()
+}
+
+// CreateCapability records a capacidad under one competencia.
+func CreateCapability(ctx context.Context, tx pgx.Tx, competencyID uuid.UUID, code, name string) (uuid.UUID, error) {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return uuid.Nil, db.NewAppError(http.StatusBadRequest, "missing_name",
+			"a capacidad needs a name")
+	}
+
+	var nextOrder int16
+	if err := tx.QueryRow(ctx, `
+		select coalesce(max(sort_order), 0) + 1 from capabilities
+		 where competency_id = $1 and deleted_at is null
+	`, competencyID).Scan(&nextOrder); err != nil {
+		return uuid.Nil, err
+	}
+
+	var id uuid.UUID
+	err := tx.QueryRow(ctx, `
+		insert into capabilities (tenant_id, competency_id, code, name, sort_order)
+		values (app.current_tenant_id(), $1, $2, $3, $4)
+		returning id
+	`, competencyID, code, name, nextOrder).Scan(&id)
+	return id, err
+}
+
 // CriterionRow is one criterio de evaluación: the teacher's own precisado of
-// what they will judge a competencia against, optionally anchored to a CNEB
-// desempeño (performance_standards).
-//
-// It carries no level, and must not grow one. A criterio says what to look at
-// in a piece of work — it is the ruler, never the thing marked. The one
-// judgement this app records is the nivel de logro of a competencia
-// (competency_term_levels), asserted by the teacher after reading the period's
-// evidence (RVM 094-2020, 5.1.1.3 p.2-3).
+// what they will judge a competencia against, anchored to a specific
+// capacidad. It carries no level, and must not grow one. A criterio says
+// what to look at in a piece of work — it is the ruler, never the thing
+// marked. The one judgement this app records is the nivel de logro of a
+// competencia (competency_term_levels), asserted by the teacher after
+// reading the period's evidence (RVM 094-2020, 5.1.1.3 p.2-3).
 type CriterionRow struct {
-	CriterionID uuid.UUID  `json:"criterion_id"`
-	Code        *string    `json:"code"`
-	Description string     `json:"description"`
-	SortOrder   int16      `json:"sort_order"`
-	StandardID  *uuid.UUID `json:"performance_standard_id"`
+	CriterionID  uuid.UUID `json:"criterion_id"`
+	CapabilityID uuid.UUID `json:"capability_id"`
+	Code         *string   `json:"code"`
+	Description  string    `json:"description"`
+	SortOrder    int16     `json:"sort_order"`
 }
 
 // CompetencyCriteriaRow is one competencia with the criterios the teacher has
@@ -52,7 +106,7 @@ func ListClassCriteria(ctx context.Context, tx pgx.Tx, classID uuid.UUID) ([]Com
 		   where cl.id = $1 and cl.deleted_at is null
 		)
 		select c.id, c.code, c.name, c.kind,
-		       ec.id, ec.code, ec.description, ec.sort_order, ec.performance_standard_id
+		       ec.id, ec.capability_id, ec.code, ec.description, ec.sort_order
 		  from competencies c
 		  left join evaluation_criteria ec
 		         on ec.competency_id = c.id and ec.is_active and ec.deleted_at is null
@@ -72,11 +126,11 @@ func ListClassCriteria(ctx context.Context, tx pgx.Tx, classID uuid.UUID) ([]Com
 		var crit CriterionRow
 		// A competencia with no criterios still produces a row (left join), so
 		// every criterio column arrives null and has to be scanned as such.
-		var critID *uuid.UUID
+		var critID, capabilityID *uuid.UUID
 		var sortOrder *int16
 		var description *string
 		if err := rows.Scan(&comp.CompetencyID, &comp.Code, &comp.Name, &comp.Kind,
-			&critID, &crit.Code, &description, &sortOrder, &crit.StandardID); err != nil {
+			&critID, &capabilityID, &crit.Code, &description, &sortOrder); err != nil {
 			return nil, err
 		}
 		idx, ok := byCompetency[comp.CompetencyID]
@@ -88,6 +142,9 @@ func ListClassCriteria(ctx context.Context, tx pgx.Tx, classID uuid.UUID) ([]Com
 		}
 		if critID != nil {
 			crit.CriterionID = *critID
+			if capabilityID != nil {
+				crit.CapabilityID = *capabilityID
+			}
 			if description != nil {
 				crit.Description = *description
 			}
@@ -100,12 +157,13 @@ func ListClassCriteria(ctx context.Context, tx pgx.Tx, classID uuid.UUID) ([]Com
 	return out, rows.Err()
 }
 
-// CreateCriterion records a criterio the teacher wrote for one competencia.
+// CreateCriterion records a criterio the teacher wrote for one competencia,
+// anchored to one of its capacidades.
 //
 // The description is the whole point — it is the sentence the teacher will
 // judge evidence against — so a blank one is rejected here rather than
 // stored and rendered as an empty row.
-func CreateCriterion(ctx context.Context, tx pgx.Tx, classID, competencyID uuid.UUID, code *string, description string, standardID *uuid.UUID) (uuid.UUID, error) {
+func CreateCriterion(ctx context.Context, tx pgx.Tx, classID, competencyID, capabilityID uuid.UUID, code *string, description string) (uuid.UUID, error) {
 	description = strings.TrimSpace(description)
 	if description == "" {
 		return uuid.Nil, db.NewAppError(http.StatusBadRequest, "missing_description",
@@ -130,6 +188,22 @@ func CreateCriterion(ctx context.Context, tx pgx.Tx, classID, competencyID uuid.
 			"that competency does not belong to this class's área")
 	}
 
+	// The capacidad must belong to the same competencia — a criterio cannot
+	// float free of the competencia's own structure.
+	var capOK bool
+	if err := tx.QueryRow(ctx, `
+		select exists (
+		  select 1 from capabilities
+		   where id = $1 and competency_id = $2 and deleted_at is null
+		)
+	`, capabilityID, competencyID).Scan(&capOK); err != nil {
+		return uuid.Nil, err
+	}
+	if !capOK {
+		return uuid.Nil, db.NewAppError(http.StatusBadRequest, "capability_not_in_competency",
+			"that capacidad does not belong to this competencia")
+	}
+
 	var nextOrder int16
 	if err := tx.QueryRow(ctx, `
 		select coalesce(max(sort_order), 0) + 1 from evaluation_criteria
@@ -141,10 +215,10 @@ func CreateCriterion(ctx context.Context, tx pgx.Tx, classID, competencyID uuid.
 	var id uuid.UUID
 	err := tx.QueryRow(ctx, `
 		insert into evaluation_criteria
-		  (tenant_id, competency_id, performance_standard_id, code, description, sort_order)
+		  (tenant_id, competency_id, capability_id, code, description, sort_order)
 		values (app.current_tenant_id(), $1, $2, $3, $4, $5)
 		returning id
-	`, competencyID, standardID, code, description, nextOrder).Scan(&id)
+	`, competencyID, capabilityID, code, description, nextOrder).Scan(&id)
 	return id, err
 }
 

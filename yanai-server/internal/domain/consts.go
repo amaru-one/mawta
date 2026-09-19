@@ -39,15 +39,15 @@ const (
 // assessments.value_scale — how one piece of evidencia is valued. Deliberately
 // a separate vocabulary from grade_scales.kind above, which describes a scale
 // the school configured; this describes what a single piece of work carries.
-//
-// ValueScaleOrdinal is a letter on that piece of work and is NOT a nivel de
-// logro: the level of a competencia is asserted in competency_term_levels after
-// reading the whole period (RVM 094-2020, 5.1.1.3 p.2-3). Nothing may convert
-// between them.
+// ValueScaleRubric means purely qualitative evidence with no overall mark —
+// valued only through per-criterio criterion_scores. ValueScaleOrdinal is
+// never used by assessments itself; it is for criterion_scores.value_scale,
+// which independently supports a level per criterio regardless of the
+// assessment's own scale.
 const (
 	ValueScaleNumeric = "numeric"
+	ValueScaleRubric  = "rubric"
 	ValueScaleOrdinal = "ordinal"
-	ValueScaleNone    = "none"
 )
 
 // computed_grades.scope
@@ -67,10 +67,32 @@ const (
 	LevelAD = "AD"
 )
 
+// grade_levels.stage
+const (
+	StageInicial    = "inicial"
+	StagePrimaria   = "primaria"
+	StageSecundaria = "secundaria"
+	StageOtro       = "otro"
+)
+
+// grade_levels.cycle — meaningful only when stage = StageInicial.
+const (
+	CycleI  = "ciclo_i"
+	CycleII = "ciclo_ii"
+)
+
 // descriptive_conclusions.requirement — why a conclusión descriptiva exists.
 // Everything but ConclusionOptional is mandatory and blocks closing a period.
+// The obligatoriedad of a level-based requirement varies by nivel educativo:
+// ConclusionLevelC applies in Secundaria, Primaria and Inicial Ciclo II;
+// ConclusionLevelB in Primaria and Inicial Ciclo II; ConclusionLevelA only in
+// Inicial Ciclo II; ConclusionCycleIMandatory covers every competencia in
+// Inicial Ciclo I regardless of level.
 const (
 	ConclusionLevelC           = "level_c"
+	ConclusionLevelB           = "level_b"
+	ConclusionLevelA           = "level_a"
+	ConclusionCycleIMandatory  = "cycle_i_mandatory"
 	ConclusionConsecutiveC     = "consecutive_c"
 	ConclusionInclusionSupport = "inclusion_support"
 	ConclusionOptional         = "optional"

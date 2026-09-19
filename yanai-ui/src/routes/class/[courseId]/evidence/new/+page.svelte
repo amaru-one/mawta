@@ -91,14 +91,15 @@
 	let submitting = $state(false);
 
 	// Which scale values this evidence. It is a property of the work, not of the
-	// app: the same teacher runs a numeric practice and an unvalued exposición in
+	// app: the same teacher runs a numeric practice and a lettered exposición in
 	// the same week. This is what decides which control appears later on the
 	// student's screen.
 	let scale = $state<ValueScale>('numeric');
 
-	// A school with no internal system has nothing for a mark to mean.
+	// A school with no internal system has nothing for a mark to mean, so it
+	// falls back to the letter scale rather than a vigesimal one.
 	$effect(() => {
-		if (!$usesInternalGrading) scale = 'none';
+		if (!$usesInternalGrading) scale = 'ordinal';
 	});
 
 	const effectiveComponent = $derived(componentCode || (components[0]?.code ?? ''));
@@ -221,8 +222,8 @@
 			</label>
 
 			<!-- The scale belongs to the evidence, not to the app: one school runs a
-			     vigesimal system, another values in letters, another records nothing.
-			     This is what decides which control appears on the student's screen. -->
+			     vigesimal system, another values in letters only. This is what
+			     decides which control appears on the student's screen. -->
 			<div class="field">
 				<span class="lbl">Cómo se valora</span>
 				<div class="scale">
@@ -245,15 +246,6 @@
 						<span class="scode">AD–C</span>
 						<span class="sname">Literal</span>
 					</button>
-					<button
-						type="button"
-						class="scell"
-						class:on={scale === 'none'}
-						onclick={() => (scale = 'none')}
-					>
-						<span class="scode">—</span>
-						<span class="sname">Sin nota</span>
-					</button>
 				</div>
 			</div>
 
@@ -267,10 +259,6 @@
 				{#if scale === 'ordinal'}
 					Una letra en un trabajo no es un nivel de logro: ese lo pones tú al cierre, leyendo todo
 					el periodo.
-				{:else if scale === 'none'}
-					Queda registrada y se lee, pero no se puntúa.
-				{:else if !$usesInternalGrading}
-					El colegio no lleva sistema propio de notas, así que conviene registrarla sin valor.
 				{/if}
 			</p>
 

@@ -34,44 +34,84 @@ type CompetencyLevelRow struct {
 	ConclusionStatus      *string `json:"conclusion_status"`
 }
 
+// classifyConclusionRequirement decides why a conclusión descriptiva is (or
+// isn't) mandatory, per the grade-level-dependent obligatoriedad: inclusion
+// support is mandatory every period regardless of level or grade;
+// Inicial Ciclo I requires one for every competencia regardless of level;
+// otherwise the level itself is mandatory or not depending on the student's
+// nivel educativo (level C in Secundaria/Primaria/Inicial Ciclo II, level B
+// in Primaria/Inicial Ciclo II, level A only in Inicial Ciclo II). C also
+// carries the stronger consecutive_c classification when the competency was
+// C in the immediately preceding period too (RVM 048-2024, 5.1.1.3 p.3).
+func classifyConclusionRequirement(inclusionSupport bool, stage, cycle string, levelCode *string, consecutiveC bool) string {
+	if inclusionSupport {
+		return domain.ConclusionInclusionSupport
+	}
+	if stage == domain.StageInicial && cycle == domain.CycleI {
+		return domain.ConclusionCycleIMandatory
+	}
+	if levelCode == nil {
+		return domain.ConclusionOptional
+	}
+	inicialCycleII := stage == domain.StageInicial && cycle == domain.CycleII
+	switch *levelCode {
+	case domain.LevelC:
+		if consecutiveC {
+			return domain.ConclusionConsecutiveC
+		}
+		return domain.ConclusionLevelC
+	case domain.LevelB:
+		if stage == domain.StagePrimaria || inicialCycleII {
+			return domain.ConclusionLevelB
+		}
+	case domain.LevelA:
+		if inicialCycleII {
+			return domain.ConclusionLevelA
+		}
+	}
+	return domain.ConclusionOptional
+}
+
 // ListClassCompetencyLevels returns every competency of the class's subject
 // with this student's asserted level and conclusion for the term.
-//
-// The mandatory-conclusion rules for Secundaria EBR (RVM 048-2024):
-//   - level C                      → mandatory (5.1.1.3 p.7.d)
-//   - C in two or more consecutive
-//     periods                      → mandatory, and must justify the lack of
-//     progress (5.1.1.3 p.3)
-//   - student facing educational
-//     barriers                     → mandatory every period, stating supports
-//     (5.1.1.3 p.7)
-//   - anything else                → optional
 func ListClassCompetencyLevels(ctx context.Context, tx pgx.Tx, classID, studentID, termID uuid.UUID) ([]CompetencyLevelRow, error) {
+	var stage, cycle string
+	if err := tx.QueryRow(ctx, `
+		select gl.stage, coalesce(gl.cycle, '')
+		  from classes cl
+		  join courses co on co.id = cl.course_id
+		  join grade_levels gl on gl.id = co.grade_level_id
+		 where cl.id = $1
+	`, classID).Scan(&stage, &cycle); err != nil {
+		return nil, err
+	}
+
 	rows, err := tx.Query(ctx, `
 		with cls as (
-		  select co.subject_id, t.academic_year_id, t.sequence
+		  select co.subject_id
 		    from classes cl
 		    join courses co on co.id = cl.course_id
-		    join terms t on t.id = $3
 		   where cl.id = $1
 		),
 		lvl as (
 		  select ctl.competency_id, ctl.scale_level_id, ctl.asserted_at,
-		         l.code as level_code
+		         ctl.term_id, l.code as level_code
 		    from competency_term_levels ctl
 		    join grade_scale_levels l on l.id = ctl.scale_level_id
 		   where ctl.student_id = $2 and ctl.term_id = $3
 		     and ctl.superseded_at is null and ctl.deleted_at is null
 		),
-		-- Was this competency at C in the immediately preceding period?
+		-- Was this competency at C in the immediately preceding period (same
+		-- academic year, sequence - 1)?
 		prev_c as (
 		  select ctl.competency_id
 		    from competency_term_levels ctl
 		    join terms pt on pt.id = ctl.term_id
+		    join terms t on t.id = $3
 		    join grade_scale_levels l on l.id = ctl.scale_level_id
 		   where ctl.student_id = $2
-		     and pt.academic_year_id = (select academic_year_id from cls)
-		     and pt.sequence = (select sequence from cls) - 1
+		     and pt.academic_year_id = t.academic_year_id
+		     and pt.sequence = t.sequence - 1
 		     and l.code = $4
 		     and ctl.superseded_at is null and ctl.deleted_at is null
 		),
@@ -84,12 +124,7 @@ func ListClassCompetencyLevels(ctx context.Context, tx pgx.Tx, classID, studentI
 		select c.id, c.code, c.name, c.kind, c.subject_id,
 		       lvl.level_code, lvl.scale_level_id,
 		       to_char(lvl.asserted_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
-		       case
-		         when s.inclusion_support then $5
-		         when lvl.level_code = $4 and prev_c.competency_id is not null then $6
-		         when lvl.level_code = $4 then $7
-		         else $8
-		       end,
+		       s.inclusion_support, prev_c.competency_id is not null,
 		       concl.body, concl.status
 		  from competencies c
 		  cross join students s
@@ -100,12 +135,7 @@ func ListClassCompetencyLevels(ctx context.Context, tx pgx.Tx, classID, studentI
 		   and c.subject_id = (select subject_id from cls)
 		   and c.is_active and c.deleted_at is null
 		 order by c.sort_order, c.code
-	`, classID, studentID, termID,
-		domain.LevelC,
-		domain.ConclusionInclusionSupport,
-		domain.ConclusionConsecutiveC,
-		domain.ConclusionLevelC,
-		domain.ConclusionOptional)
+	`, classID, studentID, termID, domain.LevelC)
 	if err != nil {
 		return nil, err
 	}
@@ -114,11 +144,14 @@ func ListClassCompetencyLevels(ctx context.Context, tx pgx.Tx, classID, studentI
 	var out []CompetencyLevelRow
 	for rows.Next() {
 		var r CompetencyLevelRow
+		var inclusionSupport, consecutiveC bool
 		if err := rows.Scan(&r.CompetencyID, &r.Code, &r.Name, &r.Kind, &r.SubjectID,
 			&r.Level, &r.LevelID, &r.AssertedAt,
-			&r.ConclusionRequirement, &r.ConclusionBody, &r.ConclusionStatus); err != nil {
+			&inclusionSupport, &consecutiveC,
+			&r.ConclusionBody, &r.ConclusionStatus); err != nil {
 			return nil, err
 		}
+		r.ConclusionRequirement = classifyConclusionRequirement(inclusionSupport, stage, cycle, r.Level, consecutiveC)
 		r.ConclusionRequired = r.ConclusionRequirement != domain.ConclusionOptional
 		out = append(out, r)
 	}
@@ -172,9 +205,10 @@ func AssertCompetencyLevel(ctx context.Context, tx pgx.Tx, classID, studentID, c
 	var newID uuid.UUID
 	err = tx.QueryRow(ctx, `
 		insert into competency_term_levels
-		  (tenant_id, student_id, competency_id, term_id, class_id, scale_level_id,
+		  (tenant_id, student_id, competency_id, academic_year_id, term_id, class_id, scale_level_id,
 		   asserted_by_id, note, supersedes_id)
-		values (app.current_tenant_id(), $1, $2, $3, $4, $5, $6, $7, $8)
+		select app.current_tenant_id(), $1, $2, c.academic_year_id, $3, $4, $5, $6, $7, $8
+		  from classes c where c.id = $4
 		returning id
 	`, studentID, competencyID, termID, classID, levelID,
 		teacherID, note, supersedesID).Scan(&newID)
@@ -186,14 +220,12 @@ func AssertCompetencyLevel(ctx context.Context, tx pgx.Tx, classID, studentID, c
 //
 // requirement is derived here, never taken from the request: whether a
 // conclusion is mandatory is a fact about the student's level, not a claim the
-// client gets to make.
-func UpsertConclusion(ctx context.Context, tx pgx.Tx, classID, studentID, competencyID, termID, teacherID uuid.UUID, body string, includesRecommendations bool, status string) (uuid.UUID, error) {
-	if status == domain.ConclusionFinal && !includesRecommendations {
-		return uuid.Nil, db.NewAppError(http.StatusUnprocessableEntity, "missing_recommendations",
-			"a final conclusión descriptiva must include personalised recommendations (RVM 094-2020, 5.1.1.3 p.7)")
-	}
-
-	requirement, err := conclusionRequirement(ctx, tx, studentID, competencyID, termID)
+// client gets to make. RVM 094-2020 5.1.1.3 p.7 requires every conclusión to
+// carry personalised recommendations, but that lives in body's free text —
+// there is no separate flag to validate, because nothing can verify text
+// actually contains a recommendation.
+func UpsertConclusion(ctx context.Context, tx pgx.Tx, classID, studentID, competencyID, termID, teacherID uuid.UUID, body string, status string) (uuid.UUID, error) {
+	requirement, err := conclusionRequirement(ctx, tx, classID, studentID, competencyID, termID)
 	if err != nil {
 		return uuid.Nil, err
 	}
@@ -217,25 +249,34 @@ func UpsertConclusion(ctx context.Context, tx pgx.Tx, classID, studentID, compet
 	var newID uuid.UUID
 	err = tx.QueryRow(ctx, `
 		insert into descriptive_conclusions
-		  (tenant_id, student_id, competency_id, term_id, class_id, body,
-		   requirement, includes_recommendations, status, authored_by_id, supersedes_id)
-		values (app.current_tenant_id(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		  (tenant_id, student_id, competency_id, academic_year_id, term_id, class_id, body,
+		   requirement, status, authored_by_id, supersedes_id)
+		select app.current_tenant_id(), $1, $2, c.academic_year_id, $3, $4, $5, $6, $7, $8, $9
+		  from classes c where c.id = $4
 		returning id
 	`, studentID, competencyID, termID, classID, body,
-		requirement, includesRecommendations, status, teacherID, supersedesID).Scan(&newID)
+		requirement, status, teacherID, supersedesID).Scan(&newID)
 	return newID, err
 }
 
 // conclusionRequirement classifies why a conclusion is (or is not) mandatory
 // for this competency, student and period.
-func conclusionRequirement(ctx context.Context, tx pgx.Tx, studentID, competencyID, termID uuid.UUID) (string, error) {
+func conclusionRequirement(ctx context.Context, tx pgx.Tx, classID, studentID, competencyID, termID uuid.UUID) (string, error) {
+	var stage, cycle string
+	if err := tx.QueryRow(ctx, `
+		select gl.stage, coalesce(gl.cycle, '')
+		  from classes cl
+		  join courses co on co.id = cl.course_id
+		  join grade_levels gl on gl.id = co.grade_level_id
+		 where cl.id = $1
+	`, classID).Scan(&stage, &cycle); err != nil {
+		return "", err
+	}
+
 	var inclusion bool
 	if err := tx.QueryRow(ctx,
 		`select inclusion_support from students where id = $1`, studentID).Scan(&inclusion); err != nil {
 		return "", err
-	}
-	if inclusion {
-		return domain.ConclusionInclusionSupport, nil
 	}
 
 	var levelCode *string
@@ -247,27 +288,25 @@ func conclusionRequirement(ctx context.Context, tx pgx.Tx, studentID, competency
 	`, studentID, competencyID, termID).Scan(&levelCode); err != nil && err != pgx.ErrNoRows {
 		return "", err
 	}
-	if levelCode == nil || *levelCode != domain.LevelC {
-		return domain.ConclusionOptional, nil
+
+	var consecutiveC bool
+	if levelCode != nil && *levelCode == domain.LevelC {
+		if err := tx.QueryRow(ctx, `
+			select exists (
+			  select 1 from competency_term_levels ctl
+			    join terms pt on pt.id = ctl.term_id
+			    join terms t on t.id = $4
+			    join grade_scale_levels l on l.id = ctl.scale_level_id
+			   where ctl.student_id = $1 and ctl.competency_id = $2
+			     and pt.academic_year_id = t.academic_year_id
+			     and pt.sequence = t.sequence - 1
+			     and l.code = $3
+			     and ctl.superseded_at is null and ctl.deleted_at is null
+			)
+		`, studentID, competencyID, domain.LevelC, termID).Scan(&consecutiveC); err != nil {
+			return "", err
+		}
 	}
 
-	var prevC bool
-	if err := tx.QueryRow(ctx, `
-		select exists (
-		  select 1 from competency_term_levels ctl
-		    join terms pt on pt.id = ctl.term_id
-		    join grade_scale_levels l on l.id = ctl.scale_level_id
-		   where ctl.student_id = $1 and ctl.competency_id = $2
-		     and l.code = $3
-		     and pt.sequence = (select sequence - 1 from terms where id = $4)
-		     and pt.academic_year_id = (select academic_year_id from terms where id = $4)
-		     and ctl.superseded_at is null and ctl.deleted_at is null
-		)
-	`, studentID, competencyID, domain.LevelC, termID).Scan(&prevC); err != nil {
-		return "", err
-	}
-	if prevC {
-		return domain.ConclusionConsecutiveC, nil
-	}
-	return domain.ConclusionLevelC, nil
+	return classifyConclusionRequirement(inclusion, stage, cycle, levelCode, consecutiveC), nil
 }

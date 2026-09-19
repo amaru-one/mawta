@@ -71,9 +71,11 @@ func (a *API) Router() http.Handler {
 			r.Post("/classes/{classID}/students/{studentID}/conclusions", a.handleUpsertConclusion)
 
 			// Criterios de evaluación: what the teacher says to look at in a piece of
-			// work. Authoring only — a criterio is a tag on evidencia and is never
-			// itself graded, so there is deliberately no level route here.
+			// work, each anchored to a capacidad. Authoring only — there is
+			// deliberately no level route here.
 			r.Get("/classes/{classID}/criteria", a.handleClassCriteria)
+			r.Get("/competencies/{competencyID}/capabilities", a.handleCompetencyCapabilities)
+			r.Post("/competencies/{competencyID}/capabilities", a.handleCreateCapability)
 			r.Post("/classes/{classID}/competencies/{competencyID}/criteria", a.handleCreateCriterion)
 			r.Post("/criteria/{criterionID}/delete", a.handleDeleteCriterion)
 
@@ -89,6 +91,8 @@ func (a *API) Router() http.Handler {
 
 			r.Post("/assessments/{assessmentID}/scores", a.handleCreateScore)
 			r.Post("/scores/{scoreID}/correct", a.handleCorrectScore)
+			r.Post("/assessments/{assessmentID}/criterion-scores", a.handleCreateCriterionScore)
+			r.Post("/criterion-scores/{criterionScoreID}/correct", a.handleCorrectCriterionScore)
 
 			r.Post("/classes/{classID}/students/{studentID}/practice-scores", a.handleCreatePracticeScore)
 			r.Post("/practice-scores/{practiceScoreID}/delete", a.handleDeletePracticeScore)

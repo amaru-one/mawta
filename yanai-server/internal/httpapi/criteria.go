@@ -3,7 +3,6 @@ package httpapi
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -43,16 +42,16 @@ func (a *API) handleClassCriteria(w http.ResponseWriter, r *http.Request) {
 }
 
 type createCriterionRequest struct {
-	Description           string  `json:"description"`
-	Code                  *string `json:"code"`
-	PerformanceStandardID *string `json:"performance_standard_id"`
+	CapabilityID string  `json:"capability_id"`
+	Description  string  `json:"description"`
+	Code         *string `json:"code"`
 }
 
 // POST /classes/{classID}/competencies/{competencyID}/criteria
 //
-// The teacher writes a criterio for one competencia. This is the "criterios
-// are presented by the teacher" path: the text is theirs, optionally anchored
-// to a CNEB desempeño.
+// The teacher writes a criterio for one competencia, anchored to one of its
+// capacidades. This is the "criterios are presented by the teacher" path:
+// the text is theirs.
 func (a *API) handleCreateCriterion(w http.ResponseWriter, r *http.Request) {
 	tc := tenantCtxFrom(r)
 	classID, err := pathUUID(r, "classID")
@@ -71,21 +70,16 @@ func (a *API) handleCreateCriterion(w http.ResponseWriter, r *http.Request) {
 		badRequest(w, "invalid body")
 		return
 	}
-
-	var standardID *uuid.UUID
-	if req.PerformanceStandardID != nil && strings.TrimSpace(*req.PerformanceStandardID) != "" {
-		parsed, err := uuid.Parse(*req.PerformanceStandardID)
-		if err != nil {
-			badRequest(w, "invalid performance_standard_id")
-			return
-		}
-		standardID = &parsed
+	capabilityID, err := uuid.Parse(req.CapabilityID)
+	if err != nil {
+		badRequest(w, "invalid capability_id")
+		return
 	}
 
 	var criterionID uuid.UUID
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
-		criterionID, err = repo.CreateCriterion(r.Context(), tx, classID, competencyID,
-			req.Code, req.Description, standardID)
+		criterionID, err = repo.CreateCriterion(r.Context(), tx, classID, competencyID, capabilityID,
+			req.Code, req.Description)
 		if err != nil {
 			return err
 		}
@@ -98,6 +92,65 @@ func (a *API) handleCreateCriterion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusCreated, map[string]any{"id": criterionID})
+}
+
+// GET /competencies/{competencyID}/capabilities
+//
+// The capacidades a teacher picks from when writing a criterio: a criterio
+// must anchor to one, per evaluation_criteria.capability_id.
+func (a *API) handleCompetencyCapabilities(w http.ResponseWriter, r *http.Request) {
+	tc := tenantCtxFrom(r)
+	competencyID, err := pathUUID(r, "competencyID")
+	if err != nil {
+		badRequest(w, "invalid competencyID")
+		return
+	}
+	var rows []repo.CapabilityRow
+	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		var err error
+		rows, err = repo.ListCompetencyCapabilities(r.Context(), tx, competencyID)
+		return err
+	})
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"capabilities": rows})
+}
+
+type createCapabilityRequest struct {
+	Code string `json:"code"`
+	Name string `json:"name"`
+}
+
+// POST /competencies/{competencyID}/capabilities
+func (a *API) handleCreateCapability(w http.ResponseWriter, r *http.Request) {
+	tc := tenantCtxFrom(r)
+	competencyID, err := pathUUID(r, "competencyID")
+	if err != nil {
+		badRequest(w, "invalid competencyID")
+		return
+	}
+	var req createCapabilityRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		badRequest(w, "invalid body")
+		return
+	}
+
+	var capabilityID uuid.UUID
+	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		capabilityID, err = repo.CreateCapability(r.Context(), tx, competencyID, req.Code, req.Name)
+		if err != nil {
+			return err
+		}
+		return repo.LogEvent(r.Context(), tx, "capability.created", "capability",
+			&capabilityID, nil, nil, nil, nil)
+	})
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusCreated, map[string]any{"id": capabilityID})
 }
 
 // POST /criteria/{criterionID}/delete
