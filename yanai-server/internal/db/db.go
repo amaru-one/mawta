@@ -103,11 +103,11 @@ func (d *DB) WithSystemTx(ctx context.Context, fn func(tx pgx.Tx) error) error {
 // WithAuthTx opens a transaction as the non-owner yanai_app role with no
 // tenant set and app.auth_lookup='on' — the one mode that can read a users
 // row or a user_sessions row before a tenant is known, via the narrow
-// login_lookup policy on users (see migrations/00002_auth.sql). Every other
-// tenant-scoped table's policy evaluates tenant_id = NULL in this
-// transaction and returns nothing, so a bug on the login/session path here
-// cannot read across tenants the way a WithSystemTx bug could. Used only by
-// internal/repo/auth.go.
+// login_lookup policy on users (see migrations/00001_initial_schema.sql).
+// Every other tenant-scoped table's policy evaluates tenant_id = NULL in
+// this transaction and returns nothing, so a bug on the login/session path
+// here cannot read across tenants the way a WithSystemTx bug could. Used
+// only by internal/repo/auth.go.
 func (d *DB) WithAuthTx(ctx context.Context, requestID string, fn func(tx pgx.Tx) error) error {
 	tx, err := d.Pool.Begin(ctx)
 	if err != nil {
