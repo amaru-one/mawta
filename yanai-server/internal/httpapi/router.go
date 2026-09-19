@@ -71,8 +71,10 @@ func (a *API) Router() http.Handler {
 			r.Post("/classes/{classID}/students/{studentID}/conclusions", a.handleUpsertConclusion)
 
 			// Criterios de evaluación: what the teacher says to look at in a piece of
-			// work, each anchored to a capacidad. Authoring only — there is
-			// deliberately no level route here.
+			// work, each anchored to a capacidad. Authoring only — no route here
+			// writes a nivel de logro for a criterio, and none may be added. Marks
+			// against a criterio are per-evidence and live on the criterion-scores
+			// routes below.
 			r.Get("/classes/{classID}/criteria", a.handleClassCriteria)
 			r.Get("/competencies/{competencyID}/capabilities", a.handleCompetencyCapabilities)
 			r.Post("/competencies/{competencyID}/capabilities", a.handleCreateCapability)
