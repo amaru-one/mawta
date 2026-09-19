@@ -124,13 +124,17 @@ context.
 ```sh
 cat > /srv/yanai/.env <<'EOF'
 POSTGRES_PASSWORD=<generate a strong random password>
+YANAI_APP_PASSWORD=<generate a different strong random password>
 DOMAIN=yanai.example.com
 API_IMAGE=ghcr.io/<github-owner>/yanai-api:latest
 EOF
 chmod 600 /srv/yanai/.env
 ```
 
-Generate the Postgres password with e.g. `openssl rand -base64 24`.
+Generate both passwords with e.g. `openssl rand -base64 24`. `POSTGRES_PASSWORD`
+is the superuser the compose file's `ADMIN_DATABASE_URL`/`GOOSE_DBSTRING` use
+for migrations and account bootstrap; `YANAI_APP_PASSWORD` is the non-owner,
+RLS-scoped role the running `api` service connects as for every request.
 
 **[HUMAN]** If the GHCR package (`yanai-api`) is private, the server needs
 its own read access to pull it: either make the package public after the
@@ -165,6 +169,15 @@ docker compose --env-file .env -f deploy/docker-compose.prod.yml build api
 # in the compose file's api service, so this needs no extra arguments.
 docker compose --env-file .env -f deploy/docker-compose.prod.yml \
   run --rm --entrypoint /usr/local/bin/goose api up
+
+# One-time: yanai_app exists after the migration above (login, no password
+# yet) — give it the password DATABASE_URL already expects. .env isn't
+# sourced into this shell by --env-file (that only feeds compose's own
+# variable substitution), so source it here to expand $YANAI_APP_PASSWORD.
+set -a; source .env; set +a
+docker compose --env-file .env -f deploy/docker-compose.prod.yml \
+  exec -T postgres psql -U postgres -d yanai \
+  -c "alter role yanai_app login password '$YANAI_APP_PASSWORD';"
 
 # Create the tenant, then the first account (no seed — cmd/useradd hashes
 # a real password, which no SQL file can do). See cmd/useradd/SPEC.md.

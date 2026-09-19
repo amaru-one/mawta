@@ -94,9 +94,16 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	// This tool writes users/memberships directly (internal/db.WithSystemTx,
+	// no tenant set) to seed the very first account in a tenant — that needs
+	// real ownership/bypass privilege, which the app's own yanai_app
+	// (DatabaseURL) does not and should not have.
+	if cfg.AdminDatabaseURL == "" {
+		return errors.New("ADMIN_DATABASE_URL is required (a superuser/owner connection string; useradd cannot run as the app's own yanai_app role)")
+	}
 
 	ctx := context.Background()
-	database, err := db.Open(ctx, cfg.DatabaseURL)
+	database, err := db.Open(ctx, cfg.AdminDatabaseURL)
 	if err != nil {
 		return err
 	}

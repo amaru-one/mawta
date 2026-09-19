@@ -5,7 +5,7 @@ Go API powering the Yanai app's screens on top of the Postgres schema in `migrat
 - `cmd/api/` — the single binary entrypoint (see its SPEC.md).
 - `cmd/useradd/` — creates or resets an account; the only way to a first login now `seed/` is gone (see its SPEC.md).
 - `internal/` — packages: `auth`, `config`, `db`, `domain`, `grading`, `httpapi`, `media`, `repo`, `worker` (each with its own SPEC.md).
-- `migrations/` — the schema as goose migrations: `00001_initial_schema.sql` (the baseline) + `00002_auth.sql` (real authentication) (see its SPEC.md). Append-only: new schema work is always a new numbered file, never a rewrite or renumbering of an existing one.
+- `migrations/` — the schema as one goose migration, `00001_initial_schema.sql` (see its SPEC.md).
 - `docs/` — local Postgres setup (see its SPEC.md).
 - `Dockerfile` — production image build (distroless, ships `api`, `useradd`, goose + migrations).
 - `README.md` — quick start, auth, route list.
@@ -19,7 +19,7 @@ Consumes `DATABASE_URL` (Postgres 16 + pgvector) and env config (see `internal/c
 
 ## Conventions & Constraints
 - All SQL is hand-written in `internal/repo` and handlers; no ORM or code generation.
-- **Evaluation is por criterios, not weighted.** RVM 094-2020 (mod. 048-2024) determines achievement per competencia from the teacher's judgement of evidence against the criterios de evaluación they wrote. The official record is `competency_term_levels`, written only by a teacher's explicit action and derived from nothing. Marks on quizzes and exams are evidence; they never feed a final grade arithmetically.
+- **Evaluation is por criterios, not weighted.** RVM 094-2020 (mod. 048-2024) determines achievement per competencia from the teacher's judgement of evidence against the criterios de evaluación they wrote, each anchored to a capacidad of the competencia. The official record is `competency_term_levels`, written only by a teacher's explicit action and derived from nothing. A piece of evidence carries a `value_scale` of `numeric` or `rubric`: a numeric one gets an overall mark plus, optionally, per-criterio marks in `criterion_scores`; a rubric one is valued only through `criterion_scores` and never counts toward the school's internal average. None of these marks feed a final grade arithmetically.
 - `internal/grading` still computes a weighted grade, but only as the school's **optional internal system** (D.S. 009-2006-ED art. 37.4.f) — clearly labelled as such in the UI and walled off from the competency record. It is pure and SQL-free.
 - Nothing predictive: no projections, no risk flags, no situación-final projection. The app records what teachers assert.
 - Every tenant-scoped query runs under forced RLS via `db.WithTenantTx`; `WithSystemTx` (RLS bypass) is reserved for cross-tenant maintenance.

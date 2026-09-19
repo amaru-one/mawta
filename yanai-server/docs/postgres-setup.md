@@ -26,45 +26,56 @@ Wait until it accepts connections:
 docker exec yanai-pg pg_isready -U postgres
 ```
 
-## Connection string
+## Connection strings
 
-```
-postgres://postgres:yanai@localhost:55432/yanai?sslmode=disable
-```
-
-Export it for goose and the app:
+Two roles, two purposes. `ADMIN_DATABASE_URL` connects as the `postgres`
+superuser: it owns every table, so it's what runs migrations and what
+`cmd/useradd` uses to seed the very first account in an empty tenant (see
+`internal/db.WithSystemTx`). `DATABASE_URL` connects as the non-owner
+`yanai_app` role (created by migration `00001`): it's what `cmd/api` runs as
+for every real request, RLS-scoped to whatever tenant the request resolves to.
 
 ```sh
-export DATABASE_URL='postgres://postgres:yanai@localhost:55432/yanai?sslmode=disable'
+export ADMIN_DATABASE_URL='postgres://postgres:yanai@localhost:55432/yanai?sslmode=disable'
+export DATABASE_URL='postgres://yanai_app:yanai_app@localhost:55432/yanai?sslmode=disable'
 ```
 
 ## Run the migrations
 
 ```sh
-goose -dir migrations postgres "$DATABASE_URL" up
+goose -dir migrations postgres "$ADMIN_DATABASE_URL" up
 ```
 
 Roll back / re-apply:
 
 ```sh
-goose -dir migrations postgres "$DATABASE_URL" down   # one migration
-goose -dir migrations postgres "$DATABASE_URL" reset  # all the way down
+goose -dir migrations postgres "$ADMIN_DATABASE_URL" down   # one migration
+goose -dir migrations postgres "$ADMIN_DATABASE_URL" reset  # all the way down
+```
+
+`00001` creates `yanai_app` with `login` but no password — it needs one
+before `DATABASE_URL` above can connect as it:
+
+```sh
+docker exec yanai-pg psql -U postgres -d yanai -c "alter role yanai_app login password 'yanai_app';"
 ```
 
 ## Connecting as the application
 
-RLS is **forced** on every tenant table, so the app must connect as the
-non-owner role `yanai_app` (created by migration `00001`) and set the tenant
-per transaction:
+RLS is **forced** on every tenant table. `cmd/api`'s own pool connects
+directly as the non-owner role `yanai_app` (`DATABASE_URL`); `internal/db`'s
+`WithTenantTx`/`WithAuthTx` still set the tenant per transaction on top of
+that:
 
 ```sql
-set local role yanai_app;
 set local app.tenant_id = '<tenant uuid>';
 set local app.actor_id  = '<user uuid>';
 ```
 
 Queries without `app.tenant_id` set return **zero rows** — that's the isolation
-working, not a bug. This applies to psql sessions and backfill scripts too.
+working, not a bug. This applies to psql sessions and backfill scripts too;
+from a `psql` session connected as `postgres`, reach the same RLS scope with
+`set role yanai_app;` first.
 
 There is no seed any more. Create a tenant row by hand (or with a script of
 your own), then create the first account with `cmd/useradd` — it hashes a
@@ -146,14 +157,15 @@ this connects to the default `postgres` maintenance database instead.
 Then re-apply the schema and recreate your account (see above):
 
 ```sh
-goose -dir migrations postgres "$DATABASE_URL" up
+goose -dir migrations postgres "$ADMIN_DATABASE_URL" up
 go run ./cmd/useradd -tenant '<tenant-uuid>' -username jquispe -password '...' ...
 ```
 
-`yanai_app` is a **cluster-wide** role, so it outlives the database it was
-created for. That's fine: migration `00001` creates it only `if not exists`
-and re-grants its privileges on every `up`, so re-migrating a freshly created
-database picks it back up cleanly.
+`yanai_app` is a **cluster-wide** role, so both it and its password outlive
+the database they were created for. That's fine: migration `00001` creates
+the role only `if not exists` and re-grants its privileges on every `up`, so
+re-migrating a freshly created database picks it back up cleanly — no need to
+set the password again.
 
 ### Rebuild the container from scratch
 
@@ -167,7 +179,8 @@ docker volume rm yanai-pgdata
 docker run -d --name yanai-pg -e POSTGRES_PASSWORD=yanai -e POSTGRES_DB=yanai \
   -p 55432:5432 -v yanai-pgdata:/var/lib/postgresql/data pgvector/pgvector:pg16
 docker exec yanai-pg pg_isready -U postgres
-goose -dir migrations postgres "$DATABASE_URL" up
+goose -dir migrations postgres "$ADMIN_DATABASE_URL" up
+docker exec yanai-pg psql -U postgres -d yanai -c "alter role yanai_app login password 'yanai_app';"
 go run ./cmd/useradd -tenant '<tenant-uuid>' -username jquispe -password '...' ...
 ```
 

@@ -12,7 +12,14 @@ import (
 )
 
 type Config struct {
-	DatabaseURL       string
+	DatabaseURL string
+	// AdminDatabaseURL connects as a role with real ownership/DDL rights
+	// (schema migrations) or the pre-tenant bypass cmd/useradd needs to seed
+	// the very first users/memberships row (see internal/db.WithSystemTx).
+	// DatabaseURL itself connects as the non-owner yanai_app role — enough
+	// for cmd/api, never enough for either of those. Optional here: only
+	// goose and cmd/useradd need it, cmd/api never reads it.
+	AdminDatabaseURL  string
 	HTTPAddr          string
 	WorkerEnabled     bool
 	WorkerConcurrency int
@@ -38,6 +45,7 @@ func Load() (Config, error) {
 
 	cfg := Config{
 		DatabaseURL:       getenv("DATABASE_URL", ""),
+		AdminDatabaseURL:  getenv("ADMIN_DATABASE_URL", ""),
 		HTTPAddr:          getenv("HTTP_ADDR", ":8080"),
 		WorkerEnabled:     getbool("WORKER_ENABLED", true),
 		WorkerConcurrency: getint("WORKER_CONCURRENCY", 2),

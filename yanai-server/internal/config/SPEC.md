@@ -2,7 +2,7 @@
 Loads runtime configuration from the environment (plus `.env` in dev via godotenv).
 
 ## Contents
-- `config.go` — `Config` struct and `Load()`, with helpers `getenv`/`getbool`/`getint`/`getdur`/`splitcsv`. Keys include `DATABASE_URL`, `HTTP_ADDR`, `LOG_LEVEL`, `CORS_ORIGINS`, `STORAGE_DIR`, `WORKER_ENABLED` (default true), `WORKER_CONCURRENCY` (default 2), `WORKER_QUEUE` (default "default"), `OPENAI_API_KEY` (default `""`), `OPENAI_TRANSCRIBE_MODEL` (default `"gpt-4o-mini-transcribe"`), plus the session/auth keys below.
+- `config.go` — `Config` struct and `Load()`, with helpers `getenv`/`getbool`/`getint`/`getdur`/`splitcsv`. Keys include `DATABASE_URL` (required; the app's own connection, as the non-owner `yanai_app` role), `ADMIN_DATABASE_URL` (optional here — a connection with real ownership/DDL rights or the pre-tenant bypass `cmd/useradd` needs; `cmd/api` never reads it, `cmd/useradd` requires it and fails fast if it's empty), `HTTP_ADDR`, `LOG_LEVEL`, `CORS_ORIGINS`, `STORAGE_DIR`, `WORKER_ENABLED` (default true), `WORKER_CONCURRENCY` (default 2), `WORKER_QUEUE` (default "default"), `OPENAI_API_KEY` (default `""`), `OPENAI_TRANSCRIBE_MODEL` (default `"gpt-4o-mini-transcribe"`), plus the session/auth keys below.
 
 ### Session/auth keys (added for real authentication)
 | Key | Default | Note |

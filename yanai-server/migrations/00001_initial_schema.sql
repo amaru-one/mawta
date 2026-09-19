@@ -27,7 +27,7 @@ comment on type timerange is 'Intervalo de hora local dentro de un día de la se
 do $$
 begin
   if not exists (select 1 from pg_roles where rolname = 'yanai_app') then
-    create role yanai_app nologin;
+    create role yanai_app login;
   end if;
 end
 $$;

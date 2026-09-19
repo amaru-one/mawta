@@ -29,7 +29,14 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: &db_url postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/yanai?sslmode=disable
+      # The api process itself connects as the non-owner yanai_app role —
+      # enough for every request, scoped by RLS. ADMIN_DATABASE_URL connects
+      # as the postgres superuser: unused by the running api process, but
+      # needed when this same image runs as `--entrypoint useradd` (it seeds
+      # the first users/memberships row in an empty tenant, which yanai_app
+      # cannot do) — same reason GOOSE_DBSTRING is defined here too, below.
+      DATABASE_URL: postgres://yanai_app:${YANAI_APP_PASSWORD:?set YANAI_APP_PASSWORD in .env}@postgres:5432/yanai?sslmode=disable
+      ADMIN_DATABASE_URL: &admin_db_url postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/yanai?sslmode=disable
       HTTP_ADDR: ':8080'
       WORKER_ENABLED: 'true'
       WORKER_CONCURRENCY: '2'
@@ -40,8 +47,9 @@ services:
       # Lets `docker compose run --rm --entrypoint goose api up` migrate with
       # zero CLI args — no shell needed to expand a $DATABASE_URL argument
       # over SSH, and the distroless image has no shell to do it anyway.
+      # Migrations need real ownership, so this reuses the admin connection.
       GOOSE_DRIVER: postgres
-      GOOSE_DBSTRING: *db_url
+      GOOSE_DBSTRING: *admin_db_url
       GOOSE_MIGRATION_DIR: /app/migrations
     volumes:
       - /srv/yanai/audio:/data/audio

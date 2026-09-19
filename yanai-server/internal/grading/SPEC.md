@@ -12,7 +12,7 @@ Called only by `internal/worker/handlers/recompute.go`, which loads inputs from 
 ## Conventions & Constraints
 - Keep this package pure and deterministic — no SQL, no context/tx, no time.Now. All persistence stays in the worker handler.
 - Policy semantics (rounding mode, absent_counts_as, retake_policy, min_evaluated_weight_for_grade) must match `grading_scheme_versions` column semantics in `00001_initial_schema.sql`.
-- No projections. `Result` deliberately carries no "range at term close": the norm has no notion of a forecast grade, and the columns that stored one were dropped in `00003`.
+- No projections. `Result` deliberately carries no "range at term close": the norm has no notion of a forecast grade.
 - Nothing here may write, suggest, or imply a nivel de logro. Keep the weighted result and the official record strictly separate.
 
 ## Open Questions

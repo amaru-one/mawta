@@ -76,14 +76,17 @@ func (d *DB) WithTenantTx(ctx context.Context, tc TenantCtx, fn func(tx pgx.Tx) 
 }
 
 // WithSystemTx opens a transaction as the pool's own connection role, with
-// no role drop and no tenant GUCs set. This does NOT bypass RLS on any table
-// that used app.enable_tenant_rls: FORCE ROW LEVEL SECURITY binds the table
-// owner too, so it only reaches tables that carry no policy at all (jobs is
-// the only one). Whatever cross-tenant power it does have today is an
-// artifact of the pool's connection role (see internal/db/SPEC.md) — never
-// rely on that, and never use this for request data; the worker's dispatch
-// of a nil-tenant job is its only legitimate caller. For a pre-tenant lookup
-// on request data, use WithAuthTx instead.
+// no role drop and no tenant GUCs set. What it can actually do depends
+// entirely on that role. On jobs — which carries no RLS policy at all — this
+// is safe under any connecting role, and the worker's dispatch of a
+// nil-tenant job relies on exactly that. On every FORCE ROW LEVEL SECURITY
+// table (which is every tenant-scoped table), it needs a connection that
+// genuinely bypasses row security — a superuser or an owner without FORCE,
+// neither of which yanai_app is. cmd/useradd is the other real caller, and it
+// depends on precisely that bypass to seed the first users/memberships row
+// in an empty tenant: it opens its pool from ADMIN_DATABASE_URL, never from
+// the app's own DatabaseURL. Never use this for request data; for a
+// pre-tenant lookup there, use WithAuthTx instead.
 func (d *DB) WithSystemTx(ctx context.Context, fn func(tx pgx.Tx) error) error {
 	tx, err := d.Pool.Begin(ctx)
 	if err != nil {
