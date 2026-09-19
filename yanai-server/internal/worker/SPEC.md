@@ -5,7 +5,7 @@ The in-process background job processor: a `SELECT ... FOR UPDATE SKIP LOCKED` c
 - `worker.go` — `Run` (spawns `WORKER_CONCURRENCY` poll loops), `Job`, `HandlerFunc`, claim/dispatch/success/failure bookkeeping (backoff `min(attempts^4, 3600)`s, error records appended to `jobs.errors`).
 - `registry.go` — `defaultRegistry(cfg config.Config)`: the only place a job kind is wired to its handler; adapts `handlers` plain-argument functions to `HandlerFunc`. Also the one place a handler's external dependencies (today: `internal/stt.Client`, built from `cfg`) are constructed — once, at registry-assembly time, not per job.
 - `handlers/` — one file per job kind (see its SPEC.md).
-- `CLAUDE.md` — deep operational reference for this package: lifecycle, transactions/RLS, how to add a job kind. Read it alongside this spec.
+
 
 ## Inputs / Outputs
 Inputs: rows in `jobs` (enqueued by `repo.EnqueueJob` — from `httpapi` score writes for `grade.recompute`, from voice-note creation for `voice_note.transcribe`). Outputs: `computed_grades` + `computed_grade_components` for the former; `voice_notes.transcript`/`.transcription_status` for the latter; job rows finalized as completed/retryable/discarded either way.
@@ -19,7 +19,6 @@ Inputs: rows in `jobs` (enqueued by `repo.EnqueueJob` — from `httpapi` score w
 - **No job may write or suggest a nivel de logro.** Asserting one is a teacher's act, and the worker has no path to `competency_term_levels`.
 - No lease reaper: a job whose worker dies stays `running`; diagnose via `attempted_by`/`attempted_at`.
 - **A handler returns `nil` for "processed, nothing more to do", not just for "succeeded."** `voice_note.transcribe` returns `nil` (job `completed`) on a permanent transcription failure (bad audio, no API key) after recording that outcome in the domain row (`transcription_status = 'failed'`) — returning an error there would burn up to 20 retries, each a real (possibly billable) call to a provider, against something retrying can never fix. An error is reserved for conditions retrying might actually resolve (network blip, rate limit, 5xx).
-- New job kinds: constant in `domain/consts.go` → handler file → `defaultRegistry()` → enqueue with a coalescing unique key (see CLAUDE.md checklist).
 
 ## Open Questions
 - None.

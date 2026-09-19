@@ -18,7 +18,7 @@ type transcribePayload struct {
 
 // VoiceNoteTranscribe returns a handler bound to one *stt.Client, built once
 // when the registry is assembled rather than per job — this is the first job
-// kind that needs an external dependency; see internal/worker/CLAUDE.md.
+// kind that needs an external dependency;
 func VoiceNoteTranscribe(client *stt.Client) func(ctx context.Context, tx pgx.Tx, jobID int64, payload []byte) error {
 	return func(ctx context.Context, tx pgx.Tx, jobID int64, payload []byte) error {
 		var p transcribePayload

@@ -4,7 +4,7 @@ build
 .svelte-kit
 .output
 
-# Per-folder specs (CLAUDE.md's SPEC protocol). Prettier's markdown printer
+# Per-folder specs. Prettier's markdown printer
 # inserts a blank line after every heading, which is not how these are written,
 # so `bun prettier --write .` turned every SPEC.md in the tree into diff noise
 # on top of whatever change was actually being made.
