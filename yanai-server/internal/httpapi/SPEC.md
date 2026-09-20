@@ -17,6 +17,7 @@ The chi router, middleware, and HTTP handlers — one handler file per screen of
 - `notifications.go` — list, mark read, read-all.
 - `profile.go` — GET /profile.
 - `params.go` — path/query parsing helpers and error shorthand. `respond.go` — `writeJSON`/`writeError`/`writeAppError`.
+- `helpers_test.go` — shared test scaffolding: the real router over a test database, session minting, request helpers. `auth_test.go` — login and session resolution: that the two failure modes are indistinguishable, that an inactive account looks like a wrong password, that expired/revoked/unknown tokens all fail closed, and that logout revokes server-side rather than only in the browser. Both need a database (`internal/dbtest`; skip without one).
 
 ## Inputs / Outputs
 Inputs: HTTP requests carrying the `yanai_session` HttpOnly cookie (set by `POST /auth/login`). Outputs: JSON responses (snake_case, RFC3339 timestamps, empty lists as null); rows via `repo`; jobs via `repo.EnqueueJob` in the same transaction as the triggering write; audit events via `repo.LogEvent`/`LogStudentReads`.

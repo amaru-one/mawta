@@ -17,4 +17,4 @@ Input: MP3 audio bytes — always MP3, since `media.TranscodeToMP3` (`internal/m
 - No retry logic here — retries are the worker's job (backoff on the `jobs` row), not this package's. `Transcribe` makes exactly one HTTP call per invocation.
 
 ## Open Questions
-- None.
+- **The transcription success and transient-retry paths are untested, and cannot be tested as things stand.** `VoiceNoteTranscribe` takes a concrete `*stt.Client` whose endpoint is a package const, so no fake can be substituted and no `httptest.Server` can be pointed at. Only the permanent-failure branch is reachable offline — via an empty API key — and `internal/worker/handlers/handlers_db_test.go` covers that one. Keeping this package free of a provider interface was a deliberate decision; the cost of it is recorded here rather than left invisible. Narrowing the handler's parameter to a one-method interface would close the gap without changing this package's shape.
