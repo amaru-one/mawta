@@ -24,7 +24,9 @@ Consumes `DATABASE_URL` (Postgres 16 + pgvector) and env config (see `internal/c
 - Nothing predictive: no projections, no risk flags, no situación-final projection. The app records what teachers assert.
 - Every tenant-scoped query runs under forced RLS via `db.WithTenantTx`. `WithSystemTx` is not an RLS bypass: it opens a plain transaction on the pool's own connection and changes no role and no GUC, so its reach is a property of the caller's connection string, not of the function. From `cmd/api` (connected as `yanai_app`, a non-owner under `FORCE ROW LEVEL SECURITY`) it reaches only the tables with no policy at all, which is what the worker's nil-tenant job dispatch needs. From `cmd/useradd` (the superuser via `ADMIN_DATABASE_URL`) it also reaches `users` and `memberships`, which is what seeding the first account needs. Never for request data. See `internal/db/SPEC.md` for the full rule.
 - Append-only score/grade history: corrections supersede rows (`superseded_at`), never update in place.
-- No test suite exists yet; CI gate is `go vet` + `go build`.
+- CI gate is `go vet` + `go build` + `go test ./...` against a real Postgres 16.
+- **Tests come in two kinds, and the difference is the point.** `internal/grading` and `classifyConclusionRequirement` are pure and run anywhere. Everything else needs a database and goes through `internal/dbtest`, which creates a throwaway one, migrates it, seeds fixtures and drops it — gated on `YANAI_TEST_ADMIN_URL`, skipping loudly without it. CI always sets it, so a run that skipped the database cannot be merged. Database tests live beside the package they exercise, never in a separate integration tree.
+- **Never assert `err == nil` alone on an RLS-scoped read.** A query with no tenant set returns zero rows and succeeds, so a passing test proves nothing about isolation unless it counts rows.
 
 ## Open Questions
 - None.
