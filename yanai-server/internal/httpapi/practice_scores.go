@@ -51,6 +51,12 @@ func (a *API) handleCreatePracticeScore(w http.ResponseWriter, r *http.Request) 
 
 	var practiceScoreID uuid.UUID
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireClassAccess(r.Context(), tx, tc, classID); err != nil {
+			return err
+		}
+		if err := a.requireStudentOnRoster(r.Context(), tx, tc, classID, studentID); err != nil {
+			return err
+		}
 		term, err := repo.ResolveTerm(r.Context(), tx, termIDParam)
 		if err != nil {
 			return err
@@ -79,6 +85,9 @@ func (a *API) handleDeletePracticeScore(w http.ResponseWriter, r *http.Request) 
 	}
 
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requirePracticeScoreAccess(r.Context(), tx, tc, practiceScoreID); err != nil {
+			return err
+		}
 		studentID, classID, err := repo.DeletePracticeScore(r.Context(), tx, practiceScoreID)
 		if err != nil {
 			return err
