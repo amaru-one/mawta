@@ -1,8 +1,14 @@
 # Local Postgres setup
 
-The schema targets **PostgreSQL 16** and requires the `pgvector` extension
-(`voice_notes.embedding`), plus `btree_gist` and `pg_trgm` (bundled with core
-Postgres). The `pgvector/pgvector:pg16` image ships all three.
+The schema targets **PostgreSQL 16** and requires `btree_gist` and `pg_trgm`,
+both bundled with core Postgres. A plain `postgres:16` image is enough.
+
+The commands below use `pgvector/pgvector:pg16`, which is also what
+`deploy/docker-compose.prod.yml` runs, so a local container matches production
+exactly. pgvector itself is **not** required and is not used: there is no
+`vector` extension and no embedding column anywhere in the schema. An earlier
+version of this page said `voice_notes.embedding` needed it; that column does
+not exist.
 
 ## Start the container
 
@@ -81,8 +87,14 @@ There is no seed any more. Create a tenant row by hand (or with a script of
 your own), then create the first account with `cmd/useradd` — it hashes a
 real password, so it has to be Go rather than a SQL file:
 
+Create the tenant through **`ADMIN_DATABASE_URL`**, not `DATABASE_URL`:
+`tenants` is FORCE RLS with `with check (id = app.current_tenant_id())`, and
+there is no tenant set yet, so the insert as `yanai_app` is rejected. (This
+page previously showed `$DATABASE_URL` here, which cannot work;
+`DEPLOY.md` has it right.)
+
 ```sh
-psql "$DATABASE_URL" -c "insert into tenants (name) values ('I.E. Cristo Rey') returning id;"
+psql "$ADMIN_DATABASE_URL" -c "insert into tenants (name) values ('I.E. Cristo Rey') returning id;"
 go run ./cmd/useradd -tenant '<tenant-uuid-from-above>' -username jquispe \
   -email janice.quispe@cristorey.edu.pe -given-name Janice -family-name Quispe \
   -role teacher -password 'a real password, 10+ chars'

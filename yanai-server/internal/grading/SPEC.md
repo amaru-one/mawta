@@ -5,6 +5,7 @@ Pure grade-computation math for `grade.recompute`: turns a student's attempts + 
 
 ## Contents
 - `compute.go` — input types (`Attempt`, `AssessmentInput`, `ComponentWeight`, `Policy`), outputs (`ComponentResult`, `Result` incl. `BelowMinEvaluated`, counted/dropped/excused score ids), `resolveAssessment` (per-assessment attempt resolution: retake policy, caps, absent handling), `Compute` (weighting, drop-lowest-N, aggregation, evaluated-weight ratio), and `Round` (rounding modes/decimals).
+- `compute_test.go` — table-driven tests, no database and no build tag: this package's purity is what makes them runnable anywhere, so a change that needs I/O here breaks them by design. Covers the four retake policies (including `none` falling back when attempt 1 is absent, and `capped` clamping retakes only), `absent_counts_as`, graded rows with no usable value being dropped rather than counted as zero, the five aggregations, `drop_lowest_n` clamping to keep at least one, required-vs-optional ungraded components, `BelowMinEvaluated`, and every rounding mode.
 
 ## Inputs / Outputs
 Called only by `internal/worker/handlers/recompute.go`, which loads inputs from SQL and persists the `Result` into `computed_grades`.
@@ -14,6 +15,8 @@ Called only by `internal/worker/handlers/recompute.go`, which loads inputs from 
 - Policy semantics (rounding mode, absent_counts_as, retake_policy, min_evaluated_weight_for_grade) must match `grading_scheme_versions` column semantics in `00001_initial_schema.sql`.
 - No projections. `Result` deliberately carries no "range at term close": the norm has no notion of a forecast grade.
 - Nothing here may write, suggest, or imply a nivel de logro. Keep the weighted result and the official record strictly separate.
+- `Compute` divides by **evaluated** weight, not total: a term that is only half marked reports the grade earned so far, not a grade halved by the marking that has not happened yet. `BelowMinEvaluated` is how a caller learns the term is thinly evidenced; it is a flag, never a penalty applied to the number.
+- `Round`'s `half_up` is `floor(x+0.5)`, which rounds negatives towards positive infinity rather than away from zero. Grades are never negative so nothing depends on it, but it is pinned by a test — change it deliberately or not at all.
 
 ## Open Questions
 - None.
