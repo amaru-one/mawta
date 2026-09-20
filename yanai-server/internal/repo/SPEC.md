@@ -18,6 +18,7 @@ All hand-written SQL behind the HTTP handlers and job enqueueing: one file per d
 - `events.go` — `LogEvent`, `LogStudentReads` (mandatory for reads returning identifiable students).
 - `jobs.go` — `EnqueueJob` (queue hardcoded 'default'; dedupes on `(kind, unique_key)` while available/retryable/scheduled/running).
 - `competencies_classify_test.go` — the truth table for `classifyConclusionRequirement`, in-package because the function is unexported. Needs no database: it is the one pure function here. Pins the precedence (inclusión > Ciclo I > level), that a null level is "no desarrollada" and obliges nothing, that `consecutiveC` is consulted only for C, and that every value the function can return is one `descriptive_conclusions.requirement`'s CHECK will accept.
+- `grades_db_test.go`, `competencies_db_test.go` — need a database (`internal/dbtest`; skip without one). They cover the contracts in the addendum below that no constraint enforces: the supersede protocol and its 409, the value rules on criterion scores, that `AssertCompetencyLevel` suggests nothing, that an unjudged competencia reads null rather than C, the date-scoped roster, and `EnqueueJob`'s dedup. Each test runs inside a transaction that is rolled back, so they are order-independent and leave the fixture pristine.
 
 ## Inputs / Outputs
 Inputs: `pgx.Tx` from `db.WithTenantTx` (or worker transactions) — RLS scopes every query. Outputs: response structs serialized by `httpapi`, plus rows in `jobs` and `events`.

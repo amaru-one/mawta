@@ -47,9 +47,9 @@ func TestWithTenantTxSetsRoleAndGUCs(t *testing.T) {
 	err := env.App.WithTenantTx(ctx, tc, func(tx pgx.Tx) error {
 		return tx.QueryRow(ctx, `
 			select current_user,
-			       current_setting('app.tenant_id', true),
-			       current_setting('app.actor_id', true),
-			       current_setting('app.request_id', true)`).Scan(&role, &tenant, &actor, &request)
+			       coalesce(current_setting('app.tenant_id', true), ''),
+			       coalesce(current_setting('app.actor_id', true), ''),
+			       coalesce(current_setting('app.request_id', true), '')`).Scan(&role, &tenant, &actor, &request)
 	})
 	if err != nil {
 		t.Fatalf("WithTenantTx: %v", err)
@@ -83,7 +83,7 @@ func TestTenantContextDoesNotOutliveItsTransaction(t *testing.T) {
 	// Exhaust the pool's connections so this is not merely a different one.
 	for i := 0; i < 5; i++ {
 		var tenant string
-		if err := env.App.Pool.QueryRow(ctx, `select current_setting('app.tenant_id', true)`).Scan(&tenant); err != nil {
+		if err := env.App.Pool.QueryRow(ctx, `select coalesce(current_setting('app.tenant_id', true), '')`).Scan(&tenant); err != nil {
 			t.Fatalf("read app.tenant_id on the raw pool: %v", err)
 		}
 		if tenant != "" {
@@ -91,6 +91,12 @@ func TestTenantContextDoesNotOutliveItsTransaction(t *testing.T) {
 		}
 	}
 }
+
+// Every read of a GUC here goes through coalesce(..., ''). current_setting
+// with missing_ok returns NULL on a connection that has never set the setting
+// and '' on one that has, so without the coalesce these assertions depend on
+// which pooled connection they land on and on what ran before them — which is
+// exactly the flakiness `go test -shuffle=on` exists to surface.
 
 // A system/job actor has no user. The GUC must be empty rather than the zero
 // UUID, because app.current_actor_id() does nullif(…, ”)::uuid and would
@@ -104,7 +110,7 @@ func TestZeroActorIDBecomesAnEmptyGUC(t *testing.T) {
 	var resolved *uuid.UUID
 	err := env.App.WithTenantTx(ctx, tc, func(tx pgx.Tx) error {
 		return tx.QueryRow(ctx,
-			`select current_setting('app.actor_id', true), app.current_actor_id()`).Scan(&actor, &resolved)
+			`select coalesce(current_setting('app.actor_id', true), ''), app.current_actor_id()`).Scan(&actor, &resolved)
 	})
 	if err != nil {
 		t.Fatalf("WithTenantTx: %v", err)
@@ -125,8 +131,8 @@ func TestWithAuthTxSetsAuthLookupAndNoTenant(t *testing.T) {
 	err := env.App.WithAuthTx(ctx, "req-auth", func(tx pgx.Tx) error {
 		return tx.QueryRow(ctx, `
 			select current_user,
-			       current_setting('app.auth_lookup', true),
-			       current_setting('app.tenant_id', true)`).Scan(&role, &lookup, &tenant)
+			       coalesce(current_setting('app.auth_lookup', true), ''),
+			       coalesce(current_setting('app.tenant_id', true), '')`).Scan(&role, &lookup, &tenant)
 	})
 	if err != nil {
 		t.Fatalf("WithAuthTx: %v", err)
@@ -152,9 +158,9 @@ func TestWithSystemTxSetsNothing(t *testing.T) {
 	var tenant, actor, lookup string
 	err := env.App.WithSystemTx(ctx, func(tx pgx.Tx) error {
 		return tx.QueryRow(ctx, `
-			select current_setting('app.tenant_id', true),
-			       current_setting('app.actor_id', true),
-			       current_setting('app.auth_lookup', true)`).Scan(&tenant, &actor, &lookup)
+			select coalesce(current_setting('app.tenant_id', true), ''),
+			       coalesce(current_setting('app.actor_id', true), ''),
+			       coalesce(current_setting('app.auth_lookup', true), '')`).Scan(&tenant, &actor, &lookup)
 	})
 	if err != nil {
 		t.Fatalf("WithSystemTx: %v", err)
