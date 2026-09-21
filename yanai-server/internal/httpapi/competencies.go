@@ -35,6 +35,12 @@ func (a *API) handleStudentCompetencies(w http.ResponseWriter, r *http.Request) 
 
 	var rows []repo.CompetencyLevelRow
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireClassAccess(r.Context(), tx, tc, classID); err != nil {
+			return err
+		}
+		if err := a.requireStudentOnRoster(r.Context(), tx, tc, classID, studentID); err != nil {
+			return err
+		}
 		term, err := repo.ResolveTerm(r.Context(), tx, termIDParam)
 		if err != nil {
 			return err
@@ -103,6 +109,12 @@ func (a *API) handleAssertCompetencyLevel(w http.ResponseWriter, r *http.Request
 
 	var levelID uuid.UUID
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireClassAccess(r.Context(), tx, tc, classID); err != nil {
+			return err
+		}
+		if err := a.requireStudentOnRoster(r.Context(), tx, tc, classID, studentID); err != nil {
+			return err
+		}
 		term, err := repo.ResolveTerm(r.Context(), tx, termIDParam)
 		if err != nil {
 			return err
@@ -178,6 +190,12 @@ func (a *API) handleUpsertConclusion(w http.ResponseWriter, r *http.Request) {
 
 	var id uuid.UUID
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireClassAccess(r.Context(), tx, tc, classID); err != nil {
+			return err
+		}
+		if err := a.requireStudentOnRoster(r.Context(), tx, tc, classID, studentID); err != nil {
+			return err
+		}
 		term, err := repo.ResolveTerm(r.Context(), tx, termIDParam)
 		if err != nil {
 			return err

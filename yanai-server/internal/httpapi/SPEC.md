@@ -16,14 +16,20 @@ The chi router, middleware, and HTTP handlers — one handler file per screen of
 - `practice_scores.go` — POST create / POST delete unofficial practice scores.
 - `notifications.go` — list, mark read, read-all.
 - `profile.go` — GET /profile.
+- `authz.go` — per-resource authorization: `requireClassAccess`, `requireSubjectAccess`, `requireStudentOnRoster`, and the `require*Access` resolvers that find a class from a session, voice-note, assessment, score, criterion-score or practice-score id. See the Conventions entry below.
 - `params.go` — path/query parsing helpers and error shorthand. `respond.go` — `writeJSON`/`writeError`/`writeAppError`.
 - `helpers_test.go` — shared test scaffolding: the real router over a test database, session minting, request helpers. `auth_test.go` — login and session resolution: that the two failure modes are indistinguishable, that an inactive account looks like a wrong password, that expired/revoked/unknown tokens all fail closed, and that logout revokes server-side rather than only in the browser. Both need a database (`internal/dbtest`; skip without one).
+- `authz_test.go` — the assigned / same-school-unassigned / other-tenant matrix over every class-scoped route. Needs a database (`internal/dbtest`; skips without one).
 
 ## Inputs / Outputs
 Inputs: HTTP requests carrying the `yanai_session` HttpOnly cookie (set by `POST /auth/login`). Outputs: JSON responses (snake_case, RFC3339 timestamps, empty lists as null); rows via `repo`; jobs via `repo.EnqueueJob` in the same transaction as the triggering write; audit events via `repo.LogEvent`/`LogStudentReads`.
 
 ## Conventions & Constraints
 - One tenant transaction per request via `a.db.WithTenantTx`; enqueue + event-log inside it so they're atomic with the write.
+- **Every class-scoped handler calls a guard from `authz.go` as the first statement inside its tenant transaction.** `sessionAuth` proves a live session and an active teacher membership *in some school*; RLS then scopes queries to that school. Neither says which classes the teacher teaches — no RLS policy references a teacher, and `WithTenantTx` sets no GUC one could read — so without these guards any teacher could read any colleague's roster and evidence, fetch any voice note's audio, discard a colleague's recording, and assert official niveles de logro for classes they have never taught. The rule is: **a teacher reaches a class only while holding a live `class_teachers` row for it**, reads and writes alike, any assignment role (`titular`/`auxiliar`/`practicante`/`reemplazo`), with `starts_on..ends_on` covering today in the tenant's timezone.
+  Two other axes ride along: `requireStudentOnRoster`, because being assigned to a class is not authorization to name any student id in the URL; and `requireSubjectAccess` for the curriculum-authoring routes, which name a competencia rather than a class — a transversal competencia has no área and is open to the whole school, which is what transversal means.
+  The only routes with no guard are the ones whose query key *is* the teacher (`/me`, `/home`, `/profile`, `/notifications`) and the public ones. Adding a class-scoped route without a guard reopens the hole; `authz_test.go` is the matrix that catches it.
+- **A wrong-tenant id answers 404, not 403.** RLS hides the row before authorization is reached, the resolver gets `pgx.ErrNoRows`, and the normal mapping turns it into a not-found. That is the right answer: whether a row exists in another school is not something this school gets to learn.
 - Every response returning identifiable student rows must log `student.read` events (`repo.LogStudentReads`).
 - Route changes cascade to the UI's `src/lib/api/endpoints/`.
 - Handlers contain no SQL — queries belong in `internal/repo`.
@@ -36,6 +42,7 @@ Inputs: HTTP requests carrying the `yanai_session` HttpOnly cookie (set by `POST
 - **Failed logins are `slog`-only, not `events`.** `events` is tenant-RLS'd, and a failed login for an unknown username has no tenant to log under. `slog.Info` carries the username, request id and reason, never the password. A successful login writes `auth.login` to `events` inside the tenant transaction, via `repo.LogEvent`, exactly like any other audited write.
 - **Session cookie is not rotated per request** — only minted on login. `+layout.svelte` fires `getMe()` and the notification poll concurrently; per-request rotation would have one invalidate the other's cookie and produce intermittent, hard-to-reproduce logouts.
 - **Two transactions per authenticated request**, up from one: `sessionAuth`'s `WithAuthTx` (resolve the session, throttled `TouchSession`) then a `WithTenantTx` (resolve the teacher, run the handler). This is the direct cost of the ordering problem — the tenant cannot be known before the session is — and is deliberate; see `internal/db/SPEC.md`.
+- Authorization error codes: `not_assigned_to_class`, `not_assigned_to_subject`, `student_not_in_class` (all 403).
 - Error codes introduced for auth: `missing_session`, `invalid_session`, `session_expired` (401, and each clears the cookie), `invalid_credentials`, `account_locked` (429), `role_not_enabled`, `no_membership`, `not_a_teacher_profile` (403). `not_a_member` (403) is the same condition the old `tenantAuth` checked, kept under its old name. Retired: `missing_tenant`, `missing_actor`.
 
 ## Open Questions

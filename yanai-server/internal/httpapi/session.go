@@ -30,6 +30,9 @@ func (a *API) handleSessionRoster(w http.ResponseWriter, r *http.Request) {
 
 	var resp repo.SessionRoster
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if _, err := a.requireSessionAccess(r.Context(), tx, tc, sessionID); err != nil {
+			return err
+		}
 		header, err := repo.GetSessionHeader(r.Context(), tx, sessionID)
 		if err != nil {
 			return err
@@ -80,6 +83,13 @@ func (a *API) handleAttendanceUpsert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		guardClassID, err := a.requireSessionAccess(r.Context(), tx, tc, sessionID)
+		if err != nil {
+			return err
+		}
+		if err := a.requireStudentOnRoster(r.Context(), tx, tc, guardClassID, studentID); err != nil {
+			return err
+		}
 		if err := repo.UpsertAttendance(r.Context(), tx, sessionID, studentID, tc.TeacherID, req.Status, req.MinutesLate, req.Note); err != nil {
 			return err
 		}
@@ -110,6 +120,9 @@ func (a *API) handleMarkAllPresent(w http.ResponseWriter, r *http.Request) {
 
 	var marked int
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if _, err := a.requireSessionAccess(r.Context(), tx, tc, sessionID); err != nil {
+			return err
+		}
 		classID, sessionDate, err := repo.GetSessionMeta(r.Context(), tx, sessionID)
 		if err != nil {
 			return err
@@ -231,6 +244,13 @@ func (a *API) handleCreateVoiceNote(w http.ResponseWriter, r *http.Request) {
 
 	var voiceNoteID uuid.UUID
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		guardClassID, err := a.requireSessionAccess(r.Context(), tx, tc, sessionID)
+		if err != nil {
+			return err
+		}
+		if err := a.requireStudentOnRoster(r.Context(), tx, tc, guardClassID, studentID); err != nil {
+			return err
+		}
 		classID, _, err := repo.GetSessionMeta(r.Context(), tx, sessionID)
 		if err != nil {
 			return err
@@ -263,6 +283,9 @@ func (a *API) handleVoiceNoteAudio(w http.ResponseWriter, r *http.Request) {
 
 	var file repo.VoiceNoteFile
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireVoiceNoteAccess(r.Context(), tx, tc, voiceNoteID); err != nil {
+			return err
+		}
 		var err error
 		file, err = repo.GetVoiceNoteFile(r.Context(), tx, voiceNoteID)
 		return err
@@ -306,6 +329,9 @@ func (a *API) handleVoiceNoteSave(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireVoiceNoteAccess(r.Context(), tx, tc, voiceNoteID); err != nil {
+			return err
+		}
 		if err := repo.VoiceNoteExists(r.Context(), tx, voiceNoteID); err != nil {
 			return err
 		}
@@ -328,6 +354,9 @@ func (a *API) handleVoiceNoteDiscard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireVoiceNoteAccess(r.Context(), tx, tc, voiceNoteID); err != nil {
+			return err
+		}
 		if err := repo.DeleteVoiceNote(r.Context(), tx, voiceNoteID); err != nil {
 			return err
 		}

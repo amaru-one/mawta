@@ -28,6 +28,12 @@ func (a *API) handleStudentGrades(w http.ResponseWriter, r *http.Request) {
 
 	var resp repo.StudentGradesResponse
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireClassAccess(r.Context(), tx, tc, classID); err != nil {
+			return err
+		}
+		if err := a.requireStudentOnRoster(r.Context(), tx, tc, classID, studentID); err != nil {
+			return err
+		}
 		term, err := repo.ResolveTerm(r.Context(), tx, termIDParam)
 		if err != nil {
 			return err
@@ -59,6 +65,9 @@ func (a *API) handleGradingComponents(w http.ResponseWriter, r *http.Request) {
 
 	var components []repo.GradingComponent
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireClassAccess(r.Context(), tx, tc, classID); err != nil {
+			return err
+		}
 		term, err := repo.ResolveTerm(r.Context(), tx, termIDParam)
 		if err != nil {
 			return err
@@ -171,6 +180,9 @@ func (a *API) handleCreateAssessment(w http.ResponseWriter, r *http.Request) {
 
 	var assessmentID uuid.UUID
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireClassAccess(r.Context(), tx, tc, classID); err != nil {
+			return err
+		}
 		term, err := repo.ResolveTerm(r.Context(), tx, termIDParam)
 		if err != nil {
 			return err
@@ -226,6 +238,9 @@ func (a *API) handleDeleteAssessment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireAssessmentAccess(r.Context(), tx, tc, assessmentID); err != nil {
+			return err
+		}
 		d, err := repo.DeleteAssessment(r.Context(), tx, assessmentID)
 		if err != nil {
 			return err
@@ -297,6 +312,9 @@ func (a *API) handleCreateScore(w http.ResponseWriter, r *http.Request) {
 
 	var scoreID uuid.UUID
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireAssessmentAccess(r.Context(), tx, tc, assessmentID); err != nil {
+			return err
+		}
 		var classID, termID uuid.UUID
 		var err error
 		scoreID, classID, termID, err = repo.CreateScore(r.Context(), tx, assessmentID, studentID, tc.TeacherID, req.Status, req.RawValue, req.LateDays)
@@ -337,6 +355,9 @@ func (a *API) handleCorrectScore(w http.ResponseWriter, r *http.Request) {
 
 	var newScoreID uuid.UUID
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireScoreAccess(r.Context(), tx, tc, scoreID); err != nil {
+			return err
+		}
 		var studentID, classID, termID uuid.UUID
 		var err error
 		newScoreID, studentID, classID, termID, err = repo.CorrectScore(r.Context(), tx, scoreID, tc.TeacherID, req.RawValue, req.Status, req.LateDays)
@@ -399,6 +420,9 @@ func (a *API) handleCreateCriterionScore(w http.ResponseWriter, r *http.Request)
 
 	var id uuid.UUID
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireAssessmentAccess(r.Context(), tx, tc, assessmentID); err != nil {
+			return err
+		}
 		var err error
 		id, err = repo.CreateCriterionScore(r.Context(), tx, assessmentID, criterionID, studentID, tc.TeacherID, req.RawValue, req.Level)
 		if err != nil {
@@ -436,6 +460,9 @@ func (a *API) handleCorrectCriterionScore(w http.ResponseWriter, r *http.Request
 
 	var newID uuid.UUID
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireCriterionScoreAccess(r.Context(), tx, tc, criterionScoreID); err != nil {
+			return err
+		}
 		var err error
 		newID, err = repo.CorrectCriterionScore(r.Context(), tx, criterionScoreID, tc.TeacherID, req.RawValue, req.Level)
 		if err != nil {

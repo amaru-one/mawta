@@ -53,6 +53,9 @@ func (a *API) handleClassStudents(w http.ResponseWriter, r *http.Request) {
 
 	var students []repo.ClassStudent
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireClassAccess(r.Context(), tx, tc, classID); err != nil {
+			return err
+		}
 		term, err := repo.ResolveTerm(r.Context(), tx, termIDParam)
 		if err != nil {
 			return err
@@ -107,6 +110,12 @@ func (a *API) handleStudentEvidence(w http.ResponseWriter, r *http.Request) {
 
 	var evidence []repo.EvaluationEntry
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireClassAccess(r.Context(), tx, tc, classID); err != nil {
+			return err
+		}
+		if err := a.requireStudentOnRoster(r.Context(), tx, tc, classID, studentID); err != nil {
+			return err
+		}
 		term, err := repo.ResolveTerm(r.Context(), tx, termIDParam)
 		if err != nil {
 			return err

@@ -30,6 +30,9 @@ func (a *API) handleClassCriteria(w http.ResponseWriter, r *http.Request) {
 	}
 	var rows []repo.CompetencyCriteriaRow
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireClassAccess(r.Context(), tx, tc, classID); err != nil {
+			return err
+		}
 		var err error
 		rows, err = repo.ListClassCriteria(r.Context(), tx, classID)
 		return err
@@ -78,6 +81,9 @@ func (a *API) handleCreateCriterion(w http.ResponseWriter, r *http.Request) {
 
 	var criterionID uuid.UUID
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireClassAccess(r.Context(), tx, tc, classID); err != nil {
+			return err
+		}
 		criterionID, err = repo.CreateCriterion(r.Context(), tx, classID, competencyID, capabilityID,
 			req.Code, req.Description)
 		if err != nil {
@@ -107,6 +113,9 @@ func (a *API) handleCompetencyCapabilities(w http.ResponseWriter, r *http.Reques
 	}
 	var rows []repo.CapabilityRow
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireCompetencyAccess(r.Context(), tx, tc, competencyID); err != nil {
+			return err
+		}
 		var err error
 		rows, err = repo.ListCompetencyCapabilities(r.Context(), tx, competencyID)
 		return err
@@ -139,6 +148,9 @@ func (a *API) handleCreateCapability(w http.ResponseWriter, r *http.Request) {
 
 	var capabilityID uuid.UUID
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireCompetencyAccess(r.Context(), tx, tc, competencyID); err != nil {
+			return err
+		}
 		capabilityID, err = repo.CreateCapability(r.Context(), tx, competencyID, req.Code, req.Name)
 		if err != nil {
 			return err
@@ -163,6 +175,9 @@ func (a *API) handleDeleteCriterion(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireCriterionAccess(r.Context(), tx, tc, criterionID); err != nil {
+			return err
+		}
 		if err := repo.DeleteCriterion(r.Context(), tx, criterionID); err != nil {
 			return err
 		}

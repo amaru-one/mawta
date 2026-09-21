@@ -20,6 +20,9 @@ func (a *API) handleClassDashboard(w http.ResponseWriter, r *http.Request) {
 
 	var dashboard repo.ClassDashboard
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireClassAccess(r.Context(), tx, tc, classID); err != nil {
+			return err
+		}
 		today, err := resolveDate(r, tx, tc, r.URL.Query().Get("date"))
 		if err != nil {
 			return err
@@ -46,6 +49,9 @@ func (a *API) handleSessionStart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if _, err := a.requireSessionAccess(r.Context(), tx, tc, sessionID); err != nil {
+			return err
+		}
 		ct, err := tx.Exec(r.Context(), `
 			update class_sessions
 			   set status = $1, actual_start_at = now(), started_by_id = $2
