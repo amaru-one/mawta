@@ -17,7 +17,7 @@ import (
 // which would otherwise cycle back through this registry.
 //
 // voice_note.transcribe is the first kind whose handler needs a dependency
-// beyond ctx/tx/payload (an *stt.Client) — it's built once here, not per
+// beyond ctx/tx/payload (an STT service) — it's built once here, not per
 // job, and closed over by the plain-argument function handlers.VoiceNoteTranscribe
 // returns.
 func defaultRegistry(cfg config.Config) map[string]HandlerFunc {

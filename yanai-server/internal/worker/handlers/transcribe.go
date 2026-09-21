@@ -12,14 +12,21 @@ import (
 	"yanai-server/internal/stt"
 )
 
+// Transcriber defines the interface for the STT service used by the handler.
+// This allows for testing with mocks while keeping the concrete implementation
+// in internal/stt without an abstraction layer.
+type Transcriber interface {
+	Transcribe(ctx context.Context, audioMP3 []byte) (string, error)
+}
+
 type transcribePayload struct {
 	VoiceNoteID uuid.UUID `json:"voice_note_id"`
 }
 
-// VoiceNoteTranscribe returns a handler bound to one *stt.Client, built once
+// VoiceNoteTranscribe returns a handler bound to one Transcriber, built once
 // when the registry is assembled rather than per job — this is the first job
 // kind that needs an external dependency;
-func VoiceNoteTranscribe(client *stt.Client) func(ctx context.Context, tx pgx.Tx, jobID int64, payload []byte) error {
+func VoiceNoteTranscribe(transcriber Transcriber) func(ctx context.Context, tx pgx.Tx, jobID int64, payload []byte) error {
 	return func(ctx context.Context, tx pgx.Tx, jobID int64, payload []byte) error {
 		var p transcribePayload
 		if err := json.Unmarshal(payload, &p); err != nil {
@@ -41,7 +48,7 @@ func VoiceNoteTranscribe(client *stt.Client) func(ctx context.Context, tx pgx.Tx
 			return repo.MarkVoiceNoteTranscriptionFailed(ctx, tx, p.VoiceNoteID)
 		}
 
-		text, err := client.Transcribe(ctx, file.Audio)
+		text, err := transcriber.Transcribe(ctx, file.Audio)
 		if err != nil {
 			if errors.Is(err, stt.ErrPermanent) {
 				return repo.MarkVoiceNoteTranscriptionFailed(ctx, tx, p.VoiceNoteID)
