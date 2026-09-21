@@ -3,8 +3,9 @@
 // raw JSON payload) rather than a worker.Job, so this package never needs
 // to import worker — avoiding an import cycle back through the registry.
 //
-// There is exactly one kind: grade.recompute, which maintains computed_grades
-// for the school's optional internal weighted system. The official record —
+// There are two kinds: grade.recompute, which maintains computed_grades
+// for the school's optional internal weighted system, and voice_note.transcribe,
+// which transcribes voice notes using an STT service. The official record —
 // the nivel de logro per competencia under RVM 094-2020 — is asserted by a
 // teacher through the HTTP API and is never produced by a job.
 package handlers

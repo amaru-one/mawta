@@ -3,6 +3,7 @@ package handlers_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -303,4 +304,106 @@ func TestVoiceNoteAndItsJobCommitTogether(t *testing.T) {
 	if notes != 0 || jobs != 0 {
 		t.Errorf("after a rolled-back transaction: %d voice note(s), %d job(s); want 0 and 0", notes, jobs)
 	}
+}
+
+// TestTranscriptionSuccess verifies that when the transcriber returns a successful
+// transcript, the handler saves it and marks the status as completed.
+func TestTranscriptionSuccess(t *testing.T) {
+	env := dbtest.Setup(t)
+
+	inTx(t, env, func(ctx context.Context, tx pgx.Tx) {
+		var voiceNoteID uuid.UUID
+		if err := tx.QueryRow(ctx, `
+			insert into voice_notes (tenant_id, session_id, student_id, class_id, teacher_id, duration_ms, audio, mime_type, byte_size)
+			values (app.current_tenant_id(), $1, $2, $3, $4, 5000, $5, 'audio/mpeg', 4)
+			returning id`,
+			env.Fx.SessionOne, env.Fx.Students[0], env.Fx.ClassMat5B, env.Fx.TeacherQuispe, []byte("fake")).Scan(&voiceNoteID); err != nil {
+			t.Fatalf("insert a voice note: %v", err)
+		}
+
+		// Mock transcriber that returns a successful transcript
+		mockTranscriber := &mockTranscriber{
+			transcript: "prueba de transcripción",
+			err:        nil,
+		}
+		transcribe := handlers.VoiceNoteTranscribe(mockTranscriber)
+		payload := []byte(fmt.Sprintf(`{"voice_note_id":%q}`, voiceNoteID))
+
+		if err := transcribe(ctx, tx, 1, payload); err != nil {
+			t.Fatalf("transcription success should not return an error: %v", err)
+		}
+
+		var status string
+		var transcript *string
+		if err := tx.QueryRow(ctx,
+			`select transcription_status, transcript from voice_notes where id = $1`, voiceNoteID).
+			Scan(&status, &transcript); err != nil {
+			t.Fatalf("read: %v", err)
+		}
+		if status != "completed" {
+			t.Errorf("transcription_status = %q, want completed", status)
+		}
+		if transcript == nil || *transcript != "prueba de transcripción" {
+			t.Errorf("transcript = %v, want 'prueba de transcripción'", transcript)
+		}
+	})
+}
+
+// TestTranscriptionTransientError verifies that when the transcriber returns a
+// transient error (not wrapping stt.ErrPermanent), the handler propagates the error
+// and does not mark the note as failed.
+func TestTranscriptionTransientError(t *testing.T) {
+	env := dbtest.Setup(t)
+
+	inTx(t, env, func(ctx context.Context, tx pgx.Tx) {
+		var voiceNoteID uuid.UUID
+		if err := tx.QueryRow(ctx, `
+			insert into voice_notes (tenant_id, session_id, student_id, class_id, teacher_id, duration_ms, audio, mime_type, byte_size)
+			values (app.current_tenant_id(), $1, $2, $3, $4, 5000, $5, 'audio/mpeg', 4)
+			returning id`,
+			env.Fx.SessionOne, env.Fx.Students[0], env.Fx.ClassMat5B, env.Fx.TeacherQuispe, []byte("fake")).Scan(&voiceNoteID); err != nil {
+			t.Fatalf("insert a voice note: %v", err)
+		}
+
+		// Mock transcriber that returns a transient error
+		expectedErr := errors.New("network timeout")
+		mockTranscriber := &mockTranscriber{
+			transcript: "",
+			err:        expectedErr,
+		}
+		transcribe := handlers.VoiceNoteTranscribe(mockTranscriber)
+		payload := []byte(fmt.Sprintf(`{"voice_note_id":%q}`, voiceNoteID))
+
+		err := transcribe(ctx, tx, 1, payload)
+		if err == nil {
+			t.Fatalf("transient error should be propagated")
+		}
+		if !errors.Is(err, expectedErr) {
+			t.Errorf("handler returned %v, want an error that wraps the transient error", err)
+		}
+
+		var status string
+		var transcript *string
+		if err := tx.QueryRow(ctx,
+			`select transcription_status, transcript from voice_notes where id = $1`, voiceNoteID).
+			Scan(&status, &transcript); err != nil {
+			t.Fatalf("read: %v", err)
+		}
+		if status != "pending" {
+			t.Errorf("transcription_status = %q, want pending (should not be marked as failed for transient error)", status)
+		}
+		if transcript != nil {
+			t.Errorf("transcript = %v, want null for transient error", transcript)
+		}
+	})
+}
+
+// mockTranscriber implements the Transcriber interface for testing purposes.
+type mockTranscriber struct {
+	transcript string
+	err        error
+}
+
+func (m *mockTranscriber) Transcribe(ctx context.Context, audioMP3 []byte) (string, error) {
+	return m.transcript, m.err
 }
