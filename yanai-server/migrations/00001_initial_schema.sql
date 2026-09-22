@@ -23,12 +23,21 @@ comment on type timerange is 'Intervalo de hora local dentro de un día de la se
 -- omite las políticas a menos que se establezca FORCE ROW LEVEL SECURITY, e incluso así
 -- los roles BYPASSRLS las ignoran. El servicio en Go debe conectarse como yanai_app.
 
+-- pg_roles es global al clúster, no a la base de datos: cuando varias bases se
+-- migran en paralelo (como hace dbtest, una base por test), el chequeo
+-- "if not exists" seguido de "create role" no es atómico entre conexiones y
+-- dos migraciones concurrentes pueden ver ambas "no existe" antes de que
+-- cualquiera cree el rol. Se atrapan duplicate_object y unique_violation en vez
+-- de comprobar antes: bajo esa carrera Postgres no siempre llega a detectar el
+-- nombre duplicado por catálogo (42710) antes de insertar — a veces el choque
+-- solo aparece como violación del índice único de pg_authid (23505).
 -- +goose StatementBegin
 do $$
 begin
-  if not exists (select 1 from pg_roles where rolname = 'yanai_app') then
-    create role yanai_app login;
-  end if;
+  create role yanai_app login;
+exception
+  when duplicate_object then null;
+  when unique_violation then null;
 end
 $$;
 -- +goose StatementEnd
