@@ -1,18 +1,18 @@
 ## Purpose
-The only unguarded screen: username + password, submitted to `POST /auth/login`. Everything else in the app requires the session cookie this screen obtains.
+The unguarded screen: username and password, submitted to `POST /auth/login`. Every other screen runs on the session cookie this one obtains.
 
 ## Contents
-- `+page.svelte` — a full-screen form, no `TopBar` (there is nowhere to go back to). Two fields (`Usuario`, `Contraseña`) with `autocomplete="username"`/`"current-password"` so password managers work, one primary submit (`.btn-block.btn-primary`, the same class the rest of the app uses for its one primary action per screen). On success it populates `teacher`/`usesInternalGrading`/`session` itself — the same three the root layout's `GET /me` probe sets — and navigates to `/` with `replaceState: true` so the back button doesn't return to the login form. On failure it shows one inline Spanish sentence and stays put; it never navigates away from itself.
+- `+page.svelte` — a full-screen form with no `TopBar`. An `h1` "Iniciar sesión" over the sub-line "Ingresa con tu usuario del colegio", two labelled fields (`Usuario` and `Contraseña`, carrying `autocomplete="username"` and `"current-password"`, disabled while submitting), a `role="alert"` line for the error, and one submit button (`.btn-block.btn-primary`) reading `Ingresar`, or `Ingresando…` while in flight. `canSubmit` requires a non-blank username, a non-empty password and no request in flight.
 
 ## Inputs / Outputs
-Calls `lib/api/endpoints/auth.ts`'s `login`. Writes `lib/stores.ts`'s `session` and `teacher` directly (not via the layout) since the layout's own probe is deliberately skipped on this route — see below.
+No params and no query. Calls `login(username, password)` from `lib/api/endpoints/auth.ts` on submit. On success it derives the teacher's initials from the first two words of `display_name` and writes `teacher`, `usesInternalGrading` and `session` in `lib/stores.ts`, then `goto('/', { replaceState: true })`. On failure it renders one inline Spanish sentence and stays on the screen.
 
 ## Conventions & Constraints
-- **The root layout does not probe `GET /me` on this route.** Every other screen depends on that probe to populate the shell, but firing it here would 401 on a page that must be reachable with no session at all. This screen is therefore the one place in the app that sets `session`/`teacher` itself, on a successful login, rather than letting the layout do it.
-- **Error copy is a fixed map from `ApiError.code`**, mirroring `internal/httpapi/SPEC.md`'s login error codes exactly — `invalid_credentials`, `account_locked`, `role_not_enabled`, `no_membership`, `not_a_teacher_profile`, and a generic fallback for anything else (network failure, 5xx). A wrong username and a wrong password are indistinguishable on purpose (`invalid_credentials` covers both, and an inactive account too) — the UI must not add distinguishing copy the server deliberately declines to give it.
-- `client.ts`'s unauthorized handler is deliberately **not** what drives this screen's errors: a 401 from `POST /auth/login` is excluded from that handler (see `lib/api/SPEC.md`) so it reaches this component's own `catch` instead of bouncing back to `/login` and losing the message.
-- No `TopBar`, no back navigation, no secondary action. A teacher who can't log in has nothing else to do on this screen.
-- Uses only existing `app.css` tokens and the shared `.btn-block`/`.screen-title`/`.screen-sub` classes — no new shared token or class.
+- The root layout skips its `GET /me` probe on this route and sets `session` to `anonymous` instead, so this screen is where the three stores are populated on a successful login.
+- Error copy is a fixed map from `ApiError.code`: `invalid_credentials` → "Usuario o contraseña incorrectos."; `account_locked` → "Demasiados intentos. Espera unos minutos e inténtalo de nuevo."; `role_not_enabled` → "El acceso para tu rol aún no está disponible."; `no_membership` → "Tu cuenta no está activa en ningún colegio."; `not_a_teacher_profile` → "Tu cuenta no tiene un perfil docente en este colegio."; anything else, including a network failure or a 5xx, falls back to "No pudimos iniciar sesión. Revisa tu conexión." A wrong username and a wrong password both come back as `invalid_credentials`.
+- `client.ts` excludes `/auth/` paths from its unauthorized handler, so a 401 here reaches this component's `catch` and renders as the message above.
+- The screen has no `TopBar`, no back navigation and no secondary action.
+- It uses the existing `app.css` tokens and the shared `.btn-block`, `.screen-title` and `.screen-sub` classes.
 
 ## Open Questions
 - None.

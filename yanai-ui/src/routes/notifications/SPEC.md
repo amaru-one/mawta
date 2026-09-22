@@ -1,14 +1,18 @@
 ## Purpose
-Notification feed screen: alerts (accented) and reminders (neutral), with mark-read actions.
+The notification feed: assistant alerts and app-derived reminders, with mark-read actions.
 
 ## Contents
-- `+page.svelte` — renders the feed from `lib/notifications.ts`; mark-read, mark-all-read.
+- `+page.svelte` — `TopBar back="/" showBell={false}`, a filter pill row (`Todas`, `Alertas`, `Recordatorios`, the active one `pill-dark` and the rest `pill-light`, each carrying `aria-pressed`), then two sections — `ALERTAS · TENDENCIAS DETECTADAS` over the items where `aiGenerated` is true and `RECORDATORIOS · PENDIENTES` over the rest — and a `Marcar todas leídas` button shown while `$unreadNotificationCount > 0`.
 
 ## Inputs / Outputs
-Consumes `lib/api/endpoints/notifications.ts` through `lib/notifications.ts`.
+No params and no query. Reads the `notifications` and `unreadNotificationCount` stores, which the root layout fills on login and refreshes on a 60s poll. Calls `markNotificationRead(id)` and `markAllNotificationsRead()` from `lib/notifications.ts`, both of which flip the store first and fire their request with errors swallowed.
 
 ## Conventions & Constraints
-- `aiGenerated` styling split is the screen's core convention, and since 2026-09-08 it is carried by **shape**: an assistant row has a **filled** accent badge, a reminder the app derived has an **outlined** one on white. Colour alone stopped being able to say it once the app's own ink became indigo (see `routes/SPEC.md`). The unread dot follows the same split: accent for the assistant's, muted for the app's.
+- The `aiGenerated` split is carried by shape: an assistant row takes a filled accent badge and an accent unread dot, a reminder takes an outlined badge on white and a muted dot.
+- The badge glyph comes from the item's own `icon` when set, otherwise from a per-type map: `risk` → `trending-down`, `tip` → `sparkles`, `reminder` → `clipboard-check`.
+- An alert prefixes its message with the student's name in bold; a reminder appends `— {courseName}` the same way. The meta line joins the detail or course name, a `Leído` marker, and a relative timestamp (`Ahora`, `Hace N min`, `Hace N hora(s)`, `Hace N día(s)`).
+- Tapping a row taps haptically and marks it read; it does not navigate.
+- The empty state is "No hay notificaciones." The screen is store-driven, so it renders no loading or error state of its own.
 
 ## Open Questions
 - None.
