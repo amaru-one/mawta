@@ -131,7 +131,11 @@ EOF
 chmod 600 /srv/yanai/.env
 ```
 
-Generate both passwords with e.g. `openssl rand -base64 24`. `POSTGRES_PASSWORD`
+Generate both passwords with `openssl rand -hex 24`, not `-base64` — both
+values get interpolated unencoded into a `postgres://user:PASSWORD@host/db`
+URL in the compose file, and base64's `/` breaks URL parsing outright (a `+`
+or `=` is technically valid there but not worth the risk). `-hex` is
+alphanumeric only, so it's always URL-safe. `POSTGRES_PASSWORD`
 is the superuser the compose file's `ADMIN_DATABASE_URL`/`GOOSE_DBSTRING` use
 for migrations and account bootstrap; `YANAI_APP_PASSWORD` is the non-owner,
 RLS-scoped role the running `api` service connects as for every request.

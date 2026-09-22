@@ -382,3 +382,53 @@ func TestRound(t *testing.T) {
 func TestRoundHalfUpOnNegativesRoundsTowardsPositive(t *testing.T) {
 	closeTo(t, Round(-0.125, "half_up", 2), -0.12, "Round(-0.125)")
 }
+
+// Dropping the lowest N is an identity claim, not only an arithmetic one: the
+// worker persists CountedScoreIDs and DroppedScoreIDs, and anything that later
+// shows a student which mark was dropped reads those lists rather than
+// recomputing the mean. A version that dropped the right *number* of
+// assessments while naming the wrong ones still produces 0.90 here, so
+// TestDropLowestN's counts cannot catch it — these identities can.
+func TestDropLowestNNamesExactlyWhichScoresWereDroppedAndKept(t *testing.T) {
+	component := uuid.New()
+	lowest := graded(1, 4, 20)   // 0.20, the one the scheme drops
+	middle := graded(1, 16, 20)  // 0.80
+	highest := graded(1, 20, 20) // 1.00
+	assessments := []AssessmentInput{
+		oneAssessment(component, lowest),
+		oneAssessment(component, middle),
+		oneAssessment(component, highest),
+	}
+
+	got := Compute(assessments, []ComponentWeight{
+		{ComponentID: component, Weight: 1, DropLowestN: 1, Aggregation: "mean", IsRequired: true},
+	}, Policy{})
+
+	c := got.Components[0]
+	if len(c.DroppedScoreIDs) != 1 || c.DroppedScoreIDs[0] != lowest.ScoreID {
+		t.Errorf("DroppedScoreIDs = %v, want exactly the lowest score %v", c.DroppedScoreIDs, lowest.ScoreID)
+	}
+	want := map[uuid.UUID]bool{middle.ScoreID: true, highest.ScoreID: true}
+	if len(c.CountedScoreIDs) != len(want) {
+		t.Fatalf("CountedScoreIDs = %v, want the two highest scores", c.CountedScoreIDs)
+	}
+	for _, id := range c.CountedScoreIDs {
+		if !want[id] {
+			t.Errorf("CountedScoreIDs contains %v, which is not one of the kept scores", id)
+		}
+		delete(want, id) // also catches the same score being listed twice
+	}
+	for _, dropped := range c.DroppedScoreIDs {
+		for _, counted := range c.CountedScoreIDs {
+			if dropped == counted {
+				t.Errorf("score %v is reported as both counted and dropped", dropped)
+			}
+		}
+	}
+
+	// Reading the lists strictly must not change the number itself.
+	closeTo(t, got.NormalizedValue, 0.90, "mean of the two kept")
+	if n := c.AssessmentsCounted; n != 2 {
+		t.Errorf("AssessmentsCounted = %d, want 2", n)
+	}
+}
