@@ -6,14 +6,14 @@
 .env.local
 *.local
 
-# yanai-server
-yanai-server/data/
-yanai-server/cmd/api/data/
+# mawta-server
+mawta-server/data/
+mawta-server/cmd/api/data/
 __debug_bin*
 *.log
 
-# yanai-ui
-yanai-ui/node_modules/
-yanai-ui/.svelte-kit/
-yanai-ui/build/
-yanai-ui/dist/
+# mawta-ui
+mawta-ui/node_modules/
+mawta-ui/.svelte-kit/
+mawta-ui/build/
+mawta-ui/dist/

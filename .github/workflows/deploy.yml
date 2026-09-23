@@ -23,11 +23,11 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - uses: docker/build-push-action@v6
         with:
-          context: yanai-server
+          context: mawta-server
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/yanai-api:latest
-            ghcr.io/${{ github.repository_owner }}/yanai-api:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/mawta-api:latest
+            ghcr.io/${{ github.repository_owner }}/mawta-api:${{ github.sha }}
 
   build-ui:
     runs-on: ubuntu-latest
@@ -35,17 +35,17 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
       - name: Install dependencies
-        working-directory: yanai-ui
+        working-directory: mawta-ui
         run: bun install --frozen-lockfile
       - name: Build SPA
-        working-directory: yanai-ui
+        working-directory: mawta-ui
         env:
           PUBLIC_API_BASE_URL: ''
         run: bun run build
       - uses: actions/upload-artifact@v4
         with:
           name: ui-build
-          path: yanai-ui/build
+          path: mawta-ui/build
 
   deploy:
     needs: [build-api-image, build-ui]
@@ -64,18 +64,18 @@ jobs:
       - name: Ship the built SPA
         env:
           SSH_TARGET: ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}
-        run: rsync -az --delete ui-build/ "$SSH_TARGET:/srv/yanai/ui/"
+        run: rsync -az --delete ui-build/ "$SSH_TARGET:/srv/mawta/ui/"
       - name: Ship compose config
         env:
           SSH_TARGET: ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}
-        run: rsync -az deploy/ "$SSH_TARGET:/srv/yanai/deploy/"
+        run: rsync -az deploy/ "$SSH_TARGET:/srv/mawta/deploy/"
 
       - name: Pull the new API image, migrate, restart
         env:
           SSH_TARGET: ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}
-          API_IMAGE: ghcr.io/${{ github.repository_owner }}/yanai-api:${{ github.sha }}
+          API_IMAGE: ghcr.io/${{ github.repository_owner }}/mawta-api:${{ github.sha }}
         run: |
-          ssh "$SSH_TARGET" "cd /srv/yanai && export API_IMAGE=$API_IMAGE && \
+          ssh "$SSH_TARGET" "cd /srv/mawta && export API_IMAGE=$API_IMAGE && \
             docker compose --env-file .env -f deploy/docker-compose.prod.yml pull api caddy postgres && \
             docker compose --env-file .env -f deploy/docker-compose.prod.yml run --rm --entrypoint /usr/local/bin/goose api up && \
             docker compose --env-file .env -f deploy/docker-compose.prod.yml up -d"

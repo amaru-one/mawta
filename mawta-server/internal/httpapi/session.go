@@ -1,0 +1,375 @@
+package httpapi
+
+import (
+	"context"
+	"encoding/json"
+	"io"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+
+	"mawta-server/internal/db"
+	"mawta-server/internal/domain"
+	"mawta-server/internal/media"
+	"mawta-server/internal/repo"
+)
+
+func (a *API) handleSessionRoster(w http.ResponseWriter, r *http.Request) {
+	tc := tenantCtxFrom(r)
+	sessionID, err := pathUUID(r, "sessionID")
+	if err != nil {
+		badRequest(w, "invalid sessionID")
+		return
+	}
+	q := r.URL.Query().Get("q")
+
+	var resp repo.SessionRoster
+	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if _, err := a.requireSessionAccess(r.Context(), tx, tc, sessionID); err != nil {
+			return err
+		}
+		header, err := repo.GetSessionHeader(r.Context(), tx, sessionID)
+		if err != nil {
+			return err
+		}
+		sd, err := parseSessionDate(header.SessionDate)
+		if err != nil {
+			return err
+		}
+		roster, studentIDs, err := repo.GetSessionRoster(r.Context(), tx, sessionID, header.ClassID, sd, q)
+		if err != nil {
+			return err
+		}
+		if err := repo.LogStudentReads(r.Context(), tx, studentIDs, tc.TeacherID, &header.ClassID, &sessionID); err != nil {
+			return err
+		}
+		resp = repo.SessionRoster{Header: header, Roster: roster}
+		return nil
+	})
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, resp)
+}
+
+type attendanceRequest struct {
+	Status      string  `json:"status"`
+	MinutesLate *int16  `json:"minutes_late"`
+	Note        *string `json:"note"`
+}
+
+func (a *API) handleAttendanceUpsert(w http.ResponseWriter, r *http.Request) {
+	tc := tenantCtxFrom(r)
+	sessionID, err := pathUUID(r, "sessionID")
+	if err != nil {
+		badRequest(w, "invalid sessionID")
+		return
+	}
+	studentID, err := pathUUID(r, "studentID")
+	if err != nil {
+		badRequest(w, "invalid studentID")
+		return
+	}
+	var req attendanceRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		badRequest(w, "invalid JSON body")
+		return
+	}
+
+	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		guardClassID, err := a.requireSessionAccess(r.Context(), tx, tc, sessionID)
+		if err != nil {
+			return err
+		}
+		if err := a.requireStudentOnRoster(r.Context(), tx, tc, guardClassID, studentID); err != nil {
+			return err
+		}
+		if err := repo.UpsertAttendance(r.Context(), tx, sessionID, studentID, tc.TeacherID, req.Status, req.MinutesLate, req.Note); err != nil {
+			return err
+		}
+		if err := repo.MaybeStampAttendanceTaken(r.Context(), tx, sessionID, tc.TeacherID); err != nil {
+			return err
+		}
+		payload, _ := json.Marshal(map[string]any{"status": req.Status})
+		classID, _, err := repo.GetSessionMeta(r.Context(), tx, sessionID)
+		if err != nil {
+			return err
+		}
+		return repo.LogEvent(r.Context(), tx, "attendance.marked", "attendance_record", nil, payload, &studentID, &classID, &sessionID)
+	})
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"status": req.Status})
+}
+
+func (a *API) handleMarkAllPresent(w http.ResponseWriter, r *http.Request) {
+	tc := tenantCtxFrom(r)
+	sessionID, err := pathUUID(r, "sessionID")
+	if err != nil {
+		badRequest(w, "invalid sessionID")
+		return
+	}
+
+	var marked int
+	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if _, err := a.requireSessionAccess(r.Context(), tx, tc, sessionID); err != nil {
+			return err
+		}
+		classID, sessionDate, err := repo.GetSessionMeta(r.Context(), tx, sessionID)
+		if err != nil {
+			return err
+		}
+		marked, err = repo.MarkAllPresent(r.Context(), tx, sessionID, classID, tc.TeacherID, sessionDate)
+		if err != nil {
+			return err
+		}
+		if err := repo.MaybeStampAttendanceTaken(r.Context(), tx, sessionID, tc.TeacherID); err != nil {
+			return err
+		}
+		return repo.LogEvent(r.Context(), tx, "attendance.marked_bulk", "class_session", &sessionID, nil, nil, &classID, &sessionID)
+	})
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"marked": marked})
+}
+
+func enqueueVoiceNoteTranscribe(ctx context.Context, tx pgx.Tx, tenantID, voiceNoteID uuid.UUID) error {
+	payload, _ := json.Marshal(map[string]any{"voice_note_id": voiceNoteID})
+	return repo.EnqueueJob(ctx, tx, tenantID, domain.JobKindVoiceNoteTranscribe, 3, payload,
+		"voice_note.transcribe:"+voiceNoteID.String())
+}
+
+func (a *API) handleCreateVoiceNote(w http.ResponseWriter, r *http.Request) {
+	tc := tenantCtxFrom(r)
+	sessionID, err := pathUUID(r, "sessionID")
+	if err != nil {
+		badRequest(w, "invalid sessionID")
+		return
+	}
+	studentID, err := pathUUID(r, "studentID")
+	if err != nil {
+		badRequest(w, "invalid studentID")
+		return
+	}
+
+	const maxAudioBytes = 2 << 20 // 1 min at ~128 kbps is ~1 MB; 2x headroom
+	const minAudioBytes = 1000    // rejects near-empty/mis-tap blobs
+	const maxDurationMs = 60_000  // voice notes are capped at 1 minute
+
+	var durationMs int32
+	var mimeType *string
+	var byteSize *int64
+	var audioBytes []byte
+
+	contentType := r.Header.Get("Content-Type")
+	if len(contentType) >= 19 && contentType[:19] == "multipart/form-data" {
+		if err := r.ParseMultipartForm(maxAudioBytes); err != nil {
+			badRequest(w, "invalid multipart form")
+			return
+		}
+		if v := r.FormValue("duration_ms"); v != "" {
+			n, err := strconv.Atoi(v)
+			if err != nil {
+				badRequest(w, "invalid duration_ms")
+				return
+			}
+			durationMs = int32(n)
+		}
+		if v := r.FormValue("mime_type"); v != "" {
+			mimeType = &v
+		}
+		if file, header, err := r.FormFile("audio"); err == nil {
+			defer file.Close()
+			audioBytes, err = io.ReadAll(io.LimitReader(file, maxAudioBytes+1))
+			if err != nil {
+				writeError(w, err)
+				return
+			}
+			if len(audioBytes) > maxAudioBytes {
+				unprocessable(w, "audio exceeds the 1-minute size limit")
+				return
+			}
+			byteSize = new(int64)
+			*byteSize = int64(len(audioBytes))
+			if mimeType == nil {
+				ct := header.Header.Get("Content-Type")
+				mimeType = &ct
+			}
+		}
+	} else {
+		var body struct {
+			DurationMs int32   `json:"duration_ms"`
+			MimeType   *string `json:"mime_type"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			badRequest(w, "invalid JSON body")
+			return
+		}
+		durationMs = body.DurationMs
+		mimeType = body.MimeType
+	}
+
+	if durationMs > maxDurationMs {
+		unprocessable(w, "voice notes cannot be longer than 1 minute")
+		return
+	}
+	if len(audioBytes) < minAudioBytes {
+		unprocessable(w, "audio is missing or too short to be a valid recording")
+		return
+	}
+
+	// Recording browsers disagree on codec/container (Chrome: WebM/Opus,
+	// Safari: MP4/AAC) and neither can play the other's output, so every
+	// upload is normalized to one canonical format before it's stored.
+	transcoded, err := media.TranscodeToMP3(r.Context(), audioBytes)
+	if err != nil {
+		unprocessable(w, "could not process audio")
+		return
+	}
+	audioBytes = transcoded
+	canonicalMimeType := media.CanonicalMimeType
+	mimeType = &canonicalMimeType
+	transcodedSize := int64(len(audioBytes))
+	byteSize = &transcodedSize
+
+	var voiceNoteID uuid.UUID
+	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		guardClassID, err := a.requireSessionAccess(r.Context(), tx, tc, sessionID)
+		if err != nil {
+			return err
+		}
+		if err := a.requireStudentOnRoster(r.Context(), tx, tc, guardClassID, studentID); err != nil {
+			return err
+		}
+		classID, _, err := repo.GetSessionMeta(r.Context(), tx, sessionID)
+		if err != nil {
+			return err
+		}
+		voiceNoteID, err = repo.CreateVoiceNote(r.Context(), tx, sessionID, studentID, classID, tc.TeacherID, durationMs, audioBytes, mimeType, byteSize)
+		if err != nil {
+			return err
+		}
+		if err := enqueueVoiceNoteTranscribe(r.Context(), tx, tc.TenantID, voiceNoteID); err != nil {
+			return err
+		}
+		vid := voiceNoteID
+		return repo.LogEvent(r.Context(), tx, "voice_note.recorded", "voice_note", &vid, nil, &studentID, &classID, &sessionID)
+	})
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, map[string]any{"id": voiceNoteID})
+}
+
+func (a *API) handleVoiceNoteAudio(w http.ResponseWriter, r *http.Request) {
+	tc := tenantCtxFrom(r)
+	voiceNoteID, err := pathUUID(r, "voiceNoteID")
+	if err != nil {
+		badRequest(w, "invalid voiceNoteID")
+		return
+	}
+
+	var file repo.VoiceNoteFile
+	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireVoiceNoteAccess(r.Context(), tx, tc, voiceNoteID); err != nil {
+			return err
+		}
+		var err error
+		file, err = repo.GetVoiceNoteFile(r.Context(), tx, voiceNoteID)
+		return err
+	})
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+
+	if file.MimeType != nil {
+		w.Header().Set("Content-Type", *file.MimeType)
+	}
+
+	if file.Audio != nil {
+		w.Header().Set("Content-Length", strconv.Itoa(len(file.Audio)))
+		_, _ = w.Write(file.Audio)
+		return
+	}
+
+	// Legacy fallback: pre-migration recordings still on disk.
+	if file.StorageKey == nil {
+		writeAppError(w, db.NewAppError(http.StatusNotFound, "not_found", "audio not found"))
+		return
+	}
+	fullPath := filepath.Join(a.cfg.StorageDir, *file.StorageKey)
+	f, err := os.Open(fullPath)
+	if err != nil {
+		writeAppError(w, db.NewAppError(http.StatusNotFound, "not_found", "audio file not found"))
+		return
+	}
+	defer f.Close()
+	_, _ = io.Copy(w, f)
+}
+
+func (a *API) handleVoiceNoteSave(w http.ResponseWriter, r *http.Request) {
+	tc := tenantCtxFrom(r)
+	voiceNoteID, err := pathUUID(r, "voiceNoteID")
+	if err != nil {
+		badRequest(w, "invalid voiceNoteID")
+		return
+	}
+
+	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireVoiceNoteAccess(r.Context(), tx, tc, voiceNoteID); err != nil {
+			return err
+		}
+		if err := repo.VoiceNoteExists(r.Context(), tx, voiceNoteID); err != nil {
+			return err
+		}
+		vid := voiceNoteID
+		return repo.LogEvent(r.Context(), tx, "voice_note.saved", "voice_note", &vid, nil, nil, nil, nil)
+	})
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"status": "saved"})
+}
+
+func (a *API) handleVoiceNoteDiscard(w http.ResponseWriter, r *http.Request) {
+	tc := tenantCtxFrom(r)
+	voiceNoteID, err := pathUUID(r, "voiceNoteID")
+	if err != nil {
+		badRequest(w, "invalid voiceNoteID")
+		return
+	}
+
+	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireVoiceNoteAccess(r.Context(), tx, tc, voiceNoteID); err != nil {
+			return err
+		}
+		if err := repo.DeleteVoiceNote(r.Context(), tx, voiceNoteID); err != nil {
+			return err
+		}
+		vid := voiceNoteID
+		return repo.LogEvent(r.Context(), tx, "voice_note.discarded", "voice_note", &vid, nil, nil, nil, nil)
+	})
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func parseSessionDate(s string) (time.Time, error) {
+	return time.Parse("2006-01-02", s)
+}
