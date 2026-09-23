@@ -174,10 +174,13 @@ go run ./cmd/useradd -tenant '<tenant-uuid>' -username jquispe -password '...' .
 ```
 
 `yanai_app` is a **cluster-wide** role, so both it and its password outlive
-the database they were created for. That's fine: migration `00001` creates
-the role only `if not exists` and re-grants its privileges on every `up`, so
-re-migrating a freshly created database picks it back up cleanly — no need to
-set the password again.
+the database they were created for. That's fine: migration `00001` wraps
+`create role yanai_app login` in `exception when duplicate_object or
+unique_violation then null` (not an `if not exists` check — that check-then-
+create race is what broke CI when `dbtest` migrates several throwaway
+databases concurrently, see `migrations/SPEC.md`) and re-grants its
+privileges on every `up`, so re-migrating a freshly created database picks it
+back up cleanly — no need to set the password again.
 
 ### Rebuild the container from scratch
 
@@ -195,12 +198,3 @@ goose -dir migrations postgres "$ADMIN_DATABASE_URL" up
 docker exec yanai-pg psql -U postgres -d yanai -c "alter role yanai_app login password 'yanai_app';"
 go run ./cmd/useradd -tenant '<tenant-uuid>' -username jquispe -password '...' ...
 ```
-
-### Not on the deployed stack
-
-Everything above targets the local `yanai-pg` container. The deployed stack
-(`deploy/docker-compose.prod.yml`) names the service `postgres`, keeps its
-data in the `pgdata` volume, and publishes no host port — you'd reach it as
-`docker compose -f docker-compose.prod.yml exec postgres psql -U postgres …`.
-Dropping that database destroys real school data with no backup path in this
-repo. Migrate it (`DEPLOY.md`), don't reset it.

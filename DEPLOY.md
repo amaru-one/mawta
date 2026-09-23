@@ -1,190 +1,66 @@
-# Deploying Yanai
+# Resetting the Yanai database
 
-This is a step-by-step runbook for taking Yanai from "runs on my laptop" to
-a live HTTPS site: one VPS running Postgres (pgvector), the Go API, and the
-built SvelteKit SPA behind Caddy, plus a GitHub Actions pipeline that
-deploys on every push to `main`.
+This is **destructive** — it drops and recreates the `yanai` database on
+whatever server `.env` points at, wiping all data. Use it deliberately: to
+reset a dev/staging box, or to recover from the schema drift described in
+Open Questions below. Never run it against a server with data you need,
+without a backup first.
 
-Steps marked **[HUMAN]** need a person — creating accounts, paying for
-things, clicking through a provider's UI, pasting secrets into GitHub.
-Every other step is a literal command a future Claude Code session (or you)
-can run directly once it has SSH access to the server.
+Run everything below as `deploy@<server>`, from `/srv/yanai`.
 
-## Architecture
-
-```
-Browser ── HTTPS ──▶ Caddy ── /api/*, /healthz ──▶ api container ──▶ postgres container
-                       │                                                (pgvector/pg16)
-                       └── everything else ──▶ static SPA files (bind-mounted)
-```
-
-One VPS, three containers via Docker Compose. This matches the app's actual
-constraints: voice-note audio lives on local disk (`STORAGE_DIR`), and the
-background job worker runs in-process inside the API — both are
-single-node by design, so a multi-instance PaaS would buy nothing here.
-Deploying on **DigitalOcean**: a Basic Droplet, regular (not premium)
-CPU, **2 GB RAM / 1 vCPU (~$12/mo)** is the right MVP size — one step up
-from the cheapest 1 GB tier, since the planned supervisor analytics
-dashboard adds aggregate queries against Postgres on top of the API's own
-load, and 1 GB leaves very little headroom once Postgres, the API, and
-Caddy are all resident. Same Ubuntu 24.04 image, same commands below.
-
-Authentication is real: username + password against a bcrypt hash, an
-HttpOnly session cookie (`yanai_session`), server-side sessions. There is no
-seed — create the first account with `cmd/useradd` (see step 6 below) after
-you've created a tenant row.
-
----
-
-## 0. Prerequisites **[HUMAN]**
-
-- A **DigitalOcean Droplet**, Ubuntu 24.04, Basic plan, regular CPU, 2 GB
-  RAM / 1 vCPU, reachable over SSH as root. Create it in the DO control
-  panel (or `doctl compute droplet create`) and add your SSH key at
-  creation time rather than a password.
-- A hostname for Caddy to issue a Let's Encrypt certificate for. No
-  domain purchase needed to get started: **[sslip.io](https://sslip.io)**
-  is a free public DNS service that resolves `<ip-with-dashes>.sslip.io`
-  straight to that IP with zero signup — e.g. if the Droplet's IP is
-  `164.90.123.45`, then `164-90-123-45.sslip.io` already resolves
-  correctly, today, with no setup. It's a real public hostname, so Caddy
-  gets a real HTTPS cert for it. Use that string as `DOMAIN` everywhere
-  below (§3's `.env` and §5's `DOMAIN` GitHub secret). If a real domain
-  is bought later, just change `DOMAIN` to it and redeploy — nothing
-  else in this runbook changes.
-  (`ufw` in §1 is the only firewall this runbook uses — no need for DO's
-  separate Cloud Firewall product for an MVP.)
-- A GitHub repo containing this monorepo (see §5 if it isn't pushed yet).
-- Ability to add **repository secrets** under Settings → Secrets and
-  variables → Actions.
-
-## 1. Provision the VPS
-
-SSH in as root and run:
+## 1. Back up first
 
 ```sh
-# Docker Engine + Compose plugin (official Docker apt repo, Ubuntu 24.04 "noble")
-apt-get update
-apt-get install -y ca-certificates curl
-install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-chmod a+r /etc/apt/keyrings/docker.asc
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
-  > /etc/apt/sources.list.d/docker.list
-apt-get update
-apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-# A non-root deploy user that owns the app and can run docker
-adduser --disabled-password --gecos "" deploy
-usermod -aG docker deploy
-
-# Firewall: SSH + HTTP/HTTPS only
-ufw allow OpenSSH
-ufw allow 80/tcp
-ufw allow 443/tcp
-ufw allow 443/udp
-ufw --force enable
-```
-
-**[HUMAN]** Generate a dedicated deploy keypair on your own machine (not
-the VPS) and authorize it for the `deploy` user:
-
-```sh
-ssh-keygen -t ed25519 -f ./yanai_deploy_key -C "yanai-deploy" -N ""
-```
-
-Copy `yanai_deploy_key.pub`'s contents into
-`/home/deploy/.ssh/authorized_keys` on the VPS (as root: `mkdir -p
-/home/deploy/.ssh && echo '<pubkey>' >> /home/deploy/.ssh/authorized_keys
-&& chown -R deploy:deploy /home/deploy/.ssh && chmod 700
-/home/deploy/.ssh && chmod 600 /home/deploy/.ssh/authorized_keys`). Keep
-`yanai_deploy_key` (the private half) — it becomes the `SSH_KEY` GitHub
-secret in §5.
-
-From here on, SSH in as `deploy@<your-server>` instead of root.
-
-## 2. Lay out `/srv/yanai`
-
-```sh
-sudo mkdir -p /srv/yanai
-sudo chown deploy:deploy /srv/yanai
-git clone <your-repo-url> /srv/yanai
-mkdir -p /srv/yanai/audio /srv/yanai/ui /srv/yanai/backups
-```
-
-Cloning the whole monorepo (not just `deploy/`) means `docker compose
-build` works locally as a fallback if GHCR is ever unreachable — normal
-deploys pull the pre-built image instead and never touch this build
-context.
-
-## 3. Configure secrets
-
-```sh
-cat > /srv/yanai/.env <<'EOF'
-POSTGRES_PASSWORD=<generate a strong random password>
-YANAI_APP_PASSWORD=<generate a different strong random password>
-DOMAIN=yanai.example.com
-API_IMAGE=ghcr.io/<github-owner>/yanai-api:latest
-EOF
-chmod 600 /srv/yanai/.env
-```
-
-Generate both passwords with `openssl rand -hex 24`, not `-base64` — both
-values get interpolated unencoded into a `postgres://user:PASSWORD@host/db`
-URL in the compose file, and base64's `/` breaks URL parsing outright (a `+`
-or `=` is technically valid there but not worth the risk). `-hex` is
-alphanumeric only, so it's always URL-safe. `POSTGRES_PASSWORD`
-is the superuser the compose file's `ADMIN_DATABASE_URL`/`GOOSE_DBSTRING` use
-for migrations and account bootstrap; `YANAI_APP_PASSWORD` is the non-owner,
-RLS-scoped role the running `api` service connects as for every request.
-
-**[HUMAN]** If the GHCR package (`yanai-api`) is private, the server needs
-its own read access to pull it: either make the package public after the
-first push (repo → Packages → yanai-api → Package settings → Change
-visibility), or `docker login ghcr.io` on the server with a PAT that has
-`read:packages`. **This repo went with the latter** — the image bakes in
-`migrations/` (see `Dockerfile`), so the package stays private. Classic PAT
-(fine-grained tokens don't currently support GHCR), scoped to
-`read:packages` only, then on the server as `deploy`:
-```sh
-ssh deploy@<your-server> "docker login ghcr.io -u <github-owner> --password-stdin"
-# paste the token, Enter, Ctrl+D
-```
-One-time — credentials persist in `~/.docker/config.json`, so no repeat
-per deploy.
-
-## 4. First deploy (manual, one-time)
-
-```sh
-cd /srv/yanai
-
-# Bring up Postgres alone first — the API's healthcheck-gated startup
-# needs it already accepting connections.
-docker compose --env-file .env -f deploy/docker-compose.prod.yml up -d postgres
-docker compose --env-file .env -f deploy/docker-compose.prod.yml exec postgres pg_isready -U postgres -d yanai
-
-# Build the API image locally for this first run (subsequent deploys pull
-# from GHCR instead — see §5).
-docker compose --env-file .env -f deploy/docker-compose.prod.yml build api
-
-# Migrate. GOOSE_DRIVER/GOOSE_DBSTRING/GOOSE_MIGRATION_DIR are already set
-# in the compose file's api service, so this needs no extra arguments.
-docker compose --env-file .env -f deploy/docker-compose.prod.yml \
-  run --rm --entrypoint /usr/local/bin/goose api up
-
-# One-time: yanai_app exists after the migration above (login, no password
-# yet) — give it the password DATABASE_URL already expects. .env isn't
-# sourced into this shell by --env-file (that only feeds compose's own
-# variable substitution), so source it here to expand $YANAI_APP_PASSWORD.
 set -a; source .env; set +a
 docker compose --env-file .env -f deploy/docker-compose.prod.yml \
-  exec -T postgres psql -U postgres -d yanai \
-  -c "alter role yanai_app login password '$YANAI_APP_PASSWORD';"
+  exec -T postgres pg_dump -U postgres -d yanai --no-owner --no-privileges \
+  > ~/yanai_backup_$(date +%Y%m%d_%H%M%S).sql
+```
 
-# Create the tenant, then the first account (no seed — cmd/useradd hashes
-# a real password, which no SQL file can do). See cmd/useradd/SPEC.md.
+## 2. Stop the app and drop the database
+
+```sh
+docker compose --env-file .env -f deploy/docker-compose.prod.yml stop api
+
+docker compose --env-file .env -f deploy/docker-compose.prod.yml \
+  exec -T postgres psql -U postgres -d postgres -c "
+    select pg_terminate_backend(pid) from pg_stat_activity
+    where datname = 'yanai' and pid <> pg_backend_pid();"
+
+docker compose --env-file .env -f deploy/docker-compose.prod.yml \
+  exec -T postgres psql -U postgres -d postgres -c "drop database yanai;"
+
+docker compose --env-file .env -f deploy/docker-compose.prod.yml \
+  exec -T postgres psql -U postgres -d postgres -c "create database yanai;"
+```
+
+## 3. Re-apply the current migration
+
+```sh
+docker compose --env-file .env -f deploy/docker-compose.prod.yml \
+  run --rm --entrypoint /usr/local/bin/goose api up
+```
+
+`yanai_app` itself is untouched by this (it's a cluster-wide role, not
+per-database) — the migration's `create role ... exception when
+duplicate_object/unique_violation` block just no-ops, and its password
+(already set in Postgres from before) still matches `.env`'s
+`YANAI_APP_PASSWORD`. Nothing to redo there.
+
+## 4. Restart and smoke-test
+
+```sh
+docker compose --env-file .env -f deploy/docker-compose.prod.yml up -d api
+curl -fsS https://$(grep ^DOMAIN .env | cut -d= -f2)/healthz
+curl -s -o /dev/null -w '%{http_code}\n' https://$(grep ^DOMAIN .env | cut -d= -f2)/api/v1/me  # expect 401
+```
+
+## 5. Recreate a tenant and account
+
+There is no seed. Create the tenant, then the first account with
+`cmd/useradd` (see `yanai-server/cmd/useradd/SPEC.md`):
+
+```sh
 docker compose --env-file .env -f deploy/docker-compose.prod.yml \
   exec -T postgres psql -U postgres -d yanai \
   -c "insert into tenants (name) values ('Your School Name') returning id;"
@@ -196,84 +72,7 @@ docker compose --env-file .env -f deploy/docker-compose.prod.yml \
   -role teacher -generate-password
 ```
 
-**[HUMAN]** Save the generated password somewhere safe — it's printed once,
-to stderr, and never stored anywhere in plaintext.
-
-The VPS never needs `bun` installed — only this first build does, and it's
-built on whichever machine already has the toolchain (your laptop, or this
-Claude Code session if it has SSH access to the server) and shipped over.
-From `yanai-ui/` on that machine:
-
-```sh
-bun install
-PUBLIC_API_BASE_URL='' bun run build
-rsync -az --delete build/ deploy@<your-server>:/srv/yanai/ui/
-```
-
-Every deploy after this one builds the SPA in GitHub Actions instead (§5)
-— the VPS only ever receives the finished static files.
-
-Bring everything up and smoke-test:
-
-```sh
-cd /srv/yanai
-docker compose --env-file .env -f deploy/docker-compose.prod.yml up -d
-curl -fsS https://$(grep ^DOMAIN .env | cut -d= -f2)/healthz
-```
-
-Open `https://<your-domain>/` in a browser — it should land on `/login`.
-Sign in with the account created above, then walk the app's screens (Home,
-class dashboard, lesson/attendance, criterios, evidence grid, grades,
-notifications, profile) against the live server.
-
-## 5. Wire up GitHub Actions CI/CD
-
-The workflows already exist in the repo:
-
-- **`.github/workflows/ci.yml`** — on every PR and push to `main`: `go vet`
-  + `go build` for the server, `bun run check` + `bun eslint .` + `bun run
-  build` for the UI.
-- **`.github/workflows/deploy.yml`** — on push to `main`: builds and
-  pushes the API image to GHCR, builds the SPA, rsyncs the SPA and
-  `deploy/` config to the server, pulls the new image, runs migrations,
-  restarts the stack, and smoke-tests `/healthz` + a `401` from
-  `/api/v1/me` (CI holds no real credential — see
-  `.github/workflows/SPEC.md`).
-
-**[HUMAN]** Add these repository secrets (Settings → Secrets and variables
-→ Actions → New repository secret):
-
-| Secret | Value |
-|---|---|
-| `SSH_HOST` | the VPS's IP or hostname |
-| `SSH_USER` | `deploy` |
-| `SSH_KEY` | contents of the private half of the deploy keypair from §1 |
-| `DOMAIN` | same value as `.env`'s `DOMAIN` on the server |
-
-`PUBLIC_TENANT_ID`/`PUBLIC_ACTOR_ID` are gone — auth is a runtime session
-cookie now, nothing tenant/actor-specific is baked into the SPA build. If
-you added those secrets under a pre-auth version of this app, delete them.
-
-`GITHUB_TOKEN` (used to push to GHCR) is provided automatically — nothing
-to add for it.
-
-Once the secrets are set, push to `main` and watch the Actions tab. Every
-push after that redeploys automatically.
-
-## Ad-hoc: connecting a local GUI (pgAdmin, etc.) to production Postgres
-
-Postgres has no published port in `docker-compose.prod.yml` — it's only
-reachable on the Docker internal network (`postgres:5432`), and `ufw` (§1)
-only opens SSH/80/443. To point a local client at it, tunnel through the
-`deploy` user to the container's internal IP (there's no host-published
-port to forward to directly):
-
-```sh
-CONTAINER_IP=$(ssh -i ~/.ssh/yanai_deploy_key deploy@104.131.189.126 \
-  "docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' \$(docker compose --env-file /srv/yanai/.env -f /srv/yanai/deploy/docker-compose.prod.yml ps -q postgres)") && \
-ssh -i ~/.ssh/yanai_deploy_key -L 5433:$CONTAINER_IP:5432 deploy@104.131.189.126
-```
-
-Keep that SSH session open, then connect the local client to `localhost:5433`,
-database `yanai`, user `postgres`, password = `POSTGRES_PASSWORD` from
-`/srv/yanai/.env` on the server.
+`-generate-password` prints a one-time password to stderr — save it, it's
+never stored in plaintext. Use `-password <value>` instead to set one
+directly, or `-reset-password -username <u> -password <v>` to change an
+existing account's password.

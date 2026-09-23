@@ -9,7 +9,7 @@ queue, forced row-level security per tenant.
 ## Prereqs
 
 - Go 1.26+
-- A local Postgres from `docs/postgres-setup.md` (container `yanai-pg`, migrations applied).
+- A local Postgres from `docs/local-postgres-setup.md` (container `yanai-pg`, migrations applied).
   There is no seed any more — create an account with `cmd/useradd` (below).
 
 ## Quick start
