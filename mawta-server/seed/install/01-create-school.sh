@@ -137,9 +137,10 @@ set_password() {
       ADMIN_DATABASE_URL="postgres://${LOCAL_DB_USER}:${LOCAL_DB_PASSWORD}@127.0.0.1:${LOCAL_DB_PORT}/${LOCAL_DB}?sslmode=disable" \
       go run ./cmd/useradd -reset-password -username "$username" -password "$password" )
   else
+    # El contenedor del API ya trae ADMIN_DATABASE_URL desde compose; .env no
+    # la define, así que pasarla con -e la dejaría vacía.
     ssh "$DROPLET_SSH_HOST" \
-      "cd /srv/mawta && set -a && . ./.env && set +a && \
-       docker exec -e ADMIN_DATABASE_URL -i $DROPLET_API_CONTAINER \
+      "docker exec -i $DROPLET_API_CONTAINER \
          useradd -reset-password -username '$username' -password '$password'"
   fi
 }

@@ -28,8 +28,8 @@ type Config struct {
 	CORSOrigins       []string
 	LogLevel          string
 
-	OpenAIAPIKey string
-	STTModel     string
+	TranscribeAPIKey string
+	TranscribeModel  string
 
 	SessionCookieName   string
 	SessionCookieSecure bool
@@ -56,8 +56,8 @@ func Load() (Config, error) {
 
 		// Empty is a valid default: the process must still boot without STT
 		// configured. See internal/stt/SPEC.md for what happens then.
-		OpenAIAPIKey: getenv("OPENAI_API_KEY", ""),
-		STTModel:     getenv("OPENAI_TRANSCRIBE_MODEL", "gpt-4o-mini-transcribe"),
+		TranscribeAPIKey: getenv("TRANSCRIBE_OPENROUTER_API_KEY", ""),
+		TranscribeModel:  getenv("TRANSCRIBE_MODEL", "openai/whisper-large-v3"),
 
 		SessionCookieName: getenv("SESSION_COOKIE_NAME", "mawta_session"),
 		// Fails closed: a production deploy that forgets to set this still

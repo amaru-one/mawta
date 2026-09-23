@@ -1,0 +1,14 @@
+# Dev-only image: runs the Vite dev server with hot reload. The source tree is
+# bind-mounted by docker-compose.local.yml, so this just needs the toolchain
+# and a first `bun install` baked in as a cache-friendly layer.
+FROM oven/bun:latest
+
+WORKDIR /app
+
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
+
+COPY . .
+
+EXPOSE 5173
+CMD ["bun", "run", "dev", "--", "--host", "0.0.0.0"]

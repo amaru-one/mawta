@@ -1,26 +1,27 @@
-// Package stt sends recorded voice-note audio to OpenAI's transcription API
-// and returns the Spanish text it hears. One provider, one function — see the
-// package SPEC for why there is no provider interface here.
+// Package stt sends recorded voice-note audio to OpenRouter's dedicated
+// speech-to-text endpoint and returns the Spanish text it hears. One
+// provider, one function — see the package SPEC for why there is no
+// provider interface here.
 package stt
 
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"mime/multipart"
 	"net/http"
 	"time"
 )
 
-const endpoint = "https://api.openai.com/v1/audio/transcriptions"
+const endpoint = "https://openrouter.ai/api/v1/audio/transcriptions"
 
 // ErrPermanent wraps a transcription failure the worker should not retry: a
-// missing API key, or a non-429 4xx from OpenAI (bad/empty/unsupported
-// audio). Anything else — network errors, 429, 5xx — is returned unwrapped
-// so the job's normal exponential backoff applies.
+// missing API key, or a non-429 4xx from OpenRouter (bad/empty/unsupported
+// audio, unknown model). Anything else — network errors, 429, 5xx — is
+// returned unwrapped so the job's normal exponential backoff applies.
 var ErrPermanent = errors.New("stt: permanent failure")
 
 type Client struct {
@@ -31,7 +32,7 @@ type Client struct {
 
 func NewClient(apiKey, model string) *Client {
 	if model == "" {
-		model = "gpt-4o-mini-transcribe"
+		model = "openai/whisper-large-v3"
 	}
 	return &Client{
 		apiKey:     apiKey,
@@ -40,35 +41,44 @@ func NewClient(apiKey, model string) *Client {
 	}
 }
 
+type sttRequest struct {
+	Model      string     `json:"model"`
+	InputAudio inputAudio `json:"input_audio"`
+	Language   string     `json:"language"`
+}
+
+type inputAudio struct {
+	Data   string `json:"data"`
+	Format string `json:"format"`
+}
+
 // Transcribe sends MP3 audio — the only format voice notes are ever stored
-// in, see media.CanonicalMimeType — to OpenAI and returns the Spanish text.
+// in, see media.CanonicalMimeType — to OpenRouter and returns the Spanish
+// text.
 func (c *Client) Transcribe(ctx context.Context, audioMP3 []byte) (string, error) {
 	if c.apiKey == "" {
-		return "", fmt.Errorf("%w: OPENAI_API_KEY not configured", ErrPermanent)
+		return "", fmt.Errorf("%w: TRANSCRIBE_OPENROUTER_API_KEY not configured", ErrPermanent)
 	}
 
-	var body bytes.Buffer
-	writer := multipart.NewWriter(&body)
-	part, err := writer.CreateFormFile("file", "note.mp3")
+	reqBody := sttRequest{
+		Model: c.model,
+		InputAudio: inputAudio{
+			Data:   base64.StdEncoding.EncodeToString(audioMP3),
+			Format: "mp3",
+		},
+		Language: "es",
+	}
+	encoded, err := json.Marshal(reqBody)
 	if err != nil {
 		return "", fmt.Errorf("stt: build request: %w", err)
 	}
-	if _, err := part.Write(audioMP3); err != nil {
-		return "", fmt.Errorf("stt: build request: %w", err)
-	}
-	_ = writer.WriteField("model", c.model)
-	_ = writer.WriteField("language", "es")
-	_ = writer.WriteField("response_format", "json")
-	if err := writer.Close(); err != nil {
-		return "", fmt.Errorf("stt: build request: %w", err)
-	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, &body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(encoded))
 	if err != nil {
 		return "", fmt.Errorf("stt: build request: %w", err)
 	}
 	req.Header.Set("Authorization", "Bearer "+c.apiKey)
-	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -85,7 +95,7 @@ func (c *Client) Transcribe(ctx context.Context, audioMP3 []byte) (string, error
 		return "", fmt.Errorf("stt: transient error %d: %s", resp.StatusCode, truncate(respBody, 500))
 	}
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("%w: openai %d: %s", ErrPermanent, resp.StatusCode, truncate(respBody, 500))
+		return "", fmt.Errorf("%w: openrouter %d: %s", ErrPermanent, resp.StatusCode, truncate(respBody, 500))
 	}
 
 	var parsed struct {

@@ -20,9 +20,11 @@ export default defineConfig({
 	envPrefix: ['VITE_', 'PUBLIC_'],
 	server: {
 		// Same-origin API in dev — mirrors the production reverse proxy, so no CORS.
+		// Overridable so the dev server can also run in a container, where
+		// localhost doesn't reach the api service (see docker-compose.local.yml).
 		proxy: {
-			'/api': 'http://localhost:8080',
-			'/healthz': 'http://localhost:8080',
+			'/api': process.env.API_PROXY_TARGET ?? 'http://localhost:8080',
+			'/healthz': process.env.API_PROXY_TARGET ?? 'http://localhost:8080',
 		},
 	},
 });

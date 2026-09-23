@@ -21,7 +21,7 @@ import (
 // job, and closed over by the plain-argument function handlers.VoiceNoteTranscribe
 // returns.
 func defaultRegistry(cfg config.Config) map[string]HandlerFunc {
-	sttClient := stt.NewClient(cfg.OpenAIAPIKey, cfg.STTModel)
+	sttClient := stt.NewClient(cfg.TranscribeAPIKey, cfg.TranscribeModel)
 	transcribe := handlers.VoiceNoteTranscribe(sttClient)
 
 	return map[string]HandlerFunc{
