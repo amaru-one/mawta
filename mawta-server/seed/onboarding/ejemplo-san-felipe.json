@@ -1,0 +1,255 @@
+{
+  "colegio": {
+    "nombre": "I.E. San Felipe",
+    "razon_social": "",
+    "codigo_modular": "0723519",
+    "tipo": "publica",
+    "ciudad": "Miraflores",
+    "region": "Lima",
+    "zona_horaria": "America/Lima"
+  },
+  "anio_escolar": {
+    "anio": 2026,
+    "nombre": "Año escolar 2026",
+    "inicio": "2026-03-02",
+    "fin": "2026-12-18",
+    "estructura": "trimestre",
+    "periodos": [
+      { "numero": 1, "nombre": "Trimestre I", "abreviatura": "T-I", "inicio": "2026-03-02", "fin": "2026-05-29", "fecha_entrega_notas": "2026-06-05" },
+      { "numero": 2, "nombre": "Trimestre II", "abreviatura": "T-II", "inicio": "2026-06-01", "fin": "2026-08-28", "fecha_entrega_notas": "2026-09-04" },
+      { "numero": 3, "nombre": "Trimestre III", "abreviatura": "T-III", "inicio": "2026-08-31", "fin": "2026-12-18", "fecha_entrega_notas": "2026-12-23" }
+    ]
+  },
+  "docentes": [
+    {
+      "usuario": "jeffrey",
+      "clave": "",
+      "email": "amaruorihuela@gmail.com",
+      "nombres": "Jeffrey",
+      "apellidos": "Orihuela",
+      "nombre_visible": "Jeffrey Orihuela",
+      "cargo": "Docente de Secundaria",
+      "codigo_empleado": "",
+      "fecha_ingreso": ""
+    },
+    {
+      "usuario": "gonzalo",
+      "clave": "",
+      "email": "gonzaloscb7@gmail.com",
+      "nombres": "Gonzalo",
+      "apellidos": "Saavedra",
+      "nombre_visible": "Gonzalo Saavedra",
+      "cargo": "Docente de Secundaria",
+      "codigo_empleado": "",
+      "fecha_ingreso": ""
+    }
+  ],
+  "areas": [
+    {
+      "codigo": "MAT",
+      "nombre": "Matemática",
+      "icono": "calculadora",
+      "es_tutoria": false,
+      "competencias": [
+        {
+          "codigo": "MAT-C1",
+          "nombre": "Resuelve problemas de cantidad",
+          "capacidades": [
+            { "codigo": "MAT-C1-CAP1", "nombre": "Traduce cantidades a expresiones numéricas",
+              "criterios": [ { "codigo": "MAT-C1-CR1", "descripcion": "Expresa cantidades y magnitudes usando números enteros y racionales" } ] },
+            { "codigo": "MAT-C1-CAP2", "nombre": "Comunica su comprensión sobre los números y las operaciones" },
+            { "codigo": "MAT-C1-CAP3", "nombre": "Usa estrategias y procedimientos de estimación y cálculo",
+              "criterios": [ { "codigo": "MAT-C1-CR2", "descripcion": "Selecciona y emplea estrategias de cálculo para resolver problemas con enteros" } ] },
+            { "codigo": "MAT-C1-CAP4", "nombre": "Argumenta afirmaciones sobre las relaciones numéricas y las operaciones",
+              "criterios": [ { "codigo": "MAT-C1-CR3", "descripcion": "Justifica el procedimiento elegido y la razonabilidad del resultado" } ] }
+          ]
+        },
+        {
+          "codigo": "MAT-C2",
+          "nombre": "Resuelve problemas de regularidad, equivalencia y cambio",
+          "capacidades": [
+            { "codigo": "MAT-C2-CAP1", "nombre": "Traduce datos y condiciones a expresiones algebraicas y gráficas",
+              "criterios": [ { "codigo": "MAT-C2-CR1", "descripcion": "Plantea la ecuación o inecuación lineal que modela la situación" } ] },
+            { "codigo": "MAT-C2-CAP2", "nombre": "Comunica su comprensión sobre las relaciones algebraicas" },
+            { "codigo": "MAT-C2-CAP3", "nombre": "Usa estrategias y procedimientos para encontrar equivalencias y reglas generales",
+              "criterios": [ { "codigo": "MAT-C2-CR2", "descripcion": "Aplica propiedades de igualdad para hallar el valor desconocido" } ] },
+            { "codigo": "MAT-C2-CAP4", "nombre": "Argumenta afirmaciones sobre relaciones de cambio y equivalencia",
+              "criterios": [ { "codigo": "MAT-C2-CR3", "descripcion": "Argumenta por qué dos expresiones algebraicas son equivalentes" } ] }
+          ]
+        },
+        {
+          "codigo": "MAT-C3",
+          "nombre": "Resuelve problemas de forma, movimiento y localización",
+          "capacidades": [
+            { "codigo": "MAT-C3-CAP1", "nombre": "Modela objetos con formas geométricas y sus transformaciones",
+              "criterios": [ { "codigo": "MAT-C3-CR1", "descripcion": "Representa formas bidimensionales y sus transformaciones en el plano" } ] },
+            { "codigo": "MAT-C3-CAP2", "nombre": "Comunica su comprensión sobre las formas y relaciones geométricas" },
+            { "codigo": "MAT-C3-CAP3", "nombre": "Usa estrategias y procedimientos para orientarse en el espacio",
+              "criterios": [ { "codigo": "MAT-C3-CR2", "descripcion": "Emplea estrategias para calcular perímetros, áreas y ubicaciones" } ] },
+            { "codigo": "MAT-C3-CAP4", "nombre": "Argumenta afirmaciones sobre relaciones geométricas" }
+          ]
+        },
+        {
+          "codigo": "MAT-C4",
+          "nombre": "Resuelve problemas de gestión de datos e incertidumbre",
+          "capacidades": [
+            { "codigo": "MAT-C4-CAP1", "nombre": "Representa datos con gráficos y medidas estadísticas o probabilísticas",
+              "criterios": [ { "codigo": "MAT-C4-CR1", "descripcion": "Organiza datos en tablas y gráficos estadísticos pertinentes" } ] },
+            { "codigo": "MAT-C4-CAP2", "nombre": "Comunica su comprensión de los conceptos estadísticos y probabilísticos" },
+            { "codigo": "MAT-C4-CAP3", "nombre": "Usa estrategias y procedimientos para recopilar y procesar datos" },
+            { "codigo": "MAT-C4-CAP4", "nombre": "Sustenta conclusiones o decisiones con base en la información obtenida",
+              "criterios": [ { "codigo": "MAT-C4-CR2", "descripcion": "Sustenta conclusiones sobre los datos a partir de medidas de tendencia central" } ] }
+          ]
+        }
+      ],
+      "esquema_calificacion": {
+        "codigo": "matematica_1ro",
+        "nombre": "Matemática 1ro — estándar",
+        "descripcion": "Prácticas 40%, exámenes 40%, proyectos 20%.",
+        "componentes": [
+          { "codigo": "practicas", "nombre": "Prácticas calificadas", "peso": 0.40, "descartar_mas_bajas": 1 },
+          { "codigo": "examenes", "nombre": "Exámenes", "peso": 0.40 },
+          { "codigo": "proyectos", "nombre": "Proyectos", "peso": 0.20 }
+        ]
+      }
+    },
+    {
+      "codigo": "CCSS",
+      "nombre": "Ciencias Sociales",
+      "icono": "mundo",
+      "es_tutoria": false,
+      "competencias": [
+        {
+          "codigo": "CCSS-C1",
+          "nombre": "Construye interpretaciones históricas",
+          "capacidades": [
+            { "codigo": "CCSS-C1-CAP1", "nombre": "Interpreta críticamente fuentes diversas",
+              "criterios": [ { "codigo": "CCSS-C1-CR1", "descripcion": "Distingue entre fuente primaria y secundaria, y evalúa su fiabilidad" } ] },
+            { "codigo": "CCSS-C1-CAP2", "nombre": "Comprende el tiempo histórico",
+              "criterios": [ { "codigo": "CCSS-C1-CR2", "descripcion": "Ubica procesos históricos en secuencias temporales y establece simultaneidad" } ] },
+            { "codigo": "CCSS-C1-CAP3", "nombre": "Elabora explicaciones sobre procesos históricos",
+              "criterios": [ { "codigo": "CCSS-C1-CR3", "descripcion": "Explica un proceso histórico relacionando causas y consecuencias" } ] }
+          ]
+        },
+        {
+          "codigo": "CCSS-C2",
+          "nombre": "Gestiona responsablemente el espacio y el ambiente",
+          "capacidades": [
+            { "codigo": "CCSS-C2-CAP1", "nombre": "Comprende las relaciones entre los elementos naturales y sociales",
+              "criterios": [ { "codigo": "CCSS-C2-CR1", "descripcion": "Explica cómo interactúan los elementos naturales y sociales de un territorio" } ] },
+            { "codigo": "CCSS-C2-CAP2", "nombre": "Maneja fuentes de información para comprender el espacio geográfico y el ambiente",
+              "criterios": [ { "codigo": "CCSS-C2-CR2", "descripcion": "Interpreta mapas, croquis e imágenes para describir el espacio geográfico" } ] },
+            { "codigo": "CCSS-C2-CAP3", "nombre": "Genera acciones para conservar el ambiente local y global",
+              "criterios": [ { "codigo": "CCSS-C2-CR3", "descripcion": "Propone acciones concretas de conservación del ambiente en su localidad" } ] }
+          ]
+        },
+        {
+          "codigo": "CCSS-C3",
+          "nombre": "Gestiona responsablemente los recursos económicos",
+          "capacidades": [
+            { "codigo": "CCSS-C3-CAP1", "nombre": "Comprende las relaciones entre los elementos del sistema económico y financiero" },
+            { "codigo": "CCSS-C3-CAP2", "nombre": "Toma decisiones económicas y financieras" }
+          ]
+        }
+      ],
+      "esquema_calificacion": {
+        "codigo": "ccss_1ro",
+        "nombre": "Ciencias Sociales 1ro — estándar",
+        "descripcion": "Fuentes 30%, exámenes 40%, proyecto 30%.",
+        "componentes": [
+          { "codigo": "fuentes", "nombre": "Análisis de fuentes", "peso": 0.30 },
+          { "codigo": "examenes", "nombre": "Exámenes", "peso": 0.40 },
+          { "codigo": "proyecto", "nombre": "Proyecto integrador", "peso": 0.30 }
+        ]
+      }
+    }
+  ],
+  "competencias_transversales": [
+    {
+      "codigo": "TR-C1",
+      "nombre": "Se desenvuelve en los entornos virtuales generados por las TIC",
+      "capacidades": [
+        { "codigo": "TR-C1-CAP1", "nombre": "Personaliza entornos virtuales" },
+        { "codigo": "TR-C1-CAP2", "nombre": "Gestiona información del entorno virtual",
+          "criterios": [ { "codigo": "TR-C1-CR1", "descripcion": "Selecciona y organiza información digital verificando su procedencia" } ] },
+        { "codigo": "TR-C1-CAP3", "nombre": "Interactúa en entornos virtuales" },
+        { "codigo": "TR-C1-CAP4", "nombre": "Crea objetos virtuales en diversos formatos" }
+      ]
+    },
+    {
+      "codigo": "TR-C2",
+      "nombre": "Gestiona su aprendizaje de manera autónoma",
+      "capacidades": [
+        { "codigo": "TR-C2-CAP1", "nombre": "Define metas de aprendizaje",
+          "criterios": [ { "codigo": "TR-C2-CR1", "descripcion": "Define metas de aprendizaje alcanzables y verificables" } ] },
+        { "codigo": "TR-C2-CAP2", "nombre": "Organiza acciones estratégicas para alcanzar sus metas de aprendizaje" },
+        { "codigo": "TR-C2-CAP3", "nombre": "Monitorea y ajusta su desempeño durante el proceso de aprendizaje",
+          "criterios": [ { "codigo": "TR-C2-CR2", "descripcion": "Ajusta sus estrategias cuando comprueba que no avanza hacia la meta" } ] }
+      ]
+    }
+  ],
+  "grados": [
+    { "codigo": "1S", "etiqueta": "1ro", "nombre_largo": "Primero de secundaria", "nivel": "secundaria", "orden": 7 }
+  ],
+  "aulas": [
+    {
+      "grado": "1S",
+      "seccion": "A",
+      "nombre": "1ro A",
+      "tutor": "jeffrey",
+      "turno": "manana",
+      "capacidad": 30,
+      "estudiantes": [
+        { "codigo": "EST-DEMO-2026-01", "codigo_siagie": "20260000000001", "nombres": "Ana Lucía", "apellido_paterno": "Alvarado", "apellido_materno": "Quispe", "nombre_preferido": "Ana", "fecha_nacimiento": "2013-04-17", "sexo": "F", "tipo_documento": "DNI", "numero_documento": "88000001" },
+        { "codigo": "EST-DEMO-2026-02", "codigo_siagie": "20260000000002", "nombres": "Bruno", "apellido_paterno": "Castillo", "apellido_materno": "Mamani", "fecha_nacimiento": "2013-09-02", "sexo": "M", "tipo_documento": "DNI", "numero_documento": "88000002" },
+        { "codigo": "EST-DEMO-2026-03", "codigo_siagie": "20260000000003", "nombres": "Camila", "apellido_paterno": "Flores", "apellido_materno": "Huamán", "fecha_nacimiento": "2013-01-25", "sexo": "F", "tipo_documento": "DNI", "numero_documento": "88000003" },
+        { "codigo": "EST-DEMO-2026-04", "codigo_siagie": "20260000000004", "nombres": "Diego", "apellido_paterno": "Gutiérrez", "apellido_materno": "Ccahuana", "fecha_nacimiento": "2013-06-11", "sexo": "M", "tipo_documento": "DNI", "numero_documento": "88000004" },
+        { "codigo": "EST-DEMO-2026-05", "codigo_siagie": "20260000000005", "nombres": "Elena", "apellido_paterno": "Herrera", "apellido_materno": "Sulca", "fecha_nacimiento": "2013-11-30", "sexo": "F", "tipo_documento": "DNI", "numero_documento": "88000005" },
+        { "codigo": "EST-DEMO-2026-06", "codigo_siagie": "20260000000006", "nombres": "Fabián", "apellido_paterno": "Ibáñez", "apellido_materno": "Vargas", "fecha_nacimiento": "2013-03-08", "sexo": "M", "tipo_documento": "DNI", "numero_documento": "88000006" },
+        { "codigo": "EST-DEMO-2026-07", "codigo_siagie": "20260000000007", "nombres": "Gabriela", "apellido_paterno": "Jiménez", "apellido_materno": "Ticona", "nombre_preferido": "Gaby", "fecha_nacimiento": "2013-07-22", "sexo": "F", "tipo_documento": "DNI", "numero_documento": "88000007" },
+        { "codigo": "EST-DEMO-2026-08", "codigo_siagie": "20260000000008", "nombres": "Héctor", "apellido_paterno": "Lazo", "apellido_materno": "Puma", "fecha_nacimiento": "2013-02-14", "sexo": "M", "tipo_documento": "DNI", "numero_documento": "88000008", "apoyo_inclusion": true },
+        { "codigo": "EST-DEMO-2026-09", "codigo_siagie": "20260000000009", "nombres": "Isabel", "apellido_paterno": "Medina", "apellido_materno": "Chávez", "fecha_nacimiento": "2013-10-05", "sexo": "F", "tipo_documento": "DNI", "numero_documento": "88000009" },
+        { "codigo": "EST-DEMO-2026-10", "codigo_siagie": "20260000000010", "nombres": "Joaquín", "apellido_paterno": "Núñez", "apellido_materno": "Apaza", "fecha_nacimiento": "2013-05-19", "sexo": "M", "tipo_documento": "DNI", "numero_documento": "88000010" }
+      ]
+    }
+  ],
+  "clases": [
+    {
+      "nombre": "Matemática 1ro A",
+      "codigo": "MAT-1A",
+      "area": "MAT",
+      "aula": "1S-A",
+      "docente": "jeffrey",
+      "horas_semanales": 5,
+      "salon": "Aula 101",
+      "horario": [
+        { "dia": "lunes", "inicio": "08:00", "fin": "09:30" },
+        { "dia": "miércoles", "inicio": "08:00", "fin": "09:30" },
+        { "dia": "viernes", "inicio": "10:00", "fin": "11:00" }
+      ],
+      "sesiones": [
+        { "fecha": "2026-03-02", "tema": "Números enteros" },
+        { "fecha": "2026-03-04", "tema": "Operaciones con números enteros" },
+        { "fecha": "2026-03-06", "tema": "Problemas con números enteros" },
+        { "fecha": "2026-03-09", "tema": "Números racionales" }
+      ]
+    },
+    {
+      "nombre": "Ciencias Sociales 1ro A",
+      "codigo": "CCSS-1A",
+      "area": "CCSS",
+      "aula": "1S-A",
+      "docente": "gonzalo",
+      "horas_semanales": 3,
+      "salon": "Aula 101",
+      "horario": [
+        { "dia": "martes", "inicio": "08:00", "fin": "09:30" },
+        { "dia": "jueves", "inicio": "10:00", "fin": "11:30" }
+      ],
+      "sesiones": [
+        { "fecha": "2026-03-03", "tema": "Fuentes históricas: primarias y secundarias" },
+        { "fecha": "2026-03-05", "tema": "El poblamiento de América" }
+      ]
+    }
+  ]
+}

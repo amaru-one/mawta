@@ -8,10 +8,16 @@
 --   datos realistas y para probar; no es la instalación de un colegio.
 --
 -- NO CORRE SOLO
---   Requiere que ya se hayan ejecutado, en orden:
---     seed/install/01-create-school.sh
---     seed/install/02-academic.sql .. 09-classes.sql
---   Si no encuentra esa estructura, aborta sin insertar nada.
+--   Requiere el colegio de ejemplo ya instalado desde su JSON:
+--     ./seed/onboard.sh --target local seed/onboarding/colegios/san-felipe.json
+--   (una copia de seed/onboarding/ejemplo-san-felipe.json con las claves
+--   completadas). Si no encuentra esa estructura, aborta sin insertar nada.
+--
+-- LOS ID
+--   El cargador deriva cada id de lo que la fila es:
+--   md5('<tipo>:<código modular>:<clave>')::uuid, por ejemplo
+--   md5('class:0723519:2026:MAT-1A')::uuid. Por eso este archivo puede
+--   nombrar las filas del colegio sin buscarlas (internal/onboarding/ids.go).
 --
 -- CÓMO SE EJECUTA
 --   Como superusuario, contra la base que ya tiene la estructura:
@@ -48,13 +54,12 @@ begin;
 do $$
 begin
   if not exists (select 1 from classes
-                  where id = 'c0000000-0000-4000-8000-000000000052') then
-    raise exception 'Falta la estructura del colegio. Ejecuta primero '
-                    'seed/install/01-create-school.sh y luego 02-academic.sql '
-                    'hasta 09-classes.sql.';
+                  where id = md5('class:0723519:2026:MAT-1A')::uuid) then
+    raise exception 'Falta el colegio de ejemplo. Instálalo primero con '
+                    'seed/onboard.sh y seed/onboarding/ejemplo-san-felipe.json.';
   end if;
-  if exists (select 1 from class_sessions
-              where class_id = 'c0000000-0000-4000-8000-000000000052') then
+  if exists (select 1 from assessments
+              where tenant_id = md5('tenant:0723519:')::uuid) then
     raise exception 'Los datos de demostración ya están cargados. Este archivo '
                     'espera una estructura recién instalada; no borra nada.';
   end if;
@@ -65,12 +70,12 @@ $$;
 
 -- §1 ==================================================================
 -- ---------------------------------------------------------------------------
--- Sesiones de clase, generadas desde el patrón semanal.
+-- Sesiones ya dictadas.
 --
--- "Las clases ya están diseñadas" para todo el año: cada franja de
--- class_schedules se expande a una sesión por cada fecha lectiva dentro de
--- los tres trimestres. Las pasadas quedan 'completed' con asistencia tomada;
--- las futuras 'scheduled' y sin asistencia.
+-- El cargador ya creó una sesión 'scheduled' por cada fecha lectiva del
+-- horario dentro de los tres trimestres. Aquí las pasadas se marcan
+-- 'completed', dictadas por el titular y con asistencia tomada; las futuras
+-- quedan como están.
 --
 -- El corte es la fecha ACTUAL EN LIMA, no current_date: el servidor corre en
 -- UTC y America/Lima va cinco horas por detrás, así que current_date adelanta
@@ -83,33 +88,18 @@ $$;
 -- attendance_taken_at y attendance_taken_by_id sean ambos nulos o ambos no.
 -- ---------------------------------------------------------------------------
 
-insert into class_sessions
-  (id, tenant_id, academic_year_id, class_id, schedule_id, term_id,
-   session_date, scheduled_start_at, scheduled_end_at,
-   actual_start_at, actual_end_at, status, room,
-   started_by_id, attendance_taken_at, attendance_taken_by_id)
-select md5('sess:' || cs.id::text || ':' || d::text)::uuid,
-       '84d84ee4-816d-4035-a1ad-55efeee4f11e',
-       'c0000000-0000-4000-8000-000000000030',
-       cs.class_id, cs.id, t.id, d,
-       (d::date + cs.starts_at) at time zone 'America/Lima',
-       (d::date + cs.ends_at)   at time zone 'America/Lima',
-       case when d < (now() at time zone 'America/Lima')::date then (d::date + cs.starts_at) at time zone 'America/Lima' end,
-       case when d < (now() at time zone 'America/Lima')::date then (d::date + cs.ends_at)   at time zone 'America/Lima' end,
-       case when d < (now() at time zone 'America/Lima')::date then 'completed' else 'scheduled' end,
-       cs.room,
-       case when d < (now() at time zone 'America/Lima')::date then ct.teacher_id end,
-       case when d < (now() at time zone 'America/Lima')::date then (d::date + cs.ends_at) at time zone 'America/Lima' end,
-       case when d < (now() at time zone 'America/Lima')::date then ct.teacher_id end
-  from class_schedules cs
-  join class_teachers ct
-    on ct.class_id = cs.class_id and ct.role = 'titular'
-  join terms t
-    on t.tenant_id = '84d84ee4-816d-4035-a1ad-55efeee4f11e'
-  cross join lateral generate_series(t.starts_on, t.ends_on, interval '1 day') as g(d)
- where cs.tenant_id = '84d84ee4-816d-4035-a1ad-55efeee4f11e'
-   and extract(isodow from g.d) = cs.weekday
-   and g.d >= cs.effective_from;
+update class_sessions cs
+   set status                 = 'completed',
+       actual_start_at        = cs.scheduled_start_at,
+       actual_end_at          = cs.scheduled_end_at,
+       started_by_id          = ct.teacher_id,
+       attendance_taken_at    = cs.scheduled_end_at,
+       attendance_taken_by_id = ct.teacher_id
+  from class_teachers ct
+ where ct.class_id = cs.class_id
+   and ct.role = 'titular'
+   and cs.tenant_id = md5('tenant:0723519:')::uuid
+   and cs.session_date < (now() at time zone 'America/Lima')::date;
 
 
 -- §2 ==================================================================
@@ -135,7 +125,7 @@ insert into attendance_records
   (id, tenant_id, session_id, student_id, class_id, session_date,
    status, minutes_late, source, recorded_by_id, recorded_at)
 select md5('att:' || cs.id::text || ':' || sm.student_id::text)::uuid,
-       '84d84ee4-816d-4035-a1ad-55efeee4f11e',
+       md5('tenant:0723519:')::uuid,
        cs.id, sm.student_id, cs.class_id, cs.session_date,
        v.status,
        case when v.status = 'late' then 5 + (v.bucket % 20) end,
@@ -144,7 +134,7 @@ select md5('att:' || cs.id::text || ':' || sm.student_id::text)::uuid,
        cs.attendance_taken_at
   from class_sessions cs
   join section_memberships sm
-    on sm.section_id = 'c0000000-0000-4000-8000-000000000041'
+    on sm.section_id = md5('section:0723519:2026:1S-A')::uuid
    and sm.joined_on <= cs.session_date
    and (sm.left_on is null or sm.left_on > cs.session_date)
   cross join lateral (
@@ -189,7 +179,7 @@ insert into assessments
    value_scale, max_score, counts_toward_internal, weight_within_component,
    due_at, status, published_at, closed_at, created_by_id)
 select md5('asm:' || v.code)::uuid,
-       '84d84ee4-816d-4035-a1ad-55efeee4f11e',
+       md5('tenant:0723519:')::uuid,
        v.class_id::uuid, v.term_id::uuid, v.scheme_id::uuid, v.component_id::uuid,
        v.title, v.kind, v.value_scale,
        case when v.value_scale = 'numeric' then 20 end,
@@ -202,36 +192,36 @@ select md5('asm:' || v.code)::uuid,
        v.created_by::uuid
   from (values
     -- ============================ MATEMÁTICA — T-I (cerrado) =============
-    ('MAT-T1-P1','c0000000-0000-4000-8000-000000000052','c0000000-0000-4000-8000-000000000031','c0000000-0000-4000-8000-000000000080','c0000000-0000-4000-8000-000000000081','Práctica 1 — Números enteros','practica','numeric','closed','2026-03-20','2026-03-16','2026-06-08','d74f215c-b8be-4f62-bdd0-f725fa25ab3f'),
-    ('MAT-T1-P2','c0000000-0000-4000-8000-000000000052','c0000000-0000-4000-8000-000000000031','c0000000-0000-4000-8000-000000000080','c0000000-0000-4000-8000-000000000081','Práctica 2 — Operaciones con racionales','practica','numeric','closed','2026-04-17','2026-04-13','2026-06-08','d74f215c-b8be-4f62-bdd0-f725fa25ab3f'),
-    ('MAT-T1-P3','c0000000-0000-4000-8000-000000000052','c0000000-0000-4000-8000-000000000031','c0000000-0000-4000-8000-000000000080','c0000000-0000-4000-8000-000000000081','Práctica 3 — Ecuaciones lineales','practica','numeric','closed','2026-05-15','2026-05-11','2026-06-08','d74f215c-b8be-4f62-bdd0-f725fa25ab3f'),
-    ('MAT-T1-EX','c0000000-0000-4000-8000-000000000052','c0000000-0000-4000-8000-000000000031','c0000000-0000-4000-8000-000000000080','c0000000-0000-4000-8000-000000000082','Examen de Trimestre I','examen','numeric','closed','2026-05-26','2026-05-18','2026-06-08','d74f215c-b8be-4f62-bdd0-f725fa25ab3f'),
-    ('MAT-T1-PR','c0000000-0000-4000-8000-000000000052','c0000000-0000-4000-8000-000000000031','c0000000-0000-4000-8000-000000000080','c0000000-0000-4000-8000-000000000083','Proyecto — Presupuesto familiar','proyecto','numeric','closed','2026-05-22','2026-04-20','2026-06-08','d74f215c-b8be-4f62-bdd0-f725fa25ab3f'),
-    ('MAT-T1-RU','c0000000-0000-4000-8000-000000000052','c0000000-0000-4000-8000-000000000031','c0000000-0000-4000-8000-000000000080','c0000000-0000-4000-8000-000000000083','Rúbrica — Argumentación matemática','proyecto','rubric','closed','2026-05-22','2026-04-20','2026-06-08','d74f215c-b8be-4f62-bdd0-f725fa25ab3f'),
+    ('MAT-T1-P1',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:practicas')::uuid,'Práctica 1 — Números enteros','practica','numeric','closed','2026-03-20','2026-03-16','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T1-P2',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:practicas')::uuid,'Práctica 2 — Operaciones con racionales','practica','numeric','closed','2026-04-17','2026-04-13','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T1-P3',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:practicas')::uuid,'Práctica 3 — Ecuaciones lineales','practica','numeric','closed','2026-05-15','2026-05-11','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T1-EX',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:examenes')::uuid,'Examen de Trimestre I','examen','numeric','closed','2026-05-26','2026-05-18','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T1-PR',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:proyectos')::uuid,'Proyecto — Presupuesto familiar','proyecto','numeric','closed','2026-05-22','2026-04-20','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T1-RU',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:proyectos')::uuid,'Rúbrica — Argumentación matemática','proyecto','rubric','closed','2026-05-22','2026-04-20','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
     -- ============================ MATEMÁTICA — T-II (cerrado) ============
-    ('MAT-T2-P1','c0000000-0000-4000-8000-000000000052','c0000000-0000-4000-8000-000000000032','c0000000-0000-4000-8000-000000000080','c0000000-0000-4000-8000-000000000081','Práctica 4 — Sistemas de ecuaciones','practica','numeric','closed','2026-06-19','2026-06-15','2026-09-07','d74f215c-b8be-4f62-bdd0-f725fa25ab3f'),
-    ('MAT-T2-P2','c0000000-0000-4000-8000-000000000052','c0000000-0000-4000-8000-000000000032','c0000000-0000-4000-8000-000000000080','c0000000-0000-4000-8000-000000000081','Práctica 5 — Proporcionalidad','practica','numeric','closed','2026-07-17','2026-07-13','2026-09-07','d74f215c-b8be-4f62-bdd0-f725fa25ab3f'),
-    ('MAT-T2-P3','c0000000-0000-4000-8000-000000000052','c0000000-0000-4000-8000-000000000032','c0000000-0000-4000-8000-000000000080','c0000000-0000-4000-8000-000000000081','Práctica 6 — Polígonos y perímetros','practica','numeric','closed','2026-08-14','2026-08-10','2026-09-07','d74f215c-b8be-4f62-bdd0-f725fa25ab3f'),
-    ('MAT-T2-EX','c0000000-0000-4000-8000-000000000052','c0000000-0000-4000-8000-000000000032','c0000000-0000-4000-8000-000000000080','c0000000-0000-4000-8000-000000000082','Examen de Trimestre II','examen','numeric','closed','2026-08-25','2026-08-17','2026-09-07','d74f215c-b8be-4f62-bdd0-f725fa25ab3f'),
-    ('MAT-T2-PR','c0000000-0000-4000-8000-000000000052','c0000000-0000-4000-8000-000000000032','c0000000-0000-4000-8000-000000000080','c0000000-0000-4000-8000-000000000083','Proyecto — Maqueta a escala','proyecto','numeric','closed','2026-08-21','2026-07-20','2026-09-07','d74f215c-b8be-4f62-bdd0-f725fa25ab3f'),
+    ('MAT-T2-P1',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:practicas')::uuid,'Práctica 4 — Sistemas de ecuaciones','practica','numeric','closed','2026-06-19','2026-06-15','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T2-P2',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:practicas')::uuid,'Práctica 5 — Proporcionalidad','practica','numeric','closed','2026-07-17','2026-07-13','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T2-P3',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:practicas')::uuid,'Práctica 6 — Polígonos y perímetros','practica','numeric','closed','2026-08-14','2026-08-10','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T2-EX',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:examenes')::uuid,'Examen de Trimestre II','examen','numeric','closed','2026-08-25','2026-08-17','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T2-PR',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:proyectos')::uuid,'Proyecto — Maqueta a escala','proyecto','numeric','closed','2026-08-21','2026-07-20','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
     -- ============================ MATEMÁTICA — T-III (EN VIVO) ===========
-    ('MAT-T3-P1','c0000000-0000-4000-8000-000000000052','c0000000-0000-4000-8000-000000000033','c0000000-0000-4000-8000-000000000080','c0000000-0000-4000-8000-000000000081','Práctica 7 — Área y volumen','practica','numeric','published','2026-09-11','2026-09-07',null,'d74f215c-b8be-4f62-bdd0-f725fa25ab3f'),
-    ('MAT-T3-P2','c0000000-0000-4000-8000-000000000052','c0000000-0000-4000-8000-000000000033','c0000000-0000-4000-8000-000000000080','c0000000-0000-4000-8000-000000000081','Práctica 8 — Tablas y gráficos estadísticos','practica','numeric','published','2026-09-18','2026-09-14',null,'d74f215c-b8be-4f62-bdd0-f725fa25ab3f'),
-    ('MAT-T3-P3','c0000000-0000-4000-8000-000000000052','c0000000-0000-4000-8000-000000000033','c0000000-0000-4000-8000-000000000080','c0000000-0000-4000-8000-000000000081','Práctica 9 — Medidas de tendencia central','practica','numeric','published','2026-10-09','2026-09-21',null,'d74f215c-b8be-4f62-bdd0-f725fa25ab3f'),
-    ('MAT-T3-EX','c0000000-0000-4000-8000-000000000052','c0000000-0000-4000-8000-000000000033','c0000000-0000-4000-8000-000000000080','c0000000-0000-4000-8000-000000000082','Examen de Trimestre III','examen','numeric','published','2026-12-04','2026-09-21',null,'d74f215c-b8be-4f62-bdd0-f725fa25ab3f'),
+    ('MAT-T3-P1',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:3')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:practicas')::uuid,'Práctica 7 — Área y volumen','practica','numeric','published','2026-09-11','2026-09-07',null,md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T3-P2',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:3')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:practicas')::uuid,'Práctica 8 — Tablas y gráficos estadísticos','practica','numeric','published','2026-09-18','2026-09-14',null,md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T3-P3',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:3')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:practicas')::uuid,'Práctica 9 — Medidas de tendencia central','practica','numeric','published','2026-10-09','2026-09-21',null,md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T3-EX',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:3')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:examenes')::uuid,'Examen de Trimestre III','examen','numeric','published','2026-12-04','2026-09-21',null,md5('teacher:0723519:jeffrey')::uuid),
     -- ============================ CC.SS. — T-I (cerrado) =================
-    ('CCS-T1-F1','c0000000-0000-4000-8000-000000000057','c0000000-0000-4000-8000-000000000031','c0000000-0000-4000-8000-000000000085','c0000000-0000-4000-8000-000000000086','Análisis de fuentes — Poblamiento americano','tarea','numeric','closed','2026-03-26','2026-03-19','2026-06-08','dd9d0f46-8518-4f83-9f98-5ab0c25b738b'),
-    ('CCS-T1-F2','c0000000-0000-4000-8000-000000000057','c0000000-0000-4000-8000-000000000031','c0000000-0000-4000-8000-000000000085','c0000000-0000-4000-8000-000000000086','Análisis de fuentes — Culturas preincas','tarea','numeric','closed','2026-04-30','2026-04-23','2026-06-08','dd9d0f46-8518-4f83-9f98-5ab0c25b738b'),
-    ('CCS-T1-EX','c0000000-0000-4000-8000-000000000057','c0000000-0000-4000-8000-000000000031','c0000000-0000-4000-8000-000000000085','c0000000-0000-4000-8000-000000000087','Examen de Trimestre I','examen','numeric','closed','2026-05-28','2026-05-19','2026-06-08','dd9d0f46-8518-4f83-9f98-5ab0c25b738b'),
-    ('CCS-T1-PR','c0000000-0000-4000-8000-000000000057','c0000000-0000-4000-8000-000000000031','c0000000-0000-4000-8000-000000000085','c0000000-0000-4000-8000-000000000088','Proyecto — Línea de tiempo del Tahuantinsuyo','proyecto','numeric','closed','2026-05-21','2026-04-16','2026-06-08','dd9d0f46-8518-4f83-9f98-5ab0c25b738b'),
+    ('CCS-T1-F1',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:1')::uuid,md5('scheme:0723519:ccss_1ro')::uuid,md5('component:0723519:ccss_1ro:fuentes')::uuid,'Análisis de fuentes — Poblamiento americano','tarea','numeric','closed','2026-03-26','2026-03-19','2026-06-08',md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T1-F2',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:1')::uuid,md5('scheme:0723519:ccss_1ro')::uuid,md5('component:0723519:ccss_1ro:fuentes')::uuid,'Análisis de fuentes — Culturas preincas','tarea','numeric','closed','2026-04-30','2026-04-23','2026-06-08',md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T1-EX',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:1')::uuid,md5('scheme:0723519:ccss_1ro')::uuid,md5('component:0723519:ccss_1ro:examenes')::uuid,'Examen de Trimestre I','examen','numeric','closed','2026-05-28','2026-05-19','2026-06-08',md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T1-PR',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:1')::uuid,md5('scheme:0723519:ccss_1ro')::uuid,md5('component:0723519:ccss_1ro:proyecto')::uuid,'Proyecto — Línea de tiempo del Tahuantinsuyo','proyecto','numeric','closed','2026-05-21','2026-04-16','2026-06-08',md5('teacher:0723519:gonzalo')::uuid),
     -- ============================ CC.SS. — T-II (cerrado) ================
-    ('CCS-T2-F1','c0000000-0000-4000-8000-000000000057','c0000000-0000-4000-8000-000000000032','c0000000-0000-4000-8000-000000000085','c0000000-0000-4000-8000-000000000086','Análisis de fuentes — Conquista y virreinato','tarea','numeric','closed','2026-06-25','2026-06-18','2026-09-07','dd9d0f46-8518-4f83-9f98-5ab0c25b738b'),
-    ('CCS-T2-F2','c0000000-0000-4000-8000-000000000057','c0000000-0000-4000-8000-000000000032','c0000000-0000-4000-8000-000000000085','c0000000-0000-4000-8000-000000000086','Análisis de fuentes — Cartografía del Perú','tarea','numeric','closed','2026-07-30','2026-07-23','2026-09-07','dd9d0f46-8518-4f83-9f98-5ab0c25b738b'),
-    ('CCS-T2-EX','c0000000-0000-4000-8000-000000000057','c0000000-0000-4000-8000-000000000032','c0000000-0000-4000-8000-000000000085','c0000000-0000-4000-8000-000000000087','Examen de Trimestre II','examen','numeric','closed','2026-08-27','2026-08-18','2026-09-07','dd9d0f46-8518-4f83-9f98-5ab0c25b738b'),
-    ('CCS-T2-RU','c0000000-0000-4000-8000-000000000057','c0000000-0000-4000-8000-000000000032','c0000000-0000-4000-8000-000000000085','c0000000-0000-4000-8000-000000000088','Rúbrica — Exposición sobre el espacio geográfico','exposicion','rubric','closed','2026-08-20','2026-07-16','2026-09-07','dd9d0f46-8518-4f83-9f98-5ab0c25b738b'),
+    ('CCS-T2-F1',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:2')::uuid,md5('scheme:0723519:ccss_1ro')::uuid,md5('component:0723519:ccss_1ro:fuentes')::uuid,'Análisis de fuentes — Conquista y virreinato','tarea','numeric','closed','2026-06-25','2026-06-18','2026-09-07',md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T2-F2',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:2')::uuid,md5('scheme:0723519:ccss_1ro')::uuid,md5('component:0723519:ccss_1ro:fuentes')::uuid,'Análisis de fuentes — Cartografía del Perú','tarea','numeric','closed','2026-07-30','2026-07-23','2026-09-07',md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T2-EX',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:2')::uuid,md5('scheme:0723519:ccss_1ro')::uuid,md5('component:0723519:ccss_1ro:examenes')::uuid,'Examen de Trimestre II','examen','numeric','closed','2026-08-27','2026-08-18','2026-09-07',md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T2-RU',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:2')::uuid,md5('scheme:0723519:ccss_1ro')::uuid,md5('component:0723519:ccss_1ro:proyecto')::uuid,'Rúbrica — Exposición sobre el espacio geográfico','exposicion','rubric','closed','2026-08-20','2026-07-16','2026-09-07',md5('teacher:0723519:gonzalo')::uuid),
     -- ============================ CC.SS. — T-III (EN VIVO) ===============
-    ('CCS-T3-F1','c0000000-0000-4000-8000-000000000057','c0000000-0000-4000-8000-000000000033','c0000000-0000-4000-8000-000000000085','c0000000-0000-4000-8000-000000000086','Análisis de fuentes — Cuencas y regiones naturales','tarea','numeric','published','2026-09-17','2026-09-10',null,'dd9d0f46-8518-4f83-9f98-5ab0c25b738b'),
-    ('CCS-T3-EX','c0000000-0000-4000-8000-000000000057','c0000000-0000-4000-8000-000000000033','c0000000-0000-4000-8000-000000000085','c0000000-0000-4000-8000-000000000087','Examen de Trimestre III','examen','numeric','published','2026-12-03','2026-09-21',null,'dd9d0f46-8518-4f83-9f98-5ab0c25b738b')
+    ('CCS-T3-F1',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:3')::uuid,md5('scheme:0723519:ccss_1ro')::uuid,md5('component:0723519:ccss_1ro:fuentes')::uuid,'Análisis de fuentes — Cuencas y regiones naturales','tarea','numeric','published','2026-09-17','2026-09-10',null,md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T3-EX',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:3')::uuid,md5('scheme:0723519:ccss_1ro')::uuid,md5('component:0723519:ccss_1ro:examenes')::uuid,'Examen de Trimestre III','examen','numeric','published','2026-12-03','2026-09-21',null,md5('teacher:0723519:gonzalo')::uuid)
   ) as v(code, class_id, term_id, scheme_id, component_id, title, kind,
          value_scale, status, due, published, closed, created_by);
 
@@ -245,13 +235,13 @@ select md5('asm:' || v.code)::uuid,
 -- .competency_id. Sin estas filas, una evaluación es solo una nota suelta que
 -- no dice nada sobre ninguna competencia.
 --
--- El etiquetado realiza el reparto declarado en 12-assessments.sql.
+-- El etiquetado realiza el reparto declarado en §3.
 -- ---------------------------------------------------------------------------
 
 insert into assessment_criteria (tenant_id, assessment_id, criterion_id)
-select '84d84ee4-816d-4035-a1ad-55efeee4f11e',
+select md5('tenant:0723519:')::uuid,
        md5('asm:'  || v.asm)::uuid,
-       md5('crit:' || v.crit)::uuid
+       md5('criterion:0723519:' || v.crit)::uuid
   from (values
     ('MAT-T1-P1','MAT-C1-CR1'),('MAT-T1-P1','MAT-C1-CR2'),
     ('MAT-T1-P2','MAT-C1-CR2'),('MAT-T1-P2','MAT-C1-CR3'),
@@ -306,7 +296,7 @@ insert into scores
   (id, tenant_id, assessment_id, student_id, attempt_number, attempt_kind,
    status, raw_value, max_value, late_days, source, recorded_by_id, recorded_at)
 select md5('score:' || a.id::text || ':' || st.id::text)::uuid,
-       '84d84ee4-816d-4035-a1ad-55efeee4f11e',
+       md5('tenant:0723519:')::uuid,
        a.id, st.id, 1, 'original',
        g.status,
        case when g.status = 'graded' then g.val end,
@@ -315,7 +305,7 @@ select md5('score:' || a.id::text || ':' || st.id::text)::uuid,
        a.due_at + interval '3 days'
   from assessments a
   join students st
-    on st.tenant_id = '84d84ee4-816d-4035-a1ad-55efeee4f11e'
+    on st.tenant_id = md5('tenant:0723519:')::uuid
    and st.student_code like 'EST-DEMO-2026-%'
   cross join lateral (
     select h,
@@ -323,7 +313,7 @@ select md5('score:' || a.id::text || ':' || st.id::text)::uuid,
            greatest(0, least(20,
              base + (h % 5) - 2
              - case when st.student_code = 'EST-DEMO-2026-06'
-                     and a.class_id = 'c0000000-0000-4000-8000-000000000052'
+                     and a.class_id = md5('class:0723519:2026:MAT-1A')::uuid
                     then 3 else 0 end
            )) as val,
            case when h % 37 = 0 then 'absent'
@@ -346,7 +336,7 @@ select md5('score:' || a.id::text || ':' || st.id::text)::uuid,
       ) q
   ) as g(h, val, status)
  where a.value_scale = 'numeric'
-   and a.tenant_id = '84d84ee4-816d-4035-a1ad-55efeee4f11e'
+   and a.tenant_id = md5('tenant:0723519:')::uuid
    -- solo lo ya vencido: T-III está en curso
    and a.due_at < (now() at time zone 'America/Lima');
 
@@ -373,13 +363,13 @@ insert into criterion_scores
   (id, tenant_id, assessment_id, criterion_id, student_id, value_scale,
    scale_level_id, recorded_by_id, recorded_at)
 select md5('cscore:' || ac.assessment_id::text || ':' || ac.criterion_id::text || ':' || st.id::text)::uuid,
-       '84d84ee4-816d-4035-a1ad-55efeee4f11e',
+       md5('tenant:0723519:')::uuid,
        ac.assessment_id, ac.criterion_id, st.id, 'ordinal',
        lv.id, a.created_by_id, a.due_at + interval '4 days'
   from assessment_criteria ac
   join assessments a on a.id = ac.assessment_id
   join students st
-    on st.tenant_id = '84d84ee4-816d-4035-a1ad-55efeee4f11e'
+    on st.tenant_id = md5('tenant:0723519:')::uuid
    and st.student_code like 'EST-DEMO-2026-%'
   cross join lateral (
     select case
@@ -401,7 +391,7 @@ select md5('cscore:' || ac.assessment_id::text || ':' || ac.criterion_id::text |
       ) q
   ) as g
   join grade_scale_levels lv
-    on lv.scale_id = 'c0000000-0000-4000-8000-000000000070'
+    on lv.scale_id = md5('scale:0723519:minedu_ad_a_b_c')::uuid
    and lv.code = g.code
  where a.value_scale = 'rubric';
 
@@ -451,7 +441,7 @@ sugerido as (
   select e.*, lv.id as sug_id, lv.ordinal as sug_ord
     from evidencia e
     join grade_scale_levels lv
-      on lv.scale_id = 'c0000000-0000-4000-8000-000000000070'
+      on lv.scale_id = md5('scale:0723519:minedu_ad_a_b_c')::uuid
      and e.norm >= lv.min_normalized
      and (e.norm < lv.max_normalized or lv.max_normalized = 1.00)
 ),
@@ -466,12 +456,12 @@ afirmado as (
          --   "AD" en argumentación.
          case
            when st.student_code = 'EST-DEMO-2026-04'
-            and s.competency_id = 'c0000000-0000-4000-8000-000000000065'
-            and s.term_id = 'c0000000-0000-4000-8000-000000000031'
+            and s.competency_id = md5('competency:0723519:CCSS-C1')::uuid
+            and s.term_id = md5('term:0723519:2026:1')::uuid
              then least(4, s.sug_ord + 1)
            when st.student_code = 'EST-DEMO-2026-03'
-            and s.competency_id = 'c0000000-0000-4000-8000-000000000062'
-            and s.term_id = 'c0000000-0000-4000-8000-000000000032'
+            and s.competency_id = md5('competency:0723519:MAT-C2')::uuid
+            and s.term_id = md5('term:0723519:2026:2')::uuid
              then greatest(1, s.sug_ord - 1)
            else s.sug_ord
          end as final_ord
@@ -482,8 +472,8 @@ insert into competency_term_levels
   (id, tenant_id, student_id, competency_id, academic_year_id, term_id,
    class_id, scale_level_id, suggested_level_id, asserted_by_id, asserted_at, note)
 select md5('ctl:' || a.student_id::text || ':' || a.competency_id::text || ':' || a.term_id::text)::uuid,
-       '84d84ee4-816d-4035-a1ad-55efeee4f11e',
-       a.student_id, a.competency_id, 'c0000000-0000-4000-8000-000000000030',
+       md5('tenant:0723519:')::uuid,
+       a.student_id, a.competency_id, md5('year:0723519:2026')::uuid,
        a.term_id, a.class_id, fin.id, a.sug_id, ct.teacher_id,
        -- Fecha explícita, no derivada de terms.closed_at: en este punto del
        -- archivo los trimestres siguen abiertos (se cierran en 17) para que
@@ -495,7 +485,7 @@ select md5('ctl:' || a.student_id::text || ':' || a.competency_id::text || ':' |
             then 'Nivel afirmado por el docente apartándose de la sugerencia calculada.' end
   from afirmado a
   join grade_scale_levels fin
-    on fin.scale_id = 'c0000000-0000-4000-8000-000000000070'
+    on fin.scale_id = md5('scale:0723519:minedu_ad_a_b_c')::uuid
    and fin.ordinal = a.final_ord
   join class_teachers ct on ct.class_id = a.class_id and ct.role = 'titular'
   join terms t on t.id = a.term_id
@@ -512,22 +502,22 @@ insert into competency_term_levels
   (id, tenant_id, student_id, competency_id, academic_year_id, term_id,
    class_id, scale_level_id, suggested_level_id, asserted_by_id, asserted_at, note)
 select md5('ctl-tr:' || st.id::text)::uuid,
-       '84d84ee4-816d-4035-a1ad-55efeee4f11e',
-       st.id, 'c0000000-0000-4000-8000-000000000069',
-       'c0000000-0000-4000-8000-000000000030',
-       'c0000000-0000-4000-8000-000000000032',
+       md5('tenant:0723519:')::uuid,
+       st.id, md5('competency:0723519:TR-C2')::uuid,
+       md5('year:0723519:2026')::uuid,
+       md5('term:0723519:2026:2')::uuid,
        null, lv.id, null, null,
        '2026-09-05 12:00:00-05',
        'Nivel acordado en reunión de docentes: la competencia transversal no pertenece a un área.'
   from students st
   join grade_scale_levels lv
-    on lv.scale_id = 'c0000000-0000-4000-8000-000000000070'
+    on lv.scale_id = md5('scale:0723519:minedu_ad_a_b_c')::uuid
    and lv.code = case
                    when st.student_code in ('EST-DEMO-2026-01','EST-DEMO-2026-03') then 'AD'
                    when st.student_code in ('EST-DEMO-2026-06','EST-DEMO-2026-08') then 'B'
                    else 'A'
                  end
- where st.tenant_id = '84d84ee4-816d-4035-a1ad-55efeee4f11e'
+ where st.tenant_id = md5('tenant:0723519:')::uuid
    and st.student_code like 'EST-DEMO-2026-%';
 
 
@@ -595,7 +585,7 @@ insert into descriptive_conclusions
   (id, tenant_id, student_id, competency_id, academic_year_id, term_id,
    class_id, body, requirement, status, authored_by_id, authored_at)
 select md5('dc:' || cl.student_id::text || ':' || cl.competency_id::text || ':' || cl.term_id::text)::uuid,
-       '84d84ee4-816d-4035-a1ad-55efeee4f11e',
+       md5('tenant:0723519:')::uuid,
        cl.student_id, cl.competency_id, cl.academic_year_id, cl.term_id,
        cl.class_id,
        case cl.requisito
@@ -639,7 +629,7 @@ select md5('dc:' || cl.student_id::text || ':' || cl.competency_id::text || ':' 
        -- Una sola queda en draft, para que ese camino tenga datos: un draft no
        -- satisface un requisito obligatorio ni desbloquea el cierre.
        case when cl.given_name = 'Joaquín' and cl.seq = 2 then 'draft' else 'final' end,
-       coalesce(cl.asserted_by_id, 'd74f215c-b8be-4f62-bdd0-f725fa25ab3f'),
+       coalesce(cl.asserted_by_id, md5('teacher:0723519:jeffrey')::uuid),
        case cl.seq when 1 then timestamptz '2026-06-06 15:00:00-05'
                    when 2 then timestamptz '2026-09-05 15:00:00-05' end
   from clasificado cl
@@ -668,7 +658,7 @@ select md5('dc:' || cl.student_id::text || ':' || cl.competency_id::text || ':' 
 update scores
    set superseded_at = timestamptz '2026-09-14 09:30:00-05'
  where id = md5('score:' || md5('asm:MAT-T3-P1')::uuid::text || ':'
-                         || 'c0000000-0000-4000-8000-000000000105')::uuid;
+                         || md5('student:0723519:EST-DEMO-2026-05')::uuid)::uuid;
 
 -- 2. Insertar el reemplazo, encadenado con supersedes_id. La nota sube de su
 --    valor original a 17: al revisar, la docente halló un ejercicio bien
@@ -684,7 +674,7 @@ select md5('score-fix:' || sc.id::text)::uuid,
        'manual', sc.recorded_by_id, timestamptz '2026-09-14 09:30:00-05', sc.id
   from scores sc
  where sc.id = md5('score:' || md5('asm:MAT-T3-P1')::uuid::text || ':'
-                            || 'c0000000-0000-4000-8000-000000000105')::uuid;
+                            || md5('student:0723519:EST-DEMO-2026-05')::uuid)::uuid;
 
 
 -- §10 ==================================================================
@@ -710,8 +700,8 @@ update terms
                      when 1 then timestamptz '2026-06-08 17:00:00-05'
                      when 2 then timestamptz '2026-09-07 17:00:00-05'
                    end,
-       closed_by_id = 'd74f215c-b8be-4f62-bdd0-f725fa25ab3f'
- where tenant_id = '84d84ee4-816d-4035-a1ad-55efeee4f11e'
+       closed_by_id = md5('teacher:0723519:jeffrey')::uuid
+ where tenant_id = md5('tenant:0723519:')::uuid
    and sequence in (1, 2);
 
 commit;

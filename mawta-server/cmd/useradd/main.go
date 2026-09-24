@@ -1,10 +1,9 @@
 // Command useradd creates (or resets the password of) one account: a users
-// row, a memberships row, and — for role=teacher — a teachers row. It is
-// the only way to create the first account now that mawta-server/seed/ is
-// gone: no SQL file can hash a password, so this has to be Go. It creates
-// only the account — the tenant must already exist, and no academic data
-// (terms, competencias, classes) is created here; see SPEC.md's Open
-// Questions.
+// row, a memberships row, and — for role=teacher — a teachers row. A whole
+// new school, with its first teachers and all its academic data, is
+// installed by cmd/onboard instead; this is for adding one account to a
+// school that already exists, or resetting a password. The tenant must
+// already exist, and no academic data is created here.
 package main
 
 import (

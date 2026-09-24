@@ -9,6 +9,7 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 go build -o /out/api ./cmd/api
 RUN CGO_ENABLED=0 go build -o /out/useradd ./cmd/useradd
+RUN CGO_ENABLED=0 go build -o /out/onboard ./cmd/onboard
 RUN CGO_ENABLED=0 go install github.com/pressly/goose/v3/cmd/goose@v3.27.3
 
 FROM debian:bookworm-slim
@@ -18,6 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg ca-certi
 
 COPY --from=build /out/api /usr/local/bin/api
 COPY --from=build /out/useradd /usr/local/bin/useradd
+COPY --from=build /out/onboard /usr/local/bin/onboard
 COPY --from=build /go/bin/goose /usr/local/bin/goose
 COPY migrations /app/migrations
 

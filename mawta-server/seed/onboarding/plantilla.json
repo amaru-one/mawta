@@ -1,0 +1,141 @@
+{
+  "colegio": {
+    "nombre": "<nombre del colegio, por ejemplo I.E. San Felipe>",
+    "razon_social": "",
+    "codigo_modular": "<código modular MINEDU, 7 dígitos>",
+    "tipo": "<publica | privada | parroquial | internacional>",
+    "ciudad": "<distrito o ciudad>",
+    "region": "<región>",
+    "zona_horaria": "America/Lima"
+  },
+  "anio_escolar": {
+    "anio": 2026,
+    "nombre": "Año escolar 2026",
+    "inicio": "<AAAA-MM-DD, primer día de clases>",
+    "fin": "<AAAA-MM-DD, último día de clases>",
+    "estructura": "<bimestre | trimestre | semestre>",
+    "periodos": [
+      {
+        "numero": 1,
+        "nombre": "<por ejemplo Bimestre I o Trimestre I>",
+        "abreviatura": "<por ejemplo B-I o T-I>",
+        "inicio": "<AAAA-MM-DD>",
+        "fin": "<AAAA-MM-DD>",
+        "fecha_entrega_notas": ""
+      }
+    ]
+  },
+  "docentes": [
+    {
+      "usuario": "<usuario para entrar a Mawta: minúsculas, sin espacios, por ejemplo jperez>",
+      "clave": "<clave inicial, entre 10 y 72 caracteres>",
+      "email": "<correo del docente>",
+      "nombres": "<nombres>",
+      "apellidos": "<apellidos>",
+      "nombre_visible": "",
+      "cargo": "Docente de Secundaria",
+      "codigo_empleado": "",
+      "fecha_ingreso": ""
+    }
+  ],
+  "areas": [
+    {
+      "codigo": "<código corto del área, por ejemplo MAT>",
+      "nombre": "<nombre del área, por ejemplo Matemática>",
+      "icono": "",
+      "es_tutoria": false,
+      "competencias": [
+        {
+          "codigo": "<código de la competencia, por ejemplo MAT-C1>",
+          "nombre": "<nombre CNEB de la competencia>",
+          "capacidades": [
+            {
+              "codigo": "<código de la capacidad, por ejemplo MAT-C1-CAP1>",
+              "nombre": "<nombre CNEB de la capacidad>",
+              "criterios": [
+                {
+                  "codigo": "<código del criterio, por ejemplo MAT-C1-CR1>",
+                  "descripcion": "<qué se evalúa>"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "esquema_calificacion": null
+    }
+  ],
+  "competencias_transversales": [
+    {
+      "codigo": "TR-C1",
+      "nombre": "Se desenvuelve en los entornos virtuales generados por las TIC",
+      "capacidades": [
+        { "codigo": "TR-C1-CAP1", "nombre": "Personaliza entornos virtuales" },
+        { "codigo": "TR-C1-CAP2", "nombre": "Gestiona información del entorno virtual" },
+        { "codigo": "TR-C1-CAP3", "nombre": "Interactúa en entornos virtuales" },
+        { "codigo": "TR-C1-CAP4", "nombre": "Crea objetos virtuales en diversos formatos" }
+      ]
+    },
+    {
+      "codigo": "TR-C2",
+      "nombre": "Gestiona su aprendizaje de manera autónoma",
+      "capacidades": [
+        { "codigo": "TR-C2-CAP1", "nombre": "Define metas de aprendizaje" },
+        { "codigo": "TR-C2-CAP2", "nombre": "Organiza acciones estratégicas para alcanzar sus metas de aprendizaje" },
+        { "codigo": "TR-C2-CAP3", "nombre": "Monitorea y ajusta su desempeño durante el proceso de aprendizaje" }
+      ]
+    }
+  ],
+  "grados": [
+    {
+      "codigo": "<código corto del grado, por ejemplo 1S>",
+      "etiqueta": "<por ejemplo 1ro>",
+      "nombre_largo": "<por ejemplo Primero de secundaria>",
+      "nivel": "<inicial | primaria | secundaria>",
+      "orden": 7
+    }
+  ],
+  "aulas": [
+    {
+      "grado": "<código del grado de arriba, por ejemplo 1S>",
+      "seccion": "<letra de la sección, por ejemplo A>",
+      "nombre": "<por ejemplo 1ro A>",
+      "tutor": "",
+      "turno": "manana",
+      "capacidad": 30,
+      "estudiantes": [
+        {
+          "codigo": "<código del estudiante en el colegio>",
+          "codigo_siagie": "",
+          "nombres": "<nombres>",
+          "apellido_paterno": "<apellido paterno>",
+          "apellido_materno": "",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "",
+          "sexo": "",
+          "tipo_documento": "",
+          "numero_documento": "",
+          "fecha_matricula": "",
+          "apoyo_inclusion": false
+        }
+      ]
+    }
+  ],
+  "clases": [
+    {
+      "nombre": "<nombre que verá el docente, por ejemplo Matemática 1ro A>",
+      "codigo": "<código corto, por ejemplo MAT-1A>",
+      "area": "<código del área de arriba, por ejemplo MAT>",
+      "aula": "<grado-sección, por ejemplo 1S-A>",
+      "docente": "<usuario del docente de arriba>",
+      "horas_semanales": 0,
+      "salon": "",
+      "horario": [
+        { "dia": "<lunes | martes | miércoles | jueves | viernes | sábado>", "inicio": "<HH:MM, por ejemplo 08:00>", "fin": "<HH:MM>", "salon": "" }
+      ],
+      "sesiones": [
+        { "fecha": "<AAAA-MM-DD, un día que tenga horario>", "tema": "<nombre de la sesión, por ejemplo Ecuaciones>" }
+      ]
+    }
+  ]
+}
