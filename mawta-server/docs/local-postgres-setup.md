@@ -101,7 +101,7 @@ go run ./cmd/useradd -tenant '<tenant-uuid-from-above>' -username jquispe \
 ```
 
 `useradd` creates only the account (users + memberships + teachers rows) —
-not an academic year, terms, competencias or classes. See
+not an academic year, terms, competencies or classes. See
 `cmd/useradd/SPEC.md`.
 
 No local `psql` client? Pipe commands into the container's own — see

@@ -1,166 +1,162 @@
-# Instalar un colegio
+# Onboard a school
 
-Un colegio nuevo se instala desde **un solo archivo JSON**. El equipo de
-onboarding lo llena, y un comando lo carga en local o en el droplet. Todo entra
-en una sola transacción: el colegio queda completo, o no queda nada.
+A new school is installed from **one JSON file**. The onboarding team fills it
+in, and a command loads it locally or on the droplet. Everything runs in one
+transaction: the whole school is created, or nothing is saved.
 
-Con ese archivo, un docente puede entrar a Mawta y encontrar sus aulas con sus
-estudiantes, sus áreas con competencias y capacidades, sus clases, el horario
-y las sesiones de cada periodo, con el tema de las que ya tengan uno.
+The file gives each teacher their classrooms and students, subjects with
+competencies and capabilities, classes, timetable, and term sessions, including
+topics where provided.
 
-## Los archivos
+## Files
 
-| Archivo | Para qué |
-|---|---|
-| `seed/onboarding/plantilla.json` | La plantilla en blanco. **Es la que se comparte** con el equipo de onboarding. |
-| `seed/onboarding/ejemplo-san-felipe.json` | Un colegio completo de ejemplo (el de la demo). Sirve de referencia al llenar la plantilla. |
-| `seed/onboarding/colegios/` | Donde se guardan los archivos ya llenos. **Git lo ignora**: llevan claves y datos de menores. |
-| `seed/onboard.sh` | El comando que carga un archivo. |
+| File | Purpose |
+| --- | --- |
+| `seed/onboarding/plantilla.json` | Blank template. **Share this file** with the onboarding team. |
+| `seed/onboarding/ejemplo-san-felipe.json` | Complete example school used by the demo; reference for filling in the template. |
+| `seed/onboarding/colegios/` | Completed school files. **Ignored by Git** because they contain passwords and minors' data. |
+| `seed/onboard.sh` | Command for loading a file. |
 
-## Paso a paso
+## Step by step
 
-1. Copia la plantilla a `seed/onboarding/colegios/<colegio>.json` y complétala
-   (ver "Cómo se llena" más abajo). Todo lo que diga `<...>` es para
-   reemplazar. Los campos con `""` son opcionales.
-2. Pruébalo sin guardar nada:
+1. Copy the template to `seed/onboarding/colegios/<school>.json` and complete it
+   (see "Filling in the file"). Replace every `<...>` placeholder. Fields with
+   `""` are optional.
+2. Validate without saving:
+
    ```sh
-   ./seed/onboard.sh --target local --dry-run seed/onboarding/colegios/<colegio>.json
+   ./seed/onboard.sh --target local --dry-run seed/onboarding/colegios/<school>.json
    ```
-   Si algo está mal, el comando lista **todos** los problemas a la vez, cada
-   uno con su ubicación en el archivo, por ejemplo
-   `aulas[0].estudiantes[3].codigo_siagie: "123" debe tener exactamente 14 dígitos`.
-   `aulas[0]` es la primera aula y `estudiantes[3]` es el cuarto estudiante
-   (se cuenta desde 0).
-3. Cuando la prueba pasa, cárgalo de verdad (sin `--dry-run`):
+
+   The command reports **all** issues together, each with its location. For
+   example, `aulas[0].estudiantes[3].codigo_siagie` must contain exactly 14 digits,
+   so `"123"` is invalid. `aulas[0]` is the first classroom; `estudiantes[3]` is
+   the fourth student (indexes start at zero).
+3. Once validation passes, load the file without `--dry-run`:
+
    ```sh
-   ./seed/onboard.sh --target local   seed/onboarding/colegios/<colegio>.json
-   ./seed/onboard.sh --target droplet seed/onboarding/colegios/<colegio>.json
+   ./seed/onboard.sh --target local   seed/onboarding/colegios/<school>.json
+   ./seed/onboard.sh --target droplet seed/onboarding/colegios/<school>.json
    ```
-4. Entrega a cada docente su `usuario` y su `clave` del archivo.
 
-Para el droplet, el JSON viaja por SSH al contenedor del API, así que nunca
-queda en el disco del servidor. Hace falta haber desplegado una imagen que
-incluya el binario `onboard`.
+4. Give each teacher their `usuario` (username) and `clave` (password).
 
-Si el colegio ya existe (mismo código modular), el comando se niega y no toca
-nada. Si un `usuario` o `email` ya existe en Mawta, también se niega: una
-persona solo puede pertenecer a un colegio.
+For the droplet, JSON travels over SSH into the API container without being
+stored on the server's disk. The deployed image must include the `onboard` binary.
 
-### Antes de empezar
+If a school with the same modular code exists, the command refuses without
+changing anything. An existing `usuario` or `email` is also rejected: a person
+can belong to only one school.
 
-La base debe tener la migración aplicada:
+### Before starting
+
+The database migration must be applied:
 
 ```sh
 goose -dir migrations postgres "$ADMIN_DATABASE_URL" up
 ```
 
-## Cómo se llena
+## Filling in the file
 
-El orden del archivo es el orden de instalación, y cada sección solo usa
-cosas que ya aparecieron más arriba:
+File order is installation order; each section references only earlier entries:
 
-**colegio → año escolar y periodos → docentes → áreas → grados → aulas y
-estudiantes → clases, horario y sesiones**
+**school → academic year and terms → teachers → subjects → grades → classrooms
+and students → classes, timetable, and sessions**
 
-Las secciones se conectan **por código**, nunca por un id: una clase dice
-`"area": "MAT"`, `"aula": "1S-A"` y `"docente": "jperez"`.
+Sections reference **codes**, never ids: a class uses `"area": "MAT"`,
+`"aula": "1S-A"`, and `"docente": "jperez"`. Keep the JSON field names and enum
+values exactly as specified below.
 
-- **colegio**: `codigo_modular` son los 7 dígitos del MINEDU. `tipo` es
-  `publica`, `privada`, `parroquial` o `internacional`.
-- **anio_escolar**: `estructura` es `bimestre`, `trimestre` o `semestre`.
-  Hace falta **al menos un periodo**. Los periodos no pueden compartir un día:
-  si el primero termina el 29-05, el segundo empieza el 30-05 o después.
-- **docentes**: `usuario` en minúsculas y sin espacios, que es con lo que
-  entra a Mawta. `clave` va de 10 a 72 caracteres.
-- **areas**: cada área lleva su árbol completo:
-  `competencias` → `capacidades` → `criterios` (los criterios son
-  opcionales). Los códigos de competencia, capacidad y criterio no se pueden
-  repetir en todo el colegio (`MAT-C1`, `MAT-C1-CAP1`, `MAT-C1-CR1`).
-  `esquema_calificacion` puede ir en `null`: entonces el área recibe el
-  esquema estándar (prácticas 40% descartando la más baja, exámenes 40%,
-  proyectos 20%). Si se define, los pesos deben sumar exactamente 1.
-- **competencias_transversales**: la plantilla ya trae las dos del CNEB.
-- **grados**: `orden` es la posición en la escolaridad de 1 a 11
-  (1ro de primaria = 1, 1ro de secundaria = 7).
-- **aulas**: se nombran con grado y sección. El aula `"grado": "1S"`,
-  `"seccion": "A"` es `"1S-A"` para las clases. `tutor` es el usuario de un
-  docente, u opcional. Cada aula lista sus `estudiantes`. Si un estudiante
-  tiene `tipo_documento`, también debe tener `numero_documento` (un DNI tiene
-  8 dígitos).
-- **clases**: cada clase es un área en un aula, con un docente. Lleva un
-  `nombre` (el que ve el docente, por ejemplo "Matemática 1ro A") y un
-  `codigo`. Un aula no puede tener dos clases de la misma área.
-  - `horario`: al menos una franja (`dia`, `inicio`, `fin` en HH:MM). Dos
-    franjas no pueden cruzarse en la misma aula ni para el mismo docente.
-  - `sesiones` (opcional): el tema de una sesión concreta, por ejemplo
-    `{ "fecha": "2026-03-04", "tema": "Ecuaciones" }`. La fecha tiene que caer
-    en un día del horario de esa clase y dentro de un periodo.
+- **School (`colegio`):** `codigo_modular` is the seven-digit MINEDU code.
+  `tipo` is `publica`, `privada`, `parroquial`, or `internacional`.
+- **Academic year (`anio_escolar`):** `estructura` is `bimestre`, `trimestre`,
+  or `semestre`. **At least one term** is required. Terms cannot share a date:
+  if one ends on May 29, the next starts on May 30 or later.
+- **Teachers (`docentes`):** `usuario` is lowercase, without spaces, and is
+  used to log in. `clave` contains 10 to 72 characters.
+- **Subjects (`areas`):** each includes its complete tree:
+  `competencias` → `capacidades` → `criterios` (criteria are optional).
+  Competency, capability, and criterion codes must be unique across the school
+  (`MAT-C1`, `MAT-C1-CAP1`, `MAT-C1-CR1`). `esquema_calificacion` may be `null`:
+  the subject then receives the standard scheme (practice 40%, dropping the
+  lowest score; exams 40%; projects 20%). Custom weights must total exactly 1.
+- **Cross-curricular competencies (`competencias_transversales`):** the template
+  includes both CNEB competencies.
+- **Grades (`grados`):** `orden` is the schooling position, from 1 to 11
+  (first primary grade = 1; first secondary grade = 7).
+- **Classrooms (`aulas`):** identified by grade and section. A classroom with
+  `"grado": "1S"` and `"seccion": "A"` is referenced as `"1S-A"` by classes.
+  `tutor` is an optional teacher username. Each classroom lists its `estudiantes`.
+  A student with `tipo_documento` must also have `numero_documento` (DNI: eight digits).
+- **Classes (`clases`):** a subject taught in a classroom by a teacher, with a
+  displayed `nombre` (for example, "Mathematics, first secondary grade, section A")
+  and a `codigo`. A classroom cannot have two classes for the same subject.
+  - `horario`: at least one slot (`dia`, `inicio`, `fin`, using HH:MM). Slots
+    cannot overlap for the same classroom or teacher.
+  - `sesiones` (optional): topics for specific sessions, such as
+    `{ "fecha": "2026-03-04", "tema": "Equations" }`. The date must match the
+    class timetable and fall within a term.
 
-## Qué crea el cargador además de lo que dice el archivo
+## What the loader creates beyond the file
 
-- **Las sesiones.** Por cada franja del horario, una sesión en cada fecha de
-  ese día de la semana dentro de cada periodo, todas en estado `scheduled`.
-  La aplicación solo lee sesiones y nunca las crea, así que sin este paso el
-  docente no vería ninguna.
-- **Las escalas**: la oficial AD/A/B/C del MINEDU y la interna vigesimal
-  (0-20).
-- **Un curso por área y grado**, llamado "<área> <grado>", por ejemplo
-  "Matemática 1ro". Todas las clases de esa área en ese grado lo comparten.
+- **Sessions:** one session for every matching timetable date in each term,
+  all with `scheduled` status. The application reads sessions but does not
+  create them, so teachers would have none without this step.
+- **Scales:** the official MINEDU AD/A/B/C scale and internal 0–20 scale.
+- **One course per subject and grade**, named "<subject> <grade>" (for example,
+  "Mathematics, first secondary grade"). Classes for that subject and grade share it.
 
-Los id de cada fila salen de lo que la fila es:
-`md5('<tipo>:<código modular>:<clave>')::uuid`, por ejemplo
-`md5('class:0723519:2026:MAT-1A')::uuid` (ver `internal/onboarding/ids.go`).
-Cargar el mismo archivo en una base vacía siempre da los mismos id.
+Each row's id derives from its identity:
+`md5('<type>:<modular code>:<key>')::uuid`, for example
+`md5('class:0723519:2026:MAT-1A')::uuid` (see `internal/onboarding/ids.go`).
+Loading the same file into an empty database produces the same ids.
 
-## Datos de demostración (opcional)
+## Demo data (optional)
 
 ```sh
 cp seed/onboarding/ejemplo-san-felipe.json seed/onboarding/colegios/san-felipe.json
-# completa las dos claves en la copia
+# Fill in both passwords in the copy.
 ./seed/onboard.sh --target local seed/onboarding/colegios/san-felipe.json
 psql "$ADMIN_DATABASE_URL" -v ON_ERROR_STOP=1 -f seed/seed_demo.sql
 ```
 
-`seed_demo.sql` carga un año vivido: sesiones dictadas, asistencia,
-evaluaciones con notas, niveles de logro y conclusiones descriptivas. Los dos
-primeros trimestres quedan cerrados; el tercero, en curso y a medias. El corte
-entre pasado y futuro se calcula con la fecha real en Lima, así que el archivo
-envejece solo.
+`seed_demo.sql` populates an academic year with completed sessions, attendance,
+graded assessments, achievement levels, and descriptive conclusions. The first
+two terms are closed; the third is in progress and partially complete. Past and
+future dates are determined by the current date in Lima.
 
-**Es relleno para ver y probar la aplicación, no parte de instalar un colegio.**
-Los estudiantes son ficticios. No lo ejecutes contra una base con datos reales.
+**This is sample data for exploring and testing the application, not school
+installation.** Students are fictional. Do not run it against real school data.
 
-## Tres cosas que el esquema impone
+## Three rules enforced by the schema
 
-**Los periodos se cierran al final, no al crearse.** El trigger
-`app.sync_score_denormalised()` rechaza toda nota dirigida a un trimestre
-`closed`. Así, una nota ya reportada no puede cambiar después. Por eso el
-cargador deja todos los periodos abiertos, y el cierre de los dos primeros de
-la demo vive al final de `seed_demo.sql`, con su evidencia ya dentro.
+**Terms close at the end, not at creation.** The `app.sync_score_denormalised()`
+trigger rejects scores for a `closed` term, preventing changes to reported
+grades. The loader leaves all terms open; `seed_demo.sql` closes its first two
+terms only after inserting their evidence.
 
-**Un esquema de calificación se publica después de tener sus pesos.**
-`check_publishable` es un trigger `BEFORE` normal, no diferido: busca los
-pesos en el momento en que se escribe `published_at`. Por eso el cargador
-inserta la versión sin publicar, agrega los pesos y publica con un `UPDATE`
-posterior.
+**Publish a grading scheme after adding its weights.** `check_publishable` is
+an immediate `BEFORE` trigger: it checks weights when `published_at` is written.
+The loader inserts an unpublished version, adds weights, then publishes it
+through an `UPDATE`.
 
-**Las notas y los juicios no se actualizan, se superan.** `scores`,
-`criterion_scores`, `competency_term_levels` y `descriptive_conclusions` son
-append-only. Una corrección marca `superseded_at` en la fila vigente e inserta
-el reemplazo con `supersedes_id`. En las dos primeras lo impone un trigger que
-lanza excepción ante cualquier `UPDATE`.
+**Scores and judgments are superseded, not overwritten.** `scores`,
+`criterion_scores`, `competency_term_levels`, and `descriptive_conclusions`
+retain replaced records. Corrections mark the current row's `superseded_at`
+and insert a replacement with `supersedes_id`. For the first two tables, a
+trigger rejects updates to score values.
 
-## Agregar un docente o cambiar una clave después
+## Adding a teacher or changing a password
 
-`cmd/useradd` sigue sirviendo para eso:
+Use `cmd/useradd`:
 
 ```sh
-useradd -tenant <uuid del colegio> -username <usuario> -email <correo> \
-        -given-name <nombres> -family-name <apellidos>
-useradd -reset-password -username <usuario>
+useradd -tenant <school-uuid> -username <username> -email <email> \
+        -given-name <given-names> -family-name <family-names>
+useradd -reset-password -username <username>
 ```
 
-## Ver también
+## See also
 
-- `docs/local-postgres-setup.md`: levantar Postgres en local
-- `../DEPLOY.md`: reiniciar la base del servidor
+- `docs/local-postgres-setup.md`: start PostgreSQL locally.
+- `../DEPLOY.md`: reset the server database.
