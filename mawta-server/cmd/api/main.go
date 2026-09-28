@@ -15,11 +15,13 @@ import (
 	"mawta-server/internal/config"
 	"mawta-server/internal/db"
 	"mawta-server/internal/httpapi"
+	"mawta-server/internal/logging"
 	"mawta-server/internal/worker"
 )
 
 func main() {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	logger := logging.Setup()
+	slog.SetDefault(logger)
 
 	cfg, err := config.Load()
 	if err != nil {

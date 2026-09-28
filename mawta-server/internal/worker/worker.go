@@ -120,9 +120,11 @@ func claim(ctx context.Context, database *db.DB, queue, workerName string) (*Job
 }
 
 func dispatch(ctx context.Context, database *db.DB, registry map[string]HandlerFunc, job Job, logger *slog.Logger) {
+	start := time.Now()
+
 	handler, ok := registry[job.Kind]
 	if !ok {
-		recordFailure(ctx, database, job, "unknown job kind: "+job.Kind, logger)
+		recordFailure(ctx, database, job, "unknown job kind: "+job.Kind, logger, start)
 		return
 	}
 
@@ -139,13 +141,20 @@ func dispatch(ctx context.Context, database *db.DB, registry map[string]HandlerF
 	}
 
 	if handlerErr != nil {
-		recordFailure(ctx, database, job, handlerErr.Error(), logger)
+		recordFailure(ctx, database, job, handlerErr.Error(), logger, start)
 		return
 	}
-	recordSuccess(ctx, database, job, logger)
+	recordSuccess(ctx, database, job, logger, start)
 }
 
-func recordSuccess(ctx context.Context, database *db.DB, job Job, logger *slog.Logger) {
+func recordSuccess(ctx context.Context, database *db.DB, job Job, logger *slog.Logger, start time.Time) {
+	durationMs := time.Since(start).Milliseconds()
+	logger.Info("worker: job completed",
+		"job_id", job.ID,
+		"kind", job.Kind,
+		"attempt", job.Attempts,
+		"duration_ms", durationMs,
+	)
 	if _, err := database.Pool.Exec(ctx, `
 		update jobs set status = 'completed', finalized_at = now() where id = $1
 	`, job.ID); err != nil {
@@ -153,8 +162,15 @@ func recordSuccess(ctx context.Context, database *db.DB, job Job, logger *slog.L
 	}
 }
 
-func recordFailure(ctx context.Context, database *db.DB, job Job, errMsg string, logger *slog.Logger) {
-	logger.Error("worker: job failed", "job_id", job.ID, "kind", job.Kind, "error", errMsg)
+func recordFailure(ctx context.Context, database *db.DB, job Job, errMsg string, logger *slog.Logger, start time.Time) {
+	durationMs := time.Since(start).Milliseconds()
+	logger.Error("worker: job failed",
+		"job_id", job.ID,
+		"kind", job.Kind,
+		"attempt", job.Attempts,
+		"duration_ms", durationMs,
+		"error", errMsg,
+	)
 
 	errRecord, _ := json.Marshal(map[string]any{"attempt": job.Attempts, "at": time.Now().UTC(), "error": truncate(errMsg, 2000)})
 	backoffSeconds := math.Min(math.Pow(float64(job.Attempts), 4), 3600)

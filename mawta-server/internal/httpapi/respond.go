@@ -49,3 +49,17 @@ func writeAppError(w http.ResponseWriter, appErr *db.AppError) {
 		Hint:    appErr.Hint,
 	}})
 }
+
+// writeErrorWithRequestID logs a 5xx error with the request_id for correlation.
+// The error cause is logged server-side but NOT exposed to clients.
+func writeErrorWithRequestID(w http.ResponseWriter, err error, reqID string) {
+	appErr := db.MapError(err)
+	if appErr.Status >= 500 {
+		slog.Error("httpapi: internal error", "request_id", reqID, "error", err)
+	}
+	writeJSON(w, appErr.Status, errorEnvelope{Error: errorBody{
+		Code:    appErr.Code,
+		Message: appErr.Message,
+		Hint:    appErr.Hint,
+	}})
+}

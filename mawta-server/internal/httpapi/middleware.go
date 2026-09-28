@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
@@ -47,6 +48,16 @@ func requestIDFrom(r *http.Request) string {
 	return id
 }
 
+// routePattern extracts the Chi route pattern from the request context.
+// If the pattern is empty (e.g. 404 unmatched routes), it falls back to
+// the request path.
+func routePattern(r *http.Request) string {
+	if pattern := chi.RouteContext(r.Context()).RoutePattern(); pattern != "" {
+		return pattern
+	}
+	return r.URL.Path
+}
+
 func requestLogger(logger *slog.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -54,11 +65,11 @@ func requestLogger(logger *slog.Logger) func(http.Handler) http.Handler {
 			sw := &statusWriter{ResponseWriter: w, status: http.StatusOK}
 			next.ServeHTTP(sw, r)
 			logger.Info("request",
+				"request_id", requestIDFrom(r),
 				"method", r.Method,
-				"path", r.URL.Path,
+				"route", routePattern(r),
 				"status", sw.status,
 				"duration_ms", time.Since(start).Milliseconds(),
-				"request_id", requestIDFrom(r),
 			)
 		})
 	}
