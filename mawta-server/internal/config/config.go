@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+
+	"mawta-server/internal/logging"
 )
 
 type Config struct {
@@ -27,6 +29,11 @@ type Config struct {
 	StorageDir        string
 	CORSOrigins       []string
 	LogLevel          string
+	// RequestBodyCapture turns on HTTP request/response body capture in the
+	// request log. OFF BY DEFAULT: bodies can carry school content about
+	// minors, so capture is opt-in, and even when on it is restricted to the
+	// route-and-field allowlist in internal/logging.
+	RequestBodyCapture bool
 
 	TranscribeAPIKey string
 	TranscribeModel  string
@@ -53,6 +60,10 @@ func Load() (Config, error) {
 		StorageDir:        getenv("STORAGE_DIR", "./data/audio"),
 		CORSOrigins:       splitcsv(getenv("CORS_ORIGINS", "http://localhost:5173")),
 		LogLevel:          getenv("LOG_LEVEL", "info"),
+
+		// Off unless explicitly enabled. See CapturePolicy in
+		// internal/logging for what is captured when this is on.
+		RequestBodyCapture: RequestBodyCaptureFromEnv(),
 
 		// Empty is a valid default: the process must still boot without STT
 		// configured. See internal/stt/SPEC.md for what happens then.
@@ -88,6 +99,14 @@ func Load() (Config, error) {
 	}
 
 	return cfg, nil
+}
+
+// RequestBodyCaptureFromEnv reports whether HTTP body capture is enabled.
+// It delegates to logging.RequestBodyCaptureFromEnv so the flag the logger
+// bakes in and the flag Config carries can never disagree — the middleware
+// reads the flag from the logger it is handed, not from Config.
+func RequestBodyCaptureFromEnv() bool {
+	return logging.RequestBodyCaptureFromEnv()
 }
 
 func getenv(key, def string) string {
