@@ -1,0 +1,565 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Mawta API logs collected by Alloy into Loki. HTTP requests searchable by request_id/route/status, worker jobs by task_id/kind/outcome, transcription usage with cost totals and unknown-cost count. Correlation fields (request_id, task_id, generation_id, request/response bodies, cost_usd) are log fields: click any log line to inspect its JSON in the details view.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "mawta-loki"
+      },
+      "description": "One line per completed HTTP request. Filter with the request_id / route / status variables at the top. Click a line to open its JSON details (request/response bodies and their capture statuses included).",
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "deduplication": "none",
+        "enableInfiniteScrolling": true,
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "mawta-loki"
+          },
+          "editorMode": "code",
+          "expr": "{service=\"mawta-server\"} | json | event=\"http.request\" | request_id=~\"$request_id\" | route=~\"$route\" | status=~\"$status\"",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "HTTP requests",
+      "type": "logs"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "mawta-loki"
+      },
+      "description": "Worker job start and outcome events. Filter with task_id / kind / outcome. job_started lines carry no outcome field; the default .* matches them.",
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "deduplication": "none",
+        "enableInfiniteScrolling": true,
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "mawta-loki"
+          },
+          "editorMode": "code",
+          "expr": "{service=\"mawta-server\"} | json | event=~\"worker.*\" | task_id=~\"$task_id\" | kind=~\"$kind\" | outcome=~\"$outcome\"",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Worker jobs",
+      "type": "logs"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "mawta-loki"
+      },
+      "description": "HTTP request rate split by response status, filtered by the route variable.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 10
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "mawta-loki"
+          },
+          "editorMode": "code",
+          "expr": "sum by (status) (count_over_time({service=\"mawta-server\"} | json | event=\"http.request\" | route=~\"$route\" | status=~\"$status\" [$__auto]))",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "HTTP requests by status",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "mawta-loki"
+      },
+      "description": "Busiest routes in the selected time range.",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 10
+      },
+      "id": 4,
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "requests"
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "mawta-loki"
+          },
+          "editorMode": "code",
+          "expr": "topk(10, sum by (route) (count_over_time({service=\"mawta-server\"} | json | event=\"http.request\" | route=~\"$route\" | status=~\"$status\" [$__auto])))",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Top routes",
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {}
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "mawta-loki"
+      },
+      "description": "Worker job outcome rate split by kind and outcome.",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 10
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "mawta-loki"
+          },
+          "editorMode": "code",
+          "expr": "sum by (kind, outcome) (count_over_time({service=\"mawta-server\"} | json | event=\"worker.job_outcome\" | task_id=~\"$task_id\" | kind=~\"$kind\" | outcome=~\"$outcome\" [$__auto]))",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Worker outcomes by kind",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "mawta-loki"
+      },
+      "description": "One line per actual transcription provider attempt, with per-call cost_usd, cost_source, generation_id, model, duration, and outcome. Click a line to inspect the full JSON.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "id": 6,
+      "options": {
+        "deduplication": "none",
+        "enableInfiniteScrolling": true,
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "mawta-loki"
+          },
+          "editorMode": "code",
+          "expr": "{service=\"mawta-server\"} | json | event=\"stt.usage\" | task_id=~\"$task_id\"",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Transcription events (per-call cost)",
+      "type": "logs"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "mawta-loki"
+      },
+      "description": "Sum of provider-reported cost_usd over the selected time range. Only cost_source=\"provider\" lines are summed, so unknown costs never inflate the total.",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 4,
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 12,
+        "y": 18
+      },
+      "id": 7,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "mawta-loki"
+          },
+          "editorMode": "code",
+          "expr": "sum(sum_over_time({service=\"mawta-server\"} | json | event=\"stt.usage\" | cost_source=\"provider\" | unwrap cost_usd [$__auto]))",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Observed cost total (USD)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "mawta-loki"
+      },
+      "description": "Transcription calls where the provider reported no cost (cost_source=\"unknown\"). These calls were billed by the provider but not observable in the log.",
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 16,
+        "y": 18
+      },
+      "id": 8,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "mawta-loki"
+          },
+          "editorMode": "code",
+          "expr": "sum(count_over_time({service=\"mawta-server\"} | json | event=\"stt.usage\" | cost_source=\"unknown\" [$__auto]))",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Unknown-cost calls",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "mawta-loki"
+      },
+      "description": "Per-call provider-reported cost over time. One point per transcription call.",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 4,
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 20,
+        "y": 18
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "mawta-loki"
+          },
+          "editorMode": "code",
+          "expr": "sum_over_time({service=\"mawta-server\"} | json | event=\"stt.usage\" | cost_source=\"provider\" | unwrap cost_usd [$__auto])",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Per-call cost (USD)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "mawta-loki"
+      },
+      "description": "Lines the collector could not parse as JSON. Alloy forwards these with json_parse_failed=true instead of dropping them; anything here means the API wrote a non-JSON line to stdout.",
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 23
+      },
+      "id": 10,
+      "options": {
+        "deduplication": "none",
+        "enableInfiniteScrolling": true,
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "mawta-loki"
+          },
+          "editorMode": "code",
+          "expr": "{service=\"mawta-server\", json_parse_failed=\"true\"}",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "JSON parse failures",
+      "type": "logs"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "mawta-loki"
+      },
+      "description": "Every collected API log line, unfiltered. Use this as the raw search surface; the panels above are pre-filtered views.",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "id": 11,
+      "options": {
+        "deduplication": "none",
+        "enableInfiniteScrolling": true,
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "mawta-loki"
+          },
+          "editorMode": "code",
+          "expr": "{service=\"mawta-server\"}",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "All API logs",
+      "type": "logs"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "tags": [
+    "mawta",
+    "logs"
+  ],
+  "templating": {
+    "list": [
+      {
+        "description": "Filter HTTP requests by request_id (X-Request-ID). .* matches all.",
+        "hide": 0,
+        "label": "request_id",
+        "name": "request_id",
+        "query": ".*",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "description": "Filter by Chi route pattern, e.g. /api/v1/classes/\\{classID\\}/students. .* matches all.",
+        "hide": 0,
+        "label": "route",
+        "name": "route",
+        "query": ".*",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "description": "Filter by HTTP status code, e.g. 200 or 5.. for all 5xx. .* matches all.",
+        "hide": 0,
+        "label": "status",
+        "name": "status",
+        "query": ".*",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "description": "Filter worker and transcription events by task_id (the queue job ID). .* matches all.",
+        "hide": 0,
+        "label": "task_id",
+        "name": "task_id",
+        "query": ".*",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "description": "Filter worker events by job kind, e.g. grade.recompute or voice_note.transcribe. .* matches all.",
+        "hide": 0,
+        "label": "kind",
+        "name": "kind",
+        "query": ".*",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "description": "Filter worker outcome events by outcome: success, retryable_failure, permanent_failure, skipped. .* matches all (including job_started lines, which carry no outcome).",
+        "hide": 0,
+        "label": "outcome",
+        "name": "outcome",
+        "query": ".*",
+        "skipUrlSync": false,
+        "type": "textbox"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Mawta logs",
+  "uid": "mawta-logs",
+  "version": 1,
+  "weekStart": ""
+}

@@ -1,0 +1,19 @@
+# Dashboard provisioning for the local Mawta observability stack.
+#
+# Loads the versioned dashboard JSON from /etc/grafana/provisioning/dashboards
+# at startup, so the dashboard exists with no manual import.
+apiVersion: 1
+
+providers:
+  - name: mawta-logs
+    orgId: 1
+    # The directory Grafana scans; docker-compose.local.yml bind-mounts
+    # deploy/observability/grafana/provisioning/dashboards here.
+    folder: Mawta
+    type: file
+    disableDeletion: false
+    allowUiUpdates: true
+    updateIntervalSeconds: 30
+    options:
+      path: /etc/grafana/provisioning/dashboards
+      foldersFromFilesStructure: false

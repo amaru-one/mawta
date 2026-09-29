@@ -1,0 +1,66 @@
+# Loki configuration for the local Mawta observability stack.
+#
+# Single-node, no auth (the service is never published off-host; it is only
+# reachable on the compose network), filesystem storage on a named volume,
+# schema v13, and a bounded retention of 7 days enforced by the compactor.
+#
+# The same file is intended to run unchanged on the Linux droplet later; only
+# the surrounding Compose file differs (see README.md, "Future work").
+
+# No multi-tenancy: the local stack serves one developer, and Grafana's
+# datasource is provisioned without an X-Scope-OrgID.
+auth_enabled: false
+
+server:
+  # Internal only: docker-compose.local.yml deliberately publishes no Loki
+  # port. Grafana, Alloy, and the smoke check reach it over the compose
+  # network. The smoke check uses `docker compose exec` instead of a
+  # published port.
+  http_listen_port: 3100
+  grpc_listen_port: 9096
+  log_level: warn
+
+common:
+  path_prefix: /loki
+  storage:
+    # Filesystem store on the named volume `loki_data`, so chunks, indexes,
+    # and the compactor's working directory all survive restarts.
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+schema_config:
+  configs:
+    # v13 is the current schema; tsdb index + filesystem object store is the
+    # supported single-disk combination for it.
+    - from: 2020-10-24
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+limits_config:
+  # Bounded retention: 7 days. Older data is deleted by the compactor below.
+  retention_period: 168h
+  # Structured metadata is on so Loki 3.x accepts the OTLP-style metadata
+  # some clients attach; harmless for Alloy's plain push API.
+  allow_structured_metadata: true
+  # The API's JSON lines are small; keep generous per-stream limits so a
+  # busy local session never gets rate-limited into dropped logs.
+  ingestion_rate_mb: 8
+  ingestion_burst_size_mb: 16
+  # Keep query results bounded for a developer laptop.
+  max_query_series: 5000
+
+compactor:
+  working_directory: /loki/compactor
+  # Actually delete data older than limits_config.retention_period.
+  retention_enabled: true
+  # Required when retention_enabled: where delete requests are stored.
+  delete_request_store: filesystem
