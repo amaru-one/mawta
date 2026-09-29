@@ -1,0 +1,140 @@
+// Grafana Alloy collector for the local Mawta observability stack.
+//
+// Pipeline: mawta-server JSON stdout -> Docker API -> Alloy -> Loki.
+//
+// Design rules (see deploy/observability/README.md):
+//
+//   * Logs are read through the Docker API socket, never from disk. On
+//     Docker Desktop for macOS the container log files live inside Docker's
+//     virtual machine, so a local.file_match component pointed at the
+//     host's container log paths would silently read nothing. discovery.docker
+//     + loki.source.docker is the only transport that works the same way on
+//     macOS, Linux, and later the droplet.
+//
+//   * Only the Compose service named `api` is collected. The filter matches
+//     the Docker label com.docker.compose.service, never a container name,
+//     so the rule keeps working regardless of the compose project name
+//     (mawta-local here) or the container's hostname.
+//
+//   * Bounded Loki labels only: service, environment, compose_service (plus
+//     json_parse_failed from the processing stage). request_id, task_id,
+//     generation_id, the request/response body values, and cost_usd stay
+//     log fields inside the JSON line, never stream labels, so the number
+//     of streams stays fixed no matter how much traffic flows.
+//
+//   * A line that fails JSON parsing is forwarded with the raw line intact
+//     and a json_parse_failed=true label, so parse failures are queryable
+//     in Loki instead of being silently dropped.
+//
+//   * The environment label comes from the MAWTA_ENVIRONMENT variable
+//     (set to `local` by docker-compose.local.yml), so the same file can
+//     later run on the droplet with a different value, unchanged.
+
+// ---------------------------------------------------------------------------
+// Docker discovery: watch the local Docker daemon for containers.
+// ---------------------------------------------------------------------------
+
+discovery.docker "mawta" {
+  host = "unix:///var/run/docker.sock"
+
+  // Poll the Docker API frequently so a freshly started api container is
+  // picked up within seconds instead of after the default refresh interval.
+  refresh_interval = "5s"
+}
+
+// Restrict discovery to the Mawta API container and set the bounded labels.
+discovery.relabel "mawta_api" {
+  targets = discovery.docker.mawta.targets
+
+  // Keep only the container whose Compose service is `api`. Docker exposes
+  // compose labels as __meta_docker_container_label_<label with . -> _>.
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    regex         = "api"
+    action        = "keep"
+  }
+
+  // Bounded stream labels.
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "compose_service"
+  }
+  rule {
+    target_label = "service"
+    replacement  = "mawta-server"
+  }
+  rule {
+    target_label = "environment"
+    // sys.env reads the container's environment; docker-compose.local.yml
+    // sets MAWTA_ENVIRONMENT=local. coalesce falls back to local when the
+    // variable is unset, so the file also loads in a bare `alloy run`.
+    replacement = coalesce(sys.env("MAWTA_ENVIRONMENT"), "local")
+  }
+
+  // Drop every other label (Docker names, ids, images, networks, arbitrary
+  // container labels) so nothing unbounded can ever reach Loki as a stream
+  // label. Internal __-prefixed labels are kept; the source strips them.
+  rule {
+    regex  = "__.*|compose_service|service|environment"
+    action = "labelkeep"
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Read the API container's stdout through the Docker API.
+// ---------------------------------------------------------------------------
+
+loki.source.docker "mawta_api" {
+  host    = "unix:///var/run/docker.sock"
+  targets = discovery.relabel.mawta_api.output
+  // The API writes one JSON object per line; forward each line as-is.
+  forward_to = [loki.process.mawta_api.receiver]
+}
+
+// ---------------------------------------------------------------------------
+// Parse and forward. The log line itself is never rewritten: every JSON
+// field the API emitted (request_id, task_id, generation_id, request,
+// response, cost_usd, ...) reaches Loki exactly as it was written.
+// ---------------------------------------------------------------------------
+
+loki.process "mawta_api" {
+  // Extract the timestamp field. If the line is not valid JSON the stage
+  // reports an error and the pipeline continues with no extracted data —
+  // the line is NOT dropped (drop_malformed defaults to false).
+  stage.json {
+    expressions = {
+      time = "time",
+    }
+  }
+
+  // Mark whether the JSON parse produced a timestamp. A line that failed to
+  // parse has no `time` extracted, so it gets json_parse_failed=true and
+  // stays visible in Loki as {service="mawta-server", json_parse_failed="true"}.
+  stage.template {
+    source   = "json_parse_failed"
+    template = "{{ if .time }}false{{ else }}true{{ end }}"
+  }
+
+  // Promote the parse marker to a bounded (true/false) stream label.
+  stage.labels {
+    values = {
+      json_parse_failed = "",
+    }
+  }
+
+  // Use the event's own timestamp (slog's RFC3339Nano `time` field). When the
+  // field is absent — a parse failure — the stage errors, the entry keeps
+  // its read time, and the raw line is still forwarded.
+  stage.timestamp {
+    source = "time"
+    format = "RFC3339Nano"
+  }
+
+  forward_to = [loki.write.loki.receiver]
+}
+
+loki.write "loki" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

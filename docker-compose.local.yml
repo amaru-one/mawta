@@ -1,4 +1,7 @@
-# Local dev stack: the Go API and the SvelteKit dev server, both containerized.
+# Local dev stack: the Go API and the SvelteKit dev server, both containerized,
+# plus the local observability stack (Grafana, Loki, Alloy) that collects the
+# API's JSON stdout logs. See deploy/observability/README.md.
+#
 # Connects to the Postgres container started per mawta-server/docs/local-postgres-setup.md
 # (`mawta-pg`, published on host port 55432) rather than starting its own —
 # that container isn't part of this (or any) compose project, so both
@@ -11,6 +14,14 @@
 # passworded, per mawta-server/docs/local-postgres-setup.md.
 
 name: mawta-local
+
+x-logging: &default-logging
+  # Explicit rotation so a long local session cannot grow container logs
+  # without bound. The API's JSON lines are small; 10 MiB x 3 is plenty.
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
 
 services:
   api:
@@ -34,6 +45,7 @@ services:
       - api_audio:/data/audio
     extra_hosts:
       - 'host.docker.internal:host-gateway' # host.docker.internal is Mac/Windows-only by default; this adds it on Linux too
+    logging: *default-logging
 
   ui:
     build:
@@ -49,7 +61,70 @@ services:
       - ui_node_modules:/app/node_modules # named volume so the bind mount above doesn't shadow it
     depends_on:
       - api
+    logging: *default-logging
+
+  # --- Local observability stack (see deploy/observability/README.md) ---
+  # Pinned versions: grafana/grafana:11.3.0, grafana/loki:3.3.2,
+  # grafana/alloy:1.7.1. Upgrade them together and re-verify with
+  # deploy/observability/smoke-check.sh.
+
+  loki:
+    image: grafana/loki:3.3.2
+    command: -config.file=/etc/loki/loki-config.yaml
+    volumes:
+      - ./deploy/observability/loki-config.yaml:/etc/loki/loki-config.yaml:ro
+      - loki_data:/loki
+    # No ports: Loki stays internal to the compose network. The smoke check
+    # reaches it with `docker compose exec loki` instead of a published port.
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:3100/ready || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    logging: *default-logging
+
+  alloy:
+    image: grafana/alloy:v1.7.1
+    command: run /etc/alloy/config.alloy --storage.path=/var/lib/alloy/data
+    environment:
+      # The Loki `environment` label. `local` here; the droplet would set its
+      # own value without changing this file.
+      MAWTA_ENVIRONMENT: local
+    volumes:
+      # Read-only Docker socket: the collector's only way in. It can list and
+      # read container logs, but cannot start/stop containers or mutate state.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./deploy/observability/alloy-config.alloy:/etc/alloy/config.alloy:ro
+      - alloy_data:/var/lib/alloy/data
+    depends_on:
+      loki:
+        condition: service_healthy
+    logging: *default-logging
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    # Localhost only: the dashboard shows school log content, so it must not
+    # be reachable from other machines. On the droplet this stays 127.0.0.1
+    # too and is reached through an SSH tunnel (see README, future work).
+    ports:
+      - '127.0.0.1:3000:3000'
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_AUTH_ANONYMOUS_ENABLED: 'false'
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana/provisioning/dashboards/mawta-logs.json
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./deploy/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      loki:
+        condition: service_healthy
+    logging: *default-logging
 
 volumes:
   api_audio:
   ui_node_modules:
+  loki_data:
+  grafana_data:
+  alloy_data:
