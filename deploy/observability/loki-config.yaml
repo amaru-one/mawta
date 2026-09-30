@@ -4,8 +4,8 @@
 # reachable on the compose network), filesystem storage on a named volume,
 # schema v13, and a bounded retention of 7 days enforced by the compactor.
 #
-# The same file is intended to run unchanged on the Linux droplet later; only
-# the surrounding Compose file differs (see README.md, "Future work").
+# The same file runs unchanged on the Linux droplet; only the surrounding
+# Compose file differs (see README.md, "Droplet deployment").
 
 # No multi-tenancy: the local stack serves one developer, and Grafana's
 # datasource is provisioned without an X-Scope-OrgID.

@@ -88,12 +88,18 @@ services:
     image: grafana/alloy:v1.7.1
     command: run /etc/alloy/config.alloy --storage.path=/var/lib/alloy/data
     environment:
-      # The Loki `environment` label. `local` here; the droplet would set its
-      # own value without changing this file.
+      # The Loki `environment` label. `local` here; the droplet Compose file
+      # sets `prod` without changing the Alloy config file.
       MAWTA_ENVIRONMENT: local
+      # The Compose project the collector selects. Explicit here for
+      # clarity: it must equal this file's `name:` (mawta-local). The droplet
+      # Compose file sets `mawta` instead.
+      MAWTA_COMPOSE_PROJECT: mawta-local
     volumes:
-      # Read-only Docker socket: the collector's only way in. It can list and
-      # read container logs, but cannot start/stop containers or mutate state.
+      # Docker socket: the collector's only way in. Alloy's config only lists
+      # containers and reads their logs, but `:ro` does NOT restrict the
+      # Docker API (it only protects the socket file); see
+      # deploy/observability/README.md ("Security note: the Docker socket mount").
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./deploy/observability/alloy-config.alloy:/etc/alloy/config.alloy:ro
       - alloy_data:/var/lib/alloy/data
@@ -105,8 +111,9 @@ services:
   grafana:
     image: grafana/grafana:11.3.0
     # Localhost only: the dashboard shows school log content, so it must not
-    # be reachable from other machines. On the droplet this stays 127.0.0.1
-    # too and is reached through an SSH tunnel (see README, future work).
+    # be reachable from other machines. The droplet Compose file binds
+    # 127.0.0.1 too and is reached through an SSH tunnel (see README,
+    # "Droplet deployment").
     ports:
       - '127.0.0.1:3000:3000'
     environment:

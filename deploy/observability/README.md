@@ -15,8 +15,9 @@ mawta-server JSON stdout -> Grafana Alloy -> Loki -> Grafana
 - **Grafana** (`grafana/provisioning/`) is the viewer, with the Loki
   datasource and the "Mawta logs" dashboard provisioned from versioned files.
 
-Everything runs as part of `docker-compose.local.yml`. **Deploying this to the
-droplet is future work** — see [Future work](#future-work-droplet-rollout).
+Everything runs as part of `docker-compose.local.yml`. **The droplet
+deployment is described below** — see
+[Droplet deployment](#droplet-deployment).
 
 ## Prerequisites
 
@@ -100,11 +101,13 @@ the LogQL features the dashboard uses. Upgrade them together and re-run
 
 ## What is collected — and what is not
 
-Alloy collects **only the Compose service `api`** (`com.docker.compose.service=api`),
-not every container on the host. The filter is a Docker label match, not a
-container-name match, so it keeps working regardless of the compose project
-name. The UI, Postgres, and any unrelated container on the developer's
-machine are never collected.
+Alloy collects **only the Compose service `api`** of the matching Compose
+project (`com.docker.compose.service=api` plus
+`com.docker.compose.project`, from the `MAWTA_COMPOSE_PROJECT` variable:
+`mawta-local` locally, `mawta` on the droplet), not every container on the
+host. The filters are Docker label matches, not container-name matches, so
+they keep working regardless of the compose project name. The UI, Postgres,
+and any unrelated container on the developer's machine are never collected.
 
 The API's log lines are forwarded **unaltered**: every JSON field the API
 wrote — `request_id`, `task_id`, `generation_id`, the sanitized
@@ -306,8 +309,9 @@ It is repeatable and self-contained. It:
    docker compose -f docker-compose.local.yml exec alloy ls -l /var/run/docker.sock
    ```
    Without the socket, discovery finds no containers and nothing is
-   collected — silently. The socket is mounted **read-only** in
-   `docker-compose.local.yml`; Alloy needs no write access to it.
+   collected — silently. The socket is mounted with `:ro` in
+   `docker-compose.local.yml`, but `:ro` does not restrict the Docker API
+   (see "Docker API access requirements" below).
 4. Is Loki up and healthy?
    ```sh
    docker compose -f docker-compose.local.yml ps loki
@@ -322,8 +326,10 @@ It is repeatable and self-contained. It:
 **Docker API access requirements.** The collector needs the Docker socket
 (`/var/run/docker.sock`) mounted read-only to (a) list containers
 (`discovery.docker`) and (b) stream their logs (`loki.source.docker`). It
-needs no other Docker permissions: no write access to the socket, no
-container start/stop, no host filesystem access. On Docker Desktop the
+uses no other Docker API calls. The socket, however, grants the full Docker
+API regardless of the `:ro` mount flag (`:ro` only protects the socket file
+itself), so the Alloy container effectively has full control of the Docker
+daemon; see "Security note: the Docker socket mount" below. On Docker Desktop the
 socket is the VM's API endpoint, which is exactly why the collector must use
 the API rather than reading log files from disk — the log files live inside
 the VM where the host cannot read them.
@@ -336,37 +342,258 @@ lines carry their own timestamps; if the host clock and the container clock
 disagree wildly, entries can fall outside Loki's acceptance window. Restart
 the stack; the smoke check's restart step exercises exactly this path.
 
-## Future work: droplet rollout
+## Droplet deployment
 
-Deploying this stack to the droplet is **future work, out of scope here**.
-This directory is written to be droplet-ready — the same Alloy, Loki, and
-Grafana files run on Linux unchanged — but the rollout itself needs:
+The same Alloy, Loki, and Grafana files run on the droplet unchanged; only
+the surrounding Compose file differs. The droplet stack is
+`docker-compose.droplet.yml` in this directory, with its own fixed project
+name `mawta-observability`, so its containers, network, and volumes are
+completely separate from the production `mawta` project (postgres, api,
+caddy). Starting, stopping, or resetting it never touches production.
 
-- **A separate Compose file** (for example `deploy/observability/docker-compose.observability.yml`)
-  rather than changes to the production one; the production stack must not
-  grow a Grafana dependency.
-- **Grafana exposure**: on the droplet, `127.0.0.1:3000` is reachable only
-  from the droplet itself. Reach it through an **SSH tunnel**
-  (`ssh -L 3000:127.0.0.1:3000 <droplet>`) or an authenticated Caddy route;
-  never publish it on a public interface without authentication.
-- **The security weight of the Docker socket mount**: read-only or not, the
-  socket grants container-log access and, in practice, broad control of the
-  daemon. On a shared host this is a real decision, not a default.
-- **Memory and disk sizing**: Loki's compactor and index want headroom
-  (hundreds of MB), and the retention volume needs a disk budget matched to
-  the retention period.
-- **The `environment` label**: set `MAWTA_ENVIRONMENT` to the droplet's value
-  (for example `prod`) in the new Compose file; the Alloy config reads it
-  from the variable and needs no edit.
+```
+mawta api container JSON stdout -> Alloy (Docker API) -> Loki -> Grafana
+```
+
+- **Alloy** selects the production API by two Docker labels:
+  `com.docker.compose.project=mawta` (from `MAWTA_COMPOSE_PROJECT`) and
+  `com.docker.compose.service=api` — not Postgres, not Caddy, not the
+  observability containers themselves. The `environment` label is `prod`
+  (from `MAWTA_ENVIRONMENT`).
+- **Loki** keeps the same 7-day retention (`loki-config.yaml`, unchanged).
+- **Grafana** is published on `127.0.0.1` only (default port 3000,
+  configurable with `GRAFANA_PORT`); Loki and Alloy publish no ports. The
+  operator reaches Grafana through an SSH tunnel.
+
+### Prerequisites
+
+1. **Merge to `main`.** The deploy workflow (`.github/workflows/deploy.yml`)
+   rsyncs `deploy/` to `/srv/mawta/deploy/` on every push to `main`, so after
+   the merge the droplet has `docker-compose.droplet.yml`,
+   `droplet-check.sh`, `droplet.env.example`, and the shared Alloy/Loki/
+   Grafana files. Nothing in this ticket touches the droplet directly.
+2. **Add the variables to `/srv/mawta/.env`** (the same env file the
+   production stack uses). Run these once on the droplet; the shell
+   generates the password as the line is written, because an env file does
+   not run commands (a literal `$(openssl ...)` inside `.env` would become
+   the password itself):
+   ```sh
+   # on the droplet, once
+   cd /srv/mawta
+   echo "GRAFANA_ADMIN_PASSWORD=$(openssl rand -hex 32)" >> .env   # REQUIRED, no default
+   echo "MAWTA_ENVIRONMENT=prod" >> .env
+   echo "MAWTA_COMPOSE_PROJECT=mawta" >> .env
+   # echo "GRAFANA_PORT=3000" >> .env   # optional, only if 3000 is taken on loopback
+   grep -c '^GRAFANA_ADMIN_PASSWORD=' .env   # must print 1
+   ```
+   Read the password back when you first log in with
+   `grep '^GRAFANA_ADMIN_PASSWORD=' /srv/mawta/.env` (on the droplet only;
+   never paste it anywhere else).
+   `GRAFANA_ADMIN_PASSWORD` is required: `docker-compose.droplet.yml` uses
+   `${GRAFANA_ADMIN_PASSWORD:?...}`, so `docker compose` fails fast when it
+   is unset — Grafana can never start with a guessable password.
+
+### Pre-flight checks
+
+The droplet also runs Postgres, the API, and Caddy, so check there is
+headroom for ~640 MB of observability limits plus transient spikes:
+
+```sh
+free -m                            # memory: expect a comfortable margin over ~1 GB used
+df -h /                            # disk: see the budget below
+docker stats --no-stream           # per-container memory right now
+docker compose --env-file /srv/mawta/.env -f /srv/mawta/deploy/docker-compose.prod.yml ps   # production is up
+```
+
+Expected steady-state disk usage of the observability stack:
+
+| Store | Expected size |
+|-------|---------------|
+| Loki data (`mawta-observability_loki_data`) | ~500 MB for 7 days at moderate traffic |
+| Grafana state (`mawta-observability_grafana_data`) | ~50 MB |
+| Alloy positions (`mawta-observability_alloy_data`) | ~10 MB |
+| Docker logs | 10 MB × 3 files = at most ~30 MB per observability container, ~90 MB for the three |
+
+### One-time start
+
+From `/srv/mawta` (the relative paths in the Compose file resolve from
+`/srv/mawta/deploy/observability/`):
+
+```sh
+cd /srv/mawta
+docker compose --env-file .env \
+  -f deploy/observability/docker-compose.droplet.yml up -d
+```
+
+`up -d` on later merges to `main` re-creates only what changed.
+
+### SSH tunnel access
+
+Grafana is bound to the droplet's `127.0.0.1` only. From your machine:
+
+```sh
+ssh -L 3000:127.0.0.1:3000 <droplet>
+```
+
+Then open **http://127.0.0.1:3000** locally and log in as `admin` with
+`GRAFANA_ADMIN_PASSWORD`. The **Mawta logs** dashboard is provisioned
+automatically; the Loki datasource (`uid: mawta-loki`) is the default one.
+
+### Verification
+
+On the droplet (read-only; it may send one `GET /healthz` to the public
+domain to produce a fresh log line):
+
+```sh
+bash /srv/mawta/deploy/observability/droplet-check.sh
+```
+
+It confirms the three services are running, Grafana is healthy, the
+provisioned datasource and dashboard exist, and Loki holds recent
+`{service="mawta-server", environment="prod"}` lines with `request_id`
+intact. It creates no data, restarts nothing, and prints no secrets.
+
+### Lifecycle
+
+```sh
+cd /srv/mawta
+OBS="--env-file .env -f deploy/observability/docker-compose.droplet.yml"
+
+docker compose ${OBS} start     # start after a stop or a droplet reboot
+docker compose ${OBS} stop      # stop; volumes and data are preserved
+docker compose ${OBS} down      # remove containers and network; volumes preserved
+docker compose ${OBS} up -d     # start again after down (or after a merge to main)
+```
+
+**Upgrade.** Bump the three pinned images in
+`docker-compose.droplet.yml` **together** (they are a compatible set: Alloy
+1.7 speaks the Loki 3.x push API, Grafana 11.3 ships the Loki datasource and
+the LogQL features the dashboard uses), merge, then on the droplet:
+
+```sh
+docker compose ${OBS} up -d      # re-creates the changed services
+bash /srv/mawta/deploy/observability/droplet-check.sh
+```
+
+Keep the versions in sync with `docker-compose.local.yml` and re-run
+`deploy/observability/smoke-check.sh` locally after an upgrade.
+
+**Destructive reset (explicit).** Stopping or `down`-ing never deletes the
+volumes. To wipe all stored logs, Grafana state, and collector positions:
+
+```sh
+docker compose ${OBS} down
+docker volume rm mawta-observability_loki_data \
+  mawta-observability_grafana_data mawta-observability_alloy_data
+```
+
+### Rollback
+
+`docker compose ${OBS} down` removes only the `mawta-observability`
+project's containers and network — the `mawta` production project is
+untouched, and no production container, network, or volume is referenced
+or shared. If the observability stack misbehaves, `down` (or `stop`) is a
+complete rollback: production keeps running and keeps logging to stdout.
+
+### Troubleshooting
+
+**No logs in Grafana / Loki.**
+
+1. Is the production API container running and logging?
+   ```sh
+   docker compose --env-file /srv/mawta/.env -f /srv/mawta/deploy/docker-compose.prod.yml logs --tail 20 api
+   ```
+   You should see one JSON object per line. If not, the problem is
+   upstream of the observability stack.
+2. Is Alloy running and error-free?
+   ```sh
+   docker compose --env-file /srv/mawta/.env -f /srv/mawta/deploy/observability/docker-compose.droplet.yml logs --tail 50 alloy
+   ```
+3. Is the Docker socket mounted? Alloy reads logs through the Docker API:
+   ```sh
+   docker compose --env-file /srv/mawta/.env -f /srv/mawta/deploy/observability/docker-compose.droplet.yml exec alloy ls -l /var/run/docker.sock
+   ```
+4. Is the project filter right? Alloy collects only
+   `com.docker.compose.project=mawta` + `com.docker.compose.service=api`.
+   Check the label on the production container:
+   ```sh
+   docker inspect $(docker ps --format '{{ .Names }}' | grep -m1 'mawta.*api') \
+     --format '{{ .Config.Labels }}'
+   ```
+   `MAWTA_COMPOSE_PROJECT` in `/srv/mawta/.env` must be `mawta`.
+5. Is Loki up and healthy?
+   ```sh
+   docker compose --env-file /srv/mawta/.env -f /srv/mawta/deploy/observability/docker-compose.droplet.yml ps loki
+   docker compose --env-file /srv/mawta/.env -f /srv/mawta/deploy/observability/docker-compose.droplet.yml exec loki wget -qO- http://localhost:3100/ready
+   ```
+6. Widen the time range in Grafana; logs older than the range are invisible
+   even when present.
+
+**Grafana auth.** `GRAFANA_ADMIN_PASSWORD` only takes effect when Grafana
+creates its database on **first start**; changing it in `.env` later does
+not change an existing deployment's password. Change it with (run by the
+operator, on the droplet):
+
+```sh
+docker compose --env-file .env -f deploy/observability/docker-compose.droplet.yml \
+  exec grafana grafana cli admin reset-admin-password '<new>'
+```
+
+Anonymous access and sign-up are disabled
+(`GF_AUTH_ANONYMOUS_ENABLED=false`, `GF_USERS_ALLOW_SIGN_UP=false`), and
+Grafana's outbound telemetry and update checks are off
+(`GF_ANALYTICS_*`).
+
+**Loki retention.** Loki keeps **7 days** (`retention_period: 168h` in
+`loki-config.yaml`, enforced by the compactor). Older data is deleted
+automatically; the volume never grows without bound. If disk runs short,
+`docker compose ${OBS} down` plus removing `mawta-observability_loki_data`
+is the explicit destructive reset above.
+
+### Security note: the Docker socket mount
+
+Alloy mounts `/var/run/docker.sock` into the Alloy container only — no
+other observability container gets it. The `:ro` flag does **not** limit
+what Alloy can do with the socket: it only stops the socket file itself
+from being replaced. Any process that can connect to the socket has the
+**full Docker API** — it can start, stop, and delete containers, and run a
+privileged container that mounts the host filesystem, which is root on the
+droplet. That is why this is a real decision on a production host, not a
+default.
+
+What actually limits the risk here: only the Alloy container gets the
+socket; Alloy runs a pinned official image with a config that only reads
+(`discovery.docker` and `loki.source.docker` list containers and stream
+logs); and nothing in the stack is reachable from outside the droplet
+(Grafana is bound to `127.0.0.1`, Loki and Alloy publish no ports). Treat a
+compromise of the Alloy container as a compromise of the host.
+
+A stronger mitigation, left as a follow-up: put a read-only Docker API
+proxy (for example `tecnativa/docker-socket-proxy` with only
+`CONTAINERS=1`, everything else denied, including all POST requests) in
+front of the socket, and point Alloy at the proxy instead of mounting the
+socket.
+
+### Known follow-up
+
+The production `api` container's **own** Docker log rotation is governed by
+`deploy/docker-compose.prod.yml` (or the Docker daemon configuration), not
+by this stack. This ticket deliberately does not change that file; the
+observability containers' log rotation is explicit in
+`docker-compose.droplet.yml` (`json-file`, `max-size: 10m`,
+`max-file: 3`).
 
 ## File map
 
 | File | Purpose |
 |------|---------|
-| `alloy-config.alloy` | Collector: Docker API discovery, `api`-service selection, bounded labels, JSON parse-failure marking, Loki push. |
+| `alloy-config.alloy` | Collector: Docker API discovery, project + `api`-service selection (variable-driven), bounded labels, JSON parse-failure marking, Loki push. |
 | `loki-config.yaml` | Loki: schema v13, filesystem store on the named volume, 7-day retention. |
 | `grafana/provisioning/datasources/datasource.yaml` | Loki datasource (`uid: mawta-loki`), provisioned. |
 | `grafana/provisioning/dashboards/dashboard.yaml` | Dashboard provider: loads the JSON below from the mounted directory. |
 | `grafana/provisioning/dashboards/mawta-logs.json` | The "Mawta logs" dashboard. |
 | `smoke-check.sh` | End-to-end smoke check (see above). |
+| `docker-compose.droplet.yml` | Droplet stack: same pinned Loki/Alloy/Grafana, project `mawta-observability`, memory limits, log rotation, Grafana on `127.0.0.1` only. |
+| `droplet.env.example` | Example variables for `/srv/mawta/.env` (no real secrets). |
+| `droplet-check.sh` | Read-only droplet verification (see above). |
 | `README.md` | This file. |

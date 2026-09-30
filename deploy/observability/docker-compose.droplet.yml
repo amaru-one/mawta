@@ -1,0 +1,121 @@
+# Droplet observability stack: Grafana, Loki, Alloy next to the production
+# `mawta` stack (postgres, api, caddy) on the same host. See
+# deploy/observability/README.md ("Droplet deployment") for the runbook.
+#
+# Run from /srv/mawta (the deploy workflow rsyncs deploy/ to
+# /srv/mawta/deploy/, so the relative paths below resolve there):
+#
+#   docker compose --env-file .env \
+#     -f deploy/observability/docker-compose.droplet.yml up -d
+#
+# Isolation: the fixed project name `mawta-observability` keeps every
+# container, network, and volume of this stack separate from the `mawta`
+# project. Starting, stopping, or resetting this stack never touches the
+# production containers, networks, or volumes, and this file does not
+# reference or extend deploy/docker-compose.prod.yml.
+#
+# Pinned versions — the same set as docker-compose.local.yml. Upgrade them
+# together and re-run deploy/observability/droplet-check.sh afterwards.
+
+name: mawta-observability
+
+x-logging: &default-logging
+  # Explicit rotation so a long-running droplet cannot grow container logs
+  # without bound: at most 10 MiB x 3 files per observability container.
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  loki:
+    image: grafana/loki:3.3.2
+    command: -config.file=/etc/loki/loki-config.yaml
+    volumes:
+      - ./loki-config.yaml:/etc/loki/loki-config.yaml:ro
+      - loki_data:/loki
+    # No ports: Loki stays internal to the compose network. The verification
+    # script reaches it with `docker compose exec loki` instead.
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:3100/ready || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    logging: *default-logging
+
+  alloy:
+    image: grafana/alloy:v1.7.1
+    command: run /etc/alloy/config.alloy --storage.path=/var/lib/alloy/data
+    environment:
+      # The Loki `environment` label and the Compose project the collector
+      # selects (the production `mawta` project's `api` service). The Alloy
+      # config reads both from variables; it needs no edit per environment.
+      MAWTA_ENVIRONMENT: ${MAWTA_ENVIRONMENT:-prod}
+      MAWTA_COMPOSE_PROJECT: ${MAWTA_COMPOSE_PROJECT:-mawta}
+    volumes:
+      # Docker socket: the collector's only way in. Alloy's config only lists
+      # containers and streams their logs, but `:ro` does NOT restrict the
+      # Docker API (it only protects the socket file): whoever controls this
+      # container controls the Docker daemon. See README.md ("Security note:
+      # the Docker socket mount").
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./alloy-config.alloy:/etc/alloy/config.alloy:ro
+      - alloy_data:/var/lib/alloy/data
+    depends_on:
+      loki:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    logging: *default-logging
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    # Localhost only: the dashboard shows school log content, so it must not
+    # be reachable from other machines. The operator reaches it through an
+    # SSH tunnel (see README.md, "Droplet deployment").
+    ports:
+      - '127.0.0.1:${GRAFANA_PORT:-3000}:3000'
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      # Required, no default: `:?` makes compose fail fast when the variable
+      # is missing from the env file, so Grafana can never start with a
+      # guessable password. It only takes effect when Grafana creates its
+      # database on first start; change it later with
+      # `docker compose ... exec grafana grafana cli admin reset-admin-password '<new>'`.
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD must be set in .env}
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_AUTH_ANONYMOUS_ENABLED: 'false'
+      GF_SECURITY_COOKIE_SAMESITE: 'strict'
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana/provisioning/dashboards/mawta-logs.json
+      GF_SECURITY_ANGULAR_SUPPORT_ENABLED: 'false'
+      # Disable telemetry and update checks: the droplet's Grafana must not
+      # phone home.
+      GF_ANALYTICS_CHECK_FOR_UPDATES: 'false'
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: 'false'
+      GF_ANALYTICS_REPORTING_ENABLED: 'false'
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      loki:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    logging: *default-logging
+
+volumes:
+  loki_data:
+  grafana_data:
+  alloy_data:
