@@ -11,10 +11,13 @@
 //     + loki.source.docker is the only transport that works the same way on
 //     macOS, Linux, and later the droplet.
 //
-//   * Only the Compose service named `api` is collected. The filter matches
-//     the Docker label com.docker.compose.service, never a container name,
-//     so the rule keeps working regardless of the compose project name
-//     (mawta-local here) or the container's hostname.
+//   * Only the production API container is collected, selected by two
+//     Docker labels: the Compose project (com.docker.compose.project, from
+//     the MAWTA_COMPOSE_PROJECT variable: mawta-local locally, mawta on the
+//     droplet) and the Compose service (com.docker.compose.service=api).
+//     The filters match labels, never container names, so the rule keeps
+//     working regardless of the container's hostname. Postgres, Caddy, the
+//     UI, and the observability containers themselves are never collected.
 //
 //   * Bounded Loki labels only: service, environment, compose_service (plus
 //     json_parse_failed from the processing stage). request_id, task_id,
@@ -27,8 +30,10 @@
 //     in Loki instead of being silently dropped.
 //
 //   * The environment label comes from the MAWTA_ENVIRONMENT variable
-//     (set to `local` by docker-compose.local.yml), so the same file can
-//     later run on the droplet with a different value, unchanged.
+//     (set to `local` by docker-compose.local.yml, `prod` by
+//     docker-compose.droplet.yml), and the project filter from
+//     MAWTA_COMPOSE_PROJECT (mawta-local / mawta), so the same file runs
+//     on the droplet with different values, unchanged.
 
 // ---------------------------------------------------------------------------
 // Docker discovery: watch the local Docker daemon for containers.
@@ -46,8 +51,20 @@ discovery.docker "mawta" {
 discovery.relabel "mawta_api" {
   targets = discovery.docker.mawta.targets
 
-  // Keep only the container whose Compose service is `api`. Docker exposes
+  // Keep only the container whose Compose project matches. Docker exposes
   // compose labels as __meta_docker_container_label_<label with . -> _>.
+  // sys.env reads the collector container's environment; the Compose files
+  // set MAWTA_COMPOSE_PROJECT (mawta-local locally, mawta on the droplet).
+  // coalesce falls back to mawta-local when the variable is unset, so the
+  // file also loads in a bare `alloy run` and the local stack keeps its
+  // current behavior.
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_project"]
+    regex         = coalesce(sys.env("MAWTA_COMPOSE_PROJECT"), "mawta-local")
+    action        = "keep"
+  }
+
+  // Keep only the container whose Compose service is `api`.
   rule {
     source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
     regex         = "api"
