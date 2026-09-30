@@ -96,8 +96,10 @@ services:
       # Compose file sets `mawta` instead.
       MAWTA_COMPOSE_PROJECT: mawta-local
     volumes:
-      # Read-only Docker socket: the collector's only way in. It can list and
-      # read container logs, but cannot start/stop containers or mutate state.
+      # Docker socket: the collector's only way in. Alloy's config only lists
+      # containers and reads their logs, but `:ro` does NOT restrict the
+      # Docker API (it only protects the socket file); see
+      # deploy/observability/README.md ("Security note: the Docker socket mount").
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./deploy/observability/alloy-config.alloy:/etc/alloy/config.alloy:ro
       - alloy_data:/var/lib/alloy/data

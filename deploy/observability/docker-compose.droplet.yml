@@ -59,9 +59,11 @@ services:
       MAWTA_ENVIRONMENT: ${MAWTA_ENVIRONMENT:-prod}
       MAWTA_COMPOSE_PROJECT: ${MAWTA_COMPOSE_PROJECT:-mawta}
     volumes:
-      # Read-only Docker socket: the collector's only way in. It can list
-      # containers and stream their logs, but cannot start/stop containers
-      # or mutate state. See README.md ("Droplet deployment", security note).
+      # Docker socket: the collector's only way in. Alloy's config only lists
+      # containers and streams their logs, but `:ro` does NOT restrict the
+      # Docker API (it only protects the socket file): whoever controls this
+      # container controls the Docker daemon. See README.md ("Security note:
+      # the Docker socket mount").
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./alloy-config.alloy:/etc/alloy/config.alloy:ro
       - alloy_data:/var/lib/alloy/data

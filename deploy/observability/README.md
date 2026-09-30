@@ -309,8 +309,9 @@ It is repeatable and self-contained. It:
    docker compose -f docker-compose.local.yml exec alloy ls -l /var/run/docker.sock
    ```
    Without the socket, discovery finds no containers and nothing is
-   collected — silently. The socket is mounted **read-only** in
-   `docker-compose.local.yml`; Alloy needs no write access to it.
+   collected — silently. The socket is mounted with `:ro` in
+   `docker-compose.local.yml`, but `:ro` does not restrict the Docker API
+   (see "Docker API access requirements" below).
 4. Is Loki up and healthy?
    ```sh
    docker compose -f docker-compose.local.yml ps loki
@@ -325,8 +326,10 @@ It is repeatable and self-contained. It:
 **Docker API access requirements.** The collector needs the Docker socket
 (`/var/run/docker.sock`) mounted read-only to (a) list containers
 (`discovery.docker`) and (b) stream their logs (`loki.source.docker`). It
-needs no other Docker permissions: no write access to the socket, no
-container start/stop, no host filesystem access. On Docker Desktop the
+uses no other Docker API calls. The socket, however, grants the full Docker
+API regardless of the `:ro` mount flag (`:ro` only protects the socket file
+itself), so the Alloy container effectively has full control of the Docker
+daemon; see "Security note: the Docker socket mount" below. On Docker Desktop the
 socket is the VM's API endpoint, which is exactly why the collector must use
 the API rather than reading log files from disk — the log files live inside
 the VM where the host cannot read them.
@@ -370,14 +373,22 @@ mawta api container JSON stdout -> Alloy (Docker API) -> Loki -> Grafana
    `droplet-check.sh`, `droplet.env.example`, and the shared Alloy/Loki/
    Grafana files. Nothing in this ticket touches the droplet directly.
 2. **Add the variables to `/srv/mawta/.env`** (the same env file the
-   production stack uses). Copy them from `droplet.env.example`:
+   production stack uses). Run these once on the droplet; the shell
+   generates the password as the line is written, because an env file does
+   not run commands (a literal `$(openssl ...)` inside `.env` would become
+   the password itself):
    ```sh
-   # on the droplet, in /srv/mawta/.env
-   GRAFANA_ADMIN_PASSWORD=$(openssl rand -base64 32)   # REQUIRED, no default
-   MAWTA_ENVIRONMENT=prod
-   MAWTA_COMPOSE_PROJECT=mawta
-   # GRAFANA_PORT=3000   # optional, only if 3000 is taken on loopback
+   # on the droplet, once
+   cd /srv/mawta
+   echo "GRAFANA_ADMIN_PASSWORD=$(openssl rand -hex 32)" >> .env   # REQUIRED, no default
+   echo "MAWTA_ENVIRONMENT=prod" >> .env
+   echo "MAWTA_COMPOSE_PROJECT=mawta" >> .env
+   # echo "GRAFANA_PORT=3000" >> .env   # optional, only if 3000 is taken on loopback
+   grep -c '^GRAFANA_ADMIN_PASSWORD=' .env   # must print 1
    ```
+   Read the password back when you first log in with
+   `grep '^GRAFANA_ADMIN_PASSWORD=' /srv/mawta/.env` (on the droplet only;
+   never paste it anywhere else).
    `GRAFANA_ADMIN_PASSWORD` is required: `docker-compose.droplet.yml` uses
    `${GRAFANA_ADMIN_PASSWORD:?...}`, so `docker compose` fails fast when it
    is unset — Grafana can never start with a guessable password.
@@ -541,16 +552,27 @@ is the explicit destructive reset above.
 
 ### Security note: the Docker socket mount
 
-Alloy mounts `/var/run/docker.sock` **read-only** into the Alloy container
-only — no other observability container gets it. Read-only or not, the
-socket grants container-log access and, in practice, broad control of the
-daemon: anything that can talk to it can list containers, read their logs,
-and (without the read-only mount) start/stop them. On this production host
-that is a real decision, not a default. The mitigations here: the mount is
-read-only, it is Alloy's only Docker capability (no write access, no
-container start/stop, no host filesystem access), and Alloy itself
-collects only the `mawta` project's `api` service. Treat a compromise of the
-Alloy container as a compromise of container-log access on the host.
+Alloy mounts `/var/run/docker.sock` into the Alloy container only — no
+other observability container gets it. The `:ro` flag does **not** limit
+what Alloy can do with the socket: it only stops the socket file itself
+from being replaced. Any process that can connect to the socket has the
+**full Docker API** — it can start, stop, and delete containers, and run a
+privileged container that mounts the host filesystem, which is root on the
+droplet. That is why this is a real decision on a production host, not a
+default.
+
+What actually limits the risk here: only the Alloy container gets the
+socket; Alloy runs a pinned official image with a config that only reads
+(`discovery.docker` and `loki.source.docker` list containers and stream
+logs); and nothing in the stack is reachable from outside the droplet
+(Grafana is bound to `127.0.0.1`, Loki and Alloy publish no ports). Treat a
+compromise of the Alloy container as a compromise of the host.
+
+A stronger mitigation, left as a follow-up: put a read-only Docker API
+proxy (for example `tecnativa/docker-socket-proxy` with only
+`CONTAINERS=1`, everything else denied, including all POST requests) in
+front of the socket, and point Alloy at the proxy instead of mounting the
+socket.
 
 ### Known follow-up
 
