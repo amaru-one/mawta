@@ -396,7 +396,8 @@ mawta api container JSON stdout -> Alloy (Docker API) -> Loki -> Grafana
 ### Pre-flight checks
 
 The droplet also runs Postgres, the API, and Caddy, so check there is
-headroom for ~640 MB of observability limits plus transient spikes:
+headroom for ~900 MB of observability limits (Loki 256M, Alloy 256M,
+Grafana 384M) plus transient spikes:
 
 ```sh
 free -m                            # memory: expect a comfortable margin over ~1 GB used

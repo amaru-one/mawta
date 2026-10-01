@@ -51,7 +51,9 @@ services:
 
   alloy:
     image: grafana/alloy:v1.7.1
-    command: run /etc/alloy/config.alloy --storage.path=/var/lib/alloy/data
+    # --disable-reporting: no anonymous usage stats to Grafana Labs, matching
+    # the Grafana telemetry settings below.
+    command: run /etc/alloy/config.alloy --storage.path=/var/lib/alloy/data --disable-reporting
     environment:
       # The Loki `environment` label and the Compose project the collector
       # selects (the production `mawta` project's `api` service). The Alloy
@@ -74,7 +76,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 128M
+          # Measured on the droplet: ~120 MiB at idle, so 128M left no
+          # headroom (Go memory limit pinned at the ceiling).
+          memory: 256M
     logging: *default-logging
 
   grafana:
@@ -112,7 +116,8 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
+          # ~195 MiB at idle; dashboard queries need headroom above that.
+          memory: 384M
     logging: *default-logging
 
 volumes:
