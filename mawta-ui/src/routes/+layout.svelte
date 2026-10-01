@@ -23,15 +23,9 @@
 		if (nav.type !== 'enter') canGoBack.set(true);
 	});
 
-	let pollHandle: ReturnType<typeof setInterval> | undefined;
-
 	function goAnonymous(): void {
 		session.set({ status: 'anonymous' });
 		teacher.set(null);
-		if (pollHandle) {
-			clearInterval(pollHandle);
-			pollHandle = undefined;
-		}
 		if (page.url.pathname !== '/login') void goto('/login', { replaceState: true });
 	}
 
@@ -61,11 +55,10 @@
 				usesInternalGrading.set(me.tenant.uses_internal_grading);
 				session.set({ status: 'authenticated', role: me.role });
 
-				// Only polls once signed in — unconditional polling would spam
+				// Only loads once signed in — an unconditional load would spam
 				// /notifications with 401s (each one re-triggering the redirect)
 				// for as long as a viewer sits on /login.
 				void loadNotifications().catch(() => {});
-				pollHandle = setInterval(() => void loadNotifications().catch(() => {}), 60_000);
 			})
 			.catch(() => {
 				// A non-401 failure (network, 5xx) also lands here since
@@ -73,10 +66,6 @@
 				// no usable session, so the shell falls back the same way.
 				goAnonymous();
 			});
-
-		return () => {
-			if (pollHandle) clearInterval(pollHandle);
-		};
 	});
 </script>
 

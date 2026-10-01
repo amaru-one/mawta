@@ -1,9 +1,14 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import type { IconName } from '$lib/icons';
 	import { hapticTap } from '$lib/haptics';
-	import { markAllNotificationsRead, markNotificationRead } from '$lib/notifications';
+	import {
+		loadNotifications,
+		markAllNotificationsRead,
+		markNotificationRead,
+	} from '$lib/notifications';
 	import { notifications, unreadNotificationCount } from '$lib/stores';
 	import type { AppNotification, AppNotificationType } from '$lib/types';
 
@@ -29,6 +34,12 @@
 
 	const showAlerts = $derived(filter !== 'reminders' && alerts.length > 0);
 	const showReminders = $derived(filter !== 'alerts' && reminders.length > 0);
+
+	// The layout loads the feed once after sign-in for the badge; this page
+	// refreshes it on every visit so the list is always current.
+	onMount(() => {
+		void loadNotifications().catch(() => {});
+	});
 
 	const relativeTime = (date: Date): string => {
 		const minutes = Math.round((Date.now() - date.getTime()) / 60000);
