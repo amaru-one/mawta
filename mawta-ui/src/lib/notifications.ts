@@ -17,7 +17,8 @@ export async function loadNotifications(): Promise<void> {
 }
 
 // Read state is low stakes: update the store instantly, let the API call
-// settle in the background, and the next poll reconciles any failure.
+// settle in the background, and the next page visit or sign-in reconciles
+// any failure.
 export function markNotificationRead(id: string): void {
 	notifications.update(($n) => $n.map((n) => (n.id === id ? { ...n, read: true } : n)));
 	void apiMarkRead(id).catch(() => {});
