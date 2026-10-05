@@ -1,0 +1,408 @@
+{
+  "numero_cneb": 25,
+  "nombre": "Resuelve problemas de gestión de datos e incertidumbre",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Representa datos con gráficos y medidas estadísticas o probabilísticas"
+    },
+    {
+      "numero": 2,
+      "nombre": "Comunica la comprensión de los conceptos estadísticos y probabilísticos"
+    },
+    {
+      "numero": 3,
+      "nombre": "Usa estrategias y procedimientos para recopilar y procesar datos"
+    },
+    {
+      "numero": 4,
+      "nombre": "Sustenta conclusiones o decisiones con base en información obtenida"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene como base el nivel 1 de las competencias “Resuelve problemas de cantidad” y “Resuelve problemas de regularidad, equivalencia y cambio”."
+    },
+    {
+      "nivel": 2,
+      "texto": "Este nivel tiene como base el nivel 2 de las competencias “Resuelve problemas de cantidad” y “Resuelve problemas de regularidad, equivalencia y cambio”."
+    },
+    {
+      "nivel": 3,
+      "texto": "Resuelve problemas relacionados con datos cualitativos en situaciones de su interés, recolecta datos a través de preguntas sencillas, los registra en listas o tablas de conteo simple (frecuencia) y los organiza en pictogramas horizontales y gráficos de barras simples. Lee la información contenida en estas tablas o gráficos identificando el dato o datos que tuvieron mayor o menor frecuencia y explica sus decisiones basándose en la información producida. Expresa la ocurrencia de sucesos cotidianos usando las nociones de posible o imposible y justifica su respuesta."
+    },
+    {
+      "nivel": 4,
+      "texto": "Resuelve problemas relacionados con datos cualitativos o cuantitativos (discretos) sobre un tema de estudio de recolecta datos a través de encuestas y entrevistas sencillas, registra en tablas de frecuencia simples y los representa en pictogramas, gráficos de barra simple con escala (múltiplos de diez). Interpreta información contenida en gráficos de barras simples y dobles y tablas de doble entrada, comparando frecuencias y usando el significado de la moda de un conjunto de datos; a partir de esta información y elabora algunas conclusiones y toma decisiones. Expresa la ocurrencia de sucesos cotidianos usando las nociones de seguro, más probable, menos probable, justifica su respuesta."
+    },
+    {
+      "nivel": 5,
+      "texto": "Resuelve problemas relacionados con temas de estudio, en los que reconoce variables cualitativas o cuantitativas discretas, recolecta datos a través de encuestas y de diversas fuentes de información. Selecciona tablas de doble entrada, gráficos de barras dobles y gráficos de líneas, seleccionando el más adecuado para representar los datos. Usa el significado de la moda para interpretar información contenida en gráficos y en diversas fuentes de información. Realiza experimentos aleatorios, reconoce sus posibles resultados y expresa la probabilidad de un evento relacionando el número de casos favorables y el total de casos posibles. Elabora y justifica predicciones, decisiones y conclusiones, basándose en la información obtenida en el análisis de datos o en la probabilidad de un evento."
+    },
+    {
+      "nivel": 6,
+      "texto": "Resuelve problemas en los que plantea temas de estudio, identificando la población pertinente y las variables cuantitativas continuas, así como cualitativas nominales y ordinales. Recolecta datos mediante encuestas y los registra en tablas de datos agrupados, así también determina la media aritmética y mediana de datos discretos; representa su comportamiento en histogramas, polígonos de frecuencia, gráficos circulares, tablas de frecuencia y medidas de tendencia central; usa el significado de las medidas de tendencia central para interpretar y comparar la información contenida en estos. Basado en ello, plantea y contrasta conclusiones, sobre las características de una población. Expresa la probabilidad de un evento aleatorio como decimal o fracción, así como su espacio muestral; e interpreta que un suceso seguro, probable e imposible, se asocia a los valores entre 0 y 1. Hace predicciones sobre la ocurrencia de eventos y las justifica."
+    },
+    {
+      "nivel": 7,
+      "texto": "Resuelve problemas en los que plantea temas de estudio, caracterizando la población y la muestra e identificando las variables a estudiar; empleando el muestreo aleatorio para determinar una muestra representativa. Recolecta datos mediante encuestas y los registra en tablas, determina terciles, cuartiles y quintiles; la desviación estándar, y el rango de un conjunto de datos; representa el comportamiento de estos usando gráficos y medidas estadísticas más apropiadas a las variables en estudio. Interpreta la información contenida en estos, o la información relacionada a su tema de estudio proveniente de diversas fuentes, haciendo uso del significado de la desviación estándar, las medidas de localización estudiadas y el lenguaje estadístico; basado en esto contrasta y justifica conclusiones sobre las características de la población. Expresa la ocurrencia de sucesos dependientes, independientes, simples o compuestos de una situación aleatoria mediante la probabilidad, y determina su espacio muestral; interpreta las propiedades básicas de la probabilidad de acuerdo a las condiciones de la situación; justifica sus predicciones con base a los resultados de su experimento o propiedades."
+    },
+    {
+      "nivel": 8,
+      "texto": "Resuelve problemas referidos a situaciones aleatorias y situaciones referidas a caracterizar una población basado en una muestra representativa. Emplea técnicas de muestreo estratificado y recolecta datos, usando diversas estrategias y procedimientos; determina el quintil. Representa el comportamiento de los datos usando gráficos y tablas pertinentes, estadísticos, relaciones entre medidas de tendencia central y el coeficiente de variación, identificando lo más óptimo. Interpreta la información sobre el comportamiento de los datos y la probabilidad condicional. Contrasta conclusiones sobre la relación entre variables."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1P",
+      "orden": 1,
+      "texto": "Representa las características y el comportamiento de datos cualitativos (por ejemplo, color de los ojos: pardos, negros; plato favorito: cebiche, arroz con pollo, etc.) de una población, a través de pictogramas horizontales (el símbolo representa una unidad) y gráficos de barras verticales simples (sin escala), en situaciones cotidianas de su interés personal o de sus pares."
+    },
+    {
+      "grado": "1P",
+      "orden": 2,
+      "texto": "Expresa la ocurrencia de acontecimientos cotidianos usando las nociones “siempre”, “a veces” y “nunca”."
+    },
+    {
+      "grado": "1P",
+      "orden": 3,
+      "texto": "Lee la información contenida en tablas de frecuencia simple (conteo simple), pictogramas horizontales y gráficos de barras verticales simples; indica la mayor frecuencia y representa los datos con material concreto o gráfico."
+    },
+    {
+      "grado": "1P",
+      "orden": 4,
+      "texto": "Recopila datos mediante preguntas sencillas y el empleo de procedimientos y recursos (material concreto y otros); los procesa y organiza en listas de datos o tablas de frecuencia simple (conteo simple) para describirlos."
+    },
+    {
+      "grado": "1P",
+      "orden": 5,
+      "texto": "Toma decisiones sencillas y las explica a partir de la información obtenida."
+    },
+    {
+      "grado": "2P",
+      "orden": 1,
+      "texto": "Representa las características y el comportamiento de datos cualitativos (por ejemplo, color de los ojos: pardos, negros; plato favorito: cebiche, arroz con pollo, etc.) de una población, a través de pictogramas horizontales (el símbolo representa una o dos unidades) y gráficos de barras verticales simples (sin escala), en situaciones cotidianas de su interés personal o de sus pares."
+    },
+    {
+      "grado": "2P",
+      "orden": 2,
+      "texto": "Expresa la ocurrencia de acontecimientos cotidianos usando las nociones “posible” e “imposible”."
+    },
+    {
+      "grado": "2P",
+      "orden": 3,
+      "texto": "Lee información contenida en tablas de frecuencia simple (conteo simple), pictogramas horizontales y gráficos de barras verticales simples; indica la mayor o menor frecuencia y compara los datos, los cuales representa con material concreto y gráfico."
+    },
+    {
+      "grado": "2P",
+      "orden": 4,
+      "texto": "Recopila datos mediante preguntas y el empleo de procedimientos y recursos (material concreto y otros); los procesa y organiza en listas de datos o tablas de frecuencia simple (conteo simple) para describirlos."
+    },
+    {
+      "grado": "2P",
+      "orden": 5,
+      "texto": "Toma decisiones sencillas y las explica a partir de la información obtenida."
+    },
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Representa las características y el comportamiento de datos cualitativos (por ejemplo, color de los ojos: pardos, negros; plato favorito: cebiche, arroz con pollo, etc.) y cuantitativos discretos (por ejemplo: número de hermanos: 3, 2; cantidad de goles: 2, 4, 5, etc.) de una población, a través de pictogramas verticales y horizontales (el símbolo representa más de una unidad) y gráficos de barras horizontales (simples y escala dada de 2 en 2, 5 en 5 y 10 en 10), en situaciones de su interés o un tema de estudio."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Expresa la ocurrencia de acontecimientos cotidianos usando las nociones “seguro”, “posible” e “imposible”."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Lee tablas de frecuencias simples (absolutas), gráficos de barras horizontales simples con escala y pictogramas de frecuencias con equivalencias, para interpretar la información explícita de los datos contenidos en diferentes formas de representación."
+    },
+    {
+      "grado": "3P",
+      "orden": 4,
+      "texto": "Recopila datos mediante encuestas sencillas o entrevistas cortas con preguntas adecuadas empleando procedimientos y recursos; los procesa y organiza en listas de datos o tablas de frecuencia simple, para describirlos y analizarlos."
+    },
+    {
+      "grado": "3P",
+      "orden": 5,
+      "texto": "Selecciona y emplea procedimientos y recursos como el recuento, el diagrama u otros, para determinar todos los posibles resultados de la ocurrencia de acontecimientos cotidianos."
+    },
+    {
+      "grado": "3P",
+      "orden": 6,
+      "texto": "Predice la ocurrencia de un acontecimiento o suceso cotidiano. Así también, explica sus decisiones a partir de la información obtenida con base en el análisis de datos."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Representa las características y el comportamiento de datos cualitativos (por ejemplo, color de ojos: pardos, negros; profesión: médico, abogado, etc.) y cuantitativos discretos (por ejemplo: número de hermanos: 3, 2; cantidad de goles: 2, 4, 5, etc.) de una población, a través de pictogramas verticales y horizontales (cada símbolo representa más de una unidad), gráficos de barras con escala dada (múltiplos de 10) y la moda como la mayor frecuencia, en situaciones de interés o un tema de estudio."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Expresa su comprensión de la moda como la mayor frecuencia y la media aritmética como punto de equilibrio; así como todos los posibles resultados de la ocurrencia de sucesos cotidianos usando las nociones “seguro”, “más probable” y “menos probable”."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Lee gráficos de barras con escala, tablas de doble entrada y pictogramas de frecuencias con equivalencias, para interpretar la información a partir de los datos contenidos en diferentes formas de representación y de la situación estudiada."
+    },
+    {
+      "grado": "4P",
+      "orden": 4,
+      "texto": "Recopila datos mediante encuestas sencillas o entrevistas cortas con preguntas adecuadas empleando procedimientos y recursos; los procesa y organiza en listas de datos, tablas de doble entrada o tablas de frecuencia, para describirlos y analizarlos."
+    },
+    {
+      "grado": "4P",
+      "orden": 5,
+      "texto": "Selecciona y emplea procedimientos y recursos como el recuento, el diagrama, las tablas de frecuencia u otros, para determinar la media aritmética como punto de equilibrio, la moda como la mayor frecuencia y todos los posibles resultados de la ocurrencia de sucesos cotidianos."
+    },
+    {
+      "grado": "4P",
+      "orden": 6,
+      "texto": "Predice que la posibilidad de ocurrencia de un suceso es mayor que otro. Así también, explica sus decisiones y conclusiones a partir de la información obtenida con base en el análisis de datos."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Representa las características de una población en estudio, las que asocia a variables cualitativas (por ejemplo, color de ojos: pardos, negros; profesión: médico, abogado, etc.) y cuantitativas discretas (por ejemplo, número de hermanos: 3, 2; cantidad de goles: 2, 4, 5, etc.), así como también el comportamiento del conjunto de datos, a través de pictogramas verticales y horizontales (cada símbolo representa más de una unidad), gráficos de barras con escala dada (múltiplos de 10), la moda como la mayor frecuencia y la media aritmética como punto de equilibrio."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Expresa su comprensión de la moda como la mayor frecuencia y la media aritmética como punto de equilibrio; así como todos los posibles resultados de la ocurrencia de sucesos cotidianos usando las nociones “seguro”, “más probable” y “menos probable”."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Lee gráficos de barras con escala, tablas de doble entrada y pictogramas de frecuencias con equivalencias, para interpretar la información del mismo conjunto de datos contenidos en diferentes formas de representación y de la situación estudiada."
+    },
+    {
+      "grado": "5P",
+      "orden": 4,
+      "texto": "Recopila datos mediante encuestas sencillas o entrevistas cortas con preguntas adecuadas empleando procedimientos y recursos; los procesa y organiza en listas de datos, tablas de doble entrada o tablas de frecuencia, para describirlos y analizarlos."
+    },
+    {
+      "grado": "5P",
+      "orden": 5,
+      "texto": "Selecciona y emplea procedimientos y recursos como el recuento, el diagrama, las tablas de frecuencia u otros, para determinar la media aritmética como punto de equilibrio, la moda como la mayor frecuencia y todos los posibles resultados de la ocurrencia de sucesos cotidianos."
+    },
+    {
+      "grado": "5P",
+      "orden": 6,
+      "texto": "Predice la mayor o menor frecuencia de un conjunto de datos, o si la posibilidad de ocurrencia de un suceso es mayor que otro. Así también, explica sus decisiones y conclusiones a partir de la información obtenida con base en el análisis de datos."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Representa las características de una población en estudio sobre situaciones de interés o aleatorias, asociándolas a variables cualitativas (por ejemplo: vóley, tenis) y cuantitativas discretas (por ejemplo: 3, 4, 5 hijos), así como también el comportamiento del conjunto de datos, a través de gráficos de barras dobles, gráficos de líneas, la moda y la media aritmética como reparto equitativo."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Determina todos los posibles resultados de una situación aleatoria a través de su probabilidad como fracción."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Expresa su comprensión de la moda como la mayor frecuencia y la media aritmética como reparto equitativo; así como todos los posibles resultados de una situación aleatoria en forma oral usando las nociones “más probables” o “menos probables”, y numéricamente. Ejemplo: El estudiante podría decir: “En dos de los cinco casos, el resultado es favorable: 2/5”."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Lee tablas de doble entrada y gráficos de barras dobles, así como información proveniente de diversas fuentes (periódicos, revistas, entrevistas, experimentos, etc.), para interpretar la información que contienen considerando los datos, las condiciones de la situación y otra información que se tenga sobre las variables. También, advierte que hay tablas de doble entrada con datos incompletos, las completa y produce nueva información."
+    },
+    {
+      "grado": "6P",
+      "orden": 5,
+      "texto": "Recopila datos mediante encuestas sencillas o entrevistas cortas con preguntas adecuadas empleando procedimientos y recursos; los procesa y organiza en tablas de doble entrada o tablas de frecuencia, para describirlos y analizarlos."
+    },
+    {
+      "grado": "6P",
+      "orden": 6,
+      "texto": "Selecciona y emplea procedimientos y recursos como el recuento, el diagrama, las tablas de frecuencia u otros, para determinar la media aritmética como reparto equitativo, la moda, los casos favorables a un suceso y su probabilidad como fracción."
+    },
+    {
+      "grado": "6P",
+      "orden": 7,
+      "texto": "Predice la tendencia de los datos o la ocurrencia de sucesos a partir del análisis de los resultados de una situación aleatoria. Así también, justifica sus decisiones y conclusiones a partir de la información obtenida con base en el análisis de datos."
+    },
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Representa las características de una población en estudio asociándolas a variables cualitativas nominales y ordinales, o cuantitativas discretas, y expresa el comportamiento de los datos de la población a través de gráficos de barras, gráficos circulares y medidas de tendencia central."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Determina las condiciones de una situación aleatoria, compara la frecuencia de sus sucesos y representa su probabilidad a través de la regla de Laplace (valor decimal) o representa su probabilidad mediante su frecuencia dada en porcentajes. A partir de este valor, determina si un suceso es más o menos probable que otro."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Expresa con diversas representaciones y lenguaje matemático su comprensión sobre la media, la mediana y la moda para datos no agrupados, según el contexto de la población en estudio, así como sobre el valor de la probabilidad para caracterizar como más o menos probable la ocurrencia de sucesos de una situación aleatoria."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Lee tablas y gráficos de barras o circulares, así como diversos textos que contengan valores de medida de tendencia central, o descripciones de situaciones aleatorias, para comparar e interpretar la información que contienen. A partir de ello, produce nueva información. Ejemplo: El estudiante compara datos contenidos en una misma gráfica señalando: “Hay más niñas que gustan del fútbol en primero de secundaria que en tercero de secundaria”."
+    },
+    {
+      "grado": "1S",
+      "orden": 5,
+      "texto": "Recopila datos de variables cualitativas o cuantitativas discretas mediante encuestas, seleccionando y empleando procedimientos y recursos. Los procesa y organiza en tablas con el propósito de analizarlos y producir información."
+    },
+    {
+      "grado": "1S",
+      "orden": 6,
+      "texto": "Selecciona y emplea procedimientos para determinar la mediana y la moda de datos discretos, la probabilidad de sucesos simples de una situación aleatoria mediante la regla de Laplace o el cálculo de su frecuencia relativa expresada en porcentaje. Revisa sus procedimientos y resultados."
+    },
+    {
+      "grado": "1S",
+      "orden": 7,
+      "texto": "Plantea afirmaciones o conclusiones sobre la información cualitativa y cuantitativa de una población, o la probabilidad de ocurrencia de sucesos. Las justifica usando la información obtenida y sus conocimientos estadísticos. Reconoce errores en sus justificaciones y los corrige."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Representa las características de una población en estudio asociándolas a variables cualitativas nominales y ordinales, o cuantitativas discretas y continuas. Expresa el comportamiento de los datos de la población a través de histogramas, polígonos de frecuencia y medidas de tendencia central."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Determina las condiciones y el espacio muestral de una situación aleatoria, y compara la frecuencia de sus sucesos. Representa la probabilidad de un suceso a través de la regla de Laplace (valor decimal) o representa su probabilidad mediante su frecuencia relativa expresada como decimal o porcentaje. A partir de este valor determina si un suceso es seguro, probable o imposible de suceder."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Expresa con diversas representaciones y lenguaje matemático su comprensión sobre la pertinencia de usar la media, la mediana o la moda (datos no agrupados) para representar un conjunto de datos según el contexto de la población en estudio, así como sobre el significado del valor de la probabilidad para caracterizar como segura o imposible la ocurrencia de sucesos de una situación aleatoria."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Lee tablas y gráficos como histogramas, polígonos de frecuencia, así como diversos textos que contengan valores de medidas de tendencia central o descripciones de situaciones aleatorias, para comparar e interpretar la información que contienen y deducir nuevos datos. A partir de ello, produce nueva información."
+    },
+    {
+      "grado": "2S",
+      "orden": 5,
+      "texto": "Recopila datos de variables cualitativas nominales u ordinales, y cuantitativas discretas o continuas mediante encuestas, o seleccionando y empleando procedimientos, estrategias y recursos adecuados al tipo de estudio. Los procesa y organiza en tablas con el propósito de analizarlos y producir información. Revisa los procedimientos utilizados y los adecúa a otros contextos de estudio."
+    },
+    {
+      "grado": "2S",
+      "orden": 6,
+      "texto": "Selecciona y emplea procedimientos para determinar la mediana, la moda y la media de datos discretos, la probabilidad de sucesos de una situación aleatoria mediante la regla de Laplace o el cálculo de su frecuencia relativa expresada como porcentaje. Revisa sus procedimientos y resultados."
+    },
+    {
+      "grado": "2S",
+      "orden": 7,
+      "texto": "Plantea afirmaciones o conclusiones sobre las características, tendencias de los datos de una población o la probabilidad de ocurrencia de sucesos en estudio. Las justifica usando la información obtenida, y sus conocimientos estadísticos y probabilísticos. Reconoce errores en sus justificaciones y en las de otros, y los corrige."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Representa las características de una población en estudio mediante variables cualitativas o cuantitativas, selecciona las variables a estudiar, y representa el comportamiento de los datos de una muestra de la población a través de histogramas, polígonos de frecuencia y medidas de tendencia central o desviación estándar."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Determina las condiciones y el espacio muestral de una situación aleatoria, y discrimina entre sucesos independientes y dependientes. Representa la probabilidad de un suceso a través de su valor decimal o fraccionario. A partir de este valor, determina si un suceso es probable o muy probable, o casi seguro de que ocurra."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Expresa con diversas representaciones y lenguaje matemático su comprensión de la desviación estándar en relación con la media para datos no agrupados y según el contexto de la población en estudio. Expresa, también, el significado del valor de la probabilidad para caracterizar la ocurrencia de sucesos independientes y dependientes de una situación aleatoria."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Lee tablas y gráficos de barras, histogramas, u otros, así como diversos textos que contengan valores sobre medidas estadísticas o descripción de situaciones aleatorias, para deducir e interpretar la información que contienen. Sobre la base de ello, produce nueva información."
+    },
+    {
+      "grado": "3S",
+      "orden": 5,
+      "texto": "Recopila datos de variables cualitativas y cuantitativas mediante encuestas o la observación combinando y adaptando procedimientos, estrategias y recursos. Los procesa y organiza en tablas con el propósito de analizarlos y producir información. Determina una muestra aleatoria de una población pertinente al objetivo de estudio y las características de la población estudiada."
+    },
+    {
+      "grado": "3S",
+      "orden": 6,
+      "texto": "Selecciona y emplea procedimientos para determinar la media y la desviación estándar de datos discretos, y la probabilidad de sucesos independientes de una situación aleatoria mediante la regla de Laplace y sus propiedades. Revisa sus procedimientos y resultados."
+    },
+    {
+      "grado": "3S",
+      "orden": 7,
+      "texto": "Plantea afirmaciones, conclusiones e inferencias sobre las características o tendencias de una población, o sobre sucesos aleatorios en estudio a partir de sus observaciones o análisis de datos. Las justifica con ejemplos, y usando información obtenida y sus conocimientos estadísticos y probabilísticos. Reconoce errores o vacíos en sus justificaciones y en las de otros, y los corrige."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Representa las características de una población mediante el estudio de variables cualitativas y cuantitativas, y el comportamiento de los datos de una muestra representativa a través de medidas de tendencia central, medidas de localización (cuartil) la desviación estándar o gráficos estadísticos, seleccionando los más apropiados para las variables estudiadas."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Determina las condiciones y restricciones de una situación aleatoria, analiza la ocurrencia de sucesos independientes y dependientes, y representa su probabilidad a través del valor racional de 0 a 1. A partir de este valor, determina la mayor o menor probabilidad de un suceso en comparación con otro."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Expresa con diversas representaciones y lenguaje matemático su comprensión de la desviación estándar en relación con la media para datos agrupados y el significado de los cuartiles en una distribución de datos según el contexto de la población en estudio. Expresa, también, el significado del valor de la probabilidad para caracterizar la ocurrencia de sucesos dependientes e independientes de una situación aleatoria, y cómo se distinguen entre sí."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Lee, interpreta e infiere tablas y gráficos, así como diversos textos que contengan valores sobre las medidas de tendencia central, de dispersión y de posición, y sobre la probabilidad de sucesos aleatorios, para deducir nuevos datos y predecirlos según la tendencia observada. Sobre la base de ello, produce nueva información y evalúa si los datos tienen algún sesgo en su presentación."
+    },
+    {
+      "grado": "4S",
+      "orden": 5,
+      "texto": "Recopila datos de variables cualitativas o cuantitativas mediante encuestas o la observación combinando y adaptando procedimientos, estrategias y recursos. Los procesa y organiza en tablas con el propósito de analizarlos y producir información. Determina una muestra aleatoria de una población pertinente al objetivo de estudio y las características de la población estudiada."
+    },
+    {
+      "grado": "4S",
+      "orden": 6,
+      "texto": "Selecciona, emplea y adapta procedimientos para determinar la media y la desviación estándar de datos continuos, y la probabilidad de sucesos independientes y dependientes de una situación aleatoria. Adecúa los procedimientos utilizados a otros contextos de estudio."
+    },
+    {
+      "grado": "4S",
+      "orden": 7,
+      "texto": "Plantea y contrasta afirmaciones sobre la característica o la tendencia de una población estudiada, así como sobre sucesos aleatorios de una situación aleatoria. Las justifica con ejemplos, y usando información obtenida y sus conocimientos estadísticos. Reconoce errores o vacíos en su conclusiones o en las de otros estudios, y propone mejoras."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Representa las características de una población mediante el estudio de variables y el comportamiento de los datos de una muestra, mediante medidas de tendencia central, medidas de localización (tercil y quintil), desviación estándar para datos agrupados y gráficos estadísticos. Para ello, selecciona los más apropiados para las variables estudiadas."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Determina las condiciones y restricciones de una situación aleatoria, analiza la ocurrencia de sucesos simples y compuestos, y la representa con el valor de su probabilidad expresada como racional de 0 a 1. A partir de este valor, determina la mayor o menor probabilidad de un suceso compuesto en comparación con otro."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Expresa con diversas representaciones y lenguaje matemático su comprensión sobre el valor de terciles y quintiles de una distribución de datos, así como la pertinencia de las medidas de tendencia central en relación con la desviación estándar, según el contexto de la población en estudio. Asimismo, expresa el valor de la probabilidad de sucesos simples y compuestos de una situación aleatoria y cómo se distinguen los sucesos simples de los compuestos."
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Lee, interpreta, y explica una variedad de tablas y gráficos, así como diversos textos que contengan valores sobre las medidas estadísticas de una población y medidas probabilísticas en estudio, para deducir nuevos datos y predecir un comportamiento a futuro. Sobre la base de ello, produce nueva información y evalúa el dato o los datos que producen algún sesgo en el comportamiento de otros."
+    },
+    {
+      "grado": "5S",
+      "orden": 5,
+      "texto": "Recopila datos de variables cualitativos o cuantitativos de una población mediante encuestas o la observación. Los recopila con el propósito de analizarlos y producir información sobre el comportamiento de datos. Determina una muestra representativa de una población pertinente para el objetivo de estudio y para las características de la población estudiada."
+    },
+    {
+      "grado": "5S",
+      "orden": 6,
+      "texto": "Adapta y combina procedimientos para determinar medidas de tendencia central, desviación estándar de datos continuos, medidas de localización, y probabilidad de eventos simples o compuestos de una situación aleatoria. Adecúa los procedimientos utilizados a otros contextos de estudio."
+    },
+    {
+      "grado": "5S",
+      "orden": 7,
+      "texto": "Plantea y contrasta afirmaciones o conclusiones sobre las características o tendencias de una población o de eventos aleatorios a partir de sus observaciones o análisis de datos. Las justifica con ejemplos y contraejemplos usando sus conocimientos y la información obtenida en su investigación. Reconoce errores, vacíos o sesgos en sus conclusiones o en las de otros estudios, y propone mejoras."
+    }
+  ]
+}

@@ -1,0 +1,215 @@
+{
+  "numero_cneb": 4,
+  "nombre": "Interactúa a través de sus habilidades sociomotrices",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Se relaciona utilizando sus habilidades sociomotrices"
+    },
+    {
+      "numero": 2,
+      "nombre": "Crea y aplica estrategias y tácticas de juego"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene principalmente como base el nivel 1 de la competencia “Se desenvuelve de manera autónoma a través de su motricidad”."
+    },
+    {
+      "nivel": 2,
+      "texto": "Este nivel tiene principalmente como base el nivel 2 de la competencia “Se desenvuelve de manera autónoma a través de su motricidad”."
+    },
+    {
+      "nivel": 3,
+      "texto": "Interactúa a través de sus habilidades sociomotrices al aceptar al otro como compañero de juego y busca el consenso sobre la manera de jugar para lograr el bienestar común y muestra una actitud de respeto evitando juegos violentos y humillantes; expresa su posición ante un conflicto con intención de resolverlo y escucha la posición de sus compañeros en los diferentes tipos de juegos. Resuelve situaciones motrices a través de estrategias colectivas y participa en la construcción de reglas de juego adaptadas a la situación y al entorno, para lograr un objetivo común en la práctica de actividades lúdicas."
+    },
+    {
+      "nivel": 4,
+      "texto": "Interactúa a través de sus habilidades sociomotrices al tomar acuerdos sobre la manera de jugar y los posibles cambios o conflictos que se den y propone adaptaciones o modificaciones para favorecer la inclusión de compañeros en actividades lúdicas, aceptando al oponente como compañero de juego. Adapta la estrategia de juego anticipando las intenciones de sus compañeros y oponentes para cumplir con los objetivos planteados. Propone reglas y las modifica de acuerdo a las necesidades del contexto y los intereses del grupo en la práctica de actividades físicas."
+    },
+    {
+      "nivel": 5,
+      "texto": "Interactúa a través de sus habilidades sociomotrices proactivamente con un sentido de cooperación teniendo en cuenta las adaptaciones o modificaciones propuestas por el grupo en diferentes actividades físicas. Hace uso de estrategias de cooperación y oposición seleccionando los diferentes elementos técnicos y tácticos que se pueden dar en la práctica de actividades lúdicas y predeportivas, para resolver la situación de juego que le dé un mejor resultado y que responda a las variaciones que se presentan en el entorno."
+    },
+    {
+      "nivel": 6,
+      "texto": "Interactúa a través de sus habilidades sociomotrices con autonomía en situaciones que no le son favorables y asume con una actitud de liderazgo los desafíos propios de la práctica de actividades físicas, experimentando el placer y disfrute que ellas representan. Formula y aplica estrategias para solucionar problemas individuales y colectivos, incorporando elementos técnicos y tácticos pertinentes y adecuándose a los cambios que se dan en la práctica. Analiza los posibles aciertos y dificultades ocurridos durante la práctica para mejorar la estrategia de juego."
+    },
+    {
+      "nivel": 7,
+      "texto": "Interactúa a través de sus habilidades sociomotrices integrando a todas las personas de la comunidad educativa en eventos lúdico - deportivos y promoviendo la práctica de actividad física basada en el disfrute, la tolerancia, equidad de género, inclusión y respeto, asumiendo su responsabilidad durante todo el proceso. Propone sistemas tácticos de juego en la resolución de problemas y los adecúa según las necesidades del entorno, asumiendo y adjudicando roles y funciones bajo un sistema de juego que vincula las habilidades y capacidades de cada uno de los integrantes del equipo en la práctica de diferentes actividades físicas."
+    },
+    {
+      "nivel": 8,
+      "texto": "Interactúa a través de sus habilidades sociomotrices cuando organiza y promueve proyectos y eventos lúdicos y deportivos que respondan a las problemáticas de su entorno en espacios alternativos, integrando a todas las personas de la comunidad educativa. Crea, modifica y adapta estrategias tácticas pertinentes, teniendo en cuenta las debilidades y fortalezas del propio equipo y del equipo oponente."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1P",
+      "orden": 1,
+      "texto": "Asume roles y funciones de manera individual y dentro de un grupo; interactúa de forma espontánea en actividades lúdicas y disfruta de la compañía de sus pares para sentirse parte del grupo."
+    },
+    {
+      "grado": "1P",
+      "orden": 2,
+      "texto": "Participa en juegos cooperativos y de oposición en parejas y pequeños grupos; acepta al oponente como compañero de juego y las formas diferentes de jugar."
+    },
+    {
+      "grado": "1P",
+      "orden": 3,
+      "texto": "Propone soluciones a situaciones motrices y lúdicas, y llega a acuerdos con sus pares a fin de cumplir con los objetivos que surjan; respeta las reglas de juego propuestas (por ellos mismos, por el maestro o por las condiciones del entorno) en diferentes actividades lúdicas."
+    },
+    {
+      "grado": "2P",
+      "orden": 1,
+      "texto": "Participa en juegos cooperativos y de oposición en parejas y pequeños grupos; acepta al oponente como compañero de juego y llega a consensos sobre la manera de jugar."
+    },
+    {
+      "grado": "2P",
+      "orden": 2,
+      "texto": "Muestra una actitud de respeto en la práctica de actividades lúdicas y evita juegos bruscos, amenazas o apodos; acepta la participación de todos sus compañeros."
+    },
+    {
+      "grado": "2P",
+      "orden": 3,
+      "texto": "Resuelve de manera compartida situaciones producidas en los diferentes tipos de juegos (tradicionales, autóctonos, etc.) y adecúa las reglas para la inclusión de sus pares y el entorno, con el fin de lograr un desarrollo eficaz de la actividad."
+    },
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Propone cambios en las condiciones de juego, si fuera necesario, para posibilitar la inclusión de sus pares; así, promueve el respeto y la participación, y busca un sentido de pertenencia al grupo en la práctica de diferentes actividades físicas."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Participa en juegos cooperativos y de oposición en parejas, pequeños y grandes grupos; acepta al oponente como compañero de juego y arriba a consensos sobre la manera de jugar y los posibles cambios que puedan producirse."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Genera estrategias colectivas en las actividades lúdicas según el rol de sus compañeros y el suyo propio, a partir de los resultados en el juego."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Propone normas y reglas en las actividades lúdicas y las modifica de acuerdo a las necesidades, el contexto y los intereses, con adaptaciones o modificaciones propuestas por el grupo, para favorecer la inclusión; muestra una actitud responsable y de respeto por el cumplimiento de los acuerdos establecidos."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Propone actividades lúdicas, como juegos populares y/o tradicionales, con adaptaciones o modificaciones propuestas por el grupo; acepta al oponente como compañero de juego y llega a consensos sobre la manera de jugar y los posibles cambios que puedan producirse."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Propone reglas y las modifica de acuerdo a las necesidades; adapta la estrategia de juego cuando prevé las intenciones de sus compañeros de equipo y oponentes, para cumplir con los objetivos planteados."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Emplea la resolución reflexiva y el diálogo como herramientas para solucionar problemas o conflictos surgidos con sus pares durante la práctica de actividades lúdicas y predeportivas diversas."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Realiza actividades lúdicas en las que interactúa con sus compañeros y oponentes como compañeros de juego; respeta las diferencias personales y asume roles y cambio de roles."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Propone, junto con sus pares, soluciones estratégicas oportunas, y toma en cuenta los aportes y las características de cada integrante del grupo al practicar juegos tradicionales, populares, autóctonos, predeportivos y en la naturaleza."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Participa en actividades físicas en la naturaleza, eventos predeportivos, juegos populares, entre otros, y toma decisiones en favor del grupo aunque vaya en contra de sus intereses personales, con un sentido solidario y de cooperación."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Modifica juegos y actividades para que se adecúen a las necesidades y posibilidades del grupo y a la lógica del juego deportivo."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Participa en actividades lúdicas, predeportivas y deportivas en las que pone en práctica diversas estrategias; adecúa normas de juego y la mejor solución táctica para dar respuesta a las variaciones que se presentan en el entorno."
+    },
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Se relaciona con sus compañeros en diversos entornos interactuando de manera asertiva. Valora el juego como manifestación social y cultural de los pueblos, y evita todo tipo de discriminación en la práctica de actividades físicas (lúdicas, deportivas y otras)."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Muestra actitudes de responsabilidad, solidaridad, respeto, cuidado de sí mismo y de los otros teniendo en cuenta la no discriminación en la práctica de diferentes actividades físicas (lúdicas, deportivas y otras), y promueve_la integración de sus pares de distinto género y con desarrollo diferente."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Aplica de manera colectiva estrategias ofensivas y defensivas en juegos predeportivos y deportivos utilizando los fundamentos tácticos y técnicos adecuados a las variaciones del entorno y las reglas."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Actúa asertivamente en situaciones motrices que no le son favorables asumiendo las dificultades y desafíos. Asimismo, participa con entusiasmo en juegos tradicionales o populares, y deportivos, así como en la organización colectiva de actividades físicas en la naturaleza mostrando una actitud de cuidado hacia el medio ambiente desde su propia iniciativa."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Construye juegos y actividades físicas que se adecúen a las necesidades y posibilidades del grupo, integrando a pares de distinto género o con desarrollo diferente, con una actitud crítica ante todo tipo de discriminación dentro y fuera de la institución educativa."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Plantea junto con sus pares soluciones estratégicas incorporando elementos técnicos y tácticos, adecuándose a los cambios que se dan en el entorno y las reglas de juego propuestas, y evaluando el desempeño del grupo a través de posibles aciertos y dificultades que le sirvan para ofrecer alternativas de solución y mejora de sus desempeños en la práctica de los juegos predeportivos y deportivos."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Participa activa y placenteramente en juegos tradicionales o populares, predeportivos, y deportivos. Muestra en su participación una actitud positiva e integradora al trabajar en equipo, conciliando distintos intereses entre sus compañeros, compartiendo con sus pares de distinto género e incluyendo a pares con desarrollos diferentes."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Explica la importancia de los acuerdos grupales para la elaboración y construcción de normas democráticas mostrando una actitud crítica ante todo tipo de discriminación por género, etnia, capacidades diferentes, condición social y religión, durante la práctica de actividades lúdicas, predeportivas y deportivas, dentro y fuera de la institución educativa."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Plantea y ejecuta soluciones en situaciones lúdicas y deportivas al utilizar elementos técnicos y tácticos propios de una estrategia de juego que le permiten mayor eficacia en la práctica deportiva. Toma en cuenta las características de cada integrante, y mejora su sentido de pertenencia e identidad al grupo."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Trabaja en equipo mostrando actitudes de respeto basadas en la integración de sus compañeros. Comparte con sus pares de distinto género e incluye a pares con desarrollos diferentes. Asume su responsabilidad durante todo el proceso al practicar diferentes actividades físicas."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Participa activamente con su comunidad en juegos deportivos, tradicionales o populares en la naturaleza. Evita todo tipo de discriminación por género, etnia, capacidades diferentes, condición social y religión."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Distribuye roles y funciones a los integrantes del equipo de acuerdo con sus fortalezas y características personales de cada uno para_mejorar la estrategia de juego y dar soluciones a situaciones problemáticas."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Organiza eventos deportivos integrando a todas las personas de la comunidad educativa y promueve la práctica de actividad física basada en el disfrute por el juego, la tolerancia y el respeto. Asume su responsabilidad durante todo el proceso. Comparte con sus pares de distinto género e incluye a pares con desarrollos diferentes."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Promueve el rechazo a todo tipo de discriminación por género, etnia, capacidades diferentes, condición social y religión durante la práctica de actividades lúdicas, recreativas, predeportivas y deportivas."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Elabora y comunica tácticas y estrategias en los juegos y actividades deportivas de interés colectivo. Asume roles y funciones bajo un sistema de juego que vincula las habilidades y capacidades de cada uno de los integrantes del equipo."
+    }
+  ]
+}

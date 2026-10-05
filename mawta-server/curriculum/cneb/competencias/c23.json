@@ -1,0 +1,503 @@
+{
+  "numero_cneb": 23,
+  "nombre": "Resuelve problemas de cantidad",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Traduce cantidades a expresiones numéricas"
+    },
+    {
+      "numero": 2,
+      "nombre": "Comunica su comprensión sobre los números y las operaciones"
+    },
+    {
+      "numero": 3,
+      "nombre": "Usa estrategias y procedimientos de estimación y cálculo"
+    },
+    {
+      "numero": 4,
+      "nombre": "Argumenta afirmaciones sobre las relaciones numéricas y las operaciones"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Explora por propia iniciativa los objetos y situaciones de su entorno cotidiano utilizando sus sentidos, sus propias estrategias y criterios reconociendo algunas características y estableciendo relaciones o agrupaciones entre ellos y comprende algunas expresiones sencillas relacionadas con la cantidad y el tiempo."
+    },
+    {
+      "nivel": 2,
+      "texto": "Resuelve problemas referidos a relacionar objetos de su entorno según sus características perceptuales; agrupar, ordenar hasta el quinto lugar, seriar hasta 5 objetos, comparar cantidades de objetos y pesos, agregar y quitar hasta 5 elementos, realizando representaciones con su cuerpo, material concreto o dibujos. Expresa la cantidad de hasta 10 objetos, usando estrategias como el conteo. Usa cuantificadores: “muchos” “pocos”, \"ninguno\", y expresiones: “más que\" “menos que”. Expresa el peso de los objetos “pesa más”, “pesa menos” y el tiempo con nociones temporales como “antes o después”, \"ayer\" \"hoy\" o \"mañana”."
+    },
+    {
+      "nivel": 3,
+      "texto": "Resuelve problemas⁴⁰ referidos a acciones de juntar, separar, agregar, quitar, igualar y comparar cantidades; y las traduce a expresiones de adición y sustracción, doble y mitad. Expresa su comprensión del valor de posición en números de dos cifras y los representa mediante equivalencias entre unidades y decenas. Así también, expresa mediante representaciones su comprensión del doble y mitad de una cantidad; usa lenguaje numérico. Emplea estrategias diversas y procedimientos de cálculo y comparación de cantidades; mide y compara el tiempo y la masa, usando unidades no convencionales. Explica por qué debe sumar o restar en una situación y su proceso de resolución."
+    },
+    {
+      "nivel": 4,
+      "texto": "Resuelve problemas referidos a una o más acciones de agregar, quitar, igualar, repetir o repartir una cantidad, combinar dos colecciones de objetos, así como partir una unidad en partes iguales; traduciéndolas a expresiones aditivas y multiplicativas con números naturales y expresiones aditivas con fracciones usuales³⁹. Expresa su comprensión del valor posicional en números de hasta cuatro cifras y los representa mediante equivalencias, así también la comprensión de las nociones de multiplicación, sus propiedades conmutativa y asociativa y las nociones de división, la noción de fracción como parte – todo y las equivalencias entre fracciones usuales; usando lenguaje numérico y diversas representaciones. Emplea estrategias, el cálculo mental o escrito para operar de forma exacta y aproximada con números naturales; así también emplea estrategias para sumar, restar y encontrar equivalencias entre fracciones. Mide o estima la masa y el tiempo, seleccionando y usando unidades no convencionales y convencionales. Justifica sus procesos de resolución y sus afirmaciones sobre operaciones inversas con números naturales."
+    },
+    {
+      "nivel": 5,
+      "texto": "Resuelve problemas referidos a una o más acciones de comparar, igualar, repetir o repartir cantidades, partir y repartir una cantidad en partes iguales; las traduce a expresiones aditivas, multiplicativas y la potenciación cuadrada y cúbica; así como a expresiones de adición, sustracción y multiplicación con fracciones y decimales (hasta el centésimo). Expresa su comprensión del sistema de numeración decimal con números naturales hasta seis cifras, de divisores y múltiplos, y del valor posicional de los números decimales hasta los centésimos; con lenguaje numérico y representaciones diversas. Representa de diversas formas su comprensión de la noción de fracción como operador y como cociente, así como las equivalencias entre decimales, fracciones o porcentajes usuales³⁸. Selecciona y emplea estrategias diversas, el cálculo mental o escrito para operar con números naturales, fracciones, decimales y porcentajes de manera exacta o aproximada; así como para hacer conversiones de unidades de medida de masa, tiempo y temperatura, y medir de manera exacta o aproximada usando la unidad pertinente. Justifica sus procesos de resolución así como sus afirmaciones sobre las relaciones entre las cuatro operaciones y sus propiedades, basándose en ejemplos y sus conocimientos matemáticos."
+    },
+    {
+      "nivel": 6,
+      "texto": "Resuelve problemas referidos a las relaciones entre cantidades o magnitudes, traduciéndolas a expresiones numéricas y operativas con números naturales, enteros y racionales, y descuentos porcentuales sucesivos, verificando si estas expresiones cumplen con las condiciones iniciales del problema. Expresa su comprensión de la relación entre los órdenes del sistema de numeración decimal con las potencias de base diez, y entre las operaciones con números enteros y racionales; y las usa para interpretar enunciados o textos diversos de contenido matemático. Representa relaciones de equivalencia entre expresiones decimales, fraccionarias y porcentuales, entre unidades de masa, tiempo y monetarias; empleando lenguaje matemático. Selecciona, emplea y combina recursos, estrategias, procedimientos, y propiedades de las operaciones y de los números para estimar o calcular con enteros y racionales; y realizar conversiones entre unidades de masa, tiempo y temperatura; verificando su eficacia. Plantea afirmaciones sobre los números enteros y racionales, sus propiedades y relaciones, y las justifica mediante ejemplos y sus conocimientos de las operaciones, e identifica errores o vacíos en las argumentaciones propias o de otros y las corrige."
+    },
+    {
+      "nivel": 7,
+      "texto": "Resuelve problemas referidos a las relaciones entre cantidades muy grandes o muy pequeñas, magnitudes o intercambios financieros, traduciéndolas a expresiones numéricas y operativas con números irracionales o racionales, notación científica, intervalos, y tasas de interés simple y compuesto. Evalúa si estas expresiones cumplen con las condiciones iniciales del problema. Expresa su comprensión de los números racionales e irracionales, de sus operaciones y propiedades, así como de la notación científica; establece relaciones de equivalencia entre múltiplos y submúltiplos de unidades de masa, y tiempo, y entre escalas de temperatura, empleando lenguaje matemático y diversas representaciones; basado en esto interpreta e integra información contenida en varias fuentes de información. Selecciona, combina y adapta variados recursos, estrategias y procedimientos matemáticos de cálculo y estimación para resolver problemas, los evalúa y opta por aquellos más idóneos según las condiciones del problema. Plantea y compara afirmaciones sobre números racionales y sus propiedades, formula enunciados opuestos o casos especiales que se cumplen entre expresiones numéricas; justifica, comprueba o descarta la validez de la afirmación mediante contraejemplos o propiedades matemáticas."
+    },
+    {
+      "nivel": 8,
+      "texto": "Resuelve problemas referidos a relaciones entre cantidades o realizar intercambios financieros, traduciéndolas a expresiones numéricas y operativas con números racionales e irracionales, y modelos financieros. Expresa su comprensión de los números racionales, sus propiedades y operaciones, la noción de número irracional y la densidad en Q; las usa en la interpretación de información científica, financiera y matemática. Evalúa y determina el nivel de exactitud necesario al expresar cantidades y medidas de tiempo, masa y temperatura, combinando e integrando un amplio repertorio de estrategias, procedimientos y recursos para resolver problemas, optando por los más óptimos. Elabora afirmaciones sobre la validez general de relaciones entre expresiones numéricas y las operaciones; las sustenta con demostraciones o argumentos."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1P",
+      "orden": 1,
+      "texto": "Establece relaciones entre datos y acciones de agregar, quitar y juntar cantidades, y las transforma en expresiones numéricas (modelo) de adición o sustracción con números naturales hasta 20."
+    },
+    {
+      "grado": "1P",
+      "orden": 2,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico (números, signos y expresiones verbales) su comprensión de la decena como grupo de diez unidades y de las operaciones de adición y sustracción con números hasta 20."
+    },
+    {
+      "grado": "1P",
+      "orden": 3,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico (números, signos y expresiones verbales) su comprensión del número como ordinal al ordenar objetos hasta el décimo lugar, del número como cardinal al determinar una cantidad de hasta 50 objetos y de la comparación y el orden entre dos cantidades."
+    },
+    {
+      "grado": "1P",
+      "orden": 4,
+      "texto": "Emplea las siguientes estrategias y procedimientos: • Estrategias heurísticas⁴³. • Estrategias de cálculo mental, como la suma de cifras iguales, el conteo y las descomposiciones del 10. • Procedimientos de cálculo, como las sumas y restas sin canjes. • Estrategias de comparación, como la correspondencia uno a uno."
+    },
+    {
+      "grado": "1P",
+      "orden": 5,
+      "texto": "Compara en forma vivencial y concreta la masa de los objetos usando otros objetos como referentes, y estima el tiempo usando unidades convencionales y referentes de actividades cotidianas (días de la semana, meses del año)."
+    },
+    {
+      "grado": "1P",
+      "orden": 6,
+      "texto": "Realiza afirmaciones sobre las diferentes formas de representar el número y las explica con ejemplos concretos."
+    },
+    {
+      "grado": "1P",
+      "orden": 7,
+      "texto": "Realiza afirmaciones sobre los resultados que podría obtener al sumar o restar y las explica con apoyo de material concreto. Asimismo, explica los pasos que siguió en la resolución de un problema."
+    },
+    {
+      "grado": "2P",
+      "orden": 1,
+      "texto": "Establece relaciones entre datos y una o más acciones de agregar, quitar, avanzar, retroceder, juntar, separar, comparar e igualar cantidades, y las transforma en expresiones numéricas (modelo) de adición o sustracción con números naturales de hasta dos cifras."
+    },
+    {
+      "grado": "2P",
+      "orden": 2,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico (números, signos y expresiones verbales) su comprensión de la decena como nueva unidad en el sistema de numeración decimal y el valor posicional de una cifra en números de hasta dos cifras."
+    },
+    {
+      "grado": "2P",
+      "orden": 3,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico (números, signos y expresiones verbales) su comprensión del número como ordinal al ordenar objetos hasta el vigésimo lugar, de la comparación entre números y de las operaciones de adición y sustracción, el doble y la mitad, con números de hasta dos cifras."
+    },
+    {
+      "grado": "2P",
+      "orden": 4,
+      "texto": "Emplea estrategias y procedimientos como los siguientes: • Estrategias heurísticas. • Estrategias de cálculo mental, como las descomposiciones aditivas o el uso de analogías (70 + 20; 70 + 9, completar a la decena más cercana, usar dobles, sumar en vez de restar, uso de la conmutatividad). • Procedimientos de cálculo, como sumas o restas con y sin canjes. • Estrategias de comparación, que incluyen el uso del tablero cien y otros."
+    },
+    {
+      "grado": "2P",
+      "orden": 5,
+      "texto": "Compara en forma vivencial y concreta la masa de objetos usando unidades no convencionales, y mide el tiempo usando unidades convencionales (días, horarios semanales)."
+    },
+    {
+      "grado": "2P",
+      "orden": 6,
+      "texto": "Realiza afirmaciones sobre la comparación de números naturales y de la decena, y las explica con material concreto."
+    },
+    {
+      "grado": "2P",
+      "orden": 7,
+      "texto": "Realiza afirmaciones sobre por qué debe sumar o restar en un problema y las explica; así también, explica su proceso de resolución y los resultados obtenidos."
+    },
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Establece relaciones entre datos y una o más acciones de agregar, quitar, comparar, igualar, reiterar, agrupar, repartir cantidades y combinar colecciones diferentes de objetos, para transformarlas en expresiones numéricas (modelo) de adición, sustracción, multiplicación y división con números naturales de hasta tres cifras."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico (números, signos y expresiones verbales) su comprensión sobre la centena como nueva unidad en el sistema de numeración decimal, sus equivalencias con decenas y unidades, el valor posicional de una cifra en números de tres cifras y la comparación y el orden de números."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico (números, signos y expresiones verbales) su comprensión de la multiplicación y división con números naturales hasta 100, y la propiedad conmutativa de la adición."
+    },
+    {
+      "grado": "3P",
+      "orden": 4,
+      "texto": "Emplea estrategias y procedimientos como los siguientes: • Estrategias heurísticas. • Estrategias de cálculo mental, como descomposiciones aditivas y multiplicativas, duplicar o dividir por 2, multiplicación y división por 10, completar a la centena más cercana y aproximaciones. • Procedimientos de cálculo escrito, como sumas o restas con canjes y uso de la asociatividad."
+    },
+    {
+      "grado": "3P",
+      "orden": 5,
+      "texto": "Mide y compara la masa de los objetos (kilogramo) y el tiempo (horas exactas) usando unidades convencionales y no convencionales."
+    },
+    {
+      "grado": "3P",
+      "orden": 6,
+      "texto": "Realiza afirmaciones sobre la comparación de números naturales y la conformación de la centena, y las explica con material concreto."
+    },
+    {
+      "grado": "3P",
+      "orden": 7,
+      "texto": "Realiza afirmaciones sobre el uso de la propiedad conmutativa y las explica con ejemplos concretos. Asimismo, explica por qué la sustracción es la operación inversa de la adición, por qué debe multiplicar o dividir en un problema, así como la relación inversa entre ambas operaciones; explica también su proceso de resolución y los resultados obtenidos."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Establece relaciones entre datos y una o más acciones de agregar, quitar, comparar, igualar, reiterar, agrupar, repartir cantidades y combinar colecciones, para transformarlas en expresiones numéricas (modelo) de adición, sustracción, multiplicación y división con números naturales de hasta cuatro cifras."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Establece relaciones entre datos y acciones de partir una unidad o una colección de objetos en partes iguales y las transforma en expresiones numéricas (modelo) de fracciones usuales, adición y sustracción de estas."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico (números, signos y expresiones verbales) su comprensión de: • La unidad de millar como unidad del sistema de numeración decimal, sus equivalencias entre unidades menores, el valor posicional de un dígito en números de cuatro cifras y la comparación y el orden de números. • La multiplicación y división con números naturales, así como las propiedades conmutativa y asociativa de la multiplicación. • La fracción como parte-todo (cantidad discreta o continua), así como equivalencias y operaciones de adición y sustracción entre fracciones usuales usando fracciones equivalentes."
+    },
+    {
+      "grado": "4P",
+      "orden": 4,
+      "texto": "Emplea estrategias y procedimientos como los siguientes: • Estrategias heurísticas. • Estrategias de cálculo mental o escrito, como las descomposiciones aditivas y multiplicativas, doblar y dividir por 2 de forma reiterada, completar al millar más cercano, uso de la propiedad distributiva, redondeo a múltiplos de 10 y amplificación y simplificación de fracciones."
+    },
+    {
+      "grado": "4P",
+      "orden": 5,
+      "texto": "Mide, estima y compara la masa (kilogramo, gramo) y el tiempo (año, hora, media hora y cuarto de hora) seleccionando unidades convencionales."
+    },
+    {
+      "grado": "4P",
+      "orden": 6,
+      "texto": "Realiza afirmaciones sobre la conformación de la unidad de millar y las explica con material concreto."
+    },
+    {
+      "grado": "4P",
+      "orden": 7,
+      "texto": "Realiza afirmaciones sobre las equivalencias entre fracciones y las explica con ejemplos concretos. Asimismo, explica la comparación entre fracciones, así como su proceso de resolución y los resultados obtenidos."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Establece relaciones entre datos y una o más acciones de agregar, quitar, comparar, igualar, reiterar, agrupar y repartir cantidades, para transformarlas en expresiones numéricas (modelo) de adición, sustracción, multiplicación y división con números naturales, y de adición y sustracción con decimales."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Establece relaciones entre datos y acciones de dividir la unidad o una cantidad en partes iguales, y las transforma en expresiones numéricas (modelo) de fracciones y de adición, sustracción y multiplicación de estas."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico (números, signos y expresiones verbales) su comprensión de: • El valor posicional de un dígito en números de hasta seis cifras, al hacer equivalencias entre decenas de millar, unidades de millar, centenas, decenas y unidades; así como del valor posicional de decimales hasta el décimo, su comparación y orden. • Los múltiplos de un número natural y la relación entre las cuatro operaciones y sus propiedades (conmutativa, asociativa y distributiva). • La fracción como parte de una cantidad discreta o continua y como operador. • Las operaciones de adición y sustracción con números decimales y fracciones."
+    },
+    {
+      "grado": "5P",
+      "orden": 4,
+      "texto": "Emplea estrategias y procedimientos como los siguientes: • Estrategias heurísticas. • Estrategias de cálculo: uso de la reversibilidad de las operaciones con números naturales, estimación de productos y cocientes, descomposición del dividendo, amplificación y simplificación de fracciones, redondeo de expresiones decimales y uso de la propiedad distributiva de la multiplicación respecto de la adición y división."
+    },
+    {
+      "grado": "5P",
+      "orden": 5,
+      "texto": "Mide, estima y compara la masa de los objetos (kilogramo) y el tiempo (décadas y siglos) usando unidades convencionales (expresadas con naturales, fracciones y decimales); y usa multiplicaciones o divisiones por múltiplos de 10, así como equivalencias, para hacer conversiones de unidades de masa y tiempo."
+    },
+    {
+      "grado": "5P",
+      "orden": 6,
+      "texto": "Realiza afirmaciones sobre las relaciones (orden y otras) entre números naturales, decimales y fracciones; así como sobre relaciones inversas entre operaciones, las cuales justifica con varios ejemplos y sus conocimientos matemáticos."
+    },
+    {
+      "grado": "5P",
+      "orden": 7,
+      "texto": "Justifica su proceso de resolución y los resultados obtenidos."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Establece relaciones entre datos y una o más acciones de comparar, igualar, reiterar y dividir cantidades, y las transforma en expresiones numéricas (modelo) de adición, sustracción, multiplicación y división de dos números naturales (obtiene como cociente un número decimal exacto), y en potencias cuadradas y cúbicas."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Establece relaciones entre datos y acciones de dividir una o más unidades en partes iguales y las transforma en expresiones numéricas (modelo) de fracciones y adición, sustracción y multiplicación con expresiones fraccionarias y decimales (hasta el centésimo)."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico (números, signos y expresiones verbales) su comprensión de: • El valor posicional de un dígito en números de hasta seis cifras y decimales hasta el centésimo, así como las unidades del sistema de numeración decimal. • Los múltiplos y divisores de un número natural; las características de los números primos y compuestos; así como las propiedades de las operaciones y su relación inversa. • La fracción como operador y como cociente; las equivalencias entre decimales, fracciones o porcentajes usuales; las operaciones de adición, sustracción y multiplicación con fracciones y decimales."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Emplea estrategias y procedimientos como los siguientes: • Estrategias heurísticas. • Estrategias de cálculo, como el uso de la reversibilidad de las operaciones con números naturales, la amplificación y simplificación de fracciones, el redondeo de decimales y el uso de la propiedad distributiva. • Procedimientos y recursos para realizar operaciones con números naturales, expresiones fraccionarias y decimales exactos, y calcular porcentajes usuales."
+    },
+    {
+      "grado": "6P",
+      "orden": 5,
+      "texto": "Mide, estima y compara la masa de los objetos, el tiempo (minutos) y la temperatura usando la unidad de medida que conviene según el problema; emplea recursos y estrategias de cálculo para hacer conversiones de unidades de masa, tiempo y temperatura, expresadas con números naturales y expresiones decimales."
+    },
+    {
+      "grado": "6P",
+      "orden": 6,
+      "texto": "Realiza afirmaciones sobre las relaciones (orden y otras) entre decimales, fracciones o porcentajes usuales, y las justifica con varios ejemplos y sus conocimientos matemáticos."
+    },
+    {
+      "grado": "6P",
+      "orden": 7,
+      "texto": "Justifica su proceso de resolución y los resultados obtenidos."
+    },
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Establece relaciones entre datos y acciones de ganar, perder, comparar e igualar cantidades, o una combinación de acciones. Las transforma a expresiones numéricas (modelos) que incluyen operaciones de adición, sustracción, multiplicación, división con números enteros, expresiones fraccionarias o decimales; y radicación y potenciación con números enteros, y sus propiedades; y aumentos o descuentos porcentuales. En este grado, el estudiante expresa los datos en unidades de masa, de tiempo, de temperatura o monetarias."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Comprueba si la expresión numérica (modelo) planteada representó las condiciones del problema: datos, acciones y condiciones."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Expresa, con diversas representaciones y lenguaje numérico, su comprensión del valor posicional de las cifras de un número hasta los millones ordenando, comparando, componiendo y descomponiendo números naturales y enteros, para interpretar un problema según su contexto, y estableciendo relaciones entre representaciones. En el caso de la descomposición, comprende la diferencia entre una descomposición polinómica y otra en factores primos."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico su comprensión de la fracción como medida y del significado del signo positivo y negativo de un número entero para interpretar un problema según su contexto y estableciendo relaciones entre representaciones. Ejemplo: El estudiante reconoce que la expresión “la relación entre el número de hombres es al número de mujeres como 2 es a 3” equivale a decir que, por cada dos hombres, hay 3 mujeres."
+    },
+    {
+      "grado": "1S",
+      "orden": 5,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico su comprensión sobre las propiedades de las operaciones con enteros y expresiones decimales y fraccionarias, así como la relación inversa entre las cuatro operaciones. Usa este entendimiento para asociar o secuenciar operaciones, y para interpretar un problema según su contexto y estableciendo relaciones entre representaciones."
+    },
+    {
+      "grado": "1S",
+      "orden": 6,
+      "texto": "Selecciona y emplea estrategias de cálculo, estimación y procedimientos diversos para realizar operaciones con números enteros, expresiones fraccionarias, decimales y porcentuales, así como para calcular aumentos y descuentos porcentuales, y simplificar procesos usando propiedades de los números y las operaciones, de acuerdo con las condiciones de la situación planteada."
+    },
+    {
+      "grado": "1S",
+      "orden": 7,
+      "texto": "Selecciona y usa unidades e instrumentos pertinentes para medir o estimar la masa, el tiempo o la temperatura; realizar conversiones entre unidades; y determinar equivalencias entre las unidades y subunidades de medida de masa, de temperatura, de tiempo y monetarias."
+    },
+    {
+      "grado": "1S",
+      "orden": 8,
+      "texto": "Selecciona y emplea estrategias de cálculo y de estimación, y procedimientos diversos para determinar equivalencias entre expresiones fraccionarias, decimales y porcentuales."
+    },
+    {
+      "grado": "1S",
+      "orden": 9,
+      "texto": "Plantea afirmaciones sobre las propiedades de los números y de las operaciones con números enteros y expresiones decimales, y sobre las relaciones inversas entre las operaciones. Las justifica o sustenta con ejemplos y propiedades de los números y de las operaciones. Infiere relaciones entre estas. Reconoce errores en sus justificaciones y en las de otros, y las corrige."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Establece relaciones entre datos y acciones de ganar, perder, comparar e igualar cantidades, o una combinación de acciones. Las transforma a expresiones numéricas (modelos) que incluyen operaciones de adición, sustracción, multiplicación, división con números enteros, expresiones fraccionarias o decimales, y potencias con exponente entero, notación exponencial, así como aumentos y descuentos porcentuales sucesivos. En este grado, el estudiante expresa los datos en unidades de masa, de tiempo, de temperatura o monetarias."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Comprueba si la expresión numérica (modelo) planteada representó las condiciones del problema: datos, acciones y condiciones."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico su comprensión del valor posicional de las cifras de un número hasta los millones al ordenar, comparar, componer y descomponer números enteros y números racionales en su forma fraccionaria y decimal, así como la utilidad o sentido de expresar números naturales en su notación exponencial, para interpretar un problema según su contexto y estableciendo relaciones entre representaciones. Reconoce la diferencia entre una descomposición polinómica y una notación exponencial."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico su comprensión de la fracción como razón y operador, y del significado del signo positivo y negativo de enteros y racionales, para interpretar un problema según su contexto y estableciendo relaciones entre representaciones."
+    },
+    {
+      "grado": "2S",
+      "orden": 5,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico su comprensión sobre la equivalencia entre dos aumentos o descuentos porcentuales sucesivos y el significado del IGV, para interpretar el problema en el contexto de las transacciones financieras y comerciales, y estableciendo relaciones entre representaciones."
+    },
+    {
+      "grado": "2S",
+      "orden": 6,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico su comprensión sobre las propiedades de la potenciación de exponente entero, la relación inversa entre la radicación y potenciación con números enteros, y las expresiones racionales y fraccionarias y sus propiedades. Usa este entendimiento para asociar o secuenciar operaciones."
+    },
+    {
+      "grado": "2S",
+      "orden": 7,
+      "texto": "Selecciona, emplea y combina estrategias de cálculo, estimación y procedimientos diversos para realizar operaciones con números enteros, expresiones fraccionarias, decimales y porcentuales, tasas de interés, el impuesto a la renta, y simplificar procesos usando propiedades de los números y las operaciones, de acuerdo con las condiciones de la situación planteada."
+    },
+    {
+      "grado": "2S",
+      "orden": 8,
+      "texto": "Selecciona y usa unidades e instrumentos pertinentes para medir o estimar la masa, el tiempo y la temperatura, y para determinar equivalencias entre las unidades y subunidades de medida de masa, de temperatura, de tiempo y monetarias de diferentes países."
+    },
+    {
+      "grado": "2S",
+      "orden": 9,
+      "texto": "Selecciona, emplea y combina estrategias de cálculo y de estimación, y procedimientos diversos para determinar equivalencias entre expresiones fraccionarias, decimales y porcentuales."
+    },
+    {
+      "grado": "2S",
+      "orden": 10,
+      "texto": "Plantea afirmaciones sobre las propiedades de la potenciación y la radicación, el orden entre dos números racionales, y las equivalencias entre descuentos porcentuales sucesivos, y sobre las relaciones inversas entre las operaciones, u otras relaciones que descubre. Las justifica o sustenta con ejemplos y propiedades de los números y operaciones. Infiere relaciones entre estas. Reconoce errores o vacíos en sus justificaciones y en las de otros, y las corrige."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Establece relaciones entre datos y acciones de comparar, igualar cantidades o trabajar con tasas de interés simple. Las transforma a expresiones numéricas (modelos) que incluyen operaciones de adición, sustracción, multiplicación, división con expresiones fraccionarias o decimales y la notación exponencial, así como el interés simple. En este grado, el estudiante expresa los datos en unidades de masa, de tiempo, de temperatura o monetarias."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Compara dos expresiones numéricas (modelos) y reconoce cuál de ellas representa todas las condiciones del problema señalando posibles mejoras."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico su comprensión del valor posicional de las cifras de un número hasta los millones, al ordenar, comparar, componer y descomponer un número racional, así como la utilidad de expresar cantidades muy grandes en notación exponencial y notación científica de exponente positivo."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico su comprensión del racional como decimal periódico puro o mixto, o equivalente a una fracción, así como de los órdenes del sistema de numeración decimal y cómo este determina el valor posicional de las cifras."
+    },
+    {
+      "grado": "3S",
+      "orden": 5,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico su comprensión sobre las tasas de interés simple y términos financieros (tasa mensual, tasa anual e impuesto a las transacciones financieras —ITF) para interpretar el problema en su contexto y estableciendo relaciones entre representaciones."
+    },
+    {
+      "grado": "3S",
+      "orden": 6,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico su comprensión sobre las conexiones entre las operaciones con racionales y sus propiedades. Usa este entendimiento para interpretar las condiciones de un problema en su contexto. Establece relaciones entre representaciones."
+    },
+    {
+      "grado": "3S",
+      "orden": 7,
+      "texto": "Selecciona, emplea y combina estrategias de cálculo y estimación, recursos y procedimientos diversos para realizar operaciones con números racionales; para determinar tasas de interés y el valor de impuesto a las transacciones financieras (ITF); y para simplificar procesos usando las propiedades de los números y las operaciones, según se adecúen a las condiciones de la situación."
+    },
+    {
+      "grado": "3S",
+      "orden": 8,
+      "texto": "Selecciona y usa unidades e instrumentos pertinentes para medir o estimar la masa, el tiempo o la temperatura, y realizar conversiones entre unidades y subunidades, de acuerdo con las condiciones de la situación planteada."
+    },
+    {
+      "grado": "3S",
+      "orden": 9,
+      "texto": "Selecciona, emplea y combina estrategias de cálculo y estimación, recursos, y procedimientos diversos para determinar equivalencias entre expresiones fraccionarias y decimales, y viceversa."
+    },
+    {
+      "grado": "3S",
+      "orden": 10,
+      "texto": "Plantea afirmaciones sobre las propiedades de las operaciones con números racionales, las equivalencias entre tasas de interés, u otras relaciones que descubre, así como las relaciones numéricas entre las operaciones. Justifica dichas afirmaciones usando ejemplos y propiedades de los números y operaciones, y comprueba la validez de sus afirmaciones."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Establece relaciones entre datos y acciones de comparar e igualar cantidades o trabajar con tasas de interés simple y compuesto. Las transforma a expresiones numéricas (modelos) que incluyen operaciones con números racionales, raíces inexactas, notación exponencial y científica, así como modelos financieros de interés simple y compuesto."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Evalúa expresiones numéricas (modelos) planteadas para un mismo problema y determina cuál de ellas representó mejor las condiciones del problema."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico su comprensión de los órdenes del sistema de numeración decimal al expresar una cantidad muy grande o muy pequeña en notación científica, así como al comparar y ordenar cantidades expresadas en notación científica. Expresa su comprensión de las diferencias entre notación científica y notación exponencial."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico su comprensión del número irracional como decimal no periódico obtenido de raíces inexactas y de la noción de densidad en los números racionales al identificar al menos un nuevo número racional entre otros dos racionales."
+    },
+    {
+      "grado": "4S",
+      "orden": 5,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico su comprensión sobre el interés compuesto y sobre términos financieros (impuesto a la renta, tasa de interés simple y compuesto, y capitalización) para interpretar el problema en su contexto y estableciendo relaciones entre representaciones."
+    },
+    {
+      "grado": "4S",
+      "orden": 6,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico su comprensión sobre las propiedades de las operaciones con raíces inexactas al deducir propiedades especiales. Usa este entendimiento para interpretar las condiciones de un problema en su contexto. Establece relaciones entre representaciones."
+    },
+    {
+      "grado": "4S",
+      "orden": 7,
+      "texto": "Selecciona, combina y adapta estrategias de cálculo, estimación, recursos, y procedimientos diversos para realizar operaciones con raíces inexactas, tasas de interés compuesto, cantidades en notación científica e intervalos, y para simplificar procesos usando las propiedades de los números y las operaciones, según se adecúen a las condiciones de la situación."
+    },
+    {
+      "grado": "4S",
+      "orden": 8,
+      "texto": "Selecciona y usa unidades y subunidades e instrumentos pertinentes para estimar y medir magnitudes derivadas (velocidad y aceleración), según el nivel de exactitud exigido en la situación planteada."
+    },
+    {
+      "grado": "4S",
+      "orden": 9,
+      "texto": "Plantea y compara afirmaciones sobre las propiedades de las operaciones con números racionales y raíces inexactas, su noción de densidad en Q, las equivalencias entre tasas de interés compuesto, o de intercambios financieros u otras relaciones numéricas que descubre, y las justifica con ejemplos, contraejemplos y propiedades de los números y las operaciones. Comprueba o descarta la validez de una afirmación mediante un contraejemplo, o el razonamiento inductivo o deductivo."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Establece relaciones entre datos y acciones de comparar e igualar cantidades o trabajar con tasas de interés compuesto. Las transforma a expresiones numéricas (modelos) que incluyen operaciones con números racionales y algunos números irracionales, como π, e, φ, o raíces inexactas; notación científica; e interés compuesto u otros modelos a su alcance."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Evalúa si la expresión numérica (modelo) planteada reprodujo las condiciones de la situación, y la modifica y ajusta para solucionar problemas similares y sus variantes."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico su comprensión de los órdenes del sistema de numeración decimal al expresar una cantidad muy grande o muy pequeña en notación científica, así como al comparar cantidades expresadas en notación científica y hacer equivalencias entre números irracionales usando aproximaciones o redondeos."
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico su comprensión de la expresión fraccionaria como una forma general de expresar un número racional y de la noción de densidad en los números racionales al asociar los puntos de una recta con números racionales."
+    },
+    {
+      "grado": "5S",
+      "orden": 5,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico su comprensión sobre las tasas de interés y de términos financieros (capital, monto, tiempo, gastos de operación, impuesto a la renta, índice per cápita) para interpretar el problema en su contexto y estableciendo relaciones entre representaciones."
+    },
+    {
+      "grado": "5S",
+      "orden": 6,
+      "texto": "Expresa con diversas representaciones y lenguaje numérico su comprensión sobre las operaciones con números racionales e irracionales usando redondeos o aproximaciones, así como sobre las operaciones entre cantidades expresadas en notación exponencial. Usa este entendimiento para interpretar las condiciones de un problema en su contexto. Establece relaciones entre representaciones."
+    },
+    {
+      "grado": "5S",
+      "orden": 7,
+      "texto": "Selecciona, combina y adapta estrategias de cálculo, estimación, recursos y procedimientos diversos para realizar operaciones con racionales y raíces inexactas aproximadas, tasas de interés, cantidades en notación científica e intervalos, y para simplificar procesos usando las propiedades de los números y las operaciones, optando por los más idóneos."
+    },
+    {
+      "grado": "5S",
+      "orden": 8,
+      "texto": "Selecciona y usa unidades y subunidades e instrumentos pertinentes para estimar o expresar el valor de una magnitud derivada (velocidad, aceleración, etc.) según el nivel de exactitud exigido en el problema."
+    },
+    {
+      "grado": "5S",
+      "orden": 9,
+      "texto": "Plantea y compara afirmaciones sobre las propiedades de las operaciones con raíces inexactas aproximadas, y sobre la conveniencia o no de determinadas tasas de interés u otras relaciones numéricas que descubre, y las justifica con ejemplos, contraejemplos, y propiedades de los números y las operaciones. Comprueba la validez de una afirmación opuesta a otra o de un caso especial mediante ejemplos, contraejemplos, sus conocimientos, y el razonamiento inductivo y deductivo."
+    }
+  ]
+}

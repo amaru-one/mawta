@@ -1,0 +1,483 @@
+{
+  "numero_cneb": 26,
+  "nombre": "Resuelve problemas de forma, movimiento y localización",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Modela objetos con formas geométricas y sus transformaciones"
+    },
+    {
+      "numero": 2,
+      "nombre": "Comunica su comprensión sobre las formas y relaciones geométricas"
+    },
+    {
+      "numero": 3,
+      "nombre": "Usa estrategias y procedimientos para orientarse en el espacio"
+    },
+    {
+      "numero": 4,
+      "nombre": "Argumenta afirmaciones sobre relaciones geométricas"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Explora el espacio en situaciones cotidianas utilizando sus sentidos y sus propias estrategias, se desplaza y reconoce su posición o la ubicación de los objetos y comprende algunas expresiones sencillas relacionadas a su ubicación."
+    },
+    {
+      "nivel": 2,
+      "texto": "Resuelve problemas al relacionar los objetos del entorno con formas bidimensionales y tridimensionales. Expresa la ubicación de personas en relación a objetos en el espacio: “cerca de”, “lejos de”, “al lado de”, y de desplazamientos: “hacia adelante”, “hacia atrás”, “hacia un lado”, “hacia el otro”. Así también expresa la comparación de la longitud de dos objetos: “es más largo que”, “es más corto que”. Emplea estrategias para resolver problemas, al construir objetos con material concreto o realizar desplazamientos en el espacio."
+    },
+    {
+      "nivel": 3,
+      "texto": "Resuelve problemas en los que modela las características y datos de ubicación de los objetos del entorno a formas bidimensionales y tridimensionales, sus elementos, posición y desplazamientos. Describe estas formas mediante sus elementos: número de lados, esquinas, lados curvos y rectos; número de puntas caras, formas de sus caras, usando representaciones concretas y dibujos. Así también traza y describe desplazamientos y posiciones, en cuadriculados y puntos de referencia. Emplea estrategias y procedimientos basados en la manipulación, para construir objetos y medir su longitud (ancho y largo) usando unidades no convencionales. Explica semejanzas y diferencias entre formas geométricas, así como su proceso de resolución."
+    },
+    {
+      "nivel": 4,
+      "texto": "Resuelve problemas en los que modela características y datos de ubicación de los objetos del entorno a formas bidimensionales y tridimensionales, sus elementos, posición y desplazamientos. Describe estas formas mediante sus elementos: número de lados, esquinas, lados curvos y rectos; número de puntas caras, formas de sus caras, usando representaciones concretas y dibujos. Así también traza y describe desplazamientos en cuadriculados y posiciones, con puntos de referencia; usando lenguaje geométrico. Emplea estrategias y procedimientos basados en la manipulación, para construir objetos y medir su longitud (ancho y largo) usando unidades no convencionales. Explica semejanzas y diferencias entre formas geométricas."
+    },
+    {
+      "nivel": 5,
+      "texto": "Resuelve problemas en los que modela características y datos de ubicación de los objetos a formas bidimensionales y tridimensionales, sus elementos, propiedades, su movimiento y ubicación en el plano cartesiano. Describe estas formas reconociendo ángulos rectos, número de lados y vértices del polígono, así como líneas paralelas y perpendiculares, identifica formas simétricas y realiza traslaciones, en cuadrículas. Así también elabora croquis, donde traza y describe desplazamientos y posiciones, usando puntos cardinales y puntos de referencia. Usa lenguaje geométrico. Emplea estrategias y procedimientos para trasladar y construir formas a través de la composición y descomposición, y para medir la longitud, superficie y capacidad de los objetos, usando unidades convencionales y no convencionales, recursos e instrumentos de medición.Elabora afirmaciones sobre las figuras compuestas; así como relaciones entre una forma tridimensional y su desarrollo en el plano; las explica con ejemplos concretos y gráficos."
+    },
+    {
+      "nivel": 6,
+      "texto": "Resuelve problemas en los que modela características de objetos mediante prismas, pirámides y polígonos, sus elementos y propiedades, y la semejanza y congruencia de formas geométricas; así como la ubicación y movimiento mediante coordenadas en el plano cartesiano, mapas y planos a escala, y transformaciones. Expresa su comprensión de las formas congruentes y semejantes, la relación entre una forma geométrica y sus diferentes perspectivas; usando dibujos y construcciones. Clasifica prismas, pirámides, polígonos y círculos, según sus propiedades. Selecciona y emplea estrategias, procedimientos y recursos para determinar la longitud, área o volumen de formas geométricas en unidades convencionales y para construir formas geométricas a escala. Plantea afirmaciones sobre la semejanza y congruencia de formas, entre relaciones entre áreas de formas geométricas; las justifica mediante ejemplos y propiedades geométricas."
+    },
+    {
+      "nivel": 7,
+      "texto": "Resuelve problemas en los que modela características de objetos con formas geométricas compuestas, cuerpos de revolución, sus elementos y propiedades, líneas, puntos notables, relaciones métricas de triángulos, distancia entre dos puntos, ecuación de la recta y parábola; la ubicación, distancias inaccesibles, movimiento y trayectorias complejas de objetos mediante coordenadas cartesianas, razones trigonométricas, mapas y planos a escala. Expresa su comprensión de la relación entre las medidas de los lados de un triángulo y sus proyecciones, la distinción entre trasformaciones geométricas que conservan la forma de aquellas que conservan las medidas de los objetos, y de cómo se generan cuerpos de revolución, usando construcciones con regla y compás. Clasifica polígonos y cuerpos geométricos según sus propiedades, reconociendo la inclusión de una clase en otra. Selecciona, combina y adapta variadas estrategias, procedimientos y recursos para determinar la longitud, perímetro, área o volumen de formas compuestas, así como construir mapas a escala, homotecias e isometrías. Plantea y compara afirmaciones sobre enunciados opuestos o casos especiales de las propiedades de las formas geométricas; justifica, comprueba o descarta la validez de la afirmación mediante contraejemplos o propiedades geométricas."
+    },
+    {
+      "nivel": 8,
+      "texto": "Resuelve problemas en los que modela las características y localización de objetos con propiedades de formas geométricas, así como su localización y desplazamiento usando coordenadas cartesianas, la ecuación de la elipse y la circunferencia, o una composición de transformaciones de formas bidimensionales. Expresa su comprensión de las relaciones métricas entre los elementos de la circunferencia y elementos de los polígonos inscritos; así como la trayectoria de objetos usando la ecuación de la elipse, usando diversas representaciones. Clasifica formas geométricas compuestas, basado en criterios propios y propiedades geométricas. Combina e integra estrategias o procedimientos para determinar las ecuaciones de la recta, parábola y elipse, así como instrumentos y recursos para construir formas geométricas. Plantea afirmaciones sobre relaciones entre conceptos geométricos, deduce propiedades y las sustenta con argumentos que evidencian su solvencia conceptual."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1P",
+      "orden": 1,
+      "texto": "Establece relaciones entre las características de los objetos del entorno y las asocia y representa con formas geométricas tridimensionales y bidimensionales que conoce, así como con la medida cualitativa de su longitud."
+    },
+    {
+      "grado": "1P",
+      "orden": 2,
+      "texto": "Establece relaciones entre los datos de ubicación y recorrido de objetos y personas del entorno, y los expresa con material concreto o bosquejos y desplazamientos, teniendo en cuenta su cuerpo como punto de referencia u objetos en las cuadrículas."
+    },
+    {
+      "grado": "1P",
+      "orden": 3,
+      "texto": "Expresa con material concreto y dibujos su comprensión sobre algunos elementos de las formas tridimensionales (caras y vértices) y bidimensionales (lados, líneas rectas y curvas). Asimismo, describe si los objetos ruedan, se sostienen, no se sostienen o tienen puntas o esquinas usando lenguaje cotidiano y algunos términos geométricos."
+    },
+    {
+      "grado": "1P",
+      "orden": 4,
+      "texto": "Expresa con material concreto su comprensión sobre la longitud como una de las propiedades que se puede medir en algunos objetos; asimismo, su comprensión sobre la medida de la longitud de objetos de manera cualitativa con representaciones concretas, y establece “es más largo que” o “es más corto que”."
+    },
+    {
+      "grado": "1P",
+      "orden": 5,
+      "texto": "Expresa con material concreto y bosquejos los desplazamientos y posiciones de objetos o personas tomando como punto de referencia su propia posición; hace uso de expresiones como “arriba”, “abajo”, “detrás de”, “encima de”, “debajo de”, “al lado”, “dentro”, “fuera”, “en el borde”."
+    },
+    {
+      "grado": "1P",
+      "orden": 6,
+      "texto": "Emplea estrategias heurísticas, recursos y procedimientos de comparación para medir directamente la longitud de dos objetos con unidades no convencionales (dedos, manos, pies, pasos, brazos, y objetos como clips, lápices, palillos, etc.) y la visualización para construir objetos con material concreto."
+    },
+    {
+      "grado": "1P",
+      "orden": 7,
+      "texto": "Hace afirmaciones sobre algunas propiedades físicas o semejanzas de los objetos y las prueba con ejemplos concretos. Así también, explica el proceso seguido. Ejemplo: El estudiante podría decir: “Algunos objetos con puntas no ruedan”, “Estos dos objetos tienen la misma forma (pelota y canica)”, etc."
+    },
+    {
+      "grado": "2P",
+      "orden": 1,
+      "texto": "Establece relaciones entre las características de los objetos del entorno, las asocia y representa con formas geométricas tridimensionales (cuerpos que ruedan y no ruedan) y bidimensionales (cuadrado, rectángulo, círculo, triángulo), así como con las medidas de su longitud (largo y ancho)."
+    },
+    {
+      "grado": "2P",
+      "orden": 2,
+      "texto": "Establece relaciones entre los datos de ubicación y recorrido de objetos y personas del entorno, y los expresa con material concreto y bosquejos o gráficos, posiciones y desplazamientos, teniendo en cuenta puntos de referencia en las cuadrículas."
+    },
+    {
+      "grado": "2P",
+      "orden": 3,
+      "texto": "Expresa con material concreto y dibujos su comprensión sobre algún elemento de las formas tridimensionales (número de puntas, número de caras, formas de sus caras) y bidimensionales (número de lados, vértices, lados curvos y rectos). Asimismo, describe si los objetos ruedan, se sostienen, no se sostienen o tienen puntas o esquinas usando lenguaje cotidiano y algunos términos geométricos."
+    },
+    {
+      "grado": "2P",
+      "orden": 4,
+      "texto": "Expresa con material concreto su comprensión sobre la medida de la longitud al determinar cuántas veces es más largo un objeto con relación a otro. Expresa también que el objeto mantiene su longitud a pesar de sufrir transformaciones como romper, enrollar o flexionar (conservación de la longitud). Ejemplo: El estudiante, luego de enrollar y desenrollar sorbetes de diferentes tamaños, los ordena por su longitud, desde el más largo hasta el más corto, y viceversa."
+    },
+    {
+      "grado": "2P",
+      "orden": 5,
+      "texto": "Expresa con material concreto, bosquejos o gráficos los desplazamientos y posiciones de objetos o personas con relación a un punto de referencia; hace uso de expresiones como “sube”, “entra”, “hacia adelante”, “hacia arriba”, “a la derecha”, “por el borde”, “en frente de”, etc., apoyándose con códigos de flechas."
+    },
+    {
+      "grado": "2P",
+      "orden": 6,
+      "texto": "Emplea estrategias, recursos y procedimientos basados en la manipulación y visualización, para construir objetos y medir su longitud usando unidades no convencionales (manos, pasos, pies, etc.)."
+    },
+    {
+      "grado": "2P",
+      "orden": 7,
+      "texto": "Hace afirmaciones sobre las semejanzas y diferencias entre las formas geométricas, y las explica con ejemplos concretos y con base en sus conocimientos matemáticos. Asimismo, explica el proceso seguido. Ejemplo: El estudiante afirma que todas las figuras que tienen tres lados son triángulos o que una forma geométrica sigue siendo la misma aunque cambie de posición."
+    },
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Establece relaciones entre las características de los objetos del entorno, las asocia y representa con formas geométricas bidimensionales (figuras regulares o irregulares), sus elementos y con sus medidas de longitud y superficie; y con formas tridimensionales (cuerpos redondos y compuestos), sus elementos y su capacidad."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Establece relaciones entre los datos de ubicación y recorrido de los objetos y personas del entorno, y los expresa en un gráfico, teniendo a los objetos fijos como puntos de referencia; asimismo, considera el eje de simetría de un objeto o una figura."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Expresa con dibujos su comprensión sobre los elementos de las formas tridimensionales y bidimensionales (número de lados, vértices, eje de simetría)."
+    },
+    {
+      "grado": "3P",
+      "orden": 4,
+      "texto": "Expresa con material concreto su comprensión sobre las medidas de longitudes de un mismo objeto con diferentes unidades. Asimismo, su comprensión de la medida de la superficie de objetos planos de manera cualitativa con representaciones concretas, estableciendo “es más extenso que”, “es menos extenso que” (superficie asociada a la noción de extensión) y su conservación."
+    },
+    {
+      "grado": "3P",
+      "orden": 5,
+      "texto": "Expresa su comprensión sobre la capacidad como una de las propiedades que se puede medir en algunos recipientes, establece “contiene más que”, “contiene menos que” e identifica que la cantidad contenida en un recipiente permanece invariante a pesar de que se distribuya en otros de distinta forma y tamaño (conservación de la capacidad)."
+    },
+    {
+      "grado": "3P",
+      "orden": 6,
+      "texto": "Expresa con gráficos los desplazamientos y posiciones de objetos o personas con relación a objetos fijos como puntos de referencia; hace uso de algunas expresiones del lenguaje geométrico."
+    },
+    {
+      "grado": "3P",
+      "orden": 7,
+      "texto": "Emplea estrategias heurísticas y procedimientos como la composición y descomposición, el doblado, el recorte, la visualización y diversos recursos para construir formas y figuras simétricas (a partir de instrucciones escritas u orales). Asimismo, usa diversas estrategias para medir de manera exacta o aproximada (estimar) la longitud (centímetro, metro) y el contorno de una figura, y comparar la capacidad y superficie de los objetos empleando la unidad de medida, no convencional o convencional, según convenga, así como algunos instrumentos de medición."
+    },
+    {
+      "grado": "3P",
+      "orden": 8,
+      "texto": "Hace afirmaciones sobre algunas relaciones entre elementos de las formas, su composición o descomposición, y las explica con ejemplos concretos o dibujos. Asimismo, explica el proceso seguido. Ejemplo: El estudiante podría decir: “Todos los cuadrados se pueden formar con dos triángulos iguales”."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Establece relaciones entre las características de objetos reales o imaginarios, los asocia y representa con formas bidimensionales (polígonos) y sus elementos, así como con su perímetro, medidas de longitud y superficie; y con formas tridimensionales (cubos y prismas de base cuadrangular), sus elementos y su capacidad."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Establece relaciones entre los datos de ubicación y recorrido de los objetos, personas y lugares cercanos, así como la traslación de los objetos o figuras, y los expresa en gráficos o croquis teniendo a los objetos y lugares fijos como puntos de referencia."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Expresa con dibujos su comprensión sobre los elementos de cubos y prismas de base cuadrangular: caras, vértices, aristas; también, su comprensión sobre los elementos de los polígonos: ángulos rectos, número de lados y vértices; así como su comprensión sobre líneas perpendiculares y paralelas usando lenguaje geométrico."
+    },
+    {
+      "grado": "4P",
+      "orden": 4,
+      "texto": "Expresa con material concreto o gráficos su comprensión sobre el perímetro y la medida de capacidad de los recipientes para determinar cuántas veces se puede llenar uno con el otro. Asimismo, su comprensión sobre la medida de la superficie de objetos planos, de manera cualitativa y con representaciones concretas estableciendo “es más extenso que”, “es menos extenso que” (superficie asociada a la noción de extensión) y su conservación."
+    },
+    {
+      "grado": "4P",
+      "orden": 5,
+      "texto": "Expresa con gráficos o croquis los desplazamientos y posiciones de objetos, personas y lugares cercanos, así como sus traslaciones con relación a objetos fijos como puntos de referencia. Ejemplo: El estudiante podría dar instrucciones a partir de objetos del entorno para ubicar otros, o a partir de lugares del entorno para ubicarse o ubicar a otros."
+    },
+    {
+      "grado": "4P",
+      "orden": 6,
+      "texto": "Emplea estrategias, recursos y procedimientos como la composición y descomposición, la visualización, así como el uso de las cuadrículas, para construir formas simétricas, ubicar objetos y trasladar figuras, usando recursos. Así también, usa diversas estrategias para medir, de manera exacta o aproximada (estimar), la medida de los ángulos respecto al ángulo recto, la longitud, el perímetro (metro y centímetro), la superficie (unidades patrón) y la capacidad (en litro y con fracciones) de los objetos, y hace conversiones de unidades de longitud. Emplea la unidad de medida, convencional o no convencional, según convenga, así como algunos instrumentos de medición (cinta métrica, regla, envases o recipientes)."
+    },
+    {
+      "grado": "4P",
+      "orden": 7,
+      "texto": "Hace afirmaciones sobre algunas relaciones entre elementos de las formas y su desarrollo en el plano, y explica sus semejanzas y diferencias mediante ejemplos concretos o dibujos con base en su exploración o visualización. Así también, explica el proceso seguido. Ejemplo: El estudiante podría decir: “Un cubo se puede construir con una plantilla que contenga 6 cuadrados del mismo tamaño”."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Establece relaciones entre las características de objetos reales o imaginarios, los asocia y representa con formas bidimensionales (cuadriláteros) y sus elementos, así como con su perímetro y medidas de la superficie; y con formas tridimensionales (prismas rectos), sus elementos y su capacidad."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Establece relaciones entre los datos de ubicación y recorrido de los objetos, personas y lugares cercanos, y las expresa en un croquis teniendo en cuenta referencias como, por ejemplo, calles o avenidas."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Establece relaciones entre los cambios de tamaño de los objetos con las ampliaciones, reducciones y reflexiones de una figura plana."
+    },
+    {
+      "grado": "5P",
+      "orden": 4,
+      "texto": "Expresa con dibujos su comprensión sobre los elementos de prismas rectos y cuadriláteros (ángulos, vértices, bases), y propiedades (lados paralelos y perpendiculares) usando lenguaje geométrico."
+    },
+    {
+      "grado": "5P",
+      "orden": 5,
+      "texto": "Expresa con gráficos su comprensión sobre el perímetro y la medida de longitud; además, sobre la medida de capacidad de los recipientes y la medida de la superficie de objetos planos como la porción de plano ocupado y recubrimiento de espacio, y su conservación."
+    },
+    {
+      "grado": "5P",
+      "orden": 6,
+      "texto": "Expresa con un croquis los desplazamientos y posiciones de objetos o personas con relación a un sistema de referencia como, por ejemplo, calles o avenidas. Asimismo, describe los cambios de tamaño de los objetos mediante las ampliaciones, reducciones y reflexiones de una figura plana en el plano cartesiano."
+    },
+    {
+      "grado": "5P",
+      "orden": 7,
+      "texto": "Emplea estrategias de cálculo, la visualización y los procedimientos de composición y descomposición para construir formas, ángulos, realizar ampliaciones, reducciones y reflexiones de las figuras, así como para hacer trazos en el plano cartesiano. Para ello, usa diversos recursos e instrumentos de dibujo. También, usa diversas estrategias para medir, de manera exacta o aproximada (estimar), la medida de ángulos, la longitud (perímetro, kilómetro, metro), la superficie (unidades patrón), la capacidad (en litros y en decimales) de los objetos; además, realiza conversiones de unidades de longitud mediante cálculos numéricos y usa la propiedad transitiva para ordenar objetos según su longitud. Emplea la unidad no convencional o convencional, según convenga, así como algunos instrumentos de medición."
+    },
+    {
+      "grado": "5P",
+      "orden": 8,
+      "texto": "Plantea afirmaciones sobre las relaciones entre los objetos, entre los objetos y las formas geométricas, y entre las formas geométricas, así como su desarrollo en el plano, y las explica con argumentos basados en ejemplos concretos, gráficos y en sus conocimientos matemáticos con base en su exploración o visualización. Así también, explica el proceso seguido."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Establece relaciones entre las características de objetos reales o imaginarios, los asocia y representa con formas bidimensionales (triángulos, cuadriláteros y círculos), sus elementos, perímetros y superficies ; y con formas tridimensionales (prismas rectos y cilindros), sus elementos y el volumen de los prismas rectos con base rectangular."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Establece relaciones entre los datos de ubicación y recorrido de los objetos, personas o lugares, y las expresa en un croquis o plano sencillo teniendo en cuenta referencias como, por ejemplo, calles o avenidas."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Establece relaciones entre los cambios de tamaño y ubicación de los objetos con las ampliaciones, reducciones y giros en el plano cartesiano. Ejemplo: El estudiante establece las coordenadas en las que se encuentra un lugar determinado."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Expresa con dibujos su comprensión sobre los elementos y propiedades del prisma, triángulo, cuadrilátero y círculo usando lenguaje geométrico."
+    },
+    {
+      "grado": "6P",
+      "orden": 5,
+      "texto": "Expresa con gráficos su comprensión sobre el perímetro, el volumen de un cuerpo sólido y el área como propiedades medibles de los objetos."
+    },
+    {
+      "grado": "6P",
+      "orden": 6,
+      "texto": "Expresa con un croquis o plano sencillo los desplazamientos y posiciones de objetos o personas con relación a los puntos cardinales (sistema de referencia). Asimismo, describe los cambios de tamaño y ubicación de los objetos mediante ampliaciones, reducciones y giros en el plano cartesiano. Ejemplo: El estudiante nombra posiciones teniendo en cuenta sistemas de coordenadas presentes en los mapas."
+    },
+    {
+      "grado": "6P",
+      "orden": 7,
+      "texto": "Emplea estrategias heurísticas, estrategias de cálculo, la visualización y los procedimientos de composición y descomposición para construir formas desde perspectivas, desarrollo de sólidos, realizar giros en el plano, así como para trazar recorridos. Usa diversas estrategias para construir ángulos, medir la longitud (cm) y la superficie (m², cm²), y comparar el área de dos superficies o la capacidad de los objetos, de manera exacta o aproximada. Realiza cálculos numéricos para hacer conversiones de medidas (unidades de longitud). Emplea la unidad de medida no convencional o convencional, según convenga, así como instrumentos de dibujo (compás, transportador) y de medición, y diversos recursos."
+    },
+    {
+      "grado": "6P",
+      "orden": 8,
+      "texto": "Plantea afirmaciones sobre las relaciones entre los objetos, entre los objetos y las formas geométricas, y entre las formas geométricas, así como su desarrollo en el plano cartesiano, entre el perímetro y la superficie de una forma geométrica, y las explica con argumentos basados en ejemplos concretos, gráficos, propiedades y en sus conocimientos matemáticos con base en su exploración o visualización, usando el razonamiento inductivo. Así también, explica el proceso seguido. Ejemplo: “Dos rectángulos pueden tener diferente área pero el mismo perímetro”, “El área de un triángulo la puedo obtener dividiendo por la mitad el área de un paralelogramo”."
+    },
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Establece relaciones entre las características y los atributos medibles de objetos reales o imaginarios. Asocia estas características y las representa con formas bidimensionales compuestas y tridimensionales. Establece, también, relaciones de semejanza entre triángulos o figuras planas, y entre las propiedades del volumen, área y perímetro."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Describe la ubicación o el recorrido de un objeto real o imaginario, y los representa utilizando coordenadas cartesianas, planos o mapas a escala. Describe las transformaciones de un objeto en términos de ampliaciones, traslaciones, rotaciones o reflexiones."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Expresa, con dibujos, construcciones con regla y compás, con material concreto y con lenguaje geométrico, su comprensión sobre las propiedades de las rectas paralelas, perpendiculares y secantes, y de los prismas, cuadriláteros, triángulos, y círculos. Los expresa aun cuando estos cambien de posición y vistas, para interpretar un problema según su contexto y estableciendo relaciones entre representaciones."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Expresa, con dibujos, construcciones con regla y compás, con material concreto y con lenguaje geométrico, su comprensión sobre la relación de semejanza entre formas bidimensionales cuando estas se amplían o reducen, para interpretar las condiciones de un problema y estableciendo relaciones entre representaciones."
+    },
+    {
+      "grado": "1S",
+      "orden": 5,
+      "texto": "Lee textos o gráficos que describen características, elementos o propiedades de las formas geométricas bidimensionales y tridimensionales, así como de sus transformaciones, para extraer información. Lee planos a escala y los usa para ubicarse en el espacio y determinar rutas."
+    },
+    {
+      "grado": "1S",
+      "orden": 6,
+      "texto": "Selecciona y emplea estrategias heurísticas, recursos o procedimientos para determinar la longitud, el perímetro, el área o el volumen de prismas, cuadriláteros y triángulos, así como de áreas bidimensionales compuestas, empleando unidades convencionales (centímetro, metro y kilómetro) y no convencionales (bolitas, panes, botellas, etc.)."
+    },
+    {
+      "grado": "1S",
+      "orden": 7,
+      "texto": "Selecciona y emplea estrategias heurísticas, recursos o procedimientos para describir el movimiento, la localización o las perspectivas (vistas) de los objetos, empleando unidades convencionales (centímetro, metro y kilómetro) y no convencionales (por ejemplo, pasos)."
+    },
+    {
+      "grado": "1S",
+      "orden": 8,
+      "texto": "Plantea afirmaciones sobre las relaciones y propiedades que descubre entre los objetos, entre objetos y formas geométricas, y entre las formas geométricas, sobre la base de simulaciones y la observación de casos. Las justifica con ejemplos y sus conocimientos geométricos. Reconoce errores en las justificaciones y los corrige."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Establece relaciones entre las características y los atributos medibles de objetos reales o imaginarios. Asocia estas características y las representa con formas bidimensionales compuestas y tridimensionales. Establece, también, propiedades de semejanza y congruencia entre formas poligonales, y entre las propiedades del volumen, área y perímetro."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Describe la ubicación o el recorrido de un objeto real o imaginario, y los representa utilizando coordenadas cartesianas, planos o mapas a escala. Describe las transformaciones de un objeto en términos de combinar dos a dos ampliaciones, traslaciones, rotaciones o reflexiones."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Expresa, con dibujos, construcciones con regla y compás, con material concreto y con lenguaje geométrico, su comprensión sobre las propiedades de la semejanza y congruencia de formas bidimensionales (triángulos), y de los prismas, pirámides y polígonos. Los expresa aun cuando estos cambien de posición y vistas, para interpretar un problema según su contexto y estableciendo relaciones entre representaciones."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Expresa, con dibujos, construcciones con regla y compás, con material concreto y con lenguaje geométrico, su comprensión sobre las características que distinguen una rotación de una traslación y una traslación de una reflexión. Estas distinciones se hacen de formas bidimensionales para interpretar un problema según su contexto y estableciendo relaciones entre representaciones."
+    },
+    {
+      "grado": "2S",
+      "orden": 5,
+      "texto": "Lee textos o gráficos que describen características, elementos o propiedades de las formas geométricas bidimensionales y tridimensionales. Reconoce propiedades de la semejanza y congruencia, y la composición de transformaciones (rotación, ampliación y reducción) para extraer información. Lee planos o mapas a escala y los usa para ubicarse en el espacio y determinar rutas."
+    },
+    {
+      "grado": "2S",
+      "orden": 6,
+      "texto": "Selecciona y emplea estrategias heurísticas, recursos o procedimientos para determinar la longitud, el perímetro, el área o el volumen de prismas, pirámides, polígonos y círculos, así como de áreas bidimensionales compuestas o irregulares, empleando coordenadas cartesianas y unidades convencionales (centímetro, metro y kilómetro) y no convencionales (bolitas, panes, botellas, etc.)."
+    },
+    {
+      "grado": "2S",
+      "orden": 7,
+      "texto": "Selecciona y emplea estrategias heurísticas, recursos o procedimientos para describir el movimiento, la localización o las perspectivas (vistas) de los objetos en planos a escala, empleando unidades convencionales (centímetro, metro y kilómetro) y no convencionales (por ejemplo, pasos)."
+    },
+    {
+      "grado": "2S",
+      "orden": 8,
+      "texto": "Plantea afirmaciones sobre las relaciones y propiedades que descubre entre los objetos, entre objetos y formas geométricas, y entre las formas geométricas, sobre la base de simulaciones y la observación de casos. Las justifica con ejemplos y sus conocimientos geométricos. Reconoce errores en sus justificaciones y en las de otros, y los corrige."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Establece relaciones entre las características y los atributos medibles de objetos reales o imaginarios. Asocia estas relaciones y representa, con formas bidimensionales y tridimensionales compuestas, sus elementos y propiedades de volumen, área y perímetro."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Describe la ubicación o el recorrido de un objeto real o imaginario, y los representa utilizando coordenadas cartesianas y planos a escala. También representa la distancia entre dos puntos desde su forma algebraica. Describe las transformaciones de objetos mediante la combinación de ampliaciones, traslaciones, rotaciones o reflexiones."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Expresa, con dibujos, construcciones con regla y compás, con material concreto, y con lenguaje geométrico, su comprensión sobre las propiedades de las razones trigonométricas de un triángulo, los polígonos, los prismas y el cilindro, así como su clasificación, para interpretar un problema según su contexto y estableciendo relaciones entre representaciones."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Expresa, con dibujos, construcciones con regla y compás, con material concreto, y con lenguaje geométrico, su comprensión sobre la equivalencia entre dos secuencias de transformaciones geométricas a una figura, para interpretar un problema según su contexto y estableciendo relaciones entre representaciones."
+    },
+    {
+      "grado": "3S",
+      "orden": 5,
+      "texto": "Lee textos o gráficos que describen formas geométricas y sus propiedades, y relaciones de semejanza y congruencia entre triángulos, así como las razones trigonométricas. Lee mapas a diferente escala y compara su información para ubicar lugares o determinar rutas."
+    },
+    {
+      "grado": "3S",
+      "orden": 6,
+      "texto": "Selecciona y adapta estrategias heurísticas, recursos o procedimientos para determinar la longitud, el área y el volumen de prismas y polígonos, y para establecer relaciones métricas entre lados de un triángulo, así como para determinar el área de formas bidimensionales irregulares empleando unidades convencionales (centímetro, metro y kilómetro) y coordenadas cartesianas."
+    },
+    {
+      "grado": "3S",
+      "orden": 7,
+      "texto": "Selecciona y adapta estrategias heurísticas, recursos o procedimientos para describir las diferentes vistas de una forma tridimensional (frente, perfil y base) y reconstruir su desarrollo en el plano sobre la base de estas, empleando unidades convencionales (centímetro, metro y kilómetro) y no convencionales (por ejemplo, pasos)."
+    },
+    {
+      "grado": "3S",
+      "orden": 8,
+      "texto": "Plantea afirmaciones sobre las relaciones y propiedades que descubre entre los objetos, entre objetos y formas geométricas, y entre las formas geométricas, sobre la base de simulaciones y la observación de casos. Comprueba o descarta la validez de la afirmación mediante ejemplos, propiedades geométricas, y razonamiento inductivo o deductivo."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Establece relaciones entre las características y los atributos medibles de objetos reales o imaginarios. Representa estas relaciones con formas bidimensionales y tridimensionales compuestas o cuerpos de revolución, los que pueden combinar prismas, pirámides, conos o poliedros regulares, considerando sus elementos y propiedades."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Describe la ubicación o los movimientos de un objeto real o imaginario, y los representa utilizando mapas y planos a escala, así como la ecuación de la recta, razones trigonométricas, ángulos de elevación y depresión. Describe las transformaciones que generan formas que permiten teselar un plano."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Expresa, con dibujos, construcciones con regla y compás, con material concreto, y con lenguaje geométrico, su comprensión sobre las propiedades de poliedros prismas, cuerpos de revolución y su clasificación, para interpretar un problema según su contexto y estableciendo relaciones entre representaciones."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Expresa, con dibujos, construcciones con regla y compás, con material concreto, y con lenguaje geométrico, su comprensión sobre las propiedades de la homotecia en figuras planas, para interpretar un problema según su contexto y estableciendo relaciones entre representaciones."
+    },
+    {
+      "grado": "4S",
+      "orden": 5,
+      "texto": "Lee textos o gráficos que describen las propiedades de semejanza y congruencia entre formas geométricas, razones trigonométricas, y ángulos de elevación o depresión. Lee mapas a diferente escala, e integra su información para ubicar lugares, profundidades, alturas o determinar rutas."
+    },
+    {
+      "grado": "4S",
+      "orden": 6,
+      "texto": "Combina y adapta estrategias heurísticas, recursos y procedimientos más convenientes para determinar la longitud, el área y el volumen de poliedros y de cuerpos compuestos, así como para determinar distancias inaccesibles y superficies irregulares en planos empleando coordenadas cartesianas y unidades convencionales (centímetro, metro y kilómetro)."
+    },
+    {
+      "grado": "4S",
+      "orden": 7,
+      "texto": "Combina y adapta estrategias heurísticas, recursos o procedimientos para describir las diferentes vistas de una forma tridimensional compuesta (frente, perfil y base) y reconstruir su desarrollo en el plano sobre la base de estas, empleando unidades convencionales (centímetro, metro y kilómetro) y no convencionales (por ejemplo, pasos)."
+    },
+    {
+      "grado": "4S",
+      "orden": 8,
+      "texto": "Plantea afirmaciones sobre las relaciones y propiedades que descubre entre los objetos, entre objetos y formas geométricas, y entre las formas geométricas, sobre la base de experiencias directas o simulaciones. Comprueba o descarta la validez de una afirmación mediante un contraejemplo, propiedades geométricas, y razonamiento inductivo o deductivo."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Establece relaciones entre las características y atributos medibles de objetos reales o imaginarios. Representa estas relaciones con formas bidimensionales, tridimensionales o compuestas, y con cuerpos de revolución, los que pueden combinar formas geométricas tridimensionales. También establece relaciones métricas entre triángulos y circunferencias."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Describe la ubicación o los movimientos de un objeto real o imaginario, y los representa utilizando mapas y planos a escala, razones trigonométricas, y la ecuación de la parábola y circunferencia. Describe las posibles secuencias de transformaciones sucesivas que dieron origen a una forma bidimensional."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Expresa, con dibujos, con construcciones con regla y compás, con material concreto, y con lenguaje geométrico, su comprensión sobre las propiedades de los cuerpos de revolución o formas tridimensionales compuestas, así como su clasificación, para interpretar un problema según su contexto y estableciendo relaciones entre representaciones."
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Expresa, con dibujos, con construcciones con regla y compás, con material concreto, y con lenguaje geométrico, su comprensión sobre las transformaciones geométricas y la clasificación de las formas geométricas por sus características y propiedades, para interpretar un problema según su contexto y estableciendo relaciones entre representaciones."
+    },
+    {
+      "grado": "5S",
+      "orden": 5,
+      "texto": "Lee textos o gráficos que describen las propiedades de los cuerpos de revolución, compuestos y truncados, así como la clasificación de las formas geométricas por sus características y propiedades comunes o distintivas. Lee mapas a diferente escala, e integra la información que contienen para ubicar lugares, profundidades, alturas o determinar rutas óptimas."
+    },
+    {
+      "grado": "5S",
+      "orden": 6,
+      "texto": "Combina y adapta estrategias heurísticas, recursos o procedimientos para determinar la longitud, el área y el volumen de cuerpos geométricos compuestos y de revolución, así como áreas irregulares expresadas en planos o mapas, empleando coordenadas cartesianas y unidades convencionales (centímetro, metro y kilómetro)."
+    },
+    {
+      "grado": "5S",
+      "orden": 7,
+      "texto": "Combina y adapta estrategias heurísticas, recursos o procedimientos para describir las diferentes vistas de un forma tridimensional compuesta (frente, perfil y base) y reconstruir su desarrollo en el plano sobre la base de estas, empleando unidades convencionales (centímetro, metro y kilómetro) y no convencionales (por ejemplo, pasos)."
+    },
+    {
+      "grado": "5S",
+      "orden": 8,
+      "texto": "Plantea y contrasta afirmaciones sobre las relaciones y propiedades que descubre entre los objetos, entre objetos y formas geométricas, y entre las formas geométricas, sobre la base de experiencias directas o simulaciones. Comprueba la validez de una afirmación opuesta a otra, o de un caso especial mediante contraejemplos, conocimientos geométricos, y razonamiento inductivo o deductivo."
+    }
+  ]
+}

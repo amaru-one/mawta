@@ -1,0 +1,52 @@
+{
+  "numero_cneb": 29,
+  "nombre": "Gestiona su aprendizaje de manera autónoma",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Define metas de aprendizaje"
+    },
+    {
+      "numero": 2,
+      "nombre": "Organiza acciones estratégicas para alcanzar sus metas"
+    },
+    {
+      "numero": 3,
+      "nombre": "Monitorea y ajusta su desempeño durante el proceso de aprendizaje"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene como base principalmente el nivel 1 de la competencia “Construye su identidad”."
+    },
+    {
+      "nivel": 2,
+      "texto": "Gestiona su aprendizaje al darse cuenta lo que debe aprender al nombrar qué puede lograr respecto a una tarea, reforzado por la escucha a la facilitación adulta, e incorpora lo que ha aprendido en otras actividades. Comprende que debe actuar al incluir y seguir una estrategia que le es modelada o facilitada. Monitorea lo realizado para lograr la tarea al evaluar con facilitación externa los resultados obtenidos siendo ayudado para considerar el ajuste requerido y disponerse al cambio."
+    },
+    {
+      "nivel": 3,
+      "texto": "Gestiona su aprendizaje al darse cuenta de lo que debe aprender al preguntarse qué es lo que aprenderá y establecer aquello que le es posible lograr para realizar la tarea. Comprende que debe organizarse y que lo planteado incluya acciones cortas para realizar la tarea. Monitorea sus avances respecto a la tarea al evaluar con facilitación y retroalimentación externas un proceso del trabajo y los resultados obtenidos siendo ayudado para considerar el ajuste requerido y disponerse al cambio."
+    },
+    {
+      "nivel": 4,
+      "texto": "Gestiona su aprendizaje al darse cuenta de lo que debe aprender al preguntarse hasta dónde quiere llegar respecto de una tarea y la define como meta de aprendizaje. Comprende que debe organizarse y que lo planteado incluya por lo menos una estrategia y procedimientos que le permitan realizar la tarea. Monitorea sus avances respecto a las metas de aprendizaje al evaluar el proceso en un momento de trabajo y los resultados obtenidos, a partir de esto y de comparar el trabajo de un compañero considerar realizar un ajuste mostrando disposición al posible cambio."
+    },
+    {
+      "nivel": 5,
+      "texto": "Gestiona su aprendizaje al darse cuenta de lo que debe aprender al precisar lo más importante en la realización de una tarea y la define como meta personal. Comprende que debe organizarse lo más específicamente posible y que lo planteado incluya más de una estrategia y procedimientos que le permitan realizar la tarea, considerando su experiencia previa al respecto. Monitorea de manera permanente sus avances respecto a las metas de aprendizaje previamente establecidas al evaluar sus procesos de realización en más de un momento, a partir de esto y de los consejos o comentarios de un compañero de clase realiza los ajustes necesarios mostrando disposición a los posibles cambios."
+    },
+    {
+      "nivel": 6,
+      "texto": "Gestiona su aprendizaje de manera autónoma al darse cuenta lo que debe aprender al distinguir lo sencillo o complejo de una tarea, y por ende define metas personales respaldándose en sus potencialidades. Comprende que debe organizarse lo más específicamente posible y que lo planteado incluya las mejores estrategias, procedimientos, recursos que le permitan realizar una tarea basado en sus experiencias. Monitorea de manera permanente sus avances respecto a las metas de aprendizaje previamente establecidas al evaluar el proceso de realización de la tarea y realiza ajustes considerando los aportes de otros grupos de trabajo mostrando disposición a los posibles cambios."
+    },
+    {
+      "nivel": 7,
+      "texto": "Gestiona su aprendizaje de manera autónoma al darse cuenta de lo que debe aprender, al establecer prioridades en la realización de una tarea tomando en cuenta su viabilidad, y por ende definir metas personales respaldándose en sus potencialidades y oportunidades de aprendizaje. Comprende que debe organizarse lo más realista y específicamente posible y que lo planteado sea alcanzable, medible y considere las mejores estrategias, procedimientos, recursos, escenarios basado en sus experiencias y previendo posibles cambios de cursos de acción que le permitan alcanzar la meta. Monitorea de manera permanente sus avances respecto a las metas de aprendizaje previamente establecidas al evaluar el nivel de logro de sus resultados y la viabilidad de la meta respecto de sus acciones; si lo cree conveniente realiza ajustes a los planes basado en el análisis de sus avances y los aportes de los grupos de trabajo y el suyo propio mostrando disposición a los posibles cambios."
+    },
+    {
+      "nivel": 8,
+      "texto": "Gestiona su aprendizaje de manera autónoma y sistemática al darse cuenta lo que debe aprender, al establecer prioridades en la realización de un conjunto de tareas tomando en cuenta su viabilidad y sostenibilidad en el tiempo, y por ende, definir metas personales respaldándose en este análisis, considerando sus potencialidades y oportunidades de aprendizaje. Comprende que debe organizarse lo más realista y específicamente posible, considerar los tiempos; y que lo planteado sea alcanzable, medible y considere variadas estrategias, procedimientos, recursos y escenarios que le permitan alcanzar sus metas, tomando en cuenta sus experiencias exitosas, previendo posibles cambios de cursos de acción y la vinculación de otros agentes para la realización de la meta. Monitorea de manera permanente sus avances respecto a las metas de aprendizaje previamente establecidas al evaluar el nivel de logro de sus resultados y la viabilidad de la meta a alcanzar, además de la consulta a otros pares con mayor experiencia, ajustando los planes y acciones, considerando el todo y las partes de su organización, a partir de sus avances mostrando confianza en sí mismo, disposición y flexibilidad a los posibles cambios."
+    }
+  ]
+}

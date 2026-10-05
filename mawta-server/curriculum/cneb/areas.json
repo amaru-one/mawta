@@ -1,0 +1,129 @@
+{
+  "areas": [
+    {
+      "codigo": "MAT",
+      "nombre": "Matemática",
+      "niveles": [
+        "primaria",
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "MAT-C1",
+          "numero_cneb": 23
+        },
+        {
+          "codigo": "MAT-C2",
+          "numero_cneb": 24
+        },
+        {
+          "codigo": "MAT-C3",
+          "numero_cneb": 26
+        },
+        {
+          "codigo": "MAT-C4",
+          "numero_cneb": 25
+        }
+      ]
+    },
+    {
+      "codigo": "CCSS",
+      "nombre": "Ciencias Sociales",
+      "niveles": [
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "CCSS-C1",
+          "numero_cneb": 17
+        },
+        {
+          "codigo": "CCSS-C2",
+          "numero_cneb": 18
+        },
+        {
+          "codigo": "CCSS-C3",
+          "numero_cneb": 19
+        }
+      ]
+    },
+    {
+      "codigo": "PS",
+      "nombre": "Personal Social",
+      "niveles": [
+        "primaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "PS-C1",
+          "numero_cneb": 1
+        },
+        {
+          "codigo": "PS-C2",
+          "numero_cneb": 16
+        },
+        {
+          "codigo": "PS-C3",
+          "numero_cneb": 17
+        },
+        {
+          "codigo": "PS-C4",
+          "numero_cneb": 18
+        },
+        {
+          "codigo": "PS-C5",
+          "numero_cneb": 19
+        }
+      ]
+    },
+    {
+      "codigo": "DPCC",
+      "nombre": "Desarrollo Personal, Ciudadanía y Cívica",
+      "niveles": [
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "DPCC-C1",
+          "numero_cneb": 1
+        },
+        {
+          "codigo": "DPCC-C2",
+          "numero_cneb": 16
+        }
+      ]
+    },
+    {
+      "codigo": "EF",
+      "nombre": "Educación Física",
+      "niveles": [
+        "primaria",
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "EF-C1",
+          "numero_cneb": 2
+        },
+        {
+          "codigo": "EF-C2",
+          "numero_cneb": 3
+        },
+        {
+          "codigo": "EF-C3",
+          "numero_cneb": 4
+        }
+      ]
+    }
+  ],
+  "transversales": [
+    {
+      "codigo": "TR-C1",
+      "numero_cneb": 28
+    },
+    {
+      "codigo": "TR-C2",
+      "numero_cneb": 29
+    }
+  ]
+}

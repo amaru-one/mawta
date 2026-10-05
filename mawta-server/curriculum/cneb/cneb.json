@@ -1,0 +1,97 @@
+{
+  "fuente": "CNEB (RM 281-2016) y Programas curriculares de Educación Primaria y Secundaria (RM 649-2016)",
+  "grados": [
+    {
+      "codigo": "1P",
+      "nivel": "primaria",
+      "ciclo": "ciclo_iii"
+    },
+    {
+      "codigo": "2P",
+      "nivel": "primaria",
+      "ciclo": "ciclo_iii"
+    },
+    {
+      "codigo": "3P",
+      "nivel": "primaria",
+      "ciclo": "ciclo_iv"
+    },
+    {
+      "codigo": "4P",
+      "nivel": "primaria",
+      "ciclo": "ciclo_iv"
+    },
+    {
+      "codigo": "5P",
+      "nivel": "primaria",
+      "ciclo": "ciclo_v"
+    },
+    {
+      "codigo": "6P",
+      "nivel": "primaria",
+      "ciclo": "ciclo_v"
+    },
+    {
+      "codigo": "1S",
+      "nivel": "secundaria",
+      "ciclo": "ciclo_vi"
+    },
+    {
+      "codigo": "2S",
+      "nivel": "secundaria",
+      "ciclo": "ciclo_vi"
+    },
+    {
+      "codigo": "3S",
+      "nivel": "secundaria",
+      "ciclo": "ciclo_vii"
+    },
+    {
+      "codigo": "4S",
+      "nivel": "secundaria",
+      "ciclo": "ciclo_vii"
+    },
+    {
+      "codigo": "5S",
+      "nivel": "secundaria",
+      "ciclo": "ciclo_vii"
+    }
+  ],
+  "niveles_esperados": [
+    {
+      "modalidad": "ebr",
+      "ciclo": "ciclo_i",
+      "nivel": 1
+    },
+    {
+      "modalidad": "ebr",
+      "ciclo": "ciclo_ii",
+      "nivel": 2
+    },
+    {
+      "modalidad": "ebr",
+      "ciclo": "ciclo_iii",
+      "nivel": 3
+    },
+    {
+      "modalidad": "ebr",
+      "ciclo": "ciclo_iv",
+      "nivel": 4
+    },
+    {
+      "modalidad": "ebr",
+      "ciclo": "ciclo_v",
+      "nivel": 5
+    },
+    {
+      "modalidad": "ebr",
+      "ciclo": "ciclo_vi",
+      "nivel": 6
+    },
+    {
+      "modalidad": "ebr",
+      "ciclo": "ciclo_vii",
+      "nivel": 7
+    }
+  ]
+}
