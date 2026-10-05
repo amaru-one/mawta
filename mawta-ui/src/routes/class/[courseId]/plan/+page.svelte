@@ -201,7 +201,9 @@
 							style="grid-column:{block.from} / {block.to + 1}"
 							title={block.label}
 						>
-							{block.text}
+							<!-- A one-week cell is too narrow for the word; the stripes, the
+							     legend and the title say it. -->
+							{#if block.to > block.from}{block.text}{/if}
 						</span>
 					{/each}
 					{#each expBlocks as block (block.id)}
@@ -273,7 +275,9 @@
 								clases
 							</p>
 							<p class="exp-comps">
-								{list(experience.competencies).map((competency) => competency.name).join(' · ')}
+								{list(experience.competencies)
+									.map((competency) => competency.name)
+									.join(' · ')}
 							</p>
 							<p class="exp-coverage">
 								{coverage.withCriteria} de {coverage.total} capacidades con criterio

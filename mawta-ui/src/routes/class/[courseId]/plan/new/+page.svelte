@@ -39,8 +39,7 @@
 		<h1 class="screen-title">Nueva experiencia</h1>
 		<p class="screen-sub">{plan.term.name}</p>
 		<p class="note">
-			Aquí contarás tu idea y Mawta armará la propuesta. Esta pantalla todavía no está
-			construida.
+			Aquí contarás tu idea y Mawta armará la propuesta. Esta pantalla todavía no está construida.
 		</p>
 	{:else if loadError}
 		<p class="empty">
