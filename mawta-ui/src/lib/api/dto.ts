@@ -421,3 +421,323 @@ export type CriterionCreateDto = {
 	description: string;
 	code?: string | null;
 };
+
+// ---- planning ----
+// Term planning (mawta-server/docs/api-planificacion.md): a class plans each
+// term as learning experiences, each with its competencies, evaluation
+// criteria, planned evidences and a light session outline.
+
+// An experience is saved step by step: it exists as 'borrador' from the first
+// step and only becomes 'planificada' on confirm. Drafts already exclude each
+// other's dates, so two drafts cannot take the same weeks either.
+export type ExperienceStatus = 'borrador' | 'planificada';
+
+// Computed for "Tu trimestre", never stored: 'planificada' when the
+// competencia has a non-deleted experience this term; otherwise 'toca' when it
+// still needs terms to be worked twice in the year and the terms left (this one
+// included) are no more than it needs; 'puede_esperar' otherwise.
+export type CompetencyPlanStatus = 'planificada' | 'toca' | 'puede_esperar';
+
+// The three kinds of planned evidencia.
+export type EvidenceKind = 'produccion' | 'actuacion' | 'prueba_escrita';
+
+// What a background generation produces. 'experience' proposes a whole
+// experience from the teacher's idea without saving it; the other three fill
+// gaps inside an existing one.
+export type GenerationKind = 'experience' | 'criteria' | 'evidences' | 'sessions';
+
+export type GenerationStatus = 'pending' | 'running' | 'completed' | 'failed';
+
+// Warnings never block; they are what the experience's summary screen shows.
+export type WarningCode = 'capability_without_criterion' | 'pending_proposals';
+
+// The contract's stable domain codes, so the UI can show its own text for each
+// instead of the server's message.
+export type DomainErrorCode =
+	| 'experience_overlap'
+	| 'outside_term'
+	| 'competency_not_in_subject'
+	| 'competency_has_criteria'
+	| 'capability_not_in_competency'
+	| 'criterion_needs_capability'
+	| 'performance_not_in_grade'
+	| 'criterion_other_experience'
+	| 'date_not_in_experience'
+	| 'experience_not_draft'
+	| 'generation_failed';
+
+// How the school's file lists a day without class. Ranges (vacaciones,
+// gestion) arrive as from/to; the plan keeps the range and the calendar
+// expands it into single dates.
+export type NonTeachingDayKind = 'feriado' | 'vacaciones' | 'gestion';
+
+export type PlanTermDto = {
+	id: string;
+	name: string;
+	starts_on: string;
+	ends_on: string;
+	/** 'active' today; the server also marks closed terms. */
+	status: string;
+};
+
+export type PlanNonTeachingDayDto = {
+	from: string;
+	to: string;
+	kind: NonTeachingDayKind;
+	label: string | null;
+};
+
+export type PlanExperienceCompetencyDto = {
+	id: string;
+	code: string;
+	name: string;
+	capabilities_total: number;
+	/** Capabilities of this competencia with at least one criterio in the experience. */
+	capabilities_with_criteria: number;
+};
+
+export type PlanExperienceDto = {
+	id: string;
+	title: string;
+	status: ExperienceStatus;
+	starts_on: string;
+	ends_on: string;
+	/** Distinct class dates in the experience's range, non-teaching days excluded. */
+	class_dates: number;
+	competencies: PlanExperienceCompetencyDto[] | null;
+	/** Criteria, evidences and sessions still waiting for the teacher's review. */
+	pending_proposals: number;
+};
+
+export type PlanCompetencyDto = {
+	id: string;
+	code: string;
+	name: string;
+	status: CompetencyPlanStatus;
+	/** 1-based term sequence numbers in which the competencia was worked this year. */
+	terms_worked: number[] | null;
+	capabilities_total: number;
+	/** Capabilities with at least one criterio in this term's experiences. */
+	capabilities_covered_this_term: number;
+};
+
+export type ClassPlanDto = {
+	term: PlanTermDto;
+	non_teaching_days: PlanNonTeachingDayDto[] | null;
+	/** Class dates in the whole term, non-teaching days excluded. */
+	class_dates_total: number;
+	experiences: PlanExperienceDto[] | null;
+	/** The class's area competencies first, then the assigned transversal ones. */
+	competencies: PlanCompetencyDto[] | null;
+};
+
+export type CurriculumGradeDto = {
+	code: string;
+	cycle: string;
+	/** The CNEB learning-standard level the cycle ends on (1–8). */
+	expected_level: number;
+};
+
+export type CurriculumCapabilityDto = {
+	id: string;
+	code: string;
+	name: string;
+};
+
+export type CurriculumPerformanceDto = {
+	id: string;
+	order: number;
+	text: string;
+	/** "En progreso hacia" the cycle level rather than reaching it. */
+	en_proceso: boolean;
+	/** A hint, never an official link: which capability the desempeño feeds. */
+	suggested_capability_id: string | null;
+};
+
+export type CurriculumCompetencyDto = {
+	id: string;
+	code: string;
+	name: string;
+	kind: CompetencyKind;
+	capabilities: CurriculumCapabilityDto[] | null;
+	/** The class's grade-level desempeños of this competencia. */
+	performances: CurriculumPerformanceDto[] | null;
+};
+
+export type CurriculumDto = {
+	grade: CurriculumGradeDto;
+	competencies: CurriculumCompetencyDto[] | null;
+};
+
+export type CalendarNonTeachingDayDto = {
+	date: string;
+	kind: NonTeachingDayKind;
+	label: string | null;
+};
+
+export type CalendarDto = {
+	/** Class dates in the range, non-teaching days excluded. */
+	class_dates: string[] | null;
+	non_teaching_days: CalendarNonTeachingDayDto[] | null;
+};
+
+export type ExperienceCompetencyRefDto = {
+	id: string;
+	code: string;
+	name: string;
+};
+
+// A criterio inside an experience: the teacher's instrument, grounded in one
+// grade-level performance and looking at one or more capabilities of its
+// competencia (N:M). Prefixed because the wire's plain CriterionDto is the
+// school-wide criterio of the criteria screen.
+export type ExperienceCriterionDto = {
+	id: string;
+	competency_id: string;
+	description: string;
+	capability_ids: string[] | null;
+	performance_id: string;
+	/** 'mawta' while it is only a proposal the teacher has not accepted or edited yet. */
+	proposed_by: string;
+	accepted_at: string | null;
+};
+
+export type PlannedEvidenceDto = {
+	id: string;
+	name: string;
+	kind: EvidenceKind;
+	/** Criterios of this experience the evidencia speaks to, of any of its competencies. */
+	criterion_ids: string[] | null;
+	/** The class date whose session entry holds it, when it is placed. */
+	session_date: string | null;
+	proposed_by: string;
+	accepted_at: string | null;
+};
+
+export type SessionOutlineDto = {
+	date: string;
+	title: string;
+	topics: string | null;
+	/** The evidencia placed in this session, if any (at most one per class date). */
+	planned_evidence_id: string | null;
+	proposed_by: string;
+	accepted_at: string | null;
+};
+
+export type WarningDto =
+	| { code: 'capability_without_criterion'; competency_id: string; capability_id: string }
+	| { code: 'pending_proposals'; count: number };
+
+export type ExperienceDto = {
+	id: string;
+	class_id: string;
+	term_id: string;
+	status: ExperienceStatus;
+	title: string;
+	idea_text: string;
+	situation_text: string;
+	starts_on: string;
+	ends_on: string;
+	competencies: ExperienceCompetencyRefDto[] | null;
+	criteria: ExperienceCriterionDto[] | null;
+	evidences: PlannedEvidenceDto[] | null;
+	sessions: SessionOutlineDto[] | null;
+	/** Class dates inside the experience, non-teaching days excluded. */
+	class_dates: string[] | null;
+	warnings: WarningDto[] | null;
+};
+
+export type CreateExperienceBody = {
+	term_id: string;
+	title: string;
+	idea_text: string;
+	situation_text: string;
+	starts_on: string;
+	ends_on: string;
+	/** At least one, of the class's area (or an assigned transversal one). */
+	competency_ids: string[];
+};
+
+export type UpdateExperienceBody = {
+	title?: string;
+	situation_text?: string;
+	starts_on?: string;
+	ends_on?: string;
+	competency_ids?: string[];
+};
+
+export type CreateCriterionBody = {
+	competency_id: string;
+	description: string;
+	/** At least one, of that competencia. */
+	capability_ids: string[];
+	/** A desempeño of that competencia for the class's grade. */
+	performance_id: string;
+};
+
+export type UpdateCriterionBody = {
+	description?: string;
+	capability_ids?: string[];
+	performance_id?: string;
+};
+
+export type CreateEvidenceBody = {
+	name: string;
+	kind: EvidenceKind;
+	/** At least one, of this experience. */
+	criterion_ids: string[];
+	session_date?: string | null;
+};
+
+export type UpdateEvidenceBody = {
+	name?: string;
+	kind?: EvidenceKind;
+	criterion_ids?: string[];
+	session_date?: string | null;
+};
+
+export type UpdateSessionBody = {
+	title: string;
+	topics?: string | null;
+	planned_evidence_id?: string | null;
+};
+
+export type ExperienceProposalBody = {
+	term_id: string;
+	idea_text: string;
+	competency_ids?: string[];
+};
+
+// What a completed 'experience' generation proposes. Not saved anywhere: the
+// app shows it for review and the teacher creates the experience from it.
+export type ExperienceProposalDto = {
+	title: string;
+	situation_text: string;
+	competency_ids: string[];
+	starts_on: string;
+	ends_on: string;
+};
+
+// What a completed generation produced: the proposal for 'experience', or the
+// ids (session dates, for 'sessions') of the rows it inserted — always pending
+// proposals, proposed_by 'mawta', accepted_at null.
+export type GenerationResultDto =
+	| { proposal: ExperienceProposalDto }
+	| { criteria_ids: string[] | null }
+	| { evidence_ids: string[] | null }
+	| { session_dates: string[] | null };
+
+export type GenerationDto = {
+	id: string;
+	kind: GenerationKind;
+	status: GenerationStatus;
+	/** Present once the generation is completed. */
+	result?: GenerationResultDto | null;
+	/** Present when status is 'failed' (generation_failed). */
+	error?: string | null;
+};
+
+export type ExperienceConfirmDto = {
+	/** The same warnings the experience detail carries; confirming does not clear them. */
+	warnings: WarningDto[] | null;
+};
