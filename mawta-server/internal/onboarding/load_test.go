@@ -250,7 +250,7 @@ func TestSyncCurriculum(t *testing.T) {
 	// A school loaded the old way: competencies and capabilities by code,
 	// but no standards, performances, mappings or grade cycles. That is the
 	// shape an existing school has today.
-	tenant := loadLegacySchool(t, env, ctx, cat)
+	tenant := loadLegacySchool(t, env, ctx, cat, legacyModular, "-legacy")
 
 	// One capability was renamed by the school; the sync must report it and
 	// leave it alone.
@@ -325,6 +325,49 @@ func TestSyncCurriculum(t *testing.T) {
 	}
 }
 
+// TestSyncMatchesRowsByCode reproduces production: a school installed by an
+// earlier loader whose rows do not carry the md5-derived ids a fresh load
+// would produce. Changing the modular code after loading has the same effect
+// (every derived id now differs from the stored one), so the sync must find
+// competencies and capabilities by code and use their own ids.
+func TestSyncMatchesRowsByCode(t *testing.T) {
+	env := dbtest.Setup(t)
+	ctx := context.Background()
+	cat := catalog(t)
+
+	tenant := loadLegacySchool(t, env, ctx, cat, "0777777", "-renumbered")
+	if _, err := env.Admin.Pool.Exec(ctx,
+		`update tenants set modular_code = '0777778' where id = $1`, tenant); err != nil {
+		t.Fatal(err)
+	}
+
+	var report *SyncReport
+	if err := env.Admin.WithSystemTx(ctx, func(tx pgx.Tx) error {
+		var e error
+		report, e = SyncCurriculum(ctx, tx, cat, "0777778", map[string]string{"1S": "1S"})
+		return e
+	}); err != nil {
+		t.Fatalf("sync: %v", err)
+	}
+	if report.Capacidades != 0 {
+		t.Errorf("sync inserted %d capabilities, want 0 (all exist under other ids)", report.Capacidades)
+	}
+	if report.Estandares != 9*8 || report.Desempenos == 0 {
+		t.Errorf("sync inserted %d standards and %d performances, want %d and some", report.Estandares, report.Desempenos, 9*8)
+	}
+	var orphans int
+	if err := env.Admin.Pool.QueryRow(ctx, `
+		select count(*) from learning_standards ls
+		 where ls.tenant_id = $1
+		   and not exists (select 1 from competencies c where c.tenant_id = ls.tenant_id and c.id = ls.competency_id)`,
+		tenant).Scan(&orphans); err != nil {
+		t.Fatal(err)
+	}
+	if orphans != 0 {
+		t.Errorf("%d standards point at no existing competency", orphans)
+	}
+}
+
 type tableCounts struct {
 	capabilities, standards, performances, mappings int
 }
@@ -352,24 +395,24 @@ func counts(t *testing.T, env *dbtest.Env, ctx context.Context, tenant uuid.UUID
 // is exactly the state an existing school is in.
 const legacyModular = "0888888"
 
-func loadLegacySchool(t *testing.T, env *dbtest.Env, ctx context.Context, cat *curriculum.Catalog) uuid.UUID {
+func loadLegacySchool(t *testing.T, env *dbtest.Env, ctx context.Context, cat *curriculum.Catalog, modular, suffix string) uuid.UUID {
 	t.Helper()
 	// Its own modular code and users: TestLoadExample commits San Felipe
 	// into the same package database, and the tests run shuffled.
 	s := example(t)
-	s.Colegio.CodigoModular = legacyModular
+	s.Colegio.CodigoModular = modular
 	for i := range s.Docentes {
 		s.Docentes[i].Clave = "clave-de-prueba-" + s.Docentes[i].Usuario
-		s.Docentes[i].Usuario += "-legacy"
-		s.Docentes[i].Email = "legacy-" + s.Docentes[i].Email
+		s.Docentes[i].Usuario += suffix
+		s.Docentes[i].Email = suffix + "-" + s.Docentes[i].Email
 	}
 	for i := range s.Aulas {
 		if s.Aulas[i].Tutor != "" {
-			s.Aulas[i].Tutor += "-legacy"
+			s.Aulas[i].Tutor += suffix
 		}
 	}
 	for i := range s.Clases {
-		s.Clases[i].Docente += "-legacy"
+		s.Clases[i].Docente += suffix
 	}
 	if err := env.Admin.WithSystemTx(ctx, func(tx pgx.Tx) error {
 		_, err := Load(ctx, tx, s, cat, 4)
@@ -377,7 +420,7 @@ func loadLegacySchool(t *testing.T, env *dbtest.Env, ctx context.Context, cat *c
 	}); err != nil {
 		t.Fatalf("load the school: %v", err)
 	}
-	tenant := ID("tenant", legacyModular, "")
+	tenant := ID("tenant", modular, "")
 	for _, q := range []string{
 		`delete from grade_level_performances where tenant_id = $1`,
 		`delete from learning_standards where tenant_id = $1`,

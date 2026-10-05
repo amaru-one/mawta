@@ -152,7 +152,8 @@ func (s *syncer) syncCompetencies() error {
 	}
 	defer rows.Close()
 	type existing struct {
-		id, code, name, kind, subject string
+		id                        uuid.UUID
+		code, name, kind, subject string
 	}
 	var comps []existing
 	for rows.Next() {
@@ -178,13 +179,15 @@ func (s *syncer) syncCompetencies() error {
 				fmt.Sprintf("competencia %s: el colegio dice %q y el catálogo %q", c.code, c.name, comp.Nombre))
 		}
 		s.report.Competencias++
-		if err := s.syncCapabilities(c.code, comp); err != nil {
+		// Always the row's own id: a school installed by an earlier loader may
+		// not have the md5-derived ids a fresh load would produce.
+		if err := s.syncCapabilities(c.id, c.code, comp); err != nil {
 			return err
 		}
-		if err := s.syncStandards(c.code, comp); err != nil {
+		if err := s.syncStandards(c.id, c.code, comp); err != nil {
 			return err
 		}
-		if err := s.syncPerformances(c.code, comp); err != nil {
+		if err := s.syncPerformances(c.id, c.code, comp); err != nil {
 			return err
 		}
 	}
@@ -193,16 +196,14 @@ func (s *syncer) syncCompetencies() error {
 
 // syncCapabilities inserts the capabilities the catalog defines and the
 // school lacks, matched by code, reporting name differences.
-func (s *syncer) syncCapabilities(codigo string, comp curriculum.Competencia) error {
-	compID := ID("competency", s.mod, codigo)
+func (s *syncer) syncCapabilities(compID uuid.UUID, codigo string, comp curriculum.Competencia) error {
 	for k, cap := range comp.Capacidades {
 		capCode := curriculum.CapabilityCode(codigo, cap.Numero)
-		capID := ID("capability", s.mod, capCode)
 		var name string
 		err := s.tx.QueryRow(s.ctx, `
 			select name from capabilities
-			 where tenant_id = $1 and id = $2 and deleted_at is null`,
-			s.tenant, capID).Scan(&name)
+			 where tenant_id = $1 and competency_id = $2 and code = $3 and deleted_at is null`,
+			s.tenant, compID, capCode).Scan(&name)
 		switch err {
 		case nil:
 			if name != cap.Nombre {
@@ -216,9 +217,9 @@ func (s *syncer) syncCapabilities(codigo string, comp curriculum.Competencia) er
 			// Insert below.
 		}
 		if err := s.exec(`
-			insert into capabilities (id, tenant_id, competency_id, code, name, sort_order)
-			values ($1, $2, $3, $4, $5, $6)`,
-			capID, s.tenant, compID, capCode, cap.Nombre, k+1); err != nil {
+			insert into capabilities (tenant_id, competency_id, code, name, sort_order)
+			values ($1, $2, $3, $4, $5)`,
+			s.tenant, compID, capCode, cap.Nombre, k+1); err != nil {
 			return fmt.Errorf("capacidad %s: %w", capCode, err)
 		}
 		s.report.Capacidades++
@@ -228,15 +229,13 @@ func (s *syncer) syncCapabilities(codigo string, comp curriculum.Competencia) er
 
 // syncStandards inserts the learning standards the catalog has and the school
 // lacks, matched by (competency, level).
-func (s *syncer) syncStandards(codigo string, comp curriculum.Competencia) error {
-	compID := ID("competency", s.mod, codigo)
+func (s *syncer) syncStandards(compID uuid.UUID, codigo string, comp curriculum.Competencia) error {
 	for _, e := range comp.Estandares {
-		stdID := ID("standard", s.mod, fmt.Sprintf("%s:%d", codigo, e.Nivel))
 		tag, err := s.tx.Exec(s.ctx, `
-			insert into learning_standards (id, tenant_id, competency_id, level, official_text)
-			values ($1, $2, $3, $4, $5)
+			insert into learning_standards (tenant_id, competency_id, level, official_text)
+			values ($1, $2, $3, $4)
 			on conflict (tenant_id, competency_id, level) where deleted_at is null do nothing`,
-			stdID, s.tenant, compID, e.Nivel, e.Texto)
+			s.tenant, compID, e.Nivel, e.Texto)
 		if err != nil {
 			return fmt.Errorf("estándar %s nivel %d: %w", codigo, e.Nivel, err)
 		}
@@ -250,8 +249,7 @@ func (s *syncer) syncStandards(codigo string, comp curriculum.Competencia) error
 // syncPerformances inserts the grade-level performances of the mapped grades
 // that the school lacks, matched by (competency, grade, order), with the
 // derived stance and expected level.
-func (s *syncer) syncPerformances(codigo string, comp curriculum.Competencia) error {
-	compID := ID("competency", s.mod, codigo)
+func (s *syncer) syncPerformances(compID uuid.UUID, codigo string, comp curriculum.Competencia) error {
 	for _, g := range s.grades {
 		enProceso := s.cat.EnProceso(g.cneb.Codigo)
 		expected, ok := s.cat.ExpectedLevel(curriculum.DefaultModality, g.cneb.Ciclo)
@@ -264,17 +262,22 @@ func (s *syncer) syncPerformances(codigo string, comp curriculum.Competencia) er
 			}
 			var suggested *uuid.UUID
 			if d.CapacidadSugerida != nil {
-				id := ID("capability", s.mod, curriculum.CapabilityCode(codigo, *d.CapacidadSugerida))
+				var id uuid.UUID
+				if err := s.tx.QueryRow(s.ctx, `
+					select id from capabilities
+					 where tenant_id = $1 and competency_id = $2 and code = $3 and deleted_at is null`,
+					s.tenant, compID, curriculum.CapabilityCode(codigo, *d.CapacidadSugerida)).Scan(&id); err != nil {
+					return fmt.Errorf("desempeño %s %s #%d: capacidad sugerida: %w", codigo, g.cneb.Codigo, d.Orden, err)
+				}
 				suggested = &id
 			}
-			perfID := ID("performance", s.mod, codigo+":"+g.cneb.Codigo+":"+fmt.Sprint(d.Orden))
 			tag, err := s.tx.Exec(s.ctx, `
-				insert into grade_level_performances (id, tenant_id, competency_id, grade_level_id,
+				insert into grade_level_performances (tenant_id, competency_id, grade_level_id,
 				                                      sort_order, official_text, en_proceso,
 				                                      expected_standard_level, suggested_capability_id)
-				values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+				values ($1, $2, $3, $4, $5, $6, $7, $8)
 				on conflict (tenant_id, competency_id, grade_level_id, sort_order) where deleted_at is null do nothing`,
-				perfID, s.tenant, compID, g.level, d.Orden, d.Texto, enProceso, expected, suggested)
+				s.tenant, compID, g.level, d.Orden, d.Texto, enProceso, expected, suggested)
 			if err != nil {
 				return fmt.Errorf("desempeño %s %s #%d: %w", codigo, g.cneb.Codigo, d.Orden, err)
 			}
@@ -300,10 +303,9 @@ func (s *syncer) syncMappings() error {
 			return fmt.Errorf("ciclo %s: el catálogo no declara el nivel esperado para la modalidad %s", g.cneb.Ciclo, curriculum.DefaultModality)
 		}
 		tag, err := s.tx.Exec(s.ctx, `
-			insert into standard_level_mappings (id, tenant_id, modality, cycle, expected_level)
-			values ($1, $2, $3, $4, $5)
+			insert into standard_level_mappings (tenant_id, modality, cycle, expected_level)
+			values ($1, $2, $3, $4)
 			on conflict (tenant_id, modality, cycle) where deleted_at is null do nothing`,
-			ID("standard_level_mapping", s.mod, curriculum.DefaultModality+":"+g.cneb.Ciclo),
 			s.tenant, curriculum.DefaultModality, g.cneb.Ciclo, level)
 		if err != nil {
 			return fmt.Errorf("nivel esperado del ciclo %s: %w", g.cneb.Ciclo, err)
