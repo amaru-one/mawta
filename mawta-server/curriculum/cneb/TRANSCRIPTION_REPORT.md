@@ -2,7 +2,7 @@
 
 ## Scope and status
 
-This is an incremental transcription, not the complete requested catalog. Mathematics and Social Sciences have been transcribed: seven competencies, 24 capacities, 56 standards, and 478 grade performances. The Social Sciences files include their primary Personal Social performances. Two scan-punctuation readings are flagged below for review. Every included source page was rendered with pypdfium2 and read visually. Primary-program text and local macOS Vision OCR were used as drafts and corrected against the rendered pages. No Internet sources were used. Source spelling, punctuation, apparent errors, and differences between editions are retained.
+This is an incremental transcription, not the complete requested catalog. Mathematics, Social Sciences, and Personal Social have been transcribed: nine competencies, 33 capacities, 72 standards, and 616 grade performances. The two new Personal Social competency files already include all secondary DPCC performances; the DPCC area entry will be committed separately. The Social Sciences files include their primary Personal Social performances. Two scan-punctuation readings are flagged below for review. Every included source page was rendered with pypdfium2 and read visually. Primary-program text and local macOS Vision OCR were used as drafts and corrected against the rendered pages. No Internet sources were used. Source spelling, punctuation, apparent errors, and differences between editions are retained.
 
 Only `mawta-server/curriculum/cneb/` is changed. Work is on `data/cneb-catalog`, created from `main` at `4af29aa`. No Go code, seed changes, push, or merge.
 
@@ -72,7 +72,7 @@ The CNEB order differs from the program order: `MAT-C3` is CNEB 26; `MAT-C4` is 
 
 ## Social Sciences inventory and sources
 
-The secondary area/order is verified on secondary PDF p. 43. `CCSS-C1`, `CCSS-C2`, and `CCSS-C3` map to CNEB 17, 18, and 19. These files also contain the primary performances from Personal Social. The full PS area entry remains pending its other competencies; the existing CCSS entry applies only to secondary.
+The secondary area/order is verified on secondary PDF p. 43. `CCSS-C1`, `CCSS-C2`, and `CCSS-C3` map to CNEB 17, 18, and 19. These files also contain the primary performances from Personal Social. The completed PS area references these same files; the CCSS entry applies only to secondary.
 
 | File | Competency | Capacities | Standards | CNEB capacity page | CNEB standard page |
 | --- | --- | ---: | ---: | ---: | ---: |
@@ -115,6 +115,56 @@ The secondary area/order is verified on secondary PDF p. 43. `CCSS-C1`, `CCSS-C2
 | 19 | 3S | 4 | Secondary | 59 |
 | 19 | 4S | 5 | Secondary | 59 |
 | 19 | 5S | 6 | Secondary | 60 |
+
+## Personal Social inventory and sources
+
+The primary area and competency order are verified on primary PDF p. 73 and its following competency sections. `PS-C1` and `PS-C2` map to CNEB 1 and 16; `PS-C3` through `PS-C5` reuse CNEB 17–19, whose eleven-grade inventories are above. These are shared files, not duplicated texts. The secondary DPCC area and order are verified on secondary p. 31.
+
+| File | Competency | Capacities | Standards | CNEB capacity page | CNEB standard page |
+| --- | --- | ---: | ---: | ---: | ---: |
+| `c01.json` | Construye su identidad | 4 | 8 | 32 | 33 |
+| `c16.json` | Convive y participa democráticamente | 5 | 8 | 62 | 63 |
+
+| Competency | Grade | Performance count | Program | PDF source page |
+| --- | --- | ---: | --- | ---: |
+| 1 | 1P | 7 | Primary | 79 |
+| 1 | 2P | 6 | Primary | 79 |
+| 1 | 3P | 6 | Primary | 80 |
+| 1 | 4P | 5 | Primary | 80 |
+| 1 | 5P | 6 | Primary | 82 |
+| 1 | 6P | 7 | Primary | 82 |
+| 1 | 1S | 7 | Secondary | 35 |
+| 1 | 2S | 7 | Secondary | 35 |
+| 1 | 3S | 7 | Secondary | 36 |
+| 1 | 4S | 7 | Secondary | 36 |
+| 1 | 5S | 8 | Secondary | 37 |
+| 16 | 1P | 5 | Primary | 86 |
+| 16 | 2P | 5 | Primary | 86 |
+| 16 | 3P | 5 | Primary | 88 |
+| 16 | 4P | 5 | Primary | 88 |
+| 16 | 5P | 5 | Primary | 90 |
+| 16 | 6P | 5 | Primary | 90 |
+| 16 | 1S | 6 | Secondary | 40 |
+| 16 | 2S | 6 | Secondary | 40 |
+| 16 | 3S | 7 | Secondary | 41 |
+| 16 | 4S | 8 | Secondary | 41 |
+| 16 | 5S | 8 | Secondary | 42 |
+
+### Personal Social and DPCC source comparisons
+
+- **1, cycle III:** primary p. 78 substitutes `mujer o varón` for CNEB p. 33 `niña o niño`.
+- **1, cycle IV:** primary p. 80 substitutes `las personas` for CNEB p. 33 `las niñas y niños`.
+- **1, cycle V:** primary p. 81 matches CNEB p. 33.
+- **1, cycle VI:** secondary p. 35 stops at `criterios éticos.` It omits the CNEB's final three sentences, beginning `Se relaciona con igualdad o equidad` and ending `salud sexual y reproductiva.` The complete CNEB standard is retained.
+- **1, cycle VII:** secondary pp. 36–37 add `de manera regulada` after `Manifiesta`; CNEB p. 33 says `Manifiesta sus emociones`. The footnote reference is 6 on secondary p. 36 and 7 on p. 37, versus 18 in CNEB. Other wording matches.
+- **16, cycles III–V:** primary pp. 86, 87, 89 match CNEB p. 63.
+- **16, cycles VI–VII:** secondary pp. 40–42 match CNEB p. 63.
+
+The competency 16 name in CNEB p. 62 is `Convive y participa democráticamente`. Both programs append `en la búsqueda del bien común` (primary p. 86; secondary p. 40). The shorter CNEB name is retained. Competency 1 capacity 4 is `Vive su sexualidad de manera plena y responsable` in CNEB p. 32 and secondary p. 35; primary p. 78 instead says `Vive su sexualidad de manera integral y responsable de acuerdo a su etapa de desarrollo y madurez.`
+
+All new words were legible after column extraction and visual checks. Source irregularities are retained: CNEB p. 33 level 2 prints `con ira; triste o alegre`; secondary p. 35, second-grade performance 4, prints `los. principios éticos`. CNEB p. 33 level 6 has a small period-like mark after `protegerse` (represented as `protegerse. de situaciones`); whether that mark is punctuation or scan noise remains uncertain and should be checked against a clearer copy. CNEB p. 63 level 6 retains `otros también las cumplan`.
+
+The seed contains neither competency 1 nor competency 16, so their nine capacity names have no seed counterpart. The three shared Social Sciences competencies retain the comparison already documented above. No additional or missing area code was found for PS or DPCC.
 
 ## Differences between CNEB standards and program cycle descriptions
 
@@ -197,6 +247,6 @@ No missing or additional in-scope areas were found in the program tables of cont
 
 ## Validation and remaining work
 
-Validation ran from `/private/tmp/cneb-transcripcion/validate.py`, outside the repository. It checks JSON validity and duplicate keys; exact allowed key sets; unique codes and competency numbers; area/file references; consecutive capacities; exactly levels 1–8; valid grades and consecutive performance orders; all eleven grades for each included Mathematics and Social Sciences competency; whitespace, control characters, soft hyphens, and residual word-break hyphens. Both included areas pass structural validation: 7 competencies, 56 standards, 478 performances. This does not resolve the two scan-punctuation questions documented above.
+Validation ran from `/private/tmp/cneb-transcripcion/validate.py`, outside the repository. It checks JSON validity and duplicate keys; exact allowed key sets; unique codes and competency numbers; area/file references; consecutive capacities; exactly levels 1–8; valid grades and consecutive performance orders; all eleven grades for each included competency; whitespace, control characters, soft hyphens, and residual word-break hyphens. The included files pass structural validation: 9 competencies, 72 standards, 616 performances. This does not resolve the scan-punctuation questions documented above.
 
-The full-catalog presence check is explicitly **incomplete**, not passing: competencies 1–16, 20–22, and 27–31 are absent (24 of the requested 31 remain). Completed area checkpoints: MAT and CCSS. Next: the remaining PS/DPCC competencies, followed by EF, AYC, COM, CAS, ING, CYT, EPT, ER, and the two transversals; add each completed area entry without duplicating shared competency files. Their source pages, counts, legibility checks, and standard/seed comparisons remain to be completed. Resolve the Religious Education numbering/source discrepancy before claiming all 31 CNEB-numbered files.
+The full-catalog presence check is explicitly **incomplete**, not passing: competencies 2–15, 20–22, and 27–31 are absent (22 of the requested 31 remain). Completed area checkpoints: MAT, CCSS, and PS. Next: commit the DPCC entry for existing files, then EF, AYC, COM, CAS, ING, CYT, EPT, ER, and the two transversals; add each completed area entry without duplicating shared competency files. Their source pages, counts, legibility checks, and standard/seed comparisons remain to be completed. Resolve the Religious Education numbering/source discrepancy before claiming all 31 CNEB-numbered files.

@@ -1,0 +1,423 @@
+{
+  "numero_cneb": 1,
+  "nombre": "Construye su identidad",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Se valora a sí mismo"
+    },
+    {
+      "numero": 2,
+      "nombre": "Autorregula sus emociones"
+    },
+    {
+      "numero": 3,
+      "nombre": "Reflexiona y argumenta éticamente"
+    },
+    {
+      "numero": 4,
+      "nombre": "Vive su sexualidad de manera plena y responsable"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Construye su identidad al tomar conciencia de los aspectos que lo hacen único. Se identifica con algunas de sus características físicas, sus gustos, disgustos e intereses, su nombre y a los miembros de su familia. Participa en sus cuidados personales y en diversas actividades desde su iniciativa y posibilidades. Busca y acepta el consuelo y compañía de su adulto significativo cuando se siente vulnerado e inseguro, así como cuando algunas de sus acciones afectan a otro."
+    },
+    {
+      "nivel": 2,
+      "texto": "Construye su identidad al tomar conciencia de los aspectos que lo hacen único. Se identifica en algunas de sus características físicas, así como sus cualidades e intereses, gustos y preferencias. Se siente miembro de su familia y del grupo de aula al que pertenece. Practica hábitos saludables reconociendo que son importantes para él. Actúa de manera autónoma en las actividades que realiza y es capaz de tomar decisiones, desde sus posibilidades y considerando a los demás. Expresa sus emociones e identifica el motivo que las originan. Busca y acepta la compañía de un adulto significativo ante situaciones que lo hacen sentir vulnerable, inseguro, con ira; triste o alegre."
+    },
+    {
+      "nivel": 3,
+      "texto": "Construye su identidad al tomar conciencia de los aspectos que lo hacen único, cuando se reconoce a sí mismo a partir de sus características físicas, habilidades y gustos. Se da cuenta que es capaz de realizar tareas y aceptar retos. Disfruta de ser parte de su familia, escuela y comunidad. Reconoce y expresa sus emociones y las regula a partir de la interacción con sus compañeros y docente, y de las normas establecidas de manera conjunta. Explica con razones sencillas por qué algunas acciones cotidianas causan malestar a él o a los demás, y por qué otras producen bienestar a todos. Se reconoce como niña o niño y explica que ambos pueden realizar las mismas actividades. Muestra afecto a las personas que estima e identifica a las personas que le hacen sentir protegido y seguro y recurre a ellas cuando las necesita."
+    },
+    {
+      "nivel": 4,
+      "texto": "Construye su identidad al tomar conciencia de los aspectos que lo hacen único, cuando se reconoce a sí mismo a partir de sus características físicas, cualidades, habilidades, intereses y logros y valora su pertenencia familiar y escolar. Distingue sus diversas emociones y comportamientos, menciona las causas y las consecuencias de estos y las regula usando estrategias diversas. Explica con sus propios argumentos por qué considera buenas o malas determinadas acciones. Se relaciona con las niñas y niños con igualdad, reconociendo que todos tienen diversas capacidades. Desarrolla comportamientos que fortalecen las relaciones de amistad. Identifica situaciones que afectan su privacidad o la de otros y busca ayuda cuando alguien no la respeta."
+    },
+    {
+      "nivel": 5,
+      "texto": "Construye su identidad al tomar conciencia de los aspectos que lo hacen único, cuando se reconoce a sí mismo a partir de sus características personales, sus capacidades y limitaciones reconociendo el papel de las familias en la formación de dichas características. Aprecia su pertenencia cultural a un país diverso. Explica las causas y consecuencias de sus emociones, y utiliza estrategias para regularlas. Manifiesta su punto de vista frente a situaciones de conflicto moral, en función de cómo estas le afectan a él o a los demás. Examina sus acciones en situaciones de conflicto moral que se presentan en la vida cotidiana y se plantea comportamientos que tomen en cuenta principios éticos. Establece relaciones de igualdad entre hombres y mujeres, y explica su importancia. Crea vínculos afectivos positivos y se sobrepone cuando estos cambian. Identifica conductas para protegerse de situaciones que ponen en riesgo su integridad en relación a su sexualidad."
+    },
+    {
+      "nivel": 6,
+      "texto": "Construye su identidad al tomar conciencia de los aspectos que lo hacen único, cuando se reconoce a sí mismo a partir de sus características personales, culturales y sociales, y de sus logros, valorando el aporte de las familias en su formación personal. Se desenvuelve con agrado y confianza en diversos grupos. Selecciona y utiliza las estrategias más adecuadas para regular sus emociones y comportamiento, y comprende las razones de los comportamientos propios y de los otros. Argumenta su posición frente a situaciones de conflicto moral, considerando las intenciones de las personas involucradas, los principios éticos y las normas establecidas. Analiza las consecuencias de sus decisiones y se propone comportamientos en los que estén presentes criterios éticos. Se relaciona con igualdad o equidad y analiza críticamente situaciones de desigualdad de género en diferentes contextos. Demuestra respeto y cuidado por el otro en sus relaciones afectivas, y propone pautas para prevenir y protegerse. de situaciones que afecten su integridad en relación a la salud sexual y reproductiva."
+    },
+    {
+      "nivel": 7,
+      "texto": "Construye su identidad al tomar conciencia de los aspectos que lo hacen único, cuando se reconoce a sí mismo y valora sus identidades¹⁸, sus logros y los cambios que se dan en su desarrollo. Se reconoce como parte de un mundo globalizado. Manifiesta sus emociones, sentimientos, logros e ideas distinguiendo el contexto y las personas, y comprendiendo sus causas y consecuencias. Asume una postura ética frente a una situación de conflicto moral, integrando en su argumentación principios éticos, los derechos fundamentales, la dignidad de todas las personas. Reflexiona sobre las consecuencias de sus decisiones. Se plantea comportamientos que incluyen elementos éticos de respeto a los derechos de los demás y de búsqueda de justicia teniendo en cuenta la responsabilidad de cada quien por sus acciones. Se relaciona con los demás bajo un marco de derechos, sin discriminar por género u orientación sexual y sin violencia. Desarrolla relaciones afectivas, de amistad o de pareja, basadas en la reciprocidad y el respeto. Identifica situaciones que vulneran los derechos sexuales y reproductivos y propone pautas para prevenirlas y protegerse frente a ellas."
+    },
+    {
+      "nivel": 8,
+      "texto": "Construye su identidad al tomar conciencia de los aspectos que lo hacen único, cuando se reconoce a sí mismo y se valora y es capaz de alcanzar sus metas. Se reconoce como parte de un mundo globalizado y que puede intervenir en él. Evalúa sus propias emociones y comportamientos en función de su bienestar y el de los demás. En una situación de conflicto moral, razona en función de principios éticos, que intenta universalizar. Justifica la importancia de considerar la dignidad, los derechos humanos y la responsabilidad de las acciones, así como la reciprocidad en las relaciones humanas. Se plantea metas éticas de vida¹⁷ y articula sus acciones en función a ellas. Vive su sexualidad de manera responsable y placentera, respetando la diversidad en un marco de derechos. Establece relaciones afectivas positivas basadas en la reciprocidad, el respeto, el consentimiento y el cuidado del otro. Identifica signos de violencia en las relaciones de amistad o pareja. Argumenta la importancia de tomar decisiones responsables en la vivencia de la sexualidad en relación a su proyecto de vida."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1P",
+      "orden": 1,
+      "texto": "Expresa de diversas maneras algunas de sus características físicas, cualidades, gustos y preferencias, y las diferencia de las de los demás. Ejemplo: El estudiante, al realizar actividades individuales y colectivas, podría decir: “Yo soy bueno dibujando y mi amiga es buena bailando”. O expresar que es capaz de realizar tareas: “Yo barro”."
+    },
+    {
+      "grado": "1P",
+      "orden": 2,
+      "texto": "Comparte con sus compañeros las costumbres y actividades de su familia e institución educativa explicando su participación en ellas."
+    },
+    {
+      "grado": "1P",
+      "orden": 3,
+      "texto": "Describe, a través de diversas formas de representación, las emociones básicas (alegría, tristeza, miedo u otras) y explica las razones que las originan. Acepta e incorpora en sus acciones algunas normas básicas como límites que le brindan seguridad."
+    },
+    {
+      "grado": "1P",
+      "orden": 4,
+      "texto": "Autorregula sus emociones en interacción con sus compañeros, con apoyo del docente, al aplicar estrategias básicas de autorregulación (respiración)."
+    },
+    {
+      "grado": "1P",
+      "orden": 5,
+      "texto": "Menciona acciones cotidianas que considera buenas o malas, a partir de sus propias experiencias."
+    },
+    {
+      "grado": "1P",
+      "orden": 6,
+      "texto": "Participa en juegos y otras actividades de la vida cotidiana sin hacer distinciones de género."
+    },
+    {
+      "grado": "1P",
+      "orden": 7,
+      "texto": "Identifica a las personas que le muestran afecto y lo hacen sentir protegido y seguro; recurre a ellas cuando las necesita."
+    },
+    {
+      "grado": "2P",
+      "orden": 1,
+      "texto": "Expresa sus características físicas, habilidades y gustos, y explica las razones de aquello que le agrada de sí mismo. Ejemplo: El estudiante podría decir: “Me gustan mis manos porque con ellas puedo dibujar lindo”. Realiza actividades individuales y colectivas mostrando autonomía y asumiendo retos."
+    },
+    {
+      "grado": "2P",
+      "orden": 2,
+      "texto": "Expresa agrado al representar las manifestaciones culturales de su familia, institución educativa y comunidad."
+    },
+    {
+      "grado": "2P",
+      "orden": 3,
+      "texto": "Describe las emociones a partir de su experiencia y de lo que observa en los demás, y las regula teniendo en cuenta normas establecidas de manera conjunta. Aplica estrategias de autorregulación (respiración), con la guía del docente."
+    },
+    {
+      "grado": "2P",
+      "orden": 4,
+      "texto": "Identifica acciones que causan malestar o bienestar a sí mismo o a sus compañeros, y las explica con razones sencillas."
+    },
+    {
+      "grado": "2P",
+      "orden": 5,
+      "texto": "Explica las diferencias y similitudes entre las niñas y los niños, señalando que todos pueden realizar las mismas actividades tanto en la institución educativa como en la casa, y se relaciona de forma respetuosa con sus compañeros."
+    },
+    {
+      "grado": "2P",
+      "orden": 6,
+      "texto": "Dialoga con sus compañeros, con el apoyo del docente, sobre situaciones simuladas o personales en las que haya peligro de vulneración de su espacio personal. Explica qué puede hacer y a quiénes puede recurrir en esos casos."
+    },
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Describe aquellas características personales, cualidades, habilidades y logros que hacen que se sienta orgulloso de sí mismo; se reconoce como una persona valiosa con características únicas."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Comparte las manifestaciones culturales, tradiciones y costumbres propias de su familia que hacen que se sienta orgulloso de su origen."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Describe sus emociones en situaciones cotidianas; reconoce sus causas y consecuencias. Aplica estrategias de autorregulación (ponerse en el lugar del otro, respiración y relajación)."
+    },
+    {
+      "grado": "3P",
+      "orden": 4,
+      "texto": "Identifica situaciones y comportamientos que le causan agrado o desagrado, y explica de manera sencilla por qué."
+    },
+    {
+      "grado": "3P",
+      "orden": 5,
+      "texto": "Explica que los niños y las niñas pueden asumir las mismas responsabilidades y tareas, y que pueden establecer lazos de amistad basados en el respeto."
+    },
+    {
+      "grado": "3P",
+      "orden": 6,
+      "texto": "Reconoce a qué personas puede recurrir en situaciones de riesgo o en situaciones donde se vulnera su privacidad."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Describe sus características físicas, cualidades e intereses, y las fortalezas que le permiten lograr sus metas; manifiesta que estas lo hacen una persona única y valiosa que forma parte de una comunidad familiar y escolar. Participa con seguridad y confianza en las tradiciones, costumbres y prácticas culturales que caracterizan a su familia e institución educativa, y muestra aprecio por ellas."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Relaciona sus diversas emociones con su comportamiento y el de sus compañeros; menciona las causas y consecuencias de estas y las regula mediante el uso de diferentes estrategias de autorregulación (ponerse en el lugar del otro, respiración y relajación)."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Explica con argumentos sencillos por qué considera buenas o malas determinadas acciones o situaciones."
+    },
+    {
+      "grado": "4P",
+      "orden": 4,
+      "texto": "Se relaciona con niñas y niños con igualdad y respeto, reconoce que puede desarrollar diversas habilidades a partir de las experiencias vividas y realiza actividades que le permiten fortalecer sus relaciones de amistad."
+    },
+    {
+      "grado": "4P",
+      "orden": 5,
+      "texto": "Identifica situaciones que afectan su privacidad o que lo ponen en riesgo, y explica la importancia de buscar ayuda recurriendo a personas que le dan seguridad."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Explica sus características personales (cualidades, gustos, fortalezas y limitaciones), las cuales le permiten definir y fortalecer su identidad con relación a su familia."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Describe las prácticas culturales de su familia, institución educativa y comunidad señalando semejanzas y diferencias."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Describe sus emociones y explica sus causas y posibles consecuencias. Aplica estrategias de autorregulación (respiración, distanciamiento, relajación y visualización)."
+    },
+    {
+      "grado": "5P",
+      "orden": 4,
+      "texto": "Explica las razones de por qué una acción es correcta o incorrecta, a partir de sus experiencias, y propone acciones que se ajusten a las normas y a los principios éticos."
+    },
+    {
+      "grado": "5P",
+      "orden": 5,
+      "texto": "Se relaciona con sus compañeros con igualdad, respeto y cuidado del otro; rechaza cualquier manifestación de violencia de género (mensajes sexistas, lenguaje y trato ofensivo para la mujer, entre otros) en el aula, en la institución educativa y en su familia."
+    },
+    {
+      "grado": "5P",
+      "orden": 6,
+      "texto": "Describe situaciones que ponen en riesgo su integridad, así como las conductas para evitarlas o protegerse."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Explica las características personales (cualidades, gustos, fortalezas y limitaciones) que tiene por ser parte de una familia, así como la contribución de esta a su formación personal y a su proyecto de vida."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Explica diversas prácticas culturales de su familia, institución educativa y comunidad, y reconoce que aportan a la diversidad cultural del país."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Explica las causas y consecuencias de sus emociones y sentimientos, en sí mismo y en los demás, en situaciones reales e hipotéticas. Utiliza estrategias de autorregulación (respiración, distanciamiento, relajación y visualización) de acuerdo a la situación que se presenta."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Argumenta su postura en situaciones propias de su edad, reales o simuladas, que involucran un dilema moral, considerando cómo estas afectan a él o a los demás."
+    },
+    {
+      "grado": "6P",
+      "orden": 5,
+      "texto": "Evalúa sus acciones en situaciones de conflicto moral y se plantea comportamientos tomando en cuenta las normas sociales y los principios éticos. Ejemplo: El estudiante podría decir: “No hagas a otro lo que no quieres que te hagan a ti” (para explicar por qué no es bueno poner apodos a sus compañeros)."
+    },
+    {
+      "grado": "6P",
+      "orden": 6,
+      "texto": "Participa en diversas actividades con sus compañeros en situaciones de igualdad, cuidando y respetando su espacio personal, su cuerpo y el de los demás. Ejemplo: El estudiante exige un trato respetuoso por parte de sus compañeros."
+    },
+    {
+      "grado": "6P",
+      "orden": 7,
+      "texto": "Propone conductas para protegerse en situaciones que ponen en riesgo su integridad con relación a su sexualidad. Ejemplo: El estudiante se comunica solo con personas conocidas en las redes sociales, no acepta invitaciones de desconocidos."
+    },
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Explica los cambios propios de su etapa de desarrollo valorando sus características personales y culturales, y reconociendo la importancia de evitar y prevenir situaciones de riesgo (adicciones, delincuencia, pandillaje, desórdenes alimenticios, entre otros)."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Describe las principales prácticas culturales de los diversos grupos culturales y sociales a los que pertenece y explica cómo estas prácticas culturales lo ayudan a enriquecer su identidad personal."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Describe las causas y consecuencias de sus emociones, sentimientos y comportamientos, y las de sus compañeros en situaciones de convivencia en la escuela. Utiliza estrategias de autorregulación emocional de acuerdo con la situación que se presenta."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Argumenta su posición sobre dilemas morales que involucran situaciones de convivencia en su familia y en el aula tomando en cuenta las normas y las intenciones de las personas."
+    },
+    {
+      "grado": "1S",
+      "orden": 5,
+      "texto": "Explica las consecuencias de sus decisiones y propone acciones a partir de principios éticos."
+    },
+    {
+      "grado": "1S",
+      "orden": 6,
+      "texto": "Se relaciona con sus compañeros y compañeras con equidad, reflexiona sobre los efectos de las normas sociales en la vida de mujeres y varones, y muestra rechazo frente a aquellas que generan desigualdad. Expresa argumentos a favor del respeto y cuidado mutuo en las relaciones de amistad y enamoramiento."
+    },
+    {
+      "grado": "1S",
+      "orden": 7,
+      "texto": "Dialoga sobre la importancia del cuidado de sí mismo en relación con la salud sexual y reproductiva, e identifica situaciones que la ponen en riesgo."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Explica sus características personales, culturales y sociales, y sus logros. Valora la participación de su familia en su formación y reconoce la importancia de usar estrategias de protección frente a situaciones de riesgo."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Explica la importancia de participar, con seguridad y confianza, en diferentes grupos culturales y sociales (religiosos, ambientales, animalistas, de género, organizaciones juveniles, etc.) para enriquecer su identidad y sentirse parte de su comunidad."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Explica las causas y consecuencias de sus emociones, sentimientos y comportamientos, y las de los demás en diversas situaciones. Utiliza estrategias de autorregulación emocional de acuerdo con la situación que se presenta, y explica la importancia de expresar y autorregular sus emociones."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Argumenta su posición sobre dilemas morales que involucran situaciones de convivencia en la escuela y la comunidad tomando en cuenta las intenciones de las personas involucradas, los. principios éticos y las normas establecidas."
+    },
+    {
+      "grado": "2S",
+      "orden": 5,
+      "texto": "Explica las consecuencias de sus decisiones y propone acciones en las que estén presentes criterios éticos para mejorar su comportamiento."
+    },
+    {
+      "grado": "2S",
+      "orden": 6,
+      "texto": "Se relaciona con sus compañeros y compañeras con equidad o igualdad, y analiza críticamente situaciones de desigualdad de género y violencia familiar, sexual y contra la mujer. Promueve el cuidado del otro y la reciprocidad en las relaciones de amistad y pareja."
+    },
+    {
+      "grado": "2S",
+      "orden": 7,
+      "texto": "Plantea pautas de prevención y protección ante situaciones que afecten su integridad sexual y reproductiva reconociendo la importancia del autocuidado."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Explica y valora sus características personales, culturales y sociales, y sus logros y sus potencialidades. Explica que cada persona tiene un proceso propio de desarrollo y reconoce sus habilidades para superar la adversidad y afrontar situaciones de riesgo y oportunidad."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Opina reflexivamente sobre las prácticas culturales de su pueblo, y muestra aprecio por su herencia cultural y natural y la del país sintiéndose parte de él."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Expresa sus emociones, sentimientos y comportamiento de acuerdo con la situación que se presenta. Explica sus causas y consecuencias, y utiliza estrategias de autorregulación que le permiten establecer relaciones asertivas."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Sustenta, con argumentos razonados, una posición ética ante una situación de conflicto moral que involucra los derechos humanos."
+    },
+    {
+      "grado": "3S",
+      "orden": 5,
+      "texto": "Expresa opiniones sobre las consecuencias de sus decisiones y propone acciones basadas en principios éticos y en los derechos humanos."
+    },
+    {
+      "grado": "3S",
+      "orden": 6,
+      "texto": "Se relaciona con mujeres y varones con equidad. Analiza críticamente los estereotipos relacionados con la sexualidad y aquellos que son fuente de discriminación. Reconoce conductas violentas en las relaciones familiares de amistad o pareja, y muestra rechazo frente a ellas. Explica la importancia del respeto, el consentimiento, el cuidado del otro y la reciprocidad."
+    },
+    {
+      "grado": "3S",
+      "orden": 7,
+      "texto": "Propone pautas para prevenir y protegerse de situaciones que vulneran sus derechos sexuales y reproductivos considerando la dignidad de las personas."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Explica las características personales, culturales y sociales que lo hacen único. Describe sus potencialidades y limitaciones, y muestra disposición para utilizarlas en situaciones de riesgo."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Opina reflexivamente sobre las prácticas culturales de su país y se identifica con ellas. Explica la importancia de identificarse con los grupos sociales (familia, escuela, asociaciones religiosas, ambientales, ecologistas, etc.) que configuran su identidad y que contribuyen a su desarrollo y al de los demás."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Expresa sus emociones, sentimientos y comportamientos, y analiza sus causas y consecuencias. Utiliza estrategias de autorregulación que le permiten establecer relaciones empáticas."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Sustenta, con argumentos razonados, una posición ética ante una situación de conflicto moral considerando principios éticos y la dignidad humana."
+    },
+    {
+      "grado": "4S",
+      "orden": 5,
+      "texto": "Expresa opiniones razonadas sobre las consecuencias de sus decisiones, y propone acciones basadas en principios éticos y en la dignidad de las personas."
+    },
+    {
+      "grado": "4S",
+      "orden": 6,
+      "texto": "Se relaciona con mujeres y varones con equidad y respeto rechazando toda forma de discriminación por identidad de género u orientación sexual. Explica la importancia de establecer vínculos afectivos positivos basados en la reciprocidad, el cuidado del otro y el consentimiento. Rechaza la violencia familiar, sexual y contra la mujer, u otra forma de violencia."
+    },
+    {
+      "grado": "4S",
+      "orden": 7,
+      "texto": "Realiza acciones para prevenir y protegerse de situaciones que puedan afectar su integridad sexual y la de los demás. Ejemplo: Frente a una situación de acoso callejero, con la ayuda de un adulto de confianza, denuncia al agresor a la policía."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Evalúa las características personales, culturales, sociales y éticas que lo hacen único considerando su proyecto y sentido de vida. Describe sus logros, potencialidades y limitaciones. Muestra disposición para utilizar sus potencialidades en situaciones de riesgo (por ejemplo, la drogadicción)."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Expresa una postura crítica sobre sus prácticas culturales, las del país y las del mundo, valora su herencia cultural y natural y explica cómo la pertenencia a diversos grupos (culturales, religiosos, ambientales, de género, étnicos, políticos, etc.) influye en la construcción de su identidad."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Manifiesta sus emociones, sentimientos y comportamientos según el contexto y las personas. Explica sus causas y consecuencias, y utiliza estrategias de autorregulación que le permiten establecer relaciones justas."
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Sustenta, con argumentos razonados, una posición ética frente a situaciones de conflicto moral considerando principios éticos, los derechos humanos y la dignidad humana."
+    },
+    {
+      "grado": "5S",
+      "orden": 5,
+      "texto": "Expresa puntos de vista razonados sobre las consecuencias de sus decisiones, y, para mejorar su comportamiento, propone acciones basadas en principios éticos, en la responsabilidad y en la justicia."
+    },
+    {
+      "grado": "5S",
+      "orden": 6,
+      "texto": "Interactúa con los demás mostrando respeto por las formas de vivir y pensar la sexualidad de mujeres y varones en un marco de derechos. Explica la importancia de aceptar y comprender su sexualidad para su desarrollo personal, y de tomar decisiones responsables en su proyecto de vida. Rechaza toda expresión de discriminación por identidad de género u orientación sexual que vulnere la dignidad de las personas."
+    },
+    {
+      "grado": "5S",
+      "orden": 7,
+      "texto": "Evalúa los vínculos de amistad o de pareja que establecen las personas como expresión de su sexualidad."
+    },
+    {
+      "grado": "5S",
+      "orden": 8,
+      "texto": "Realiza acciones de prevención y protección frente a situaciones que puedan vulnerar los derechos sexuales y reproductivos en su escuela y comunidad."
+    }
+  ]
+}

@@ -46,6 +46,35 @@
           "numero_cneb": 19
         }
       ]
+    },
+    {
+      "codigo": "PS",
+      "nombre": "Personal Social",
+      "niveles": [
+        "primaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "PS-C1",
+          "numero_cneb": 1
+        },
+        {
+          "codigo": "PS-C2",
+          "numero_cneb": 16
+        },
+        {
+          "codigo": "PS-C3",
+          "numero_cneb": 17
+        },
+        {
+          "codigo": "PS-C4",
+          "numero_cneb": 18
+        },
+        {
+          "codigo": "PS-C5",
+          "numero_cneb": 19
+        }
+      ]
     }
   ],
   "transversales": []
