@@ -75,6 +75,23 @@
           "numero_cneb": 19
         }
       ]
+    },
+    {
+      "codigo": "DPCC",
+      "nombre": "Desarrollo Personal, Ciudadanía y Cívica",
+      "niveles": [
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "DPCC-C1",
+          "numero_cneb": 1
+        },
+        {
+          "codigo": "DPCC-C2",
+          "numero_cneb": 16
+        }
+      ]
     }
   ],
   "transversales": []
