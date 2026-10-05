@@ -2,7 +2,7 @@
 
 ## Scope and status
 
-This is an incremental transcription, not the complete requested catalog. Mathematics is complete: four competencies, 16 capacities, 32 standards, and 324 grade performances. Every included source page was rendered with pypdfium2 and read visually. Primary-program text and local macOS Vision OCR were used as drafts and corrected against the rendered pages. No Internet sources were used. Source spelling, punctuation, apparent errors, and differences between editions are retained.
+This is an incremental transcription, not the complete requested catalog. Mathematics and Social Sciences have been transcribed: seven competencies, 24 capacities, 56 standards, and 478 grade performances. The Social Sciences files include their primary Personal Social performances. Two scan-punctuation readings are flagged below for review. Every included source page was rendered with pypdfium2 and read visually. Primary-program text and local macOS Vision OCR were used as drafts and corrected against the rendered pages. No Internet sources were used. Source spelling, punctuation, apparent errors, and differences between editions are retained.
 
 Only `mawta-server/curriculum/cneb/` is changed. Work is on `data/cneb-catalog`, created from `main` at `4af29aa`. No Go code, seed changes, push, or merge.
 
@@ -70,6 +70,52 @@ The CNEB order differs from the program order: `MAT-C3` is CNEB 26; `MAT-C4` is 
 | 25 | 4S | 7 | Secondary | 174, 175 |
 | 25 | 5S | 7 | Secondary | 176 |
 
+## Social Sciences inventory and sources
+
+The secondary area/order is verified on secondary PDF p. 43. `CCSS-C1`, `CCSS-C2`, and `CCSS-C3` map to CNEB 17, 18, and 19. These files also contain the primary performances from Personal Social. The full PS area entry remains pending its other competencies; the existing CCSS entry applies only to secondary.
+
+| File | Competency | Capacities | Standards | CNEB capacity page | CNEB standard page |
+| --- | --- | ---: | ---: | ---: | ---: |
+| `c17.json` | Construye interpretaciones históricas | 3 | 8 | 64 | 65 |
+| `c18.json` | Gestiona responsablemente el espacio y el ambiente | 3 | 8 | 66 | 67 |
+| `c19.json` | Gestiona responsablemente los recursos económicos | 2 | 8 | 68 | 69 |
+
+| Competency | Grade | Performance count | Program | PDF source pages |
+| --- | --- | ---: | --- | --- |
+| 17 | 1P | 3 | Primary | 94 |
+| 17 | 2P | 3 | Primary | 94 |
+| 17 | 3P | 4 | Primary | 95 |
+| 17 | 4P | 4 | Primary | 95 |
+| 17 | 5P | 6 | Primary | 96 |
+| 17 | 6P | 5 | Primary | 96 |
+| 17 | 1S | 5 | Secondary | 47 |
+| 17 | 2S | 5 | Secondary | 47 |
+| 17 | 3S | 7 | Secondary | 48, 49 |
+| 17 | 4S | 7 | Secondary | 48, 49 |
+| 17 | 5S | 6 | Secondary | 50 |
+| 18 | 1P | 5 | Primary | 100 |
+| 18 | 2P | 5 | Primary | 100 |
+| 18 | 3P | 5 | Primary | 101 |
+| 18 | 4P | 5 | Primary | 101 |
+| 18 | 5P | 5 | Primary | 103 |
+| 18 | 6P | 6 | Primary | 103 |
+| 18 | 1S | 5 | Secondary | 53 |
+| 18 | 2S | 5 | Secondary | 53 |
+| 18 | 3S | 5 | Secondary | 54 |
+| 18 | 4S | 5 | Secondary | 54 |
+| 18 | 5S | 5 | Secondary | 55 |
+| 19 | 1P | 2 | Primary | 108 |
+| 19 | 2P | 2 | Primary | 108 |
+| 19 | 3P | 2 | Primary | 109 |
+| 19 | 4P | 2 | Primary | 109 |
+| 19 | 5P | 5 | Primary | 110 |
+| 19 | 6P | 5 | Primary | 110 |
+| 19 | 1S | 5 | Secondary | 58 |
+| 19 | 2S | 5 | Secondary | 58 |
+| 19 | 3S | 4 | Secondary | 59 |
+| 19 | 4S | 5 | Secondary | 59 |
+| 19 | 5S | 6 | Secondary | 60 |
+
 ## Differences between CNEB standards and program cycle descriptions
 
 The JSON always keeps the supplied CNEB wording. References below are to the program's actual cycle-description paragraphs, not a later edition or a remembered standard.
@@ -104,6 +150,26 @@ Primary PDF p. 262, cycle V:
 
 CNEB p. 79, levels 1 and 2 of competency 24, refer back to `Resuelve problemas de regularidad, equivalencia y cambio` itself. This was not replaced with a different competency. CNEB p. 83, level 5, prints `medición.Elabora` without a space, which is retained. The primary program's cycle descriptions were not used to silently repair either source.
 
+### Social Sciences cycle comparisons
+
+- **17, cycles III–V:** primary pp. 94–96 match CNEB p. 65.
+- **17, cycle VI:** secondary p. 47 replaces CNEB `en el tiempo, empleando distintos referentes` with `en el tiempo, identificando simultaneidades. Emplea distintos referentes`.
+- **17, cycle VII:** secondary p. 48 matches CNEB p. 65. Secondary p. 50 instead says `grandes cambios, permanencias y simultaneidades`, where the CNEB says `grandes cambios y permanencias`.
+- **18, cycle III:** primary p. 100 matches CNEB p. 67.
+- **18, cycle IV:** primary p. 101 says `frente a riesgos de desastres`; CNEB p. 67 says `frente a desastres`.
+- **18, cycle V:** primary p. 102 says `y a los riesgos de desastres`; CNEB p. 67 says `y a los desastres`.
+- **18, cycle VI:** secondary p. 53 omits `de riesgo` after `diversas situaciones` and substitutes `medidas de gestión de riesgos` for CNEB p. 67 `medidas de prevención`.
+- **18, cycle VII:** secondary pp. 54–55 match CNEB p. 67.
+- **19, cycles III–V:** primary pp. 108–110 match CNEB p. 69.
+- **19, cycle VI:** secondary p. 58 matches CNEB p. 69.
+- **19, cycle VII:** secondary pp. 59–60 say `el incumplimiento de las responsabilidades tributarias`; CNEB p. 69 prints `el incumplimiento de tributarias`. The CNEB text is retained.
+
+### Social Sciences source anomalies and scan punctuation
+
+The transcription retains primary p. 100 `referencia Ejemplo:` and `aire,suelo y del aire`; primary p. 103 `potenciar sus sostenibilidad` and `entre otros,—teniendo`; secondary p. 50 `jeraquías`; secondary p. 53 `propone alternativas mejorar`; and the two separate, similar third-grade disaster-prevention bullets on primary p. 101. These have not been grammatically repaired.
+
+Two punctuation readings need review against a clearer scan: secondary p. 48, competency 17, fourth-grade performance 2, has a small comma-like mark between `interpretaciones` and `que` (represented as `interpretaciones, que`); secondary p. 55, competency 18, fifth-grade performance 3, ends in an irregular point/dash mark (represented as `socioambiental.-`). The words are readable, but the exact punctuation cannot be established with full certainty from the supplied scan. No placeholder fields were added to JSON.
+
 ## Comparison with `ejemplo-san-felipe.json`
 
 All 16 Mathematics capacity names were compared, in order. Twelve match exactly. Four differ:
@@ -115,7 +181,9 @@ All 16 Mathematics capacity names were compared, in order. Twelve match exactly.
 | MAT-C4-CAP2 | Comunica su comprensión de los conceptos estadísticos y probabilísticos | Comunica la comprensión de los conceptos estadísticos y probabilísticos | 80 |
 | MAT-C4-CAP4 | Sustenta conclusiones o decisiones con base en la información obtenida | Sustenta conclusiones o decisiones con base en información obtenida | 80 |
 
-The seed file is unchanged. CCSS and transversal comparisons remain pending until their source transcription is complete.
+All eight Social Sciences capacity names were also compared. Seven match. `CCSS-C3-CAP1` differs: the seed says `Comprende las relaciones entre los elementos del sistema económico y financiero`; CNEB PDF p. 68 says `Comprende el funcionamiento del sistema económico y financiero`. The latter is retained. The primary and secondary programs use the seed wording (primary p. 108; secondary p. 56).
+
+The seed file is unchanged. Transversal comparisons remain pending until their source transcription is complete.
 
 ## Legibility and source limitations
 
@@ -129,6 +197,6 @@ No missing or additional in-scope areas were found in the program tables of cont
 
 ## Validation and remaining work
 
-Validation ran from `/private/tmp/cneb-transcripcion/validate.py`, outside the repository. It checks JSON validity and duplicate keys; exact allowed key sets; unique codes and competency numbers; area/file references; consecutive capacities; exactly levels 1–8; valid grades and consecutive performance orders; all eleven Mathematics grades; whitespace, control characters, soft hyphens, and residual word-break hyphens. The completed Mathematics area passes: 4 competencies, 32 standards, 324 performances.
+Validation ran from `/private/tmp/cneb-transcripcion/validate.py`, outside the repository. It checks JSON validity and duplicate keys; exact allowed key sets; unique codes and competency numbers; area/file references; consecutive capacities; exactly levels 1–8; valid grades and consecutive performance orders; all eleven grades for each included Mathematics and Social Sciences competency; whitespace, control characters, soft hyphens, and residual word-break hyphens. Both included areas pass structural validation: 7 competencies, 56 standards, 478 performances. This does not resolve the two scan-punctuation questions documented above.
 
-The full-catalog presence check is explicitly **incomplete**, not passing: competencies 1–22 and 27–31 are absent. Next: CCSS competencies 17–19, including all primary Personal Social performances, then the other areas and the two transversals. Their source pages, counts, legibility checks, and standard/seed comparisons remain to be completed. Resolve the Religious Education numbering/source discrepancy before claiming all 31 CNEB-numbered files.
+The full-catalog presence check is explicitly **incomplete**, not passing: competencies 1–16, 20–22, and 27–31 are absent (24 of the requested 31 remain). Completed area checkpoints: MAT and CCSS. Next: the remaining PS/DPCC competencies, followed by EF, AYC, COM, CAS, ING, CYT, EPT, ER, and the two transversals; add each completed area entry without duplicating shared competency files. Their source pages, counts, legibility checks, and standard/seed comparisons remain to be completed. Resolve the Religious Education numbering/source discrepancy before claiming all 31 CNEB-numbered files.

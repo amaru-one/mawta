@@ -1,0 +1,334 @@
+{
+  "numero_cneb": 18,
+  "nombre": "Gestiona responsablemente el espacio y el ambiente",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Comprende las relaciones entre los elementos naturales y sociales"
+    },
+    {
+      "numero": 2,
+      "nombre": "Maneja fuentes de información para comprender el espacio geográfico y el ambiente"
+    },
+    {
+      "numero": 3,
+      "nombre": "Genera acciones para conservar el ambiente local y global"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene como base el nivel 1 de las competencias “Convive y participa” y “Resuelve problemas de forma movimiento y localización”."
+    },
+    {
+      "nivel": 2,
+      "texto": "Este nivel tiene como base el nivel 2 de las competencias “Convive y participa” y “Resuelve problemas de forma movimiento y localización”."
+    },
+    {
+      "nivel": 3,
+      "texto": "Gestiona responsablemente el espacio y ambiente al desarrollar actividades sencillas frente a los problemas y peligros que lo afectan. Explica de manera sencilla las relaciones directas que se dan entre los elementos naturales y sociales de su espacio cotidiano. Utiliza puntos de referencia para ubicarse, desplazarse y representar su espacio."
+    },
+    {
+      "nivel": 4,
+      "texto": "Gestiona responsablemente el espacio y ambiente al realizar actividades específicas para su cuidado a partir de reconocer las causas y consecuencias de los problemas ambientales. Reconoce cómo sus acciones cotidianas impactan en el ambiente, en el calentamiento global y en su bienestar, e identifica los lugares vulnerables y seguros de su escuela, frente a desastres. Describe las características de los espacios geográficos y el ambiente de su localidad o región. Utiliza representaciones cartográficas sencillas, tomando en cuenta los puntos cardinales y otros elementos cartográficos, para ubicar elementos del espacio."
+    },
+    {
+      "nivel": 5,
+      "texto": "Gestiona responsablemente el espacio y ambiente al realizar frecuentemente actividades para su cuidado y al disminuir los factores de vulnerabilidad frente al cambio climático y a los desastres en su escuela. Utiliza distintas fuentes y herramientas cartográficas y socioculturales para ubicar elementos en el espacio geográfico y el ambiente, y compara estos espacios a diferentes escalas considerando la acción de los actores sociales. Explica las problemáticas ambientales y territoriales a partir de sus causas, consecuencias y sus manifestaciones a diversas escalas."
+    },
+    {
+      "nivel": 6,
+      "texto": "Gestiona responsablemente el espacio y ambiente al realizar actividades orientadas al cuidado de su localidad, considerando el cuidado del planeta. Compara las causas y consecuencias de diversas situaciones de riesgo a diversas escalas para proponer medidas de prevención. Explica cambios y permanencias en el espacio geográfico a diferentes escalas. Explica conflictos socioambientales y territoriales reconociendo sus múltiples dimensiones. Utiliza información y diversas herramientas cartográficas y socioculturales para ubicar y orientar distintos elementos del espacio geográfico y el ambiente, incluyéndose."
+    },
+    {
+      "nivel": 7,
+      "texto": "Gestiona responsablemente el espacio y ambiente al proponer alternativas y promover la sostenibilidad del ambiente, la mitigación y adaptación al cambio climático y la prevención de riesgo de desastre, considerando las múltiples dimensiones. Explica las diferentes formas en las que se organiza el espacio geográfico y el ambiente como resultado de las decisiones (acciones o intervención) de los actores sociales. Utiliza fuentes de información y herramientas digitales para representar e interpretar el espacio geográfico y el ambiente."
+    },
+    {
+      "nivel": 8,
+      "texto": "Gestiona responsablemente el espacio y el ambiente al proponer acciones relacionadas con políticas públicas orientadas a solucionar las problemáticas ambientales y territoriales. Elabora y comunica medidas de mitigación y adaptación al cambio climático, incluyendo un plan de contingencia frente a posibles desastres. Explica el espacio geográfico como un sistema complejo y reconoce su importancia para el desarrollo de la sociedad. Utiliza diversas fuentes de información disponibles para el análisis integral del espacio geográfico y el ambiente."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1P",
+      "orden": 1,
+      "texto": "Describe los elementos naturales y sociales del espacio donde realiza sus actividades cotidianas."
+    },
+    {
+      "grado": "1P",
+      "orden": 2,
+      "texto": "Se desplaza utilizando puntos de referencia y nociones espaciales (“delante de” - “detrás de”, “debajo de” - “encima de”, “al lado de”, “dentro de” - “fuera de”, “cerca de” - “lejos de”, “derecha-izquierda”…) para ubicarse en su espacio cotidiano."
+    },
+    {
+      "grado": "1P",
+      "orden": 3,
+      "texto": "Representa de diversas maneras su espacio cotidiano utilizando puntos de referencia."
+    },
+    {
+      "grado": "1P",
+      "orden": 4,
+      "texto": "Menciona los problemas ambientales que afectan a su espacio cotidiano (contaminación por basura y residuos) y los efectos de estos en su vida; participa de acciones sencillas orientadas al cuidado de su ambiente."
+    },
+    {
+      "grado": "1P",
+      "orden": 5,
+      "texto": "Reconoce y sigue las señales de evacuación y medidas de seguridad en la institución educativa ante peligros que lo afectan."
+    },
+    {
+      "grado": "2P",
+      "orden": 1,
+      "texto": "Brinda ejemplos de relaciones simples entre elementos naturales y sociales del espacio donde realiza sus actividades cotidianas y de otros espacios geográficos del Perú (Costa, Sierra, Selva y mar)."
+    },
+    {
+      "grado": "2P",
+      "orden": 2,
+      "texto": "Se desplaza en su espacio cotidiano siguiendo instrucciones para localizar objetos, personas o continuar una ruta usando puntos de referencia Ejemplo: El estudiante se desplaza desde la institución educativa hasta la plaza de la comunidad."
+    },
+    {
+      "grado": "2P",
+      "orden": 3,
+      "texto": "Representa su espacio cotidiano de diversas maneras (dibujos, croquis, maquetas, etc.) utilizando puntos de referencia."
+    },
+    {
+      "grado": "2P",
+      "orden": 4,
+      "texto": "Identifica las posibles causas y consecuencias de los problemas ambientales (contaminación de aire,suelo y del aire) que afectan su espacio cotidiano; participa de acciones sencillas orientadas al cuidado de su ambiente."
+    },
+    {
+      "grado": "2P",
+      "orden": 5,
+      "texto": "Practica y desarrolla actividades sencillas para prevenir accidentes y actuar en emergencias, en su aula y hogar, y conservar su ambiente: arrojar residuos sólidos en los tachos, cerrar el caño luego de usarlo, cuidar las plantas, etc."
+    },
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Distingue los elementos naturales y sociales de su localidad y región; asocia recursos naturales con actividades económicas."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Identifica los elementos cartográficos que están presentes en planos y mapas, y los utiliza para ubicar elementos del espacio geográfico de su localidad."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Describe los problemas ambientales de su localidad y región; propone y realiza actividades orientadas a solucionarlos y a mejorar la conservación del ambiente desde su escuela, evaluando su efectividad a fin de llevarlas a cabo."
+    },
+    {
+      "grado": "3P",
+      "orden": 4,
+      "texto": "Identifica en su escuela los lugares seguros y vulnerables ante desastres de diversos tipos, y participa en actividades para la prevención (simulacros, señalización, etc.)."
+    },
+    {
+      "grado": "3P",
+      "orden": 5,
+      "texto": "Identifica en su institución educativa los lugares seguros y vulnerables ante desastres, y participa en actividades para la prevención (simulacros, señalización, etc.)."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Describe los espacios geográficos urbanos y rurales de su localidad y región, y de un área natural protegida; reconoce la relación entre los elementos naturales y sociales que los componen."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Identifica los elementos cartográficos que están presentes en planos y mapas, y los utiliza para ubicar elementos del espacio geográfico de su localidad y región."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Describe los problemas ambientales de su localidad y región e identifica las acciones cotidianas que los generan, así como sus consecuencias. A partir de ellas, propone y realiza actividades orientadas a la conservación del ambiente en su institución educativa, localidad y región."
+    },
+    {
+      "grado": "4P",
+      "orden": 4,
+      "texto": "Identifica y describe las principales áreas naturales protegidas de su localidad o región, e investiga sobre los beneficios y servicios ambientales que estas otorgan a los seres humanos, y sobre el impacto que estos tienen para su sostenibilidad."
+    },
+    {
+      "grado": "4P",
+      "orden": 5,
+      "texto": "Identifica los lugares seguros de su institución educativa ante desastres; propone actividades para la prevención (simulacros, señalización, etc.) y participa en ellas."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Describe las relaciones que se establecen entre los elementos naturales y sociales de un determinado espacio geográfico de su localidad o región, o de un área natural protegida, así como las características de la población que lo habita y las actividades económicas que esta realiza."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Identifica los elementos cartográficos presentes en planos y mapas que le permitan obtener información sobre los elementos del espacio geográfico y del ambiente."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Explica las características de una problemática ambiental, como la deforestación, la contaminación del mar, la desertificación y la pérdida de suelo, y las de una problemática territorial, como el caos en el transporte, a nivel local."
+    },
+    {
+      "grado": "5P",
+      "orden": 4,
+      "texto": "Explica los factores de vulnerabilidad ante desastres naturales en su institución educativa, localidad y región; propone y ejecuta acciones para reducirlos o adaptarse a ellos."
+    },
+    {
+      "grado": "5P",
+      "orden": 5,
+      "texto": "Explica el uso de recursos naturales renovables y no renovables que realiza su escuela, y planifica y ejecuta actividades orientadas a mejorar las prácticas de su escuela para la conservación del ambiente relacionadas al manejo y uso del agua, la energía, 3R y residuos sólidos, conservación de los ecosistemas, transporte, entre otros."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Compara los elementos naturales y sociales de los espacios geográficos de su localidad y región, y de un área natural protegida, y explica cómo los distintos actores sociales intervienen en su transformación de acuerdo a su función."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Utiliza diversas fuentes y herramientas cartográficas para obtener información y ubicar elementos en el espacio geográfico y el ambiente."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Explica los servicios ambientales que brindan las principales áreas naturales protegidas de su localidad o región, y propone y lleva a cabo soluciones prácticas para potenciar sus sostenibilidad."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Explica las causas y consecuencias de una problemática ambiental, del calentamiento global, y de una problemática territorial, como la expansión urbana versus la reducción de tierras de cultivo, a nivel local, regional y nacional."
+    },
+    {
+      "grado": "6P",
+      "orden": 5,
+      "texto": "Explica los factores de vulnerabilidad ante desastres, en su escuela y localidad, y aquellos factores de vulnerabilidad local frente a los efectos del cambio climático; propone y ejecuta acciones para reducirlos."
+    },
+    {
+      "grado": "6P",
+      "orden": 6,
+      "texto": "Explica el uso de recursos naturales renovables y no renovables, y los patrones de consumo de su comunidad, y planifica y ejecuta acciones orientadas a mejorar las prácticas para la conservación del ambiente, en su escuela y en su localidad relacionadas al manejo y uso del agua, la energía, 3R (reducir, reusar y reciclar) y residuos sólidos, conservación de los ecosistemas terrestres y marinos, transporte, entre otros,—teniendo en cuenta el desarrollo sostenible."
+    },
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Describe los elementos naturales y sociales de los grandes espacios en el Perú: mar, costa, sierra y selva, considerando las actividades económicas realizadas por los actores sociales y sus características demográficas."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Utiliza información y herramientas cartográficas para ubicar diversos elementos naturales y sociales de los espacios geográficos."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Reconoce las causas y consecuencias, de las problemáticas ambientales, territoriales y de la condición de cambio climático (contaminación del agua, del aire y del suelo, uso inadecuado de los espacios públicos barriales en zonas urbanas y rurales, entre otras)."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Propone actividades orientadas al cuidado de su ambiente escolar y uso sostenible de los recursos naturales en su escuela y hogar, considerando el cuidado del planeta y el desarrollo sostenible."
+    },
+    {
+      "grado": "1S",
+      "orden": 5,
+      "texto": "Identifica situaciones de vulnerabilidad ante desastres ocurridas en un determinado espacio geográfico a diferentes escalas (local, nacional o mundial) para proponer un plan de contingencia."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Explica los cambios y permanencias en las ocho regiones naturales del Perú y los grandes espacios en América considerando la influencia de las actividades económicas en la conservación del ambiente y en las condiciones de vida de la población."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Utiliza información y herramientas cartográficas para ubicar y orientar diversos elementos naturales y sociales del espacio geográfico incluyéndose en este."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Explica las causas y consecuencias de los conflictos socioambientales relacionados con la gestión de los recursos naturales, calidad ambiental y contaminación, manejo de los recursos forestales de las áreas agrícolas, gestión de cuencas hidrográficas, entre otros; y reconoce sus dimensiones políticas, económicas y sociales."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Participa en actividades orientadas al cuidado del ambiente, y a la mitigación y adaptación al cambio climático de su localidad, desde la escuela, considerando el cuidado del planeta y el desarrollo sostenible."
+    },
+    {
+      "grado": "2S",
+      "orden": 5,
+      "texto": "Compara las causas y consecuencias de diversas situaciones de riesgo de desastre ocurridas a diferentes escalas (local, nacional o mundial), y propone alternativas mejorar la gestión de riesgos escolar."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Explica la influencia de los actores sociales en la configuración de las ecorregiones del Perú y de los grandes espacios en Europa, y su impacto en la calidad de vida de la población."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Utiliza información y herramientas cartográficas para describir espacios geográficos y sus recursos naturales."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Explica cómo las acciones de los actores sociales pueden generar problemáticas ambientales, o territoriales y de la condición de cambio climático (degradación o agotamiento del suelo, del agua y los recursos naturales, depredación de los recursos naturales, patrones de consumo de la sociedad, desertificación y fragmentación del territorio peruano, entre otras) que vulneran y afectan las condiciones de vida de la población y el desarrollo sostenible."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Propone alternativas para mitigar o prevenir problemas ambientales a fin de mejorar la calidad de vida de las personas y alcanzar el desarrollo sostenible."
+    },
+    {
+      "grado": "3S",
+      "orden": 5,
+      "texto": "Explica cómo las acciones u omisiones de los actores sociales incrementan la vulnerabilidad ante situaciones de riesgo de desastres."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Explica cómo intervienen los actores sociales en la configuración de las áreas naturales protegidas y fronteras del Perú y de los grandes espacios en Asia y Oceanía, y señala las potencialidades que estos ofrecen."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Utiliza información y herramientas cartográficas para representar el espacio geográfico y el ambiente."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Explica las dimensiones políticas, económicas, sociales y culturales de problemáticas ambientales, territoriales, y de la condición de cambio climático (pérdida de la biodiversidad, retroceso de los glaciares, demarcación territorial, transporte en las grandes ciudades, entre otras) y sus consecuencias en las condiciones de vida de la población."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Propone acciones concretas para el aprovechamiento sostenible del ambiente, y para la adaptación y mitigación del cambio climático, basadas en la legislación ambiental vigente en el Perú."
+    },
+    {
+      "grado": "4S",
+      "orden": 5,
+      "texto": "Plantea medidas de prevención o mitigación ante situaciones de riesgo de desastre considerando las dimensiones sociales, económicas, políticas y culturales."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Explica las formas de organizar el territorio peruano, y los espacios en África y la Antártida sobre la base de los cambios realizados por los actores sociales y su impacto en las condiciones de vida de la población."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Utiliza información y herramientas cartográficas y digitales para representar e interpretar el espacio geográfico y el ambiente."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Explica el impacto de las problemáticas ambientales, territoriales y de la condición de cambio climático (patrones de consumo de la sociedad, transporte en las grandes ciudades, emanaciones de gases, derrames de petróleo, manejo de cuencas, entre otras) en la calidad de vida de la población y cómo estas problemáticas pueden derivar en un conflicto socioambiental.-"
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Realiza acciones concretas para el aprovechamiento sostenible del ambiente, y para la mitigación y adaptación al cambio climático, basadas en la legislación ambiental vigente en el Perú y el mundo."
+    },
+    {
+      "grado": "5S",
+      "orden": 5,
+      "texto": "Propone alternativas de mejora al plan de gestión de riesgos de desastres de escuela y comunidad considerando las dimensiones sociales, económicas, políticas y culturales."
+    }
+  ]
+}

@@ -1,0 +1,329 @@
+{
+  "numero_cneb": 17,
+  "nombre": "Construye interpretaciones históricas",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Interpreta críticamente fuentes diversas"
+    },
+    {
+      "numero": 2,
+      "nombre": "Comprende el tiempo histórico"
+    },
+    {
+      "numero": 3,
+      "nombre": "Elabora explicaciones sobre procesos históricos"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene como base el nivel 1 de las competencias “Convive y participa” y “Resuelve problemas de cantidad”."
+    },
+    {
+      "nivel": 2,
+      "texto": "Este nivel tiene como base el nivel 2 de las competencias “Convive y participa” y “Resuelve problemas de cantidad”."
+    },
+    {
+      "nivel": 3,
+      "texto": "Construye interpretaciones históricas en las que describe los cambios ocurridos en su familia y comunidad a partir de comparar el presente y el pasado, y de reconocer algunas causas y consecuencias de estos cambios. Obtiene información sobre el pasado de diversos tipos de fuentes, así como expresiones temporales propias de la vida cotidiana. Secuencia hechos o acciones cotidianas ocurridos en periodos de tiempo cortos e identifica acciones simultáneas."
+    },
+    {
+      "nivel": 4,
+      "texto": "Construye interpretaciones históricas en las que narra hechos y procesos relacionados a la historia de su región, en los que incorpora más de una dimensión y reconoce diversas causas y consecuencias. Utiliza información de diversas fuentes a partir de identificar las más pertinentes para responder sus preguntas. Organiza secuencias para comprender cambios ocurridos a través del tiempo, aplicando términos relacionados al tiempo."
+    },
+    {
+      "nivel": 5,
+      "texto": "Construye interpretaciones históricas en las que explica, de manera general, procesos históricos peruanos, empleando algunas categorías temporales. Identifica las causas inmediatas y lejanas que desencadenaron dichos procesos, así como las consecuencias cuyos efectos se ven de inmediato o a largo plazo. Ordena cronológicamente procesos históricos peruanos y describe algunos cambios, permanencias y simultaneidades producidos en ellos. Utiliza información de diversas fuentes a partir de identificar su origen y distinguiendo algunas diferencias entre las versiones que dan sobre los procesos históricos."
+    },
+    {
+      "nivel": 6,
+      "texto": "Construye interpretaciones históricas sobre hechos o procesos del Perú y el mundo, en los que explica hechos o procesos históricos, a partir de la clasificación de las causas y consecuencias, reconociendo sus cambios y permanencias, y usando términos históricos. Explica su relevancia a partir de los cambios y permanencias que generan en el tiempo, empleando distintos referentes y convenciones temporales, así como conceptos relacionados a instituciones sociopolíticas y la economía. Compara e integra información de diversas fuentes, estableciendo diferencias entre las narraciones de los hechos y las interpretaciones de los autores de las fuentes."
+    },
+    {
+      "nivel": 7,
+      "texto": "Construye interpretaciones históricas sobre la base de los problemas históricos del Perú y el mundo en relación a los grandes cambios y permanencias a lo largo de la historia, empleando conceptos sociales, políticos y económicos abstractos y complejos. Jerarquiza múltiples causas y consecuencias de los hechos o procesos históricos. Establece relaciones entre esos procesos históricos y situaciones o procesos actuales. Explica cómo las acciones humanas, individuales o grupales van configurando el pasado y el presente y pueden configurar el futuro. Explica la perspectiva de los protagonistas, relacionando sus acciones con sus motivaciones. Contrasta diversas interpretaciones del pasado, a partir de distintas fuentes evaluadas en su contexto y perspectiva. Reconoce la validez de las fuentes para comprender variados puntos de vista."
+    },
+    {
+      "nivel": 8,
+      "texto": "Construye interpretaciones históricas en las que reconoce que el presente es consecuencia de un conjunto de dinámicas sociales que se desarrollaron simultáneamente en el pasado y que las acciones de los diversos actores sociales tienen consecuencias en el futuro. Argumenta que la percepción del tiempo depende de la perspectiva de los grupos culturales, tanto en el pasado como en el presente. Justifica y valora la utilidad de las fuentes para la construcción del conocimiento histórico."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1P",
+      "orden": 1,
+      "texto": "Obtiene información sobre sí mismo o sobre diversos hechos cotidianos del pasado, a partir del testimonio oral de dos o más personas, y de objetos en desuso, fotografías, etc."
+    },
+    {
+      "grado": "1P",
+      "orden": 2,
+      "texto": "Ordena hechos o acciones de su vida cotidiana usando expresiones que hagan referencia al paso del tiempo: ayer, hoy, mañana; antes, ahora; al inicio, al final; mucho tiempo, poco tiempo."
+    },
+    {
+      "grado": "1P",
+      "orden": 3,
+      "texto": "Describe acontecimientos de su historia personal y familiar, en los que compara el presente y el pasado; identifica alguna causa de los cambios."
+    },
+    {
+      "grado": "2P",
+      "orden": 1,
+      "texto": "Obtiene información de imágenes y objetos antiguos, testimonios de personas y expresiones temporales propias de la vida cotidiana, y reconoce que estos le brindan mayor información sobre su historia familiar y la de su comunidad."
+    },
+    {
+      "grado": "2P",
+      "orden": 2,
+      "texto": "Secuencia acciones o hechos cotidianos de su vida personal, familiar y de la comunidad, y reconoce aquellos que suceden de manera simultánea."
+    },
+    {
+      "grado": "2P",
+      "orden": 3,
+      "texto": "Describe acontecimientos de su historia y de la comunidad a partir de objetos, imágenes y testimonios de personas, en los que compara el presente y el pasado; identifica algunas causas y posibles consecuencias de los cambios."
+    },
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Obtiene información acerca del proceso del poblamiento americano y de las primeras bandas a las primeras aldeas en el Perú, en textos cortos, así como en edificios antiguos o conjuntos arqueológicos de la localidad."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Explica la importancia de fuentes históricas, como textos, edificios antiguos o conjuntos arqueológicos de la localidad; identifica al autor o colectivo humano que las produjo."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Secuencia imágenes, objetos o hechos utilizando categorías temporales (antes, ahora y después; años, décadas y siglos); describe algunas características que muestran los cambios en diversos aspectos de la vida cotidiana y de la historia del poblamiento americano hasta el proceso de sedentarización."
+    },
+    {
+      "grado": "3P",
+      "orden": 4,
+      "texto": "Narra procesos históricos, como el poblamiento americano y el de la sedentarización; reconoce más de una causa y algunas consecuencias."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Identifica fuentes pertinentes que contengan la información que necesita para responder preguntas relacionadas con las principales sociedades prehispánicas y la Conquista."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Obtiene información sobre hechos concretos en fuentes de divulgación y difusión histórica (enciclopedias, páginas webs, libros de texto, videos, etc.), y la utiliza para responder preguntas con relación a las principales sociedades andinas, preíncas e incas, y la Conquista."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Secuencia imágenes, objetos o hechos, y describe algunas características que muestran los cambios en diversos aspectos de la vida cotidiana y de las grandes etapas convencionales de la historia del Perú utilizando categorías temporales (años, décadas y siglos)."
+    },
+    {
+      "grado": "4P",
+      "orden": 4,
+      "texto": "Explica hechos o procesos históricos claves de su región, de las principales sociedades andinas, preíncas e incas, y la Conquista; reconoce las causas que los originaron y sus consecuencias teniendo en cuenta más de una dimensión (política, económica, ambiental, social, cultural, entre otras)."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Obtiene información sobre un hecho o proceso histórico, desde el Virreinato hasta el proceso de la Independencia del Perú, a partir de cuadros estadísticos, gráficos sencillos o investigaciones históricas."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Identifica en qué se diferencian las narraciones sobre un mismo acontecimiento del pasado relacionado con el Virreinato y el proceso de Independencia del Perú."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Secuencia cronológicamente las grandes etapas convencionales de la historia nacional y distingue qué las caracteriza."
+    },
+    {
+      "grado": "5P",
+      "orden": 4,
+      "texto": "Identifica cambios y permanencias con relación a la economía, la política y la sociedad entre el Virreinato y la actualidad."
+    },
+    {
+      "grado": "5P",
+      "orden": 5,
+      "texto": "Identifica algunas causas que tienen origen en acciones individuales y otras que se originan en acciones colectivas, con relación al Virreinato y al proceso de Independencia del Perú."
+    },
+    {
+      "grado": "5P",
+      "orden": 6,
+      "texto": "Explica el proceso de Independencia del Perú y Sudamérica; reconoce la participación de hombres y mujeres en dichos acontecimientos."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Selecciona fuentes que le proporcionan información sobre hechos y procesos históricos peruanos del siglo XIX y XX, y los ubica en el momento en que se produjeron."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Identifica las diferencias entre las versiones que las fuentes presentan sobre hechos o procesos históricos peruanos del siglo XIX y XX."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Secuencia distintos hechos de la historia local, regional y nacional del Perú de los siglos XIX y XX; identifica cambios, permanencias y simultaneidades."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Explica hechos o procesos históricos peruanos del siglo XIX y XX utilizando categorías temporales relacionadas con el tiempo histórico, e identifica algunas causas y consecuencias inmediatas y de largo plazo."
+    },
+    {
+      "grado": "6P",
+      "orden": 5,
+      "texto": "Explica hechos y procesos históricos peruanos del siglo XIX y XX; reconoce la participación de hombres y mujeres en ellos."
+    },
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Utiliza fuentes históricas para obtener información sobre un hecho o proceso histórico, desde el origen de la humanidad hasta las civilizaciones del mundo clásico y desde los primeros pobladores hasta los Estados regionales en los Andes centrales."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Clasifica diferentes tipos de fuentes históricas y obtiene información de estas respecto de hechos o procesos históricos, desde el origen de la humanidad hasta las civilizaciones del mundo clásico y desde los primeros pobladores hasta los Estados regionales en los Andes centrales."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Sitúa en orden sucesivo distintos hechos o procesos históricos comprendidos desde el origen de la humanidad hasta las civilizaciones del mundo clásico y desde los primeros pobladores hasta los Estados regionales en los Andes centrales. Con este fin, establece la distancia temporal y la simultaneidad que hay entre ellos, utilizando convenciones temporales y periodificaciones."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Explica hechos o procesos históricos comprendidos desde el origen de la humanidad hasta las civilizaciones del mundo clásico y desde los primeros pobladores hasta los Estados regionales en los Andes centrales sobre la base de sus causas y consecuencias, y de conceptos sociales, políticos y económicos."
+    },
+    {
+      "grado": "1S",
+      "orden": 5,
+      "texto": "Explica las causas y consecuencias de hechos o procesos históricos comprendidos desde el origen de la humanidad hasta las civilizaciones del mundo clásico y desde los primeros pobladores hasta los Estados regionales en los Andes centrales y utiliza conceptos sociales, políticos y económicos al elaborar sus explicaciones históricas."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Explica las diferencias entre narraciones e interpretaciones de un hecho o proceso histórico, desde las invasiones bárbaras hasta la expansión europea (ss. XV y XVI) y desde los orígenes del Tahuantinsuyo hasta el inicio del virreinato (s. XVI)."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Utiliza diversas fuentes históricas sobre determinados hechos o procesos históricos, desde las invasiones bárbaras hasta la expansión europea (ss. XV y XVI) y desde los orígenes del Tahuantinsuyo hasta el inicio del virreinato (s. XVI). Para ello, identifica el contexto histórico (características de la época) en el que fueron producidas esas fuentes y complementa una con otra."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Utiliza las convenciones y categorías temporales para explicar la importancia de los hechos o procesos históricos desde las invasiones bárbaras hasta la expansión europea (ss. XV y XVI) y desde los orígenes del Tahuantinsuyo hasta el inicio del virreinato (s. XVI). Toma en cuenta las simultaneidades, los aspectos que cambian y otros que permanecen."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Explica hechos o procesos históricos desde las invasiones bárbaras hasta la expansión europea (ss. XV y XVI) y desde los orígenes del Tahuantinsuyo hasta el inicio del virreinato (s. XVI) a partir de la clasificación de sus causas y consecuencias (sociales, políticas, económicas, culturales, etc.). Para ello, utiliza conceptos sociopolíticos y económicos, y diversos términos históricos."
+    },
+    {
+      "grado": "2S",
+      "orden": 5,
+      "texto": "Clasifica las causas y consecuencias de los hechos o procesos históricos desde las invasiones bárbaras hasta la expansión europea (ss. XV y XVI) y desde los orígenes del Tahuantinsuyo hasta el inicio del virreinato (s. XVI) para elaborar explicaciones históricas. Para ello utiliza conceptos sociopolíticos y económicos así como diversos términos históricos."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Identifica coincidencias y contradicciones entre diversas fuentes y complementa la información que brindan sobre un mismo aspecto de un hecho o proceso histórico, desde el desarrollo del absolutismo (ss. XVII y XVIII) hasta las revoluciones liberales (s. XIX) y desde la organización del virreinato (s. XVII) hasta el surgimiento de la República peruana."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Identifica las características (fiabilidad y finalidad) de diversas fuentes históricas que permiten entender las épocas comprendidas desde el desarrollo del absolutismo (ss. XVII y XVIII) hasta las revoluciones liberales (s. XIX) y desde la organización del virreinato (s. XVII) hasta el surgimiento de la República peruana."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Explica los cambios y permanencias que se presentan en la forma de vida de las personas como consecuencia de ciertos hechos o procesos históricos desde el desarrollo del absolutismo (ss. XVII y XVIII) hasta las revoluciones liberales (s. XIX) y desde la organización del virreinato (s. XVII) hasta el surgimiento de la República peruana."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Identifica diversos hechos o procesos históricos que ocurren en tiempos similares, desde el desarrollo del absolutismo (ss. XVII y XVIII) hasta las revoluciones liberales (s. XIX) y desde la organización del virreinato (s. XVII) hasta el surgimiento de la República peruana."
+    },
+    {
+      "grado": "3S",
+      "orden": 5,
+      "texto": "Explica hechos, procesos o problemas históricos que ocurrieron desde el desarrollo del absolutismo (ss. XVII y XVIII) hasta las revoluciones liberales (s. XIX) y desde la organización del virreinato (s. XVII) hasta el surgimiento de la República peruana, a partir de la formulación de preguntas y la distinción entre detonantes, causas (estructurales y coyunturales) y consecuencias, utilizando términos históricos."
+    },
+    {
+      "grado": "3S",
+      "orden": 6,
+      "texto": "Formula preguntas, distingue entre detonantes, causas (estructurales y coyunturales) y consecuencias y utiliza términos históricos al elaborar explicaciones sobre hechos, procesos o problemas históricos que ocurrieron desde el desarrollo del absolutismo (ss. XVII y XVIII) hasta las revoluciones liberales (s. XIX) y desde la organización del virreinato (s. XVII) hasta el surgimiento de la República peruana."
+    },
+    {
+      "grado": "3S",
+      "orden": 7,
+      "texto": "Identifica las ideas, comportamientos y circunstancias que vivieron los personajes históricos o grupos sociales en un contexto histórico comprendido desde el desarrollo del absolutismo (s. XVII y XVIII) hasta las revoluciones liberales (s. XIX) y desde la organización del virreinato (s. XVII) hasta el surgimiento de la República peruana para explicar su importancia en el tiempo que les tocó vivir."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Explica que recurrir a una fuente válida sobre hechos o procesos históricos, desde la Segunda Revolución Industrial hasta la Primera Guerra Mundial y desde el primer militarismo en el Perú hasta la República Aristocrática, contribuye a una interpretación confiable de esa fuente."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Contrasta las interpretaciones, que se presentan en diversas fuentes históricas sobre hechos o procesos históricos, desde la Segunda Revolución Industrial hasta la Primera Guerra Mundial y desde el primer militarismo en el Perú hasta la República Aristocrática."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Explica los cambios, las permanencias y las relaciones de simultaneidad generados por hechos o procesos históricos relevantes, desde la Segunda Revolución Industrial hasta la Primera Guerra Mundial y desde el primer militarismo en el Perú hasta la República Aristocrática, utilizando conceptos sociales, políticos y económicos."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Establece relaciones entre diversos hechos o procesos históricos, desde la Segunda Revolución Industrial hasta la Primera Guerra Mundial y desde el primer militarismo en el Perú hasta la República Aristocrática, con otros de la actualidad, tomando en cuenta los aspectos políticos, sociales, económicos, culturales y ambientales."
+    },
+    {
+      "grado": "4S",
+      "orden": 5,
+      "texto": "Explica hechos, procesos o problemas históricos comprendidos desde la Segunda Revolución Industrial hasta la Primera Guerra Mundial y desde el primer militarismo en el Perú hasta la República Aristocrática, a partir de evidencias diversas y el planteamiento de hipótesis, utilizando términos históricos."
+    },
+    {
+      "grado": "4S",
+      "orden": 6,
+      "texto": "Plantea hipótesis, y utiliza términos históricos y evidencias diversas al elaborar explicaciones sobre hechos, procesos o problemas históricos comprendidos desde la Segunda Revolución Industrial hasta la Primera Guerra Mundial y desde el primer militarismo en el Perú hasta la República Aristocrática."
+    },
+    {
+      "grado": "4S",
+      "orden": 7,
+      "texto": "Explica las ideas y comportamientos de las personas y sociedades a partir del contexto de la época, ocurridas desde la Segunda Revolución Industrial hasta la Primera Guerra Mundial y desde el primer militarismo en el Perú hasta la República Aristocrática así como la influencia de tales ideas y comportamientos en hechos posteriores."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Utiliza constantemente una diversidad de fuentes, incluyendo las producidas por él (entrevistas o testimonios a personas que vivieron hechos recientes), para indagar sobre un hecho, proceso o problema histórico comprendido desde el periodo entre guerras hasta las crisis económicas de inicios del siglo XXI y desde el Oncenio de Leguía hasta la historia reciente en el Perú (s. XXI), evaluando la pertinencia y fiabilidad de esas fuentes."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Contrasta las interpretaciones que se presentan en diversas fuentes históricas a partir de la evaluación de su confiabilidad (perspectiva del autor, intencionalidad y contexto en que fue producida la fuente), desde el periodo entre guerras hasta las crisis económicas de inicios del siglo XXI y desde el Oncenio de Leguía hasta la historia reciente en el Perú (s. XXI)."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Explica los cambios, las permanencias y las relaciones de simultaneidad de los hechos o procesos históricos a nivel político, social, ambiental, económico y cultural, desde el periodo entre guerras hasta las crisis económicas de inicios del siglo XXI y desde el Oncenio de Leguía hasta la historia reciente en el Perú (s. XXI), y reconoce que estos cambios no necesariamente llevan al progreso y desarrollo sostenible."
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Explica las relaciones existentes entre diversos hechos o procesos históricos, desde el periodo entre guerras hasta las crisis económicas de inicios del siglo XXI y desde el Oncenio de Leguía hasta la historia reciente en el Perú (s. XXI), con hechos de la actualidad, utilizando conceptos sociales, políticos y económicos abstractos y complejos."
+    },
+    {
+      "grado": "5S",
+      "orden": 5,
+      "texto": "Elabora explicaciones sobre hechos, procesos o problemas históricos, desde el periodo entre guerras hasta las crisis económicas de inicios del siglo XXI y desde el Oncenio de Leguía hasta la historia reciente en el Perú (s. XXI) en las que establece jeraquías entre sus múltiples causas y reconoce que sus consecuencias desencadenan nuevos hechos o procesos históricos."
+    },
+    {
+      "grado": "5S",
+      "orden": 6,
+      "texto": "Explica las ideas, los comportamientos y las motivaciones de los protagonistas de los hechos o procesos históricos, desde el periodo entre guerras hasta las crisis económicas de inicios del siglo XXI y desde el Oncenio de Leguía hasta la historia reciente en el Perú (s. XXI), para entender las razones de sus acciones u omisiones, y cómo estas han configurado el presente e intervienen en la construcción del futuro."
+    }
+  ]
+}

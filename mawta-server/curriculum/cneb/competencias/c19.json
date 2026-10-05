@@ -1,0 +1,265 @@
+{
+  "numero_cneb": 19,
+  "nombre": "Gestiona responsablemente los recursos económicos",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Comprende el funcionamiento del sistema económico y financiero"
+    },
+    {
+      "numero": 2,
+      "nombre": "Toma decisiones económicas y financieras"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene como base el nivel 1 de las competencias “Convive y participa” y “Construye su identidad”."
+    },
+    {
+      "nivel": 2,
+      "texto": "Este nivel tiene como base el nivel 2 de las competencias “Convive y participa” y “Construye su identidad”."
+    },
+    {
+      "nivel": 3,
+      "texto": "Gestiona responsablemente los recursos económicos al utilizar los bienes y servicios con los que cuenta en su familia y en la escuela. Reconoce que las personas y las instituciones de su comunidad desarrollan actividades económicas para satisfacer sus necesidades y que contribuyen a su bienestar."
+    },
+    {
+      "nivel": 4,
+      "texto": "Gestiona responsablemente los recursos económicos al diferenciar entre necesidades y deseos, y al usar los servicios públicos de su espacio cotidiano, reconociendo que tienen un costo. Reconoce que los miembros de su comunidad se vinculan al desempeñar distintas actividades económicas y que estas actividades inciden en su bienestar y en el de las otras personas."
+    },
+    {
+      "nivel": 5,
+      "texto": "Gestiona responsablemente los recursos económicos al utilizar el dinero y otros recursos como consumidor informado y al realizar acciones de ahorro, inversión y cuidado de ellos. Explica el papel de la publicidad frente a las decisiones de consumo y en la planificación de los presupuestos personales y familiares, así como la importancia de cumplir con el pago de impuestos, tributos y deudas como medio para el bienestar común. Explica los roles que cumplen las empresas y el Estado respecto a la satisfacción de las necesidades económicas y financieras de las personas."
+    },
+    {
+      "nivel": 6,
+      "texto": "Gestiona responsablemente los recursos económicos al promover el ahorro y la inversión de los recursos. Promueve el consumo informado frente a los recursos económicos y los productos y servicios financieros, asumiendo una posición crítica respecto a la publicidad y rechazando toda actividad financiera informal e ilegal. Explica las interrelaciones entre los agentes del sistema económico y financiero nacional (familia, empresa, Estado) teniendo como referencia el mercado. Explica el rol del Estado en el financiamiento del presupuesto nacional."
+    },
+    {
+      "nivel": 7,
+      "texto": "Gestiona responsablemente los recursos económicos al promover el ahorro y la inversión de los recursos considerando sus objetivos, riesgos y oportunidades. Asume una posición crítica frente a las actividades económicas y financieras ilícitas e informales, prácticas de producción y consumo que deterioran el ambiente y afectan los derechos humanos, el incumplimiento de tributarias y de las decisiones financieras que no consideran un fin previsional. Analiza las interrelaciones entre los agentes del sistema económico y financiero global teniendo en cuenta el mercado y el comercio mundial. Explica el rol del Estado como agente supervisor del sistema financiero."
+    },
+    {
+      "nivel": 8,
+      "texto": "Gestiona recursos económicos al elaborar presupuestos personales considerando su proyecto de vida y diversos factores económicos. Explica cómo el Estado y las empresas toman decisiones económicas y financieras considerando indicadores microeconómicos y macroeconómicos. Argumenta que la omisión o realización de ciertas prácticas económicas por parte de los diversos agentes económicos pueden afectar las condiciones de desarrollo del país."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1P",
+      "orden": 1,
+      "texto": "Explica las ocupaciones que desarrollan las personas de su espacio cotidiano y cómo atienden a sus necesidades y a las de la comunidad."
+    },
+    {
+      "grado": "1P",
+      "orden": 2,
+      "texto": "Utiliza responsablemente los recursos (pertenencias del estudiante) que le brindan su familia y la institución educativa, y reconoce que estos se agotan."
+    },
+    {
+      "grado": "2P",
+      "orden": 1,
+      "texto": "Explica que los recursos que se consumen en su hogar e institución educativa son producto de las actividades económicas que desarrollan las personas y las instituciones de su comunidad, para satisfacer sus necesidades y obtener bienestar; identifica acciones que le permiten el ahorro."
+    },
+    {
+      "grado": "2P",
+      "orden": 2,
+      "texto": "Explica que todo producto tiene un costo y que al obtenerlo se debe retribuir por ello (intercambio/ dinero/trueque); propone acciones, de acuerdo a su edad, para el uso responsable de los productos en la institución educativa y en su familia."
+    },
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Explica que el trabajo que realizan sus familiares y demás personas permite la obtención de dinero para la adquisición de ciertos bienes y servicios con la finalidad de satisfacer las necesidades de consumo."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Usa de manera responsable los recursos, dado que estos se agotan, y realiza acciones cotidianas de ahorro del uso de bienes y servicios que se consumen en su hogar y su institución educativa."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Describe los roles económicos que cumplen las personas de su comunidad e identifica las relaciones que se establecen entre ellas para satisfacer sus necesidades y generar bienestar en las demás."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Ejecuta acciones que contribuyen a su economía familiar diferenciando entre necesidades y deseos; utiliza responsablemente los servicios públicos de su espacio cotidiano y reconoce que tienen un costo y deben ser bien utilizados."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Explica el proceso económico, el funcionamiento del mercado y cómo las personas, las empresas y el Estado (los agentes económicos) cumplen distintos roles económicos, se organizan y producen bienes y servicios mediante el uso del dinero para la adquisición de estos."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Argumenta la importancia del ahorro y de la inversión de recursos, así como de la cultura de pago de las deudas contraídas."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Representa de diversas maneras cómo influye la publicidad en sus decisiones de consumo."
+    },
+    {
+      "grado": "5P",
+      "orden": 4,
+      "texto": "Argumenta la importancia de conocer los derechos del consumidor."
+    },
+    {
+      "grado": "5P",
+      "orden": 5,
+      "texto": "Elabora un plan de ahorro y explica cómo el uso del dinero afecta positiva o negativamente a las personas y a las familias."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Explica cómo el Estado promueve y garantiza los intercambios económicos en diferentes sectores y cómo las empresas producen bienes y servicios para contribuir al desarrollo sostenible de la sociedad."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Argumenta la importancia de cumplir con los compromisos de pago de deudas y responsabilidades tributarias para mejorar los bienes y servicios públicos."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Explica cuál es el rol de la publicidad y cómo influye en sus decisiones de consumo y en las de su familia."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Elabora un presupuesto personal y familiar; explica cómo el uso del dinero afecta positiva o negativamente a las personas y a las familias; y formula planes de ahorro e inversión personal y de aula, de acuerdo con metas trazadas y fines previstos."
+    },
+    {
+      "grado": "6P",
+      "orden": 5,
+      "texto": "Promueve actividades para fomentar el respeto de los derechos del consumidor, la responsabilidad socioambiental de las empresas, el ahorro personal y la cultura de pago de impuestos."
+    },
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Explica los roles que desempeñan la familia, las empresas y el Estado frente a los procesos económicos en el mercado (producción, distribución, consumo e inversión) y en el sistema económico y financiero."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Explica que los recursos económicos son escasos y que, frente a ello, los agentes económicos deben tomar decisiones sobre cómo utilizarlos (elección y costo de oportunidad)."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Propone acciones para el uso responsable del dinero, el incentivo al ahorro y la inversión como una forma de alcanzar metas en la economía familiar."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Propone alternativas de consumo responsable respecto a productos y servicios considerando que la publicidad busca influir en la toma de decisiones de las personas."
+    },
+    {
+      "grado": "1S",
+      "orden": 5,
+      "texto": "Argumenta una posición crítica frente a las actividades económicas informales e ilegales que perjudican su bienestar, el de las demás personas y el de las familias."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Explica que el rol del Estado es la de garantizar el bien común de las personas y asegurar para ello el financiamiento del presupuesto nacional."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Explica cómo la escasez de los recursos influye en las decisiones que toman los agentes económicos y que, frente a ello, se dan interacciones en el mercado."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Formula presupuestos personales considerando los ingresos y egresos individuales o del hogar para ejecutar acciones de ahorro o de inversión con el fin de mejorar su bienestar y el de su familia."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Toma decisiones como consumidor responsable al ejercer sus derechos y responsabilidades. Reconoce que cada elección implica renunciar a otras necesidades que tienen que ser cubiertas con los mismos recursos."
+    },
+    {
+      "grado": "2S",
+      "orden": 5,
+      "texto": "Manifiesta una posición de rechazo frente al riesgo que supone para la sociedad optar por la informalidad y la ilegalidad al momento de tomar decisiones financieras."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Explica el rol del Estado en materia de política monetaria y política fiscal, y las funciones de los organismos supervisores y reguladores del sistema financiero nacional."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Explica cómo las empresas y las familias toman decisiones económicas y financieras considerando indicadores económicos, y qué factores influyen en la oferta y la demanda."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Formula presupuestos personales considerando necesidades, deudas y futuros proyectos de ahorro e inversión."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Argumenta una posición de rechazo respecto de las prácticas de producción y consumo que degradan el ambiente y vulneran los derechos humanos. Describe el rol de la ciudadanía económica en la construcción de un modelo de crecimiento económico sostenible."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Explica los roles que cumplen los agentes del sistema económico y financiero en Latinoamérica, y expresa la importancia que tienen esos agentes para el desarrollo del mercado y el comercio regional."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Explica que el Estado toma medidas de política económica, y que sanciona los delitos económicos y financieros para garantizar la sostenibilidad y el desarrollo económico del país."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Difunde la importancia de cumplir las obligaciones tributarias y crediticias, y los beneficios de optar por un fondo previsional para garantizar el bienestar económico y social de las personas y el país."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Argumenta a favor de optar por el consumo de productos y bienes cuya producción, distribución y uso preservan el ambiente y los servicios ecosistémicos y respetan los derechos humanos."
+    },
+    {
+      "grado": "4S",
+      "orden": 5,
+      "texto": "Utiliza el Código de Protección y Defensa del Consumidor para analizar y hacer respetar los derechos de consumidor."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Explica las relaciones entre los agentes del sistema económico y financiero global (organismos financieros y organismos de cooperación internacional) reconociendo los desafíos y las oportunidades que ofrecen para el desarrollo del Perú en el marco de la globalización económica."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Describe la dinámica de los bloques económicos mundiales y el papel de los organismos financieros internacionales. Explica la importancia del mercado y el comercio internacional en esta dinámica."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Explica cómo el Estado cumple un rol regulador y supervisor dentro del sistema financiero nacional, y define la política fiscal y monetaria del país."
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Propone alternativas para el uso responsable de los recursos económicos y financieros del país teniendo en cuenta los riesgos y oportunidades que ofrece el contexto económico global."
+    },
+    {
+      "grado": "5S",
+      "orden": 5,
+      "texto": "Utiliza las normas que protegen los derechos de los consumidores para tomar decisiones económicas y financieras informadas y responsables."
+    },
+    {
+      "grado": "5S",
+      "orden": 6,
+      "texto": "Sustenta una posición crítica ante prácticas económicas y financieras ilícitas e informales, y ante prácticas de producción y consumo que afectan el ambiente y los derechos humanos, así como ante el incumplimiento de responsabilidades tributarias y decisiones financieras que no tengan en cuenta un fin previsional."
+    }
+  ]
+}

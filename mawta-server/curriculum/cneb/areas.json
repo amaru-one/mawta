@@ -25,6 +25,27 @@
           "numero_cneb": 25
         }
       ]
+    },
+    {
+      "codigo": "CCSS",
+      "nombre": "Ciencias Sociales",
+      "niveles": [
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "CCSS-C1",
+          "numero_cneb": 17
+        },
+        {
+          "codigo": "CCSS-C2",
+          "numero_cneb": 18
+        },
+        {
+          "codigo": "CCSS-C3",
+          "numero_cneb": 19
+        }
+      ]
     }
   ],
   "transversales": []
