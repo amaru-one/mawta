@@ -182,3 +182,42 @@ func StudentOnClassRoster(ctx context.Context, tx pgx.Tx, classID, studentID uui
 		)`, classID, studentID, asOf).Scan(&ok)
 	return ok, err
 }
+
+// ClassIDForExperience resolves a learning experience to its class.
+func ClassIDForExperience(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID) (uuid.UUID, error) {
+	var classID uuid.UUID
+	err := tx.QueryRow(ctx,
+		`select class_id from learning_experiences where id = $1 and deleted_at is null`, experienceID).Scan(&classID)
+	return classID, err
+}
+
+// ClassIDForEvidence resolves a planned evidence to its class through its
+// experience.
+func ClassIDForEvidence(ctx context.Context, tx pgx.Tx, evidenceID uuid.UUID) (uuid.UUID, error) {
+	var classID uuid.UUID
+	err := tx.QueryRow(ctx, `
+		select le.class_id
+		  from planned_evidences pe
+		  join learning_experiences le on le.id = pe.experience_id and le.deleted_at is null
+		 where pe.id = $1 and pe.deleted_at is null`, evidenceID).Scan(&classID)
+	return classID, err
+}
+
+// ClassIDForCriterion resolves a criterio anchored to a learning experience
+// to that experience's class. A global criterio (no experience) returns
+// uuid.Nil and no error: it belongs to an área, not to a class, and is
+// authorized through SubjectIDForCriterion instead.
+func ClassIDForCriterion(ctx context.Context, tx pgx.Tx, criterionID uuid.UUID) (uuid.UUID, error) {
+	var classID *uuid.UUID
+	if err := tx.QueryRow(ctx, `
+		select le.class_id
+		  from evaluation_criteria ec
+		  left join learning_experiences le on le.id = ec.experience_id
+		 where ec.id = $1 and ec.deleted_at is null`, criterionID).Scan(&classID); err != nil {
+		return uuid.Nil, err
+	}
+	if classID == nil {
+		return uuid.Nil, nil
+	}
+	return *classID, nil
+}

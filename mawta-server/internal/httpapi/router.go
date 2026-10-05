@@ -81,6 +81,13 @@ func (a *API) Router() http.Handler {
 			r.Post("/classes/{classID}/competencies/{competencyID}/criteria", a.handleCreateCriterion)
 			r.Post("/criteria/{criterionID}/delete", a.handleDeleteCriterion)
 
+			// Term planning (docs/api-planificacion.md): learning experiences
+			// with their criteria, planned evidences and session outline.
+			r.Get("/classes/{classID}/plan", a.handleClassPlan)
+			r.Get("/classes/{classID}/curriculum", a.handleClassCurriculum)
+			r.Get("/classes/{classID}/calendar", a.handleClassCalendar)
+			r.Get("/experiences/{experienceID}", a.handleGetExperience)
+
 			r.Post("/sessions/{sessionID}/start", a.handleSessionStart)
 			r.Get("/sessions/{sessionID}", a.handleSessionRoster)
 			r.Put("/sessions/{sessionID}/attendance/{studentID}", a.handleAttendanceUpsert)
