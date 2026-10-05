@@ -2,9 +2,9 @@
 
 ## Scope and status
 
-This is an incremental transcription, not the complete requested catalog. Mathematics, Social Sciences, Personal Social, DPCC, and Physical Education have been transcribed: twelve competencies, 39 capacities, 96 standards, and 742 grade performances. The Personal Social and DPCC entries reference the same competency 1 and 16 files, each containing all eleven grades. The Social Sciences files include their primary Personal Social performances. Scan-punctuation readings are flagged below for review. Every included source page was rendered with pypdfium2 and read visually. Primary-program text and local macOS Vision OCR were used as drafts and corrected against the rendered pages. No Internet sources were used. Source spelling, punctuation, apparent errors, and differences between editions are retained.
+This is an incremental transcription, not the complete requested catalog. Mathematics, Social Sciences, Personal Social, DPCC, Physical Education, and the two transversal competencies have been transcribed: fourteen competencies, 46 capacities, 112 standards, and 742 grade performances. The transversals contain capacities and standards only, with no `desempenos` key. Pending areas: COM, CAS, ING, AYC, CYT, EPT, and ER. The Personal Social and DPCC entries reference the same competency 1 and 16 files, each containing all eleven grades. The Social Sciences files include their primary Personal Social performances. Scan-punctuation readings are flagged below for review. Every included source page was rendered with pypdfium2 and read visually. Primary-program text and local macOS Vision OCR were used as drafts and corrected against the rendered pages. No Internet sources were used. Source spelling, punctuation, apparent errors, and differences between editions are retained.
 
-Only `mawta-server/curriculum/cneb/` is changed. Work is on `data/cneb-catalog`, created from `main` at `4af29aa`. No Go code, seed changes, push, or merge.
+Catalog data is in `mawta-server/curriculum/cneb/`; this report has moved to `mawta-server/docs/cneb-transcription-report.md`. Links below are relative to this report. Work is on `data/cneb-catalog`, created from `main` at `4af29aa`. This continuation changes only the two transversal files, the area mapping, and this relocated report. Changes remain uncommitted; no staging, commit, push, or merge was performed.
 
 ## Source conventions
 
@@ -18,10 +18,10 @@ The CNEB order differs from the program order: `MAT-C3` is CNEB 26; `MAT-C4` is 
 
 | File | Competency | Capacities | Standards | CNEB capacity page | CNEB standard page |
 | --- | --- | ---: | ---: | ---: | ---: |
-| `c23.json` | Resuelve problemas de cantidad | 4 | 8 | 76 | 77 |
-| `c24.json` | Resuelve problemas de regularidad, equivalencia y cambio | 4 | 8 | 78 | 79 |
-| `c26.json` | Resuelve problemas de forma, movimiento y localización | 4 | 8 | 82 | 83 |
-| `c25.json` | Resuelve problemas de gestión de datos e incertidumbre | 4 | 8 | 80 | 81 |
+| [c23.json](../curriculum/cneb/competencias/c23.json) | Resuelve problemas de cantidad | 4 | 8 | 76 | 77 |
+| [c24.json](../curriculum/cneb/competencias/c24.json) | Resuelve problemas de regularidad, equivalencia y cambio | 4 | 8 | 78 | 79 |
+| [c26.json](../curriculum/cneb/competencias/c26.json) | Resuelve problemas de forma, movimiento y localización | 4 | 8 | 82 | 83 |
+| [c25.json](../curriculum/cneb/competencias/c25.json) | Resuelve problemas de gestión de datos e incertidumbre | 4 | 8 | 80 | 81 |
 
 | Competency | Grade | Performance count | Program | PDF source pages |
 | --- | --- | ---: | --- | --- |
@@ -76,9 +76,9 @@ The secondary area/order is verified on secondary PDF p. 43. `CCSS-C1`, `CCSS-C2
 
 | File | Competency | Capacities | Standards | CNEB capacity page | CNEB standard page |
 | --- | --- | ---: | ---: | ---: | ---: |
-| `c17.json` | Construye interpretaciones históricas | 3 | 8 | 64 | 65 |
-| `c18.json` | Gestiona responsablemente el espacio y el ambiente | 3 | 8 | 66 | 67 |
-| `c19.json` | Gestiona responsablemente los recursos económicos | 2 | 8 | 68 | 69 |
+| [c17.json](../curriculum/cneb/competencias/c17.json) | Construye interpretaciones históricas | 3 | 8 | 64 | 65 |
+| [c18.json](../curriculum/cneb/competencias/c18.json) | Gestiona responsablemente el espacio y el ambiente | 3 | 8 | 66 | 67 |
+| [c19.json](../curriculum/cneb/competencias/c19.json) | Gestiona responsablemente los recursos económicos | 2 | 8 | 68 | 69 |
 
 | Competency | Grade | Performance count | Program | PDF source pages |
 | --- | --- | ---: | --- | --- |
@@ -122,8 +122,8 @@ The primary area and competency order are verified on primary PDF p. 73 and its 
 
 | File | Competency | Capacities | Standards | CNEB capacity page | CNEB standard page |
 | --- | --- | ---: | ---: | ---: | ---: |
-| `c01.json` | Construye su identidad | 4 | 8 | 32 | 33 |
-| `c16.json` | Convive y participa democráticamente | 5 | 8 | 62 | 63 |
+| [c01.json](../curriculum/cneb/competencias/c01.json) | Construye su identidad | 4 | 8 | 32 | 33 |
+| [c16.json](../curriculum/cneb/competencias/c16.json) | Convive y participa democráticamente | 5 | 8 | 62 | 63 |
 
 | Competency | Grade | Performance count | Program | PDF source page |
 | --- | --- | ---: | --- | ---: |
@@ -172,9 +172,9 @@ The area is verified on primary PDF p. 111 and secondary p. 61. `EF-C1`, `EF-C2`
 
 | File | Competency | Capacities | Standards | CNEB capacity page | CNEB standard page |
 | --- | --- | ---: | ---: | ---: | ---: |
-| `c02.json` | Se desenvuelve de manera autónoma a través de su motricidad | 2 | 8 | 34 | 35 |
-| `c03.json` | Asume una vida saludable | 2 | 8 | 36 | 37 |
-| `c04.json` | Interactúa a través de sus habilidades sociomotrices | 2 | 8 | 38 | 39 |
+| [c02.json](../curriculum/cneb/competencias/c02.json) | Se desenvuelve de manera autónoma a través de su motricidad | 2 | 8 | 34 | 35 |
+| [c03.json](../curriculum/cneb/competencias/c03.json) | Asume una vida saludable | 2 | 8 | 36 | 37 |
+| [c04.json](../curriculum/cneb/competencias/c04.json) | Interactúa a través de sus habilidades sociomotrices | 2 | 8 | 38 | 39 |
 
 | Competency | Grade | Performance count | Program | PDF source page |
 | --- | --- | ---: | --- | ---: |
@@ -225,9 +225,27 @@ The area is verified on primary PDF p. 111 and secondary p. 61. `EF-C1`, `EF-C2`
 - **4, cycle IV:** primary p. 129 adds `sus` in `la inclusión de sus compañeros`; CNEB p. 39 says `la inclusión de compañeros`.
 - **4, cycles VI–VII:** secondary pp. 75–77 match CNEB p. 39.
 
-All six capacity names have no counterpart in `ejemplo-san-felipe.json`, which contains Mathematics, Social Sciences, and the two transversals only. The seed remains unchanged.
+All six capacity names have no counterpart in [ejemplo-san-felipe.json](../seed/onboarding/ejemplo-san-felipe.json), which contains Mathematics, Social Sciences, and the two transversals only. The seed remains unchanged.
 
 Source irregularities retained include CNEB p. 35 level 1 `sus posibilidades de movimientos las partes de su cuerpo`, primary p. 116 `arriba- abajo`, primary p. 123 `por el uso que se hacen` and the missing final period in third-grade performance 4, and secondary p. 70 `propone mejorar`. The directional pair `arriba- abajo` is an intentional source hyphen and is exempted from the residual word-break check. Secondary p. 75, first-grade performance 2, and p. 76, fourth-grade performance 3, contain short baseline marks in `promueve_la` and `para_mejorar`; these are retained as underscores and flagged for review against a clearer copy because punctuation versus scan noise is uncertain. Both passages were additionally inspected at 4× rendering scale. No unresolved word readings remain for this area.
+
+## Transversal inventory and sources
+
+The source is `RM_N_281-2016-MINEDU.pdf`. The supplied images were read visually from `/Users/amaru/.claude/jobs/9f285c91/tmp/cneb-pages/`: `p086.png`, `p087.png`, `p088.png`, and `p089.png`. Enlarged crops were used to verify small text. No OCR, remembered wording, or Internet sources were used for this continuation. Capacity names contain only each bullet's bold text before the colon. [areas.json](../curriculum/cneb/areas.json) maps `TR-C1` to 28 and `TR-C2` to 29.
+
+| File | Competency | Capacities | Standards | CNEB capacity page | CNEB standard page |
+| --- | --- | ---: | ---: | ---: | ---: |
+| [c28.json](../curriculum/cneb/competencias/c28.json) | Se desenvuelve en los entornos virtuales generados por las TIC | 4 | 8 | 86 | 87 |
+| [c29.json](../curriculum/cneb/competencias/c29.json) | Gestiona su aprendizaje de manera autónoma | 3 | 8 | 88 | 89 |
+
+Both files contain only `numero_cneb`, `nombre`, `capacidades`, and `estandares`. Neither contains `desempenos`. Level 8 transcribes the `DESTACADO` row. Neither competency has an independent level 1 description; each source note is retained verbatim as the level 1 text:
+
+- **28, PDF p. 87:** Este nivel tiene como base el nivel 1 de la competencia “Indaga mediante métodos científicos”.
+- **29, PDF p. 89:** Este nivel tiene como base principalmente el nivel 1 de la competencia “Construye su identidad”.
+
+### Transversal legibility and source irregularities
+
+No unresolved word or punctuation readings remain on PDF pp. 86–89 after visual review. Unusual source wording is retained without grammatical repair: p. 87 level 2 `que le permita`, and level 6 `que responde` and `de acuerdo sus procesos cognitivos`; p. 89 level 2 `por la escucha a la facilitación adulta`, level 3 `externas un proceso del trabajo`, level 4 `considerar realizar un ajuste`, and level 7 `recursos, escenarios basado` and `ajustes a los planes basado`. On p. 88, capacity 2 ends at `sus metas`; the longer wording in the seed is not substituted. These are legible source irregularities, not unresolved readings.
 
 ## Differences between CNEB standards and program cycle descriptions
 
@@ -283,7 +301,7 @@ The transcription retains primary p. 100 `referencia Ejemplo:` and `aire,suelo y
 
 Two punctuation readings need review against a clearer scan: secondary p. 48, competency 17, fourth-grade performance 2, has a small comma-like mark between `interpretaciones` and `que` (represented as `interpretaciones, que`); secondary p. 55, competency 18, fifth-grade performance 3, ends in an irregular point/dash mark (represented as `socioambiental.-`). The words are readable, but the exact punctuation cannot be established with full certainty from the supplied scan. No placeholder fields were added to JSON.
 
-## Comparison with `ejemplo-san-felipe.json`
+## Comparison with [ejemplo-san-felipe.json](../seed/onboarding/ejemplo-san-felipe.json)
 
 All 16 Mathematics capacity names were compared, in order. Twelve match exactly. Four differ:
 
@@ -296,7 +314,7 @@ All 16 Mathematics capacity names were compared, in order. Twelve match exactly.
 
 All eight Social Sciences capacity names were also compared. Seven match. `CCSS-C3-CAP1` differs: the seed says `Comprende las relaciones entre los elementos del sistema económico y financiero`; CNEB PDF p. 68 says `Comprende el funcionamiento del sistema económico y financiero`. The latter is retained. The primary and secondary programs use the seed wording (primary p. 108; secondary p. 56).
 
-The seed file is unchanged. Transversal comparisons remain pending until their source transcription is complete.
+All seven transversal capacity names were compared in order. Six match exactly. `TR-C2-CAP2` in the seed says `Organiza acciones estratégicas para alcanzar sus metas de aprendizaje`; CNEB PDF p. 88 says `Organiza acciones estratégicas para alcanzar sus metas`. The CNEB wording is retained. The seed file is unchanged.
 
 ## Legibility and source limitations
 
@@ -306,10 +324,10 @@ The supplied CNEB is **not a source containing 31 numbered competency descriptio
 
 ## Areas compared with the requested codes
 
-No missing or additional in-scope areas were found in the program tables of contents (primary PDF p. 9; secondary p. 3). Primary lists PS, EF, AYC, COM, CAS, ING, MAT, CYT, ER. Secondary lists DPCC, CCSS, EF, AYC, COM, CAS, ING, MAT, CYT, EPT, ER. Tutoría is excluded as instructed. Only completed areas are currently added to `areas.json`, so untranscribed competencies are not referenced.
+No missing or additional in-scope areas were found in the program tables of contents (primary PDF p. 9; secondary p. 3). Primary lists PS, EF, AYC, COM, CAS, ING, MAT, CYT, ER. Secondary lists DPCC, CCSS, EF, AYC, COM, CAS, ING, MAT, CYT, EPT, ER. Tutoría is excluded as instructed. Only completed areas are currently added to [areas.json](../curriculum/cneb/areas.json), so untranscribed competencies are not referenced.
 
 ## Validation and remaining work
 
-Validation ran from `/private/tmp/cneb-transcripcion/validate.py`, outside the repository. It checks JSON validity and duplicate keys; exact allowed key sets; unique codes and competency numbers; area/file references; consecutive capacities; exactly levels 1–8; valid grades and consecutive performance orders; all eleven grades for each included competency; whitespace, control characters, soft hyphens, and residual word-break hyphens. The included files pass structural validation: 12 competencies, 96 standards, 742 performances. This does not resolve the scan-punctuation questions documented above.
+The prior area validation ran from `/private/tmp/cneb-transcripcion/validate.py`, outside the repository. It checks JSON validity and duplicate keys; exact allowed key sets; unique codes and competency numbers; area/file references; consecutive capacities; exactly levels 1–8; valid grades and consecutive performance orders; all eleven grades for each included competency; whitespace, control characters, soft hyphens, and residual word-break hyphens. That validation covered the twelve area competencies: 96 standards and 742 performances. For this continuation, a separate Python structural check validates all fourteen competency files and area/transversal references, allowing the four-key schema without performances only for competencies 28 and 29. Current totals are 14 competencies, 46 capacities, 112 standards, and 742 performances. The new files also pass duplicate-key, consecutive-number, whitespace, control-character, and residual word-break checks; the area entries and prior competency files are unchanged. This does not resolve the scan-punctuation questions documented above.
 
-The full-catalog presence check is explicitly **incomplete**, not passing: competencies 5–15, 20–22, and 27–31 are absent (19 of the requested 31 remain). Completed area checkpoints: MAT, CCSS, PS, DPCC, and EF. Next: AYC, COM, CAS, ING, CYT, EPT, ER, and the two transversals; add each completed area entry without duplicating shared competency files. Their source pages, counts, legibility checks, and standard/seed comparisons remain to be completed. Resolve the Religious Education numbering/source discrepancy before claiming all 31 CNEB-numbered files.
+The full-catalog presence check is explicitly **incomplete**, not passing: competencies 5–15, 20–22, 27, 30, and 31 are absent (17 of the requested 31 remain). Completed area checkpoints: MAT, CCSS, PS, DPCC, and EF; transversal competencies 28 and 29 are complete for capacities and standards. Pending areas: COM, CAS, ING, AYC, CYT, EPT, and ER; add each completed area entry without duplicating shared competency files. Their source pages, counts, legibility checks, and standard/seed comparisons remain to be completed. Resolve the Religious Education numbering/source discrepancy before claiming all 31 CNEB-numbered files.
