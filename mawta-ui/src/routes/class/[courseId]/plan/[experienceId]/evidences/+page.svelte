@@ -24,7 +24,6 @@
 		getGeneration,
 		updateEvidence,
 	} from '$lib/api/endpoints/planning';
-	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
@@ -213,10 +212,9 @@
 
 	// ---- remove, with "Deshacer" ----
 
-	let deletingId = $state<string | null>(null);
-
+	// No confirmation: "Deshacer" in the toast is the way back.
 	async function remove(id: string): Promise<void> {
-		deletingId = null;
+		hapticTap();
 		const target = evidences.find((evidence) => evidence.id === id);
 		if (!target) return;
 		try {
@@ -225,6 +223,8 @@
 			await reload();
 			showToast('Evidencia quitada', {
 				onUndo: () => void restore(target),
+				undoLabel: 'Deshacer',
+				durationMs: 4000,
 			});
 		} catch {
 			showToast('No se pudo quitar la evidencia');
@@ -358,13 +358,7 @@
 									</button>
 								{/if}
 								<button class="mini pressable" onclick={() => openEdit(evidence)}>Editar</button>
-								<button
-									class="mini quiet pressable"
-									onclick={() => {
-										hapticTap();
-										deletingId = evidence.id;
-									}}
-								>
+								<button class="mini quiet pressable" onclick={() => void remove(evidence.id)}>
 									<Icon name="trash" size={13} /> Quitar
 								</button>
 							</div>
@@ -463,16 +457,6 @@
 		</div>
 	{/if}
 {/snippet}
-
-{#if deletingId}
-	<ConfirmDialog
-		title="¿Quitar esta evidencia?"
-		text="La sesión donde estaba ubicada la conserva, sin la evidencia."
-		confirmLabel="Quitar"
-		onconfirm={() => void remove(deletingId ?? '')}
-		oncancel={() => (deletingId = null)}
-	/>
-{/if}
 
 <style>
 	/* The question is long; the title shrinks as the criteria screen's does. */
