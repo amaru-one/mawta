@@ -1,0 +1,1696 @@
+<!doctype html>
+<html lang="es" data-theme="nitido">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Planificación del trimestre · Nítido</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap" />
+<style>
+/* Tokens copiados de mawta-ui/src/app.css para que el borrador se vea como Mawta. */
+:root {
+	--surface-1: #e8eaf7;
+	--surface-2: #ffffff;
+	--border: #e4e6f4;
+	--border-strong: #b2b7d2;
+	--text-primary: #4a5fd6;
+	--text-secondary: #545a9c;
+	--text-muted: #6f74a4;
+	--text-faint: #a3a8c8;
+	--ink-deep: #2c3178;
+	--fill-accent: #5b5fc7;
+	--text-accent: #5b5fc7;
+	--bg-accent: rgba(91, 95, 199, 0.12);
+	--aurora-1: #7c9bff;
+	--aurora-2: #7cf7d9;
+	--aurora-deep: #4a5fd6;
+	--aurora-tint: #f2f3fb;
+	--hair: rgba(74, 95, 214, 0.14);
+	--gradient-action: linear-gradient(120deg, var(--aurora-deep), var(--aurora-1));
+	--gradient-tile: linear-gradient(135deg, var(--aurora-1), var(--aurora-2));
+	--shadow-action: 0 12px 26px rgba(74, 95, 214, 0.32);
+	--bg-danger: rgba(44, 49, 120, 0.08);
+	--on-primary: #ffffff;
+	--font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+	--font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+	--font-display: var(--font-sans);
+	--radius: 10px;
+	--radius-lg: 12px;
+	--shadow-lg: 0 10px 15px rgba(35, 40, 90, 0.12);
+	--shell-width: 480px;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+	margin: 0; padding: 0;
+	background: var(--surface-1);
+	color: var(--text-primary);
+	font-family: var(--font-sans);
+	font-size: 16px; line-height: 1.5;
+	-webkit-font-smoothing: antialiased;
+}
+button { font-family: inherit; font-size: inherit; border: none; background: none; padding: 0; color: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; color: var(--text-primary); }
+.ic { width: 1em; height: 1em; flex-shrink: 0; display: inline-block; vertical-align: -0.125em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- Marco del prototipo (fuera del teléfono) ---------- */
+.proto { display: flex; gap: 32px; justify-content: center; align-items: flex-start; padding: 24px 16px 48px; }
+.notes { width: 320px; flex-shrink: 0; position: sticky; top: 24px; }
+.notes h1 { margin: 0 0 4px; font-size: 22px; letter-spacing: -0.02em; line-height: 1.15; }
+.notes .kicker { margin: 0 0 16px; font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+.steps { display: flex; flex-direction: column; gap: 4px; margin: 0 0 18px; padding: 0; list-style: none; }
+.steps button { width: 100%; text-align: left; padding: 9px 12px; border-radius: 12px; font-size: 14px; font-weight: 600; color: var(--text-secondary); display: flex; gap: 10px; align-items: center; }
+.steps button .n { width: 22px; height: 22px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--border); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-family: var(--font-mono); flex-shrink: 0; }
+.steps button[aria-current="step"] { background: var(--surface-2); color: var(--aurora-deep); box-shadow: 0 1px 2px rgba(35,40,90,0.06); }
+.steps button[aria-current="step"] .n { background: var(--gradient-action); color: #fff; border-color: transparent; }
+.pager { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 18px; }
+.pager button { display: inline-flex; align-items: center; gap: 6px; }
+.note-card { background: var(--surface-2); border-radius: 16px; padding: 14px 16px; font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+.note-card p { margin: 0 0 8px; }
+.note-card ul { margin: 0; padding-left: 18px; }
+.note-card li { margin-bottom: 4px; }
+.note-card .dec { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+.disclaimer { margin-top: 12px; font-size: 11px; color: var(--text-muted); line-height: 1.45; }
+
+.phone { width: 100%; max-width: var(--shell-width); flex-shrink: 0; background: var(--surface-2); border-radius: 28px; overflow: hidden; box-shadow: var(--shadow-lg); min-height: 860px; position: relative; }
+@media (max-width: 860px) {
+	.proto { flex-direction: column; align-items: center; padding: 16px 0 32px; gap: 16px; }
+	.notes { width: 100%; max-width: var(--shell-width); position: static; padding: 0 16px; }
+	.notes .note-card, .notes .disclaimer { display: none; }
+	.phone { border-radius: 0; box-shadow: none; min-height: 100vh; }
+	.steps { flex-direction: row; overflow-x: auto; }
+	.steps button { white-space: nowrap; }
+}
+
+/* ---------- Primitivas de Mawta ---------- */
+.topbar { background: var(--surface-1); border-bottom: 1px solid var(--hair); height: 64px; padding: 0 10px; display: flex; align-items: center; gap: 8px; }
+.nav { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; color: var(--text-secondary); flex-shrink: 0; }
+.identity { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; padding-left: 2px; }
+.avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: var(--aurora-deep); flex-shrink: 0; }
+.who { display: flex; flex-direction: column; min-width: 0; }
+.who .name { font-weight: 600; font-size: 15px; line-height: 1.3; color: var(--text-secondary); }
+.who .school { font-size: 12px; line-height: 1.3; color: var(--text-muted); }
+
+.body { padding: 18px 20px 28px; }
+.eyebrow { margin: 0 0 10px; font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+.section { margin-top: 26px; }
+.screen-title { margin: 0; padding-bottom: 14px; border-bottom: 1.5px solid var(--text-primary); font-size: 34px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+.screen-title.sm { font-size: 24px; }
+.screen-sub { margin: 10px 0 0; font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); text-transform: uppercase; }
+.card { background: var(--surface-2); border: 0.5px solid var(--border); border-radius: var(--radius-lg); }
+.context-card { background: var(--aurora-tint); border-radius: 16px; padding: 12px 14px; }
+.meta { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
+.row { display: flex; align-items: center; gap: 12px; }
+.grow { flex: 1; min-width: 0; }
+.icon-tile { width: 38px; height: 38px; border-radius: 11px; background: var(--gradient-tile); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; }
+.btn-block { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; border-radius: 999px; font-size: 15px; font-weight: 700; background: var(--surface-2); color: var(--aurora-deep); border: 1.5px solid var(--aurora-deep); }
+.btn-block.btn-primary { border: none; padding: 16px; }
+.btn-block.btn-primary { background: var(--gradient-action); color: var(--on-primary); box-shadow: var(--shadow-action); }
+.pill-dark { background: var(--gradient-action); color: var(--on-primary); padding: 9px 16px; border-radius: 999px; font-size: 13px; font-weight: 700; box-shadow: 0 8px 18px rgba(74, 95, 214, 0.26); }
+.pill-light { background: var(--aurora-tint); color: var(--aurora-deep); padding: 9px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; }
+.link { color: var(--aurora-deep); font-size: 13px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--hair); }
+.pressable { transition: transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 150ms ease-out; user-select: none; touch-action: manipulation; }
+.pressable:active { transform: scale(0.95); opacity: 0.9; }
+.footer-action { padding: 8px 20px 28px; }
+
+/* Marca de lo sugerido por el asistente: el acento de IA de Mawta. */
+.ai-star { color: var(--text-accent); }
+
+/* ---------- Reemplazos de los chips (v9) ---------- */
+/* 1. Medidor de cobertura: un segmento por capacidad, con su nombre debajo. */
+.meter { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: 6px; margin-top: 6px; }
+.meter-seg { display: flex; flex-direction: column; gap: 5px; font-size: 11px; line-height: 1.25; color: var(--text-muted); }
+.meter-seg::before { content: ''; height: 4px; border-radius: 2px; background: var(--border-strong); opacity: .45; }
+.meter-seg.ok { color: var(--aurora-deep); font-weight: 600; }
+.meter-seg.ok::before { background: var(--gradient-action); opacity: 1; }
+/* 2. Línea de texto en lugar de etiquetas sueltas. */
+.text-line { margin: 8px 0 0; font-size: 12px; line-height: 1.45; color: var(--text-muted); }
+.text-line b { color: var(--text-secondary); font-weight: 600; }
+/* 3. Lista de criterios dentro de una evidencia. */
+.ev-crit { margin: 10px 0 0; padding: 0; list-style: none; }
+.ev-crit .grp { margin: 8px 0 2px; font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+.ev-crit li { display: flex; gap: 8px; padding: 5px 0; border-top: 0.5px solid var(--hair); font-size: 12.5px; line-height: 1.35; color: var(--text-secondary); }
+.ev-crit li .crit-code { padding-top: 0; flex-shrink: 0; width: 22px; }
+.ev-crit li span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* 4. Evidencia de una sesión: ícono y texto, sin fondo. */
+.ev-line { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 12px; font-weight: 700; color: var(--aurora-deep); }
+/* 5. Estado con marcador al inicio de la fila. */
+.mark { width: 14px; height: 14px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; color: var(--aurora-deep); }
+.mark.due::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--ink-deep); }
+.mark.calm::before { content: ''; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--text-faint); }
+/* 6. Punto de novedad. */
+.new-dot { display: inline-block; width: 8px; height: 8px; margin-left: 8px; border-radius: 50%; background: var(--gradient-action); vertical-align: 3px; }
+/* 7. Control segmentado para opciones únicas. */
+.seg { display: flex; padding: 3px; border-radius: 12px; background: var(--aurora-tint); }
+.seg button { flex: 1; padding: 8px 6px; border-radius: 9px; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); }
+.seg button[aria-pressed="true"] { background: var(--surface-2); color: var(--aurora-deep); font-weight: 700; box-shadow: 0 1px 3px rgba(35,40,90,.12); }
+.perf-grp { margin: 14px 0 0; }
+.perf-grp:first-of-type { margin-top: 4px; }
+
+/* ---------- Pantalla 1: línea de tiempo ---------- */
+.timeline { --cols: 12; }
+.tl-head, .tl-track { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: 3px; }
+.tl-head span { text-align: center; font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); }
+.tl-track { margin-top: 6px; min-height: 46px; position: relative; }
+.tl-week { grid-row: 1; height: 46px; border-radius: 8px; background: var(--aurora-tint); }
+.tl-block { grid-row: 1; height: 46px; border-radius: 8px; background: var(--gradient-action); color: #fff; font-size: 11px; font-weight: 700; padding: 6px 8px; line-height: 1.2; overflow: hidden; box-shadow: 0 6px 14px rgba(74,95,214,0.22); z-index: 1; }
+.tl-block.ghost { background: var(--surface-2); color: var(--text-accent); border: 1.5px dashed var(--fill-accent); box-shadow: none; }
+.tl-block small { display: block; font-weight: 500; opacity: 0.85; font-family: var(--font-mono); font-size: 9.5px; margin-top: 2px; }
+.tl-vac { grid-row: 1; height: 46px; border-radius: 8px; background: repeating-linear-gradient(135deg, var(--surface-1) 0 6px, var(--aurora-tint) 6px 12px); color: var(--text-muted); font-size: 10px; font-family: var(--font-mono); display: flex; align-items: center; justify-content: center; z-index: 1; }
+.tl-marks { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: 3px; margin-top: 4px; height: 10px; }
+.tl-marks i { justify-self: center; width: 6px; height: 6px; border-radius: 50%; background: var(--text-faint); }
+.legend { display: flex; gap: 14px; margin-top: 10px; font-size: 11px; color: var(--text-muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+.comp-row { padding: 13px 2px; border-bottom: 0.5px solid var(--border); }
+.comp-row:first-child { border-top: 0.5px solid var(--border); }
+.comp-name { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.3; }
+.status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.status-dot.on { background: var(--gradient-action); }
+.status-dot.off { border: 1.5px solid var(--text-faint); }
+
+.suggest { padding: 16px; margin-top: 12px; }
+.suggest h3 { margin: 0; font-size: 18px; letter-spacing: -0.01em; line-height: 1.2; }
+.suggest p { margin: 8px 0 0; font-size: 13px; color: var(--text-secondary); line-height: 1.45; }
+.suggest .actions { display: flex; gap: 8px; margin-top: 14px; }
+
+/* ---------- Camino (fijo arriba) ---------- */
+.path { position: sticky; top: 0; z-index: 5; background: var(--aurora-tint); border-bottom: 1px solid var(--hair); padding: 10px 20px; }
+.path-head { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; }
+.path-title { font-size: 13px; font-weight: 700; flex: 1; min-width: 0; }
+.path-sum { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
+.path-tree { margin: 8px 0 2px; padding: 0; list-style: none; }
+.path-tree li { position: relative; padding: 4px 0 4px 18px; font-size: 12.5px; color: var(--text-secondary); }
+.path-tree li::before { content: ''; position: absolute; left: 5px; top: 0; bottom: 0; border-left: 1px solid var(--hair); }
+.path-tree li::after { content: ''; position: absolute; left: 5px; top: 13px; width: 8px; border-top: 1px solid var(--hair); }
+.path-tree li.current { color: var(--aurora-deep); font-weight: 700; }
+.state { font-family: var(--font-mono); font-size: 10px; margin-left: 6px; color: var(--text-muted); font-weight: 400; }
+
+/* ---------- Pantalla 2 ---------- */
+.title-input { width: 100%; border: none; border-bottom: 1.5px solid var(--text-primary); padding: 0 0 14px; font-size: 30px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; background: transparent; }
+.title-input:focus { outline: none; border-bottom-color: var(--aurora-1); }
+.field { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); font-size: 14px; line-height: 1.45; resize: vertical; background: var(--surface-2); }
+.label-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.label-row .eyebrow { margin: 0; }
+.comp-pick { display: flex; flex-direction: column; gap: 8px; }
+.comp-opt { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--border); text-align: left; font-size: 14px; font-weight: 600; color: var(--text-secondary); }
+.comp-opt[aria-pressed="true"] { border-color: var(--aurora-deep); background: var(--aurora-tint); color: var(--aurora-deep); }
+.check { width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid var(--border-strong); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 13px; }
+.comp-opt[aria-pressed="true"] .check { background: var(--gradient-action); border-color: transparent; color: #fff; }
+.chev { transition: transform 150ms; color: var(--text-muted); display: inline-flex; }
+
+/* ---------- Pantalla 3 ---------- */
+.notice { display: flex; gap: 10px; align-items: flex-start; background: var(--bg-accent); border-radius: var(--radius); padding: 10px 12px; margin-top: 12px; font-size: 13px; color: var(--text-secondary); }
+.notice .ic { color: var(--text-accent); margin-top: 2px; }
+.notice .pill-dark { margin-top: 8px; display: inline-flex; gap: 6px; align-items: center; }
+.crit { padding: 14px; margin-top: 10px; }
+.crit.mine { border-color: var(--border-strong); }
+.crit-top { display: flex; gap: 8px; align-items: flex-start; }
+.crit-code { font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--text-muted); padding-top: 2px; }
+.crit-text { margin: 0; font-size: 14px; line-height: 1.4; color: var(--text-primary); flex: 1; }
+.crit-meta { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.origin { font-size: 11px; color: var(--text-muted); }
+.origin button { color: var(--aurora-deep); text-decoration: underline; text-underline-offset: 2px; text-decoration-color: var(--hair); font-size: 11px; }
+.origin-text { margin-top: 8px; font-size: 12px; line-height: 1.45; color: var(--text-muted); border-left: 2px solid var(--hair); padding-left: 10px; }
+/* v10: acciones como texto con ícono, en una barra al pie de la tarjeta (no chips). */
+.crit-actions { display: flex; align-items: center; gap: 20px; margin: 12px -14px -14px; padding: 2px 14px; border-top: 0.5px solid var(--border); }
+.mini { font-size: 13.5px; font-weight: 600; padding: 10px 0; color: var(--text-secondary); display: inline-flex; gap: 6px; align-items: center; background: none; }
+.mini.go { color: var(--aurora-deep); font-weight: 800; }
+.mini.quiet { color: var(--text-muted); margin-left: auto; }
+.perf .mini, .sess .crit-actions .mini { padding: 6px 0; }
+.sess .crit-actions { margin: 6px 0 0; padding: 0; border-top: none; }
+.text-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 0; font-size: 13.5px; font-weight: 700; color: var(--aurora-deep); }
+.text-btn:disabled { opacity: .4; }
+.paths { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 14px; }
+.drawer { margin-top: 12px; padding: 12px; }
+.perf { padding: 10px 0; border-top: 0.5px solid var(--border); font-size: 12.5px; line-height: 1.45; color: var(--text-secondary); display: flex; gap: 10px; align-items: flex-start; }
+.perf:first-of-type { border-top: none; }
+.ev-row { padding: 12px 0; border-top: 0.5px solid var(--border); }
+.ev-row:first-of-type { border-top: 0.5px solid var(--border); }
+.ev-name { font-size: 14px; font-weight: 700; }
+
+/* ---------- Pantalla 4 ---------- */
+.sess { display: flex; gap: 14px; padding: 12px 0; border-bottom: 0.5px solid var(--border); }
+.sess:first-of-type { border-top: 0.5px solid var(--border); }
+.sess-date { width: 44px; text-align: center; flex-shrink: 0; }
+.sess-day { display: block; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; color: var(--aurora-deep); }
+.sess-mon { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); text-transform: uppercase; }
+.sess-title { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.3; border: none; padding: 0; width: 100%; background: transparent; }
+.sess-title:focus { outline: none; border-bottom: 1px solid var(--aurora-deep); }
+.sess .meta { margin-top: 3px; }
+.sess.off .sess-day { color: var(--text-faint); }
+.sess.off .sess-title { color: var(--text-faint); text-decoration: line-through; }
+
+/* ---------- Pantalla 5 ---------- */
+.sum-row { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-top: 1px solid var(--hair); font-size: 13px; }
+.sum-row:first-child { border-top: none; }
+.sum-row span:last-child { font-weight: 700; text-align: right; }
+.empty { font-size: 13px; color: var(--text-muted); margin: 0; }
+
+/* ---------- Inicio (agenda del día, como la pantalla actual) ---------- */
+.day-title { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+.strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 14px; }
+.strip span { text-align: center; padding: 8px 0; border-radius: 12px; background: var(--aurora-tint); font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
+.strip span b { display: block; font-family: var(--font-sans); font-size: 17px; color: var(--aurora-deep); }
+.strip span.on { background: var(--gradient-action); color: rgba(255,255,255,.8); }
+.strip span.on b { color: #fff; }
+.plan-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--hair); font-size: 14px; font-weight: 700; }
+.agenda { margin-top: 22px; }
+.ablock { display: flex; gap: 14px; padding: 12px 0; border-top: 0.5px solid var(--border); }
+.ablock .h { width: 48px; font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); padding-top: 2px; }
+.ablock .t { font-size: 15px; font-weight: 700; }
+
+/* ---------- Panel de la clase (como /class/[id]) ---------- */
+.hero { display: block; margin: 18px 0 8px; padding: 16px 20px; border-radius: 20px; background: var(--gradient-action); color: #fff; box-shadow: var(--shadow-action); }
+.hero-lbl { margin: 0; font-size: 11px; letter-spacing: .08em; color: rgba(255,255,255,.72); font-family: var(--font-mono); text-transform: uppercase; }
+.hero-time { margin: 2px 0 0; font-size: 30px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; }
+.hero-topic { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.9); }
+.quiet-row { display: flex; align-items: center; gap: 12px; padding: 15px 2px; border-bottom: 0.5px solid var(--border); width: 100%; text-align: left; }
+.quiet-row:first-child { border-top: 0.5px solid var(--border); }
+.quiet-t { flex: 1; font-size: 16px; font-weight: 700; letter-spacing: -0.01em; }
+.quiet-d { display: block; margin-top: 2px; font-size: 12px; font-weight: 400; color: var(--text-muted); }
+.timeline.mini .tl-track, .timeline.mini .tl-week, .timeline.mini .tl-block, .timeline.mini .tl-vac { height: 14px; min-height: 14px; border-radius: 4px; padding: 0; font-size: 0; box-shadow: none; }
+.timeline.mini .tl-head, .timeline.mini .tl-marks, .timeline.mini .legend { display: none; }
+
+/* ---------- Primera vez ---------- */
+
+/* ---------- Hoja inferior, carga y error ---------- */
+.skel { border-radius: 12px; background: linear-gradient(90deg, var(--aurora-tint) 25%, var(--surface-1) 50%, var(--aurora-tint) 75%); background-size: 200% 100%; animation: shimmer 1.2s linear infinite; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .skel { animation: none; } }
+.field:focus { outline: none; border-color: var(--aurora-deep); }
+
+
+/* ---------- Crear experiencia ---------- */
+.stepper { display: inline-flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 999px; background: var(--aurora-tint); font-size: 13px; color: var(--text-secondary); }
+.stepper button { width: 30px; height: 30px; border-radius: 50%; background: var(--surface-2); color: var(--aurora-deep); font-size: 18px; font-weight: 700; line-height: 1; }
+.stepper button:disabled { opacity: .35; cursor: default; }
+.capgroup { border: 1px solid var(--border); border-radius: 16px; padding: 12px 14px 6px; margin-top: 10px; }
+.capgroup.on { border-color: var(--aurora-deep); background: var(--aurora-tint); }
+.caprow { display: flex; align-items: flex-start; gap: 10px; width: 100%; text-align: left; padding: 9px 0; border-top: 0.5px solid var(--hair); font-size: 13.5px; color: var(--text-secondary); line-height: 1.35; }
+.caprow[aria-pressed="true"] { color: var(--aurora-deep); font-weight: 600; }
+.caprow[aria-pressed="true"] .check { background: var(--gradient-action); border-color: transparent; color: #fff; }
+.comprow { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 4px 0; }
+.comprow[aria-pressed="true"] .check { background: var(--gradient-action); border-color: transparent; color: #fff; }
+.caprow.sub { padding-left: 30px; }
+.track-row { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; border-top: 1px solid var(--hair); font-size: 12.5px; color: var(--text-secondary); line-height: 1.4; }
+.info-row { padding: 10px 0; border-top: 1px solid var(--hair); }
+.info-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 14px; }
+.info-txt { margin: 3px 0 0; font-size: 12.5px; color: var(--text-muted); line-height: 1.4; }
+.status { font-size: 12px; font-weight: 600; white-space: nowrap; }
+.status.due { color: var(--ink-deep); font-weight: 800; }
+.status.ok { color: var(--aurora-deep); }
+.status.calm { color: var(--text-muted); }
+/* v10: campos de formulario visibles con su etiqueta. */
+.f-label { display: block; margin: 0 0 6px; font-size: 13px; font-weight: 700; color: var(--text-secondary); }
+.f-help { margin: 6px 0 0; font-size: 12px; color: var(--text-muted); }
+.f-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.field.lg { font-size: 16px; font-weight: 600; }
+.field.box { padding: 2px 14px; }
+.field.box .caprow:first-child { border-top: none; }
+.situation-text { width: 100%; border: none; border-left: 3px solid var(--aurora-1); padding: 2px 0 2px 14px; font-size: 18px; line-height: 1.5; color: var(--text-primary); background: transparent; resize: vertical; }
+.situation-text:focus { outline: none; border-left-color: var(--aurora-deep); }
+.comp-text { margin: 0; font-size: 14px; line-height: 1.55; color: var(--text-secondary); }
+.comp-edit { margin-top: 8px; border-top: 0.5px solid var(--hair); }
+.empty-box { padding: 16px; border-radius: 14px; border: 1px dashed var(--border-strong); text-align: center; font-size: 14px; color: var(--text-secondary); }
+.empty-box p { margin: 0; }
+.empty-box .meta { margin-top: 4px; }
+.sess.empty-slot { align-items: center; }
+.comp-nav { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--aurora-tint); border-bottom: 1px solid var(--hair); font-size: 15px; }
+.comp-nav .nav { background: var(--surface-2); color: var(--aurora-deep); }
+.comp-nav .nav:disabled { opacity: .35; cursor: default; }
+.track-txt { display: block; font-size: 12.5px; color: var(--text-muted); margin-top: 1px; }
+.cap-section { padding: 12px 0 14px; border-top: 0.5px solid var(--border); }
+.cap-head { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; color: var(--text-secondary); line-height: 1.35; }
+.origin.from { display: block; text-align: left; margin-top: 8px; font-size: 12px; line-height: 1.45; color: var(--text-muted); border-left: 2px solid var(--hair); padding-left: 10px; }
+.exp-row { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-top: 0.5px solid var(--border); }
+.exp-row:last-child { border-bottom: 0.5px solid var(--border); }
+.exp-date { width: 56px; flex-shrink: 0; font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-align: center; }
+.exp-date b { display: block; font-family: var(--font-sans); font-size: 15px; color: var(--aurora-deep); }
+
+/* ---------- Calendario de conteo de clases ---------- */
+.cal { display: grid; grid-template-columns: 34px repeat(5, 1fr); gap: 4px; margin-top: 10px; font-size: 11px; text-align: center; }
+.cal .hd { font-family: var(--font-mono); color: var(--text-muted); font-size: 10px; }
+.cal .wk { font-family: var(--font-mono); color: var(--text-muted); font-size: 10px; align-self: center; }
+.cal .d { padding: 7px 0; border-radius: 8px; background: var(--surface-1); color: var(--text-faint); font-weight: 600; }
+.cal .d.cls { background: var(--gradient-action); color: #fff; }
+.cal .d.dbl { box-shadow: inset 0 0 0 2px var(--aurora-2); }
+.cal .d.off { background: transparent; border: 1px dashed var(--border-strong); color: var(--text-muted); text-decoration: line-through; }
+.more { width: 100%; padding: 10px 0; border-bottom: 0.5px solid var(--border); font-size: 12px; font-weight: 700; color: var(--aurora-deep); font-family: var(--font-mono); }
+
+.toast { position: fixed; left: 50%; bottom: 150px; transform: translateX(-50%); background: var(--ink-deep); color: #fff; font-size: 13px; font-weight: 600; padding: 10px 16px; border-radius: 999px; box-shadow: var(--shadow-lg); opacity: 0; pointer-events: none; transition: opacity 200ms; z-index: 40; white-space: nowrap; display: flex; gap: 14px; align-items: center; }
+.toast.show { opacity: 1; pointer-events: auto; }
+.toast button { color: var(--aurora-2); font-weight: 800; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* ================================================================
+   v11 · TRES DIRECCIONES VISUALES
+   Cada una redefine los mismos tokens; las pantallas no cambian.
+   ================================================================ */
+.screen-title, .day-title, .hero-time, .sess-day, .suggest h3, .notes h1, .comp-nav b { font-family: var(--font-display); }
+
+
+/* ---------- B · NÍTIDO: limpio, moderno, tipo herramienta pro ---------- */
+html[data-theme="nitido"] {
+	--surface-1: #F4F5F8; --surface-2: #FFFFFF;
+	--border: #E4E7EC; --border-strong: #8C95A6;
+	--text-primary: #0F172A; --text-secondary: #334155; --text-muted: #5B6678; --text-faint: #8C95A6;
+	--ink-deep: #0F172A;
+	--fill-accent: #4F46E5; --text-accent: #4F46E5; --bg-accent: #EEF0FF;
+	--aurora-1: #6366F1; --aurora-2: #A5B4FC; --aurora-deep: #4F46E5; --aurora-tint: #EEF0FF;
+	--hair: rgba(15, 23, 42, 0.08);
+	--gradient-action: linear-gradient(#4F46E5, #4F46E5);
+	--gradient-tile: linear-gradient(#0F172A, #0F172A);
+	--shadow-action: 0 1px 2px rgba(15, 23, 42, 0.12), 0 4px 12px rgba(79, 70, 229, 0.22);
+	--font-sans: 'Plus Jakarta Sans', Arial, sans-serif; --font-mono: 'Plus Jakarta Sans', Arial, sans-serif; --font-display: 'Plus Jakarta Sans', Arial, sans-serif;
+	--radius: 10px; --radius-lg: 14px; --success: #0F766E; --attention: #B45309; --danger: #B42318;
+	--shadow-lg: 0 1px 3px rgba(15, 23, 42, 0.08), 0 24px 48px rgba(15, 23, 42, 0.10);
+}
+html[data-theme="nitido"] .screen-title { border-bottom: none; padding-bottom: 0; font-weight: 800; letter-spacing: -0.035em; }
+html[data-theme="nitido"] .topbar { background: var(--surface-2); border-bottom: 1px solid var(--border); }
+html[data-theme="nitido"] .card { border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05); }
+html[data-theme="nitido"] .context-card { background: var(--surface-1); border: 1px solid var(--border); }
+html[data-theme="nitido"] .path { background: rgba(255,255,255,.88); backdrop-filter: blur(10px); }
+html[data-theme="nitido"] .btn-block { border-radius: 12px; border-width: 1px; border-color: var(--border-strong); color: var(--text-primary); }
+html[data-theme="nitido"] .btn-block.btn-primary { color: #fff; }
+html[data-theme="nitido"] .field { border-radius: 10px; border-color: var(--border-strong); }
+html[data-theme="nitido"] .eyebrow, html[data-theme="nitido"] .screen-sub { letter-spacing: .04em; font-weight: 700; }
+html[data-theme="nitido"] .meter-seg::before { height: 6px; border-radius: 3px; }
+html[data-theme="nitido"] .hero { background: #0F172A; box-shadow: none; border-radius: 16px; }
+
+html[data-theme="nitido"] .status.ok, html[data-theme="nitido"] .mark { color: var(--success); }
+html[data-theme="nitido"] .status.due { color: var(--attention); }
+html[data-theme="nitido"] .mark.due::before { background: var(--attention); }
+html[data-theme="nitido"] .notice { border-radius: 14px; }
+html[data-theme="nitido"] .card { border-radius: 14px; }
+html[data-theme="nitido"] .mini.go { color: var(--aurora-deep); }
+html[data-theme="nitido"] .toast { border-radius: 999px; }
+html[data-theme="nitido"] .toast button { color: #A5B4FC; }
+html[data-theme="nitido"] .check { border-color: var(--border-strong); }
+html[data-theme="nitido"] .field:focus { outline: 2px solid var(--aurora-deep); outline-offset: 1px; }
+</style>
+</head>
+<body>
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+	<symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7" /><path d="M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9" /></symbol>
+	<symbol id="i-bell" viewBox="0 0 24 24"><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3H4a4 4 0 0 0 2-3v-3a7 7 0 0 1 4-6" /><path d="M9 17v1a3 3 0 0 0 6 0v-1" /></symbol>
+	<symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M5 12h14" /><path d="M5 12l6 6" /><path d="M5 12l6-6" /></symbol>
+	<symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></symbol>
+	<symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" /></symbol>
+	<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5 9-9" /></symbol>
+	<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12" /><path d="M18 6L6 18" /></symbol>
+	<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14" /><path d="M5 12h14" /></symbol>
+	<symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z" /><path d="M18 15l.7 2.3L21 18l-2.3.7L18 21l-.7-2.3L15 18l2.3-.7z" /></symbol>
+	<symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="15" rx="2" /><path d="M4 11h16" /><path d="M8 3v4" /><path d="M16 3v4" /></symbol>
+	<symbol id="i-clipboard-check" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" /><rect x="9" y="3" width="6" height="4" rx="2" /><path d="M9 14l2 2 4-4" /></symbol>
+	<symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 9v4" /><path d="M10.2 4l-8.4 14A2 2 0 0 0 3.5 21h17a2 2 0 0 0 1.7-3l-8.4-14a2 2 0 0 0-3.4 0z" /><path d="M12 17h.01" /></symbol>
+	<symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12" /><path d="M9 7V4h6v3" /></symbol>
+	<symbol id="i-book" viewBox="0 0 24 24"><path d="M19 4v16H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" /><path d="M9 8h6" /></symbol>
+</svg>
+
+<div class="proto">
+	<aside class="notes">
+		<h1>Planificación del trimestre</h1>
+		<!-- v12: tema Nítido (Índigo) del design system Mawta Nítido; sin selector de estilos. -->
+	<!-- v10: botones como acciones de texto (no chips), campos visibles en Revisar la experiencia, sin ajustes por estudiante. -->
+	<!-- v9: sin chips. Medidor de cobertura, líneas de texto, marcadores de estado, control segmentado y punto de novedad. -->
+	<!-- v8: competencias opcionales en Tu idea; criterios, evidencias y sesiones parten vacíos con “Generar con Mawta” o creación manual. -->
+		<p class="kicker">Borrador navegable · Mawta</p>
+		<ol class="steps" id="steps"></ol>
+		<div class="pager" id="pager"></div>
+		<div class="note-card" id="note"></div>
+		<p class="disclaimer">
+			Datos de ejemplo: docente y estudiantes ficticios. Capacidades, estándares y desempeños
+			tomados del Programa curricular de Educación Primaria (RM 649-2016). Lo marcado con ✦ simula
+			propuestas del agente; aún no existe.
+		</p>
+	</aside>
+
+	<main class="phone" id="phone" aria-live="polite">
+		<div class="topbar">
+			<button class="nav pressable" id="back" aria-label="Volver"><svg class="ic" style="font-size:20px"><use href="#i-arrow-left" /></svg></button>
+			<div class="identity">
+				<span class="avatar">RQ</span>
+				<span class="who"><span class="name">Rosa Q.</span><span class="school">Colegio de ejemplo · Huancayo</span></span>
+			</div>
+			<span class="nav"><svg class="ic" style="font-size:20px"><use href="#i-home" /></svg></span>
+			<span class="nav"><svg class="ic" style="font-size:20px"><use href="#i-bell" /></svg></span>
+		</div>
+		<div id="screen"></div>
+		<div class="toast" id="toast" role="status"></div>
+	</main>
+</div>
+
+<script>
+// ------------------------------------------------------------------ datos --
+// Trimestre 2: 12 semanas desde el lunes 1 de junio de 2026. Horario de 3° B:
+// lunes, miércoles y viernes. Los días no lectivos los cargaría la escuela en
+// el onboarding (decisión 13); aquí son de ejemplo.
+const PERIOD_START = new Date(2026, 5, 1);
+const WEEKS = 12;
+const CLASS_DAYS = [1, 3, 5];
+const VACATION_WEEKS = [8, 9];
+const HOLIDAYS = ['2026-06-29'];
+const MON = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'set', 'oct', 'nov', 'dic'];
+const DOW = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+
+const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const weekStart = (w) => addDays(PERIOD_START, (w - 1) * 7);
+const fmt = (d) => `${d.getDate()} ${MON[d.getMonth()]}`;
+
+// Sesiones contadas POR FECHA (decisión 12): un bloque doble cuenta una vez.
+function classDates(fromWeek, toWeek, includeOff = false) {
+	const out = [];
+	for (let w = fromWeek; w <= toWeek; w++) {
+		if (VACATION_WEEKS.includes(w)) continue;
+		for (let i = 0; i < 7; i++) {
+			const d = addDays(weekStart(w), i);
+			if (!CLASS_DAYS.includes(d.getDay())) continue;
+			const off = HOLIDAYS.includes(iso(d));
+			if (off && !includeOff) continue;
+			out.push({ date: d, off });
+		}
+	}
+	return out;
+}
+
+const COMPETENCIES = {
+	cantidad: {
+		name: 'Resuelve problemas de cantidad',
+		short: 'Cantidad',
+		caps: [
+			{ id: 'c1', name: 'Traduce cantidades a expresiones numéricas', short: 'Traduce' },
+			{ id: 'c2', name: 'Comunica su comprensión sobre los números y las operaciones', short: 'Comunica' },
+			{ id: 'c3', name: 'Usa estrategias y procedimientos de estimación y cálculo', short: 'Usa estrategias' },
+			{ id: 'c4', name: 'Argumenta afirmaciones sobre las relaciones numéricas y las operaciones', short: 'Argumenta' },
+		],
+		standards: {
+			3: 'Resuelve problemas referidos a acciones de juntar, separar, agregar, quitar, igualar y comparar cantidades; y las traduce a expresiones de adición y sustracción, doble y mitad. Expresa su comprensión del valor de posición en números de dos cifras y los representa mediante equivalencias entre unidades y decenas… Explica por qué debe sumar o restar en una situación y su proceso de resolución.',
+			4: 'Resuelve problemas referidos a una o más acciones de agregar, quitar, igualar, repetir o repartir una cantidad, combinar dos colecciones de objetos, así como partir una unidad en partes iguales; traduciéndolas a expresiones aditivas y multiplicativas con números naturales y expresiones aditivas con fracciones usuales. Expresa su comprensión del valor posicional en números de hasta cuatro cifras… Emplea estrategias, el cálculo mental o escrito para operar de forma exacta y aproximada con números naturales… Justifica sus procesos de resolución y sus afirmaciones sobre operaciones inversas con números naturales.',
+			5: 'Resuelve problemas referidos a una o más acciones de comparar, igualar, repetir o repartir cantidades, partir y repartir una cantidad en partes iguales; las traduce a expresiones aditivas, multiplicativas y la potenciación cuadrada y cúbica… Justifica sus procesos de resolución así como sus afirmaciones sobre las relaciones entre las cuatro operaciones y sus propiedades.',
+		},
+		performances: [
+			{ id: 'd1', cap: 'c1', text: 'Establece relaciones entre datos y una o más acciones de agregar, quitar, comparar, igualar, reiterar, agrupar, repartir cantidades y combinar colecciones diferentes de objetos, para transformarlas en expresiones numéricas (modelo) de adición, sustracción, multiplicación y división con números naturales de hasta tres cifras.' },
+			{ id: 'd2', cap: 'c2', text: 'Expresa con diversas representaciones y lenguaje numérico su comprensión sobre la centena como nueva unidad en el sistema de numeración decimal, sus equivalencias con decenas y unidades, el valor posicional de una cifra en números de tres cifras y la comparación y el orden de números.' },
+			{ id: 'd3', cap: 'c2', text: 'Expresa con diversas representaciones y lenguaje numérico su comprensión de la multiplicación y división con números naturales hasta 100, y la propiedad conmutativa de la adición.' },
+			{ id: 'd4', cap: 'c3', text: 'Emplea estrategias y procedimientos como estrategias heurísticas; cálculo mental (descomposiciones, duplicar o dividir por 2, completar a la centena más cercana, aproximaciones); y cálculo escrito (sumas o restas con canjes, uso de la asociatividad).' },
+			{ id: 'd5', cap: 'c3', text: 'Mide y compara la masa de los objetos (kilogramo) y el tiempo (horas exactas) usando unidades convencionales y no convencionales.' },
+			{ id: 'd6', cap: 'c4', text: 'Realiza afirmaciones sobre la comparación de números naturales y la conformación de la centena, y las explica con material concreto.' },
+			{ id: 'd7', cap: 'c4', text: 'Realiza afirmaciones sobre el uso de la propiedad conmutativa… explica por qué la sustracción es la operación inversa de la adición, por qué debe multiplicar o dividir en un problema… y su proceso de resolución y los resultados obtenidos.' },
+		],
+	},
+	datos: {
+		name: 'Resuelve problemas de gestión de datos e incertidumbre',
+		short: 'Gestión de datos',
+		caps: [
+			{ id: 'g1', name: 'Representa datos con gráficos y medidas estadísticas o probabilísticas', short: 'Representa' },
+			{ id: 'g2', name: 'Comunica la comprensión de los conceptos estadísticos y probabilísticos', short: 'Comunica' },
+			{ id: 'g3', name: 'Usa estrategias y procedimientos para recopilar y procesar datos', short: 'Recopila y procesa' },
+			{ id: 'g4', name: 'Sustenta conclusiones o decisiones con base en la información obtenida', short: 'Sustenta' },
+		],
+		standards: {
+			4: 'Resuelve problemas relacionados con datos cualitativos o cuantitativos (discretos) sobre un tema de estudio, recolecta datos a través de encuestas y entrevistas sencillas, registra en tablas de frecuencia simples y los representa en pictogramas, gráficos de barra simple con escala (múltiplos de diez). Interpreta información contenida en gráficos de barras simples y dobles y tablas de doble entrada… a partir de esta información, elabora algunas conclusiones y toma decisiones.',
+		},
+		performances: [
+			{ id: 'e1', cap: 'g1', text: 'Representa las características y el comportamiento de datos cualitativos y cuantitativos discretos de una población, a través de pictogramas verticales y horizontales y gráficos de barras horizontales (simples y escala dada de 2 en 2, 5 en 5 y 10 en 10), en situaciones de su interés o un tema de estudio.' },
+			{ id: 'e2', cap: 'g2', text: 'Expresa la ocurrencia de acontecimientos cotidianos usando las nociones “seguro”, “posible” e “imposible”.' },
+			{ id: 'e3', cap: 'g2', text: 'Lee tablas de frecuencias simples (absolutas), gráficos de barras horizontales simples con escala y pictogramas de frecuencias con equivalencias, para interpretar la información explícita de los datos.' },
+			{ id: 'e4', cap: 'g3', text: 'Recopila datos mediante encuestas sencillas o entrevistas cortas con preguntas adecuadas empleando procedimientos y recursos; los procesa y organiza en listas de datos o tablas de frecuencia simple, para describirlos y analizarlos.' },
+			{ id: 'e5', cap: 'g3', text: 'Selecciona y emplea procedimientos y recursos como el recuento, el diagrama u otros, para determinar todos los posibles resultados de la ocurrencia de acontecimientos cotidianos.' },
+			{ id: 'e6', cap: 'g4', text: 'Predice la ocurrencia de un acontecimiento o suceso cotidiano. Así también, explica sus decisiones a partir de la información obtenida con base en el análisis de datos.' },
+		],
+	},
+	// Sin estándares ni desempeños cargados en este borrador: solo capacidades.
+	regularidad: {
+		name: 'Resuelve problemas de regularidad, equivalencia y cambio',
+		short: 'Regularidad',
+		caps: [
+			{ id: 'r1', name: 'Traduce datos y condiciones a expresiones algebraicas y gráficas', short: 'Traduce' },
+			{ id: 'r2', name: 'Comunica su comprensión sobre las relaciones algebraicas', short: 'Comunica' },
+			{ id: 'r3', name: 'Usa estrategias y procedimientos para encontrar equivalencias y reglas generales', short: 'Usa estrategias' },
+			{ id: 'r4', name: 'Argumenta afirmaciones sobre relaciones de cambio y equivalencia', short: 'Argumenta' },
+		],
+		standards: {},
+		performances: [],
+	},
+	forma: {
+		name: 'Resuelve problemas de forma, movimiento y localización',
+		short: 'Forma',
+		caps: [
+			{ id: 'f1', name: 'Modela objetos con formas geométricas y sus transformaciones', short: 'Modela' },
+			{ id: 'f2', name: 'Comunica su comprensión sobre las formas y relaciones geométricas', short: 'Comunica' },
+			{ id: 'f3', name: 'Usa estrategias y procedimientos para orientarse en el espacio', short: 'Usa estrategias' },
+			{ id: 'f4', name: 'Argumenta afirmaciones sobre relaciones geométricas', short: 'Argumenta' },
+		],
+		standards: {},
+		performances: [],
+	},
+};
+const AREA = ['cantidad', 'regularidad', 'forma', 'datos'];
+
+// Banco del agente (simulado). Mawta ya no propone experiencias completas:
+// a partir de las capacidades que elige el docente propone la situación,
+// los criterios, las evidencias y el esquema de sesiones. La correspondencia
+// desempeño → capacidad es inferida, no oficial.
+const BANK = {
+		title: 'La tiendita escolar',
+		comps: ['cantidad', 'datos'],
+		weeks: [1, 3],
+		situation: 'Organizamos la tiendita de la feria del aula: ponemos precios, cobramos, damos vuelto y registramos qué se vende más para decidir qué ofrecer en la próxima feria.',
+		criteria: {
+			cantidad: [
+				{ text: 'Plantea la operación para calcular el total de una compra de varios productos iguales (p. ej., 4 chupetines de 50 céntimos).', caps: ['c1'], perf: 'd1' },
+				{ text: 'Calcula el vuelto con cálculo mental (completar a la centena) o con resta con canjes.', caps: ['c3'], perf: 'd4' },
+				{ text: 'Explica por qué multiplicó en vez de sumar y comprueba su resultado con la operación inversa.', caps: ['c4', 'c3'], perf: 'd7' },
+				{ text: 'Representa los precios con monedas y billetes y los descompone en centenas, decenas y unidades.', caps: ['c2'], perf: 'd2' },
+			],
+			datos: [
+				{ text: 'Registra en una tabla de frecuencias cuántos productos de cada tipo se vendieron.', caps: ['g3'], perf: 'e4' },
+				{ text: 'Representa las ventas en un gráfico de barras horizontales con escala de 2 en 2.', caps: ['g1'], perf: 'e1' },
+				{ text: 'Lee el gráfico y dice cuál fue el producto más vendido y cuál el menos vendido.', caps: ['g2'], perf: 'e3' },
+				{ text: 'Propone qué producto conviene vender más en la próxima feria y lo explica usando los datos.', caps: ['g4'], perf: 'e6' },
+			],
+		},
+		// Alternativas que el agente ofrece cuando falta cubrir una capacidad.
+		alternatives: {
+			c1: { text: 'Escribe la operación que resuelve la compra de dos productos distintos y comprueba que cumple los datos.', caps: ['c1'], perf: 'd1' },
+			c2: { text: 'Explica con dibujos o material concreto qué significa 4 × 50 céntimos y cuántos soles son.', caps: ['c2'], perf: 'd3' },
+			c3: { text: 'Estima si le alcanza el dinero antes de comprar, redondeando a la decena.', caps: ['c3'], perf: 'd4' },
+			c4: { text: 'Explica por qué la resta comprueba el vuelto que calculó.', caps: ['c4'], perf: 'd7' },
+			g1: { text: 'Elabora un pictograma de las ventas donde cada símbolo vale 2 productos.', caps: ['g1'], perf: 'e1' },
+			g2: { text: 'Lee la tabla de ventas y compara qué producto se vendió más.', caps: ['g2'], perf: 'e3' },
+			g3: { text: 'Hace una encuesta corta a sus compañeros sobre qué les gustaría comprar.', caps: ['g3'], perf: 'e4' },
+			g4: { text: 'Explica, con los datos, qué producto no conviene repetir en la próxima feria.', caps: ['g4'], perf: 'e6' },
+		},
+		evidences: [
+			{ name: 'Hoja de cuentas de la tiendita', kind: 'Producción', comp: 'cantidad', crit: [0, 1, 3] },
+			{ name: 'Explicación oral del vuelto', kind: 'Actuación', comp: 'cantidad', crit: [2] },
+			{ name: 'Tabla y gráfico de ventas', kind: 'Producción', comp: 'datos', crit: [0, 1, 2] },
+			{ name: 'Propuesta para la próxima feria', kind: 'Actuación', comp: 'datos', crit: [3] },
+		],
+		sessions: [
+			{ title: '¿Cuánto cuesta? Ponemos precios', topics: 'valor posicional, la centena' },
+			{ title: 'Monedas y billetes', topics: 'equivalencias entre centenas, decenas y unidades' },
+			{ title: 'Compras de productos iguales', topics: 'multiplicación hasta 100' },
+			{ title: '¿Cuánto me dan de vuelto?', topics: 'resta con canjes, cálculo mental' },
+			{ title: 'Ensayamos la tiendita', topics: 'adición, sustracción y multiplicación en compras' },
+			{ title: 'Día de la feria', topics: 'operaciones con números de hasta tres cifras', ev: 0 },
+			{ title: 'Explicamos nuestras cuentas', topics: 'operación inversa, justificar procesos', ev: 1 },
+			{ title: '¿Qué se vendió más?', topics: 'tabla de frecuencias, gráfico de barras', ev: 2 },
+			{ title: 'La próxima feria', topics: 'conclusiones a partir de datos', ev: 3 },
+		],
+};
+// Situaciones que Mawta sugiere según la competencia principal elegida.
+const SITUATIONS = {
+	cantidad: BANK.situation,
+	datos: BANK.situation,
+	forma: 'Diseñamos un plano del patio para organizar los juegos del recreo: medimos, dibujamos y ubicamos cada zona.',
+	regularidad: 'Descubrimos los patrones que se repiten en los tejidos de la feria de la comunidad y creamos los nuestros.',
+};
+
+// ------------------------------------------------------------------ estado --
+const STEPS = [
+	{ id: 'home', label: 'Inicio (agenda)' },
+	{ id: 'panel', label: 'Panel de la clase' },
+	{ id: 'plan', label: 'Tu trimestre' },
+	{ id: 'idea', label: 'Tu idea' },
+	{ id: 'exp', label: 'Revisar la experiencia' },
+	{ id: 'crit', label: 'Criterios' },
+	{ id: 'ev', label: 'Evidencias' },
+	{ id: 'sess', label: 'Sesiones' },
+	{ id: 'save', label: 'Revisar y guardar' },
+];
+const PLAN_STEPS = ['idea', 'exp', 'crit', 'ev', 'sess', 'save'];
+
+const NOTES = {
+	home: `<p>El Inicio es solo la agenda del día: <b>sin banners</b> de planificación.</p>
+		<p class="dec">Entrada al plan: panel de la clase</p>`,
+	panel: `<p>En el panel de cada clase, la fila “Plan del trimestre” con su mini línea de tiempo y su estado (“Sin planificar” / “N experiencias”). Es la entrada al plan.</p>`,
+	plan: `<p>Debajo de la línea de tiempo, <b>una sola sección informativa de competencias</b> (sin casillas ni íconos): estado en texto (“Toca este trimestre”, “Planificada”, “Puede esperar”) y una línea de detalle.</p>
+		<ul><li><b>Sin experiencias:</b> línea de tiempo vacía y “Crear experiencia”.</li>
+		<li><b>Con experiencias:</b> bloques, lista y “Crear experiencia”.</li></ul>
+		<p class="dec">RVM 048-2024, 5.1.1.3.3 · decisiones 3, 17, 24</p>
+		<button class="pill-light pressable" data-act="demo-saved" style="margin-top:8px">Ver con una experiencia guardada</button>
+		<button class="pill-light pressable" data-act="last-mode" style="margin-top:8px">Alternar: último trimestre</button>`,
+	idea: `<p><b>Única forma de crear:</b> el docente cuenta su idea y, si quiere, <b>elige competencias</b> (opcional). Mawta arma la propuesta con las elegidas; si no eligió, las detecta de la idea.</p>
+		<p>Las que tocan según el seguimiento se señalan en la lista.</p>
+		<p class="dec">Decisiones 3, 4</p>`,
+	exp: `<p>Revisión de lo que armó Mawta. <b>Todo se ve como campo de formulario</b>, con su etiqueta: nombre, situación (con “Sugerir otra”), competencias en casillas y fechas. Así el docente sabe que puede editarlo.</p>
+		<p>El estándar no aparece aquí: gana importancia en la conclusión descriptiva, al cierre.</p>
+		<p class="dec">Decisiones 4, 5, 7</p>`,
+	crit: `<p>Cada competencia <b>parte vacía</b>: “✦ Generar con Mawta” o “Crear criterio” (desde un desempeño de 3°). Mawta no genera nada por su cuenta. Los criterios son protagonistas; cada uno dice en una línea qué capacidades mira y de qué desempeño parte (“↳ desde”). <b>Sin chips</b>: la cobertura es un medidor con un segmento por capacidad.</p>
+		<ul><li>Flechas ‹ › para recorrer las competencias.</li>
+		<li>Arriba, la franja de capacidades (✓/○); “Generar los que faltan” completa las vacías.</li>
+		<li>“Crear criterio” parte solo de desempeños de 3°.</li>
+		<li>“Continuar” (a evidencias) se habilita tras revisar todas las competencias.</li></ul>
+		<p class="dec">RVM 094, 5.1.1.1.3 · decisiones 1, 2, 9</p>`,
+	ev: `<p>Parte vacía: “✦ Generar con Mawta” (a partir de los criterios) o “Agregar evidencia”. Luego se aceptan, <b>editan</b> (nombre, tipo, criterios que observa), <b>quitan</b> o se agregan más.</p>
+		<ul><li>Una evidencia puede reunir criterios de varias competencias.</li>
+		<li>Aviso si algún criterio no se observa en ninguna evidencia.</li>
+		<li>Tipos: producción, actuación o prueba escrita (decisión 26).</li></ul>
+		<p class="dec">Programa curricular, cap. III · decisiones 4, 26</p>`,
+	sess: `<p>El calendario explica <b>por qué</b> son N clases. Cada fecha parte <b>sin sesión</b>: “✦ Generar esquema con Mawta” rellena solo las vacías; también se puede <b>crear</b>, <b>editar</b> (título, temas, evidencia) y <b>quitar</b> cada sesión.</p>
+		<p class="dec">Decisiones 11, 12, 13</p>`,
+	save: `<p>Resumen y guardado. Los ajustes por estudiante <b>quedan fuera</b> de esta primera versión.</p>
+		<ul><li>Al guardar, la experiencia aparece en “Tu trimestre”.</li></ul>
+		<p class="dec">Decisión 24 · la 10 se pospone</p>`,
+};
+
+// Seguimiento entre trimestres (sin plan anual): Mawta mira qué competencias
+// se trabajaron en trimestres anteriores y avisa qué toca ahora para que cada
+// una se trabaje en más de un periodo y todas tengan nivel al cerrar el año
+// (RVM 048-2024, 5.1.1.3.3 y 5.1.2.1). Historial simulado.
+const PERIODS = 3;
+const HISTORY = {
+	2: { 1: ['cantidad', 'forma'] },
+	3: { 1: ['cantidad', 'forma'], 2: ['cantidad', 'datos'] },
+};
+function tracking() {
+	const current = state.lastMode ? 3 : 2;
+	const hist = HISTORY[current];
+	const remaining = PERIODS - current + 1;
+	const planned = new Set(state.saved.flatMap((x) => x.comps));
+	return AREA.map((c) => {
+		const past = Object.keys(hist).filter((p) => hist[p].includes(c)).map((p) => `T${p}`);
+		const needed = Math.max(0, 2 - past.length);
+		const inNow = planned.has(c);
+		const late = needed > remaining;
+		const must = needed > 0 && needed >= remaining;
+		let text;
+		if (inNow) text = 'Planificada este trimestre.';
+		else if (!needed) text = `Ya se trabajó en ${past.join(' y ')}.`;
+		else if (late) text = 'No alcanza dos trimestres: trabájala este trimestre para que tenga nivel al cerrar el año.';
+		else if (must) text = needed === 2 ? 'Aún no se trabaja este año: debe trabajarse este trimestre y el siguiente.' : `Solo se trabajó en ${past.join(' y ')}: debe retomarse este trimestre.`;
+		else text = `Trabajada en ${past.join(' y ')}: puedes retomarla este trimestre o el siguiente.`;
+		return { comp: c, text, due: (must || late) && !inNow, inNow, late };
+	});
+}
+
+let state;
+function newExperience() {
+	return {
+		title: '',
+		titleAi: false,
+		idea: '',
+		pick: [],
+		building: false,
+		comps: [],
+		start: firstFreeWeek(),
+		length: 3,
+		caps: [],
+		situation: '',
+		situationAi: false,
+		suggesting: false,
+		crit: {},
+		evidences: [],
+		sessions: [],
+		signature: '',
+	};
+}
+function reset() {
+	state = {
+		step: 'home',
+		saved: [],
+		exp: null,
+		compIdx: 0,
+		pathOpen: true,
+		undo: null,
+		showAllSess: false,
+		lastMode: false,
+		adding: false,
+		visited: [0],
+	};
+}
+reset();
+
+// ----------------------------------------------------------------- helpers --
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const icon = (name, size = 16) => `<svg class="ic" style="font-size:${size}px" aria-hidden="true"><use href="#i-${name}" /></svg>`;
+const capOf = (comp, id) => COMPETENCIES[comp].caps.find((c) => c.id === id);
+const perfOf = (comp, id) => COMPETENCIES[comp].performances.find((p) => p.id === id);
+const compOfCap = (capId) => AREA.find((c) => COMPETENCIES[c].caps.some((cp) => cp.id === capId));
+// Competencias de la experiencia: las que tienen al menos una capacidad elegida.
+const expComps = (e) => AREA.filter((c) => COMPETENCIES[c].caps.some((cp) => e.caps.includes(cp.id)));
+const expWeeks = (e) => [e.start, e.start + e.length - 1];
+const covered = (comp) => {
+	const set = new Set();
+	for (const k of state.exp.crit[comp] ?? []) k.caps.forEach((c) => set.add(c));
+	return set;
+};
+const pendingAi = () => {
+	const e = state.exp;
+	let n = 0;
+	for (const c of expComps(e)) n += (e.crit[c] ?? []).filter((k) => k.ai).length;
+	return n;
+};
+function firstFreeWeek() {
+	for (let w = 1; w <= WEEKS; w++) {
+		if (VACATION_WEEKS.includes(w)) continue;
+		if (!state?.saved.some((x) => w >= x.weeks[0] && w <= x.weeks[1])) return w;
+	}
+	return 1;
+}
+// Validación de fechas: no puede pasar el fin del trimestre ni chocar con otra experiencia.
+function dateProblem(e) {
+	const [a, b] = expWeeks(e);
+	if (b > WEEKS) return `Pasa el fin del trimestre (semana ${WEEKS}).`;
+	const clash = state.saved.find((x) => a <= x.weeks[1] && b >= x.weeks[0]);
+	if (clash) return `Choca con “${clash.title}” (semanas ${clash.weeks[0]}–${clash.weeks[1]}).`;
+	if (!classDates(a, b).length) return 'No hay clases en esas semanas.';
+	return '';
+}
+let toastTimer;
+// Un aviso puede llevar una acción (p. ej. "Deshacer"); en ese caso dura más.
+function toast(msg, action) {
+	const t = document.getElementById('toast');
+	const r = document.getElementById('phone').getBoundingClientRect();
+	t.style.left = `${r.left + r.width / 2}px`;
+	t.innerHTML = `<span>${esc(msg)}</span>${action ? `<button data-act="${action.act}">${esc(action.label)}</button>` : ''}`;
+	t.classList.add('show');
+	clearTimeout(toastTimer);
+	toastTimer = setTimeout(() => t.classList.remove('show'), action ? 7000 : 2200);
+}
+const hideToast = () => document.getElementById('toast').classList.remove('show');
+function go(step) {
+	state.step = step;
+	state.adding = false;
+	render();
+	document.getElementById('phone').scrollIntoView({ block: 'start' });
+	window.scrollTo({ top: 0 });
+}
+
+// ------------------------------------------------------ propuesta del agente --
+// Con las capacidades elegidas, Mawta toma del banco los criterios que miran
+// esas capacidades (recortando las que no se eligieron), completa con
+// alternativas las capacidades que queden sin criterio y arma evidencias y
+// sesiones. Solo se regenera si cambian las capacidades o las fechas.
+// Mawta no genera nada por su cuenta: cada sección parte vacía y el docente
+// pide "Generar con Mawta" o crea a mano. Estas funciones se llaman a pedido.
+function genCriteria(e, c) {
+	const chosen = COMPETENCIES[c].caps.map((cp) => cp.id);
+	const have = new Set((e.crit[c] ?? []).map((k) => k.id));
+	const list = (BANK.criteria[c] ?? [])
+		.map((k, i) => ({ ...k, caps: [...k.caps], id: `${c}-${i}`, ai: true }))
+		.filter((k) => !have.has(k.id));
+	const merged = [...(e.crit[c] ?? []), ...list];
+	for (const cap of chosen) {
+		if (!merged.some((k) => k.caps.includes(cap)) && BANK.alternatives[cap]) merged.push({ ...BANK.alternatives[cap], id: `${c}-alt-${cap}`, ai: true });
+	}
+	// Orden de las capacidades, para que K1, K2… se lean en secuencia.
+	const pos = (k) => COMPETENCIES[c].caps.findIndex((cp) => cp.id === k.caps[0]);
+	e.crit[c] = merged.sort((x, y) => pos(x) - pos(y));
+}
+function genEvidences(e) {
+	const ids = new Set(Object.values(e.crit).flat().map((k) => k.id));
+	const have = new Set(e.evidences.map((x) => x.name));
+	const fresh = BANK.evidences
+		.map((ev, i) => ({ id: `ev${i}`, name: ev.name, kind: ev.kind, crit: ev.crit.map((j) => `${ev.comp}-${j}`).filter((id) => ids.has(id)), ai: true }))
+		.filter((ev) => ev.crit.length && !have.has(ev.name));
+	e.evidences.push(...fresh);
+}
+// Rellena solo las fechas sin sesión, para no pisar lo que hizo el docente.
+function genSessions(e) {
+	const n = classDates(...expWeeks(e)).length;
+	const plan = buildSessions(n, e.evidences);
+	e.sessions = Array.from({ length: n }, (_, i) => e.sessions[i] ?? plan[i] ?? null);
+}
+// Para saltar a un paso intermedio del borrador con contenido de ejemplo.
+function generate(e) {
+	e.comps.forEach((c) => { if (!(e.crit[c] ?? []).length) genCriteria(e, c); });
+	if (!e.evidences.length) genEvidences(e);
+	return true;
+}
+// Inserta un criterio al final del grupo de su capacidad.
+function insertByCap(compKey, k) {
+	const caps = COMPETENCIES[compKey].caps.map((cp) => cp.id);
+	const list = state.exp.crit[compKey] ?? (state.exp.crit[compKey] = []);
+	const at = list.findIndex((x) => caps.indexOf(x.caps[0]) > caps.indexOf(k.caps[0]));
+	list.splice(at === -1 ? list.length : at, 0, k);
+}
+// Ajusta el esquema del banco al número real de clases: las sesiones con
+// evidencia van al final; si sobran clases se agregan sesiones de práctica.
+function buildSessions(count, evidences) {
+	const plain = BANK.sessions.filter((s) => s.ev == null);
+	const withEv = evidences.map((ev) => {
+		const b = BANK.sessions.find((s) => s.ev != null && BANK.evidences[s.ev].name === ev.name);
+		return b ? { ...b, ev: undefined, evId: ev.id } : { title: `Presentamos: ${ev.name}`, topics: 'evidencia de la experiencia', evId: ev.id };
+	});
+	const room = Math.max(count - withEv.length, 0);
+	const head = plain.slice(0, room);
+	while (head.length < room) head.push({ title: 'Practicamos y repasamos', topics: 'práctica con situaciones de la experiencia' });
+	return [...head, ...withEv].slice(0, count).map((s) => ({ ...s, ai: true }));
+}
+const ALT_SITUATIONS = {
+	cantidad: 'Planificamos el presupuesto del paseo de fin de trimestre: cuánto cuesta el pasaje, la merienda y cuánto debe aportar cada uno.',
+	datos: 'Hacemos una encuesta sobre la fruta favorita del aula para decidir qué llevar al compartir.',
+	forma: 'Armamos la maqueta del barrio con cajas y ubicamos la escuela, el mercado y la plaza.',
+	regularidad: 'Creamos guardas para decorar el aula siguiendo un patrón que se repite.',
+};
+// Situación sugerida: según la competencia con más capacidades elegidas.
+function suggestSituation(e) {
+	const comps = expComps(e).sort((a, b) => e.caps.filter((x) => compOfCap(x) === b).length - e.caps.filter((x) => compOfCap(x) === a).length);
+	return SITUATIONS[comps[0]] ?? BANK.situation;
+}
+
+// v9: sin chips. Medidor de cobertura (un segmento por capacidad) y listas en texto.
+function capMeter(caps, cov) {
+	return `<div class="meter" style="--n:${caps.length}" role="list">${caps.map((cp) => {
+		const ok = cov.has(cp.id);
+		return `<span class="meter-seg${ok ? ' ok' : ''}" role="listitem">${esc(cp.short)}<span class="sr-only">${ok ? ': con criterio' : ': falta'}</span></span>`;
+	}).join('')}</div>`;
+}
+// "A", "A y B", "A, B y C"
+const joinY = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} y ${xs[xs.length - 1]}` : xs[0] ?? '');
+
+// ------------------------------------------------------------------ camino --
+function pathView() {
+	const e = state.exp;
+	const comps = expComps(e);
+	const total = e.caps.length;
+	const done = comps.reduce((n, c) => n + [...covered(c)].filter((x) => e.caps.includes(x)).length, 0);
+	const items = comps.map((c, i) => {
+		const comp = COMPETENCIES[c];
+		const chosen = comp.caps.filter((cp) => e.caps.includes(cp.id));
+		const cov = covered(c);
+		const n = chosen.filter((cp) => cov.has(cp.id)).length;
+		const isCurrent = false;
+		const label = n === chosen.length ? '✓' : `${n}/${chosen.length}`;
+		const caps = capMeter(chosen, cov);
+		return `<li class="${isCurrent ? 'current' : ''}">${esc(comp.name)}<span class="state">${label}</span>${caps}</li>`;
+	}).join('');
+	return `<div class="path">
+		<button class="path-head" data-act="toggle-path" aria-expanded="${state.pathOpen}">
+			<span class="path-title">${esc(e.title || 'Nueva experiencia')}</span>
+			<span class="path-sum">${comps.length} comp. · ${done} de ${total} capacidades</span>
+			<span class="chev" style="transform:rotate(${state.pathOpen ? 90 : 0}deg)">${icon('chevron-right', 14)}</span>
+		</button>
+		${state.pathOpen ? `<ul class="path-tree">${items}</ul>` : ''}
+	</div>`;
+}
+
+// --------------------------------------------------------------- pantallas --
+function timelineView(mini = false) {
+	const head = Array.from({ length: WEEKS }, (_, i) => `<span>${i + 1}</span>`).join('');
+	const weeks = Array.from({ length: WEEKS }, (_, i) => `<span class="tl-week" style="grid-column:${i + 1}"></span>`).join('');
+	const vac = `<span class="tl-vac" style="grid-column:${VACATION_WEEKS[0]} / ${VACATION_WEEKS[VACATION_WEEKS.length - 1] + 1}">vacaciones</span>`;
+	const blocks = state.saved.map((x) => `<span class="tl-block" style="grid-column:${x.weeks[0]} / ${x.weeks[1] + 1}">${esc(x.title)}<small>${x.classes} clases</small></span>`).join('');
+	const marks = Array.from({ length: WEEKS }, (_, i) => {
+		const w = i + 1;
+		const has = HOLIDAYS.some((h) => { const d = new Date(h + 'T00:00'); return d >= weekStart(w) && d < weekStart(w + 1); });
+		return has ? `<i style="grid-column:${w}" title="Feriado"></i>` : `<span style="grid-column:${w}"></span>`;
+	}).join('');
+	return `<div class="timeline${mini ? ' mini' : ''}">
+		<div class="tl-head">${head}</div>
+		<div class="tl-track">${weeks}${vac}${blocks}</div>
+		<div class="tl-marks">${marks}</div>
+		<div class="legend">
+			<span><span class="sw" style="background:var(--gradient-action)"></span>Experiencia</span>
+			<span><span class="sw" style="background:repeating-linear-gradient(135deg,var(--surface-1) 0 3px,var(--aurora-tint) 3px 6px)"></span>Vacaciones</span>
+			<span><i style="width:6px;height:6px;border-radius:50%;background:var(--text-faint);display:inline-block"></i>Feriado</span>
+		</div>
+	</div>`;
+}
+
+function homeScreen() {
+	const planned = state.saved.length > 0;
+	const days = ['lun 1', 'mar 2', 'mié 3', 'jue 4', 'vie 5'];
+	return `<div class="body">
+		<h1 class="day-title">Lunes 1 de junio</h1>
+		<p class="screen-sub">3 clases hoy</p>
+		<div class="strip">${days.map((d, i) => `<span class="${i === 0 ? 'on' : ''}">${d.split(' ')[0]}<b>${d.split(' ')[1]}</b></span>`).join('')}</div>
+		<div class="agenda">
+			<p class="eyebrow">Hoy</p>
+			<button class="ablock" data-act="open-panel" style="width:100%;text-align:left"><span class="h">08:00</span><span class="grow"><span class="t">3° B · Matemática</span><br><span class="meta">${planned ? `S1 ${esc(state.saved[0].firstSession)}` : 'Sin tema asignado'}</span></span><span class="chev">${icon('chevron-right', 18)}</span></button>
+			<div class="ablock"><span class="h">10:00</span><span class="grow"><span class="t">3° B · Comunicación</span><br><span class="meta">Sin tema asignado</span></span></div>
+			<div class="ablock"><span class="h">11:30</span><span class="grow"><span class="t">3° B · Personal Social</span><br><span class="meta">Sin tema asignado</span></span></div>
+		</div>
+	</div>`;
+}
+
+function panelScreen() {
+	const n = state.saved.length;
+	return `<div class="body">
+		<h1 class="screen-title">3° B · Matemática</h1>
+		<p class="screen-sub">28 alumnos · 3 sesiones/semana</p>
+		<div class="hero">
+			<p class="hero-lbl">Hoy · Sin iniciar</p>
+			<p class="hero-time">08:00</p>
+			<span class="hero-topic">${n ? `S1 ${esc(state.saved[0].firstSession)}` : 'Sin tema asignado'} · termina 09:30</span>
+		</div>
+		<nav style="margin-top:16px">
+			<button class="quiet-row pressable" data-act="open-plan">
+				<span class="quiet-t">Plan del trimestre<span class="new-dot" role="img" aria-label="Nuevo"></span>
+					<span class="quiet-d">${n ? `${n} experiencia${n > 1 ? 's' : ''}` : 'Sin planificar'}</span>
+					<span style="display:block;margin-top:8px">${timelineView(true)}</span>
+				</span>
+				<span class="chev">${icon('chevron-right', 18)}</span>
+			</button>
+			<div class="quiet-row"><span class="quiet-t">Alumnos<span class="quiet-d">Niveles de logro por competencia</span></span><span class="chev">${icon('chevron-right', 18)}</span></div>
+			<div class="quiet-row"><span class="quiet-t">Añadir evidencia<span class="quiet-d">Una evaluación para toda la clase</span></span><span class="chev">${icon('plus', 18)}</span></div>
+		</nav>
+		<p class="meta" style="margin-top:12px">“Criterios de evaluación” deja de ser una fila suelta: los criterios se crean dentro de cada experiencia.</p>
+	</div>`;
+}
+
+function planScreen() {
+	const all = classDates(1, WEEKS).length;
+	const end = addDays(weekStart(WEEKS), 4);
+	const current = state.lastMode ? 3 : 2;
+	// Una sola sección: el seguimiento entre trimestres (qué toca) y la
+	// cobertura de este trimestre (capacidades con criterio en experiencias).
+	const covered = new Set(state.saved.flatMap((x) => x.caps));
+	const track = tracking();
+	const dueN = track.filter((t) => t.due).length;
+	const rows = track.map((t) => {
+		const comp = COMPETENCIES[t.comp];
+		const n = comp.caps.filter((cp) => covered.has(cp.id)).length;
+		const tag = t.inNow ? ['Planificada', 'ok'] : t.due ? ['Toca este trimestre', 'due'] : ['Puede esperar', 'calm'];
+		const detail = t.inNow ? `${n} de ${comp.caps.length} capacidades con criterio` : t.text.replace(/^Aún no se trabaja este año: /, 'Aún no se trabaja este año; ');
+		const mark = t.inNow ? `<span class="mark">${icon('check', 14)}</span>` : `<span class="mark ${tag[1]}"></span>`;
+		return `<div class="info-row">
+			<div class="info-head"><span class="row" style="gap:8px">${mark}<b>${esc(comp.short)}</b></span><span class="status ${tag[1]}">${tag[0]}</span></div>
+			<p class="info-txt" style="padding-left:22px">${esc(detail)}</p>
+		</div>`;
+	}).join('');
+	const compsCard = `<div class="context-card">
+		<div class="label-row"><p class="eyebrow">Competencias este trimestre</p>${dueN ? `<span class="meta"><b style="color:var(--ink-deep)">${dueN}</b> por trabajar</span>` : '<span class="meta">al día</span>'}</div>
+		${current === PERIODS ? `<p style="margin:0 0 6px;font-size:13px;color:var(--text-secondary)"><b>Último trimestre:</b> al cerrar el año todas las competencias deben tener nivel.</p>` : ''}
+		${rows}
+	</div>`;
+	const list = state.saved.map((x) => `<div class="exp-row">
+		<span class="exp-date"><b>S${x.weeks[0]}–${x.weeks[1]}</b>${x.classes} clases</span>
+		<span class="grow"><span class="ev-name">${esc(x.title)}</span>
+			<span class="meta" style="display:block;margin-top:2px;font-family:var(--font-sans);font-size:12px">${esc(joinY(x.comps.map((c) => COMPETENCIES[c].short)))}</span></span>
+		<span class="chev">${icon('chevron-right', 16)}</span>
+	</div>`).join('');
+	const empty = `<div class="card suggest">
+		<div class="row" style="align-items:flex-start"><span class="icon-tile">${icon('calendar', 18)}</span>
+		<span class="grow"><h3>Aún no hay experiencias en este trimestre</h3>
+		<p>Cuéntale a Mawta tu idea: detecta las competencias y arma la propuesta con criterios, evidencias y sesiones.</p></span></div>
+	</div>`;
+	return `<div class="body">
+		<h1 class="screen-title">Trimestre ${current}${state.lastMode ? ' <span class="meta">(simulado)</span>' : ''}</h1>
+		<p class="screen-sub">3° B · Matemática · ${fmt(PERIOD_START)} – ${fmt(end)} · ${all} clases</p>
+		<div class="section">
+			<p class="eyebrow">Tu trimestre por semanas</p>
+			${timelineView()}
+		</div>
+		<div class="section">${compsCard}</div>
+		<div class="section">
+			${state.saved.length ? `<p class="eyebrow">Experiencias · ${state.saved.length}</p>${list}` : empty}
+			<button class="btn-block btn-primary pressable" data-act="new-exp" style="margin-top:14px">${icon('plus', 16)} Crear experiencia</button>
+		</div>
+	</div>`;
+}
+
+// ---------------------------------------------------------------- tu idea --
+// Única forma de crear: el docente cuenta su idea y Mawta detecta las
+// competencias y arma la propuesta (nombre, situación, competencias, fechas).
+const IDEA_HINTS = [
+	{ re: /tiend|compr|vend|precio|dinero|vuelto|sol(es)?\b|feria/i, comps: ['cantidad', 'datos'] },
+	{ re: /patio|medi|plano|forma|figura|ubica/i, comps: ['forma'] },
+	{ re: /patr[oó]n|tejid|secuen|regla|equival/i, comps: ['regularidad'] },
+	{ re: /encuest|gr[aá]fic|dato|tabla|votaci/i, comps: ['datos'] },
+];
+function detectComps(text) {
+	const found = new Set();
+	for (const h of IDEA_HINTS) if (h.re.test(text)) h.comps.forEach((c) => found.add(c));
+	return AREA.filter((c) => found.has(c)).length ? AREA.filter((c) => found.has(c)) : ['cantidad'];
+}
+const TITLES = { cantidad: 'La tiendita escolar', datos: 'La tiendita escolar', forma: 'Medimos el patio', regularidad: 'Patrones en los tejidos' };
+function setComps(e, comps) {
+	e.comps = AREA.filter((c) => comps.includes(c));
+	e.caps = e.comps.flatMap((c) => COMPETENCIES[c].caps.map((cp) => cp.id));
+}
+
+function ideaScreen() {
+	const e = state.exp;
+	const dueComps = tracking().filter((t) => t.due).map((t) => t.comp);
+	return `<div class="body">
+		<p class="eyebrow">Nueva experiencia de aprendizaje</p>
+		<h1 class="screen-title">¿Qué tienes en mente?</h1>
+		<p style="margin:14px 0 10px;font-size:14px;color:var(--text-secondary)">Cuéntalo en una o dos frases. Mawta detecta las competencias y arma la propuesta; luego tú la revisas.</p>
+		${e.building
+			? `<div class="skel" style="height:110px"></div><p class="meta" style="margin-top:8px">${icon('sparkles', 11)} Mawta está armando tu experiencia…</p>`
+			: `<textarea class="field" rows="4" data-bind="idea" placeholder="Ej.: que armen y atiendan una tiendita en la feria del aula">${esc(e.idea)}</textarea>`}
+		<div class="section">
+			<p class="eyebrow">Competencias · opcional</p>
+			<p class="meta" style="margin:-4px 0 6px">Si las eliges, Mawta arma la experiencia con ellas; si no, las detecta de tu idea.</p>
+			<div class="comp-edit">${AREA.map((c) => {
+				const on = e.pick.includes(c);
+				return `<button class="caprow" data-act="pick-comp" data-comp="${c}" aria-pressed="${on}"><span class="check">${on ? icon('check', 13) : ''}</span><span class="grow">${esc(COMPETENCIES[c].name)}${dueComps.includes(c) ? '<span class="meta" style="display:block">toca este trimestre</span>' : ''}</span></button>`;
+			}).join('')}</div>
+		</div>
+	</div>
+	<div class="footer-action">
+		<button class="btn-block btn-primary pressable" data-act="build" ${e.building ? 'disabled style="opacity:.5"' : ''}>${icon('sparkles', 15)} Armar con Mawta</button>
+	</div>`;
+}
+
+function expScreen() {
+	const e = state.exp;
+	const [a, b] = expWeeks(e);
+	const classes = classDates(a, Math.min(b, WEEKS)).length;
+	const problem = dateProblem(e);
+	const missing = !e.comps.length ? 'Elige al menos una competencia.' : !e.situation.trim() ? 'Escribe la situación o pide otra a Mawta.' : problem;
+	const weekOpts = Array.from({ length: WEEKS }, (_, i) => i + 1).filter((w) => !VACATION_WEEKS.includes(w))
+		.map((w) => `<option value="${w}" ${w === e.start ? 'selected' : ''}>Semana ${w} · ${fmt(weekStart(w))}</option>`).join('');
+	return `<div class="body">
+		<p class="meta" style="margin:0 0 14px"><span class="ai-star">✦</span> Mawta la armó a partir de tu idea: “${esc(e.idea)}”. Aún no está guardada.</p>
+		<h1 class="screen-title sm">Revisa la experiencia</h1>
+
+		<div class="section" style="margin-top:20px">
+			<label class="f-label" for="f-title">Nombre</label>
+			<input id="f-title" class="field lg" data-bind="title" value="${esc(e.title)}" placeholder="Ej.: La tiendita escolar" />
+		</div>
+
+		<div class="section" style="margin-top:20px">
+			<div class="f-row"><label class="f-label" for="f-sit">Situación</label>
+				<button class="text-btn pressable" data-act="suggest-situation" ${e.suggesting ? 'disabled' : ''}>${icon('sparkles', 14)} Sugerir otra</button></div>
+			${e.suggesting
+				? `<div class="skel" style="height:130px"></div><p class="f-help">Mawta está escribiendo otra situación…</p>`
+				: `<textarea id="f-sit" class="field" rows="5" data-bind="situation">${esc(e.situation)}</textarea>`}
+			<p class="f-help">El reto real que enfrentarán tus estudiantes. Puedes editarlo.</p>
+		</div>
+
+		<div class="section" style="margin-top:20px">
+			<p class="f-label" id="f-comps">Competencias</p>
+			<div class="field box" role="group" aria-labelledby="f-comps">${AREA.map((c) => {
+				const on = e.comps.includes(c);
+				return `<button class="caprow" data-act="comp-toggle" data-comp="${c}" aria-pressed="${on}"><span class="check">${on ? icon('check', 13) : ''}</span><span class="grow">${esc(COMPETENCIES[c].name)}</span></button>`;
+			}).join('')}</div>
+			<p class="f-help">Sus capacidades se cubren con los criterios del siguiente paso.</p>
+		</div>
+
+		<div class="section" style="margin-top:20px">
+			<p class="f-label">¿Cuándo?</p>
+			<div class="row" style="gap:10px">
+				<select class="field" data-bind="start" style="flex:1">${weekOpts}</select>
+				<div class="stepper">
+					<button data-act="len" data-d="-1" aria-label="Menos semanas" ${e.length <= 1 ? 'disabled' : ''}>−</button>
+					<span><b>${e.length}</b> sem.</span>
+					<button data-act="len" data-d="1" aria-label="Más semanas" ${e.length >= 6 ? 'disabled' : ''}>+</button>
+				</div>
+			</div>
+			<p class="f-help">${icon('calendar', 12)} Semanas ${a}–${b} · ${classes} clases (lun, mié, vie)</p>
+			${problem ? `<div class="notice">${icon('alert', 16)}<div class="grow">${esc(problem)}</div></div>` : ''}
+		</div>
+	</div>
+	<div class="footer-action">
+		<button class="btn-block btn-primary pressable" data-act="to-crit" ${missing ? 'disabled style="opacity:.5"' : ''}>Continuar con los criterios ${icon('chevron-right', 16)}</button>
+		${missing ? `<p class="meta" style="text-align:center;margin:8px 0 0">${esc(missing)}</p>` : ''}
+	</div>`;
+}
+
+// Criterio: el desempeño de 3° aterrizado a la situación. Lleva sus
+// capacidades como etiquetas (una o varias) y su origen ("↳ desde").
+const shortText = (t, n = 92) => (t.length > n ? `${t.slice(0, n).replace(/\s+\S*$/, '')}…` : t);
+function critCard(compKey, k, idx) {
+	const comp = COMPETENCIES[compKey];
+	const perf = k.perf ? perfOf(compKey, k.perf) : null;
+	if (k.editing) {
+		return `<div class="card crit mine">
+			${perf ? `<p class="origin" style="margin:0 0 8px">↳ desde: ${esc(shortText(perf.text))} <span class="meta">(desempeño 3°)</span></p>` : ''}
+			<textarea class="field" rows="3" data-bind-crit="${k.id}" placeholder="Aterriza el desempeño a tu situación">${esc(k.text)}</textarea>
+			<p class="eyebrow" style="margin:12px 0 2px">Capacidades que mira</p>
+			<div>${comp.caps.map((cp) => { const on = k.caps.includes(cp.id); return `<button class="caprow" data-act="crit-cap" data-id="${k.id}" data-cap="${cp.id}" aria-pressed="${on}"><span class="check">${on ? icon('check', 13) : ''}</span><span class="grow">${esc(cp.name)}</span></button>`; }).join('')}</div>
+			<div class="crit-actions"><button class="mini go pressable" data-act="crit-done" data-id="${k.id}">${icon('check', 13)} Listo</button></div>
+		</div>`;
+	}
+	return `<div class="card crit">
+		<div class="crit-top">
+			<span class="crit-code">K${idx + 1}</span>
+			<p class="crit-text">${esc(k.text)}</p>
+		</div>
+		<p class="text-line">${k.caps.length > 1 ? 'Mira las capacidades' : 'Mira la capacidad'} ${joinY(k.caps.map((c) => `<b>${esc(capOf(compKey, c).short)}</b>`))}</p>
+		${perf ? `<button class="origin from" data-act="crit-origin" data-id="${k.id}">↳ desde: ${esc(k.showOrigin ? perf.text : shortText(perf.text))} <span class="meta">(desempeño 3°)</span></button>` : ''}
+		<div class="crit-actions">
+			${k.ai ? `<button class="mini go pressable" data-act="crit-accept" data-id="${k.id}">${icon('check', 13)} Aceptar</button>` : ''}
+			<button class="mini pressable" data-act="crit-edit" data-id="${k.id}">Editar</button>
+			<button class="mini quiet pressable" data-act="crit-remove" data-id="${k.id}">${icon('trash', 13)} Quitar</button>
+		</div>
+	</div>`;
+}
+
+function critScreen() {
+	const e = state.exp;
+	const comps = expComps(e);
+	const compKey = comps[state.compIdx];
+	const comp = COMPETENCIES[compKey];
+	const list = e.crit[compKey] ?? [];
+	const cov = covered(compKey);
+	const missing = comp.caps.filter((cp) => !cov.has(cp.id));
+	const pending = list.some((k) => k.ai);
+	const unseen = comps.length - state.visited.length;
+	const strip = capMeter(comp.caps, cov);
+	return `<div class="comp-nav">
+		<button class="nav pressable" data-act="comp-prev" aria-label="Competencia anterior" ${state.compIdx === 0 ? 'disabled' : ''}>${icon('chevron-left', 20)}</button>
+		<span class="grow" style="text-align:center"><b>${esc(comp.short)}</b><span class="meta" style="display:block">${state.compIdx + 1} de ${comps.length} competencias</span></span>
+		<button class="nav pressable" data-act="comp-next" aria-label="Competencia siguiente" ${state.compIdx === comps.length - 1 ? 'disabled' : ''}>${icon('chevron-right', 20)}</button>
+	</div>
+	<div class="body">
+		<h1 class="screen-title sm">${esc(comp.name)}</h1>
+		<div class="context-card" style="margin-top:14px">
+			<p class="eyebrow" style="margin:0 0 6px">Capacidades que miran tus criterios</p>
+			${strip}
+			${missing.length && list.length ? `<p class="meta" style="margin:8px 0 0">Falta: ${missing.map((m) => esc(m.short)).join(', ')}</p>` : ''}
+		</div>
+
+		<div class="section">
+			<p class="eyebrow">Criterios · ${list.length}</p>
+			${pending ? '<p class="meta" style="margin:-4px 0 6px">Mawta propuso estos criterios: acéptalos o edítalos.</p>' : ''}
+			${list.length ? list.map((k, i) => critCard(compKey, k, i)).join('') : `<div class="empty-box"><p>Aún no hay criterios para ${esc(comp.short)}.</p><p class="meta">Mawta puede proponerlos a partir de los desempeños de 3°, o puedes crearlos tú.</p></div>`}
+			<div class="row" style="gap:8px;margin-top:12px">
+				<button class="btn-block pressable" data-act="gen-crit" style="flex:1">${icon('sparkles', 15)} ${list.length ? 'Generar los que faltan' : 'Generar con Mawta'}</button>
+				<button class="btn-block pressable" data-act="add-crit" style="flex:1">${icon('plus', 15)} ${state.adding ? 'Cerrar' : 'Crear criterio'}</button>
+			</div>
+			${state.adding ? `<div class="card drawer">
+				<p class="eyebrow">Desempeños de 3° · elige uno y aterrízalo a tu situación</p>
+				${comp.performances.length ? comp.caps.filter((cp) => comp.performances.some((p) => p.cap === cp.id)).map((cp) => `<div class="perf-grp">
+					<p class="text-line" style="margin:0 0 2px"><b>${esc(cp.name)}</b></p>
+					${comp.performances.filter((p) => p.cap === cp.id).map((p) => `<div class="perf"><span class="grow">${esc(p.text)}</span><button class="mini go pressable" data-act="use-perf" data-perf="${p.id}">Usar</button></div>`).join('')}
+				</div>`).join('') : '<p class="empty">No hay desempeños cargados para esta competencia en el borrador.</p>'}
+			</div>` : ''}
+		</div>
+
+	</div>
+	<div class="footer-action">
+		<button class="btn-block btn-primary pressable" data-act="to-ev" ${unseen ? 'disabled style="opacity:.5"' : ''}>Continuar con las evidencias ${icon('chevron-right', 16)}</button>
+		${unseen ? `<p class="meta" style="text-align:center;margin:8px 0 0">Revisa ${unseen === 1 ? 'la competencia que falta' : `las ${unseen} competencias que faltan`} con las flechas ‹ ›.</p>` : ''}
+	</div>`;
+}
+
+// Evidencias: qué producirán o harán los estudiantes y qué criterios se
+// observan en cada una. Una evidencia puede reunir criterios de varias
+// competencias (programa curricular, cap. III). Se crean, editan y quitan aquí.
+const EV_KINDS = ['Producción', 'Actuación', 'Prueba escrita'];
+const critLabel = (e, id) => {
+	for (const c of expComps(e)) {
+		const i = (e.crit[c] ?? []).findIndex((k) => k.id === id);
+		if (i >= 0) return { comp: c, code: `K${i + 1}`, text: e.crit[c][i].text };
+	}
+	return null;
+};
+function evCard(e, ev) {
+	const comps = expComps(e);
+	if (ev.editing) {
+		return `<div class="card crit mine">
+			<input class="field" data-bind-ev="${ev.id}" value="${esc(ev.name)}" placeholder="Nombre de la evidencia (p. ej., Hoja de cuentas)" />
+			<p class="eyebrow" style="margin:12px 0 6px">Tipo</p>
+			<div class="seg" role="group" aria-label="Tipo de evidencia">${EV_KINDS.map((k) => `<button data-act="ev-kind" data-id="${ev.id}" data-kind="${k}" aria-pressed="${ev.kind === k}">${k}</button>`).join('')}</div>
+			<p class="eyebrow" style="margin:12px 0 6px">Criterios que observarás en ella</p>
+			${comps.map((c) => `<p class="meta" style="margin:8px 0 4px">${esc(COMPETENCIES[c].short)}</p>
+				${(e.crit[c] ?? []).map((k, i) => `<button class="caprow" data-act="ev-crit" data-id="${ev.id}" data-crit="${k.id}" aria-pressed="${ev.crit.includes(k.id)}"><span class="check">${ev.crit.includes(k.id) ? icon('check', 13) : ''}</span><span class="grow"><b>K${i + 1}</b> ${esc(shortText(k.text, 70))}</span></button>`).join('')}`).join('')}
+			<div class="crit-actions"><button class="mini go pressable" data-act="ev-done" data-id="${ev.id}">${icon('check', 13)} Listo</button></div>
+		</div>`;
+	}
+	const order = expComps(e);
+	const labels = ev.crit.map((id) => critLabel(e, id)).filter(Boolean)
+		.sort((x, y) => order.indexOf(x.comp) - order.indexOf(y.comp) || Number(x.code.slice(1)) - Number(y.code.slice(1)));
+	return `<div class="card crit">
+		<div class="crit-top">
+			<span class="grow"><span class="ev-name">${esc(ev.name || 'Evidencia sin nombre')}</span><span class="meta" style="display:block">${esc(ev.kind)}</span></span>
+		</div>
+		${labels.length ? `<ul class="ev-crit">${order.filter((c) => labels.some((l) => l.comp === c)).map((c) => `${order.length > 1 ? `<li class="grp" style="border:none;display:block;padding:0">${esc(COMPETENCIES[c].short)}</li>` : ''}${labels.filter((l) => l.comp === c).map((l) => `<li title="${esc(l.text)}"><span class="crit-code">${l.code}</span><span>${esc(l.text)}</span></li>`).join('')}`).join('')}</ul>` : '<p class="text-line">Sin criterios: elige cuáles observarás.</p>'}
+		<div class="crit-actions">
+			${ev.ai ? `<button class="mini go pressable" data-act="ev-accept" data-id="${ev.id}">${icon('check', 13)} Aceptar</button>` : ''}
+			<button class="mini pressable" data-act="ev-edit" data-id="${ev.id}">Editar</button>
+			<button class="mini quiet pressable" data-act="ev-remove" data-id="${ev.id}">${icon('trash', 13)} Quitar</button>
+		</div>
+	</div>`;
+}
+function evScreen() {
+	const e = state.exp;
+	const comps = expComps(e);
+	const allCrit = comps.flatMap((c) => (e.crit[c] ?? []).map((k, i) => ({ c, k, i })));
+	const seen = new Set(e.evidences.flatMap((ev) => ev.crit));
+	const unseen = allCrit.filter(({ k }) => !seen.has(k.id));
+	const pending = e.evidences.some((ev) => ev.ai);
+	return `${pathView()}
+	<div class="body">
+		<p class="eyebrow">Evidencias</p>
+		<h1 class="screen-title sm">¿Dónde observarás tus criterios?</h1>
+		<p class="meta" style="margin:10px 0 0">Producciones o actuaciones de tus estudiantes. Una evidencia puede reunir criterios de varias competencias.</p>
+		${unseen.length && e.evidences.length ? `<div class="notice">${icon('alert', 16)}<div class="grow">Sin evidencia: <b>${unseen.map(({ c, i }) => `${esc(COMPETENCIES[c].short)} · K${i + 1}`).join(', ')}</b>. Agrégalos a una evidencia para poder observarlos.</div></div>` : ''}
+		<div class="section">
+			<p class="eyebrow">Evidencias · ${e.evidences.length}</p>
+			${pending ? '<p class="meta" style="margin:-4px 0 6px">Mawta propuso estas evidencias: acéptalas o edítalas.</p>' : ''}
+			${e.evidences.length ? e.evidences.map((ev) => evCard(e, ev)).join('') : '<div class="empty-box"><p>Aún no hay evidencias.</p><p class="meta">Mawta puede proponerlas a partir de tus criterios, o puedes agregarlas tú.</p></div>'}
+			<div class="row" style="gap:8px;margin-top:12px">
+				<button class="btn-block pressable" data-act="gen-ev" style="flex:1">${icon('sparkles', 15)} ${e.evidences.length ? 'Generar más' : 'Generar con Mawta'}</button>
+				<button class="btn-block pressable" data-act="ev-add" style="flex:1">${icon('plus', 15)} Agregar evidencia</button>
+			</div>
+		</div>
+	</div>
+	<div class="footer-action">
+		<button class="btn-block btn-primary pressable" data-act="to-sess">Continuar con las sesiones ${icon('chevron-right', 16)}</button>
+	</div>`;
+}
+
+// Calendario que explica el conteo: lunes con bloque doble (cuenta 1 clase),
+// días sin Matemática en gris y días no lectivos tachados.
+const DOUBLE_BLOCK_DAY = 1;
+function countCalendar(e) {
+	const [a, b] = expWeeks(e);
+	let cells = '<span></span>' + ['L', 'M', 'M', 'J', 'V'].map((d) => `<span class="hd">${d}</span>`).join('');
+	for (let w = a; w <= b; w++) {
+		cells += `<span class="wk">S${w}</span>`;
+		for (let i = 0; i < 5; i++) {
+			const d = addDays(weekStart(w), i);
+			const vac = VACATION_WEEKS.includes(w);
+			const cls = CLASS_DAYS.includes(d.getDay());
+			const off = vac || HOLIDAYS.includes(iso(d));
+			const k = off ? 'd off' : cls ? `d cls${d.getDay() === DOUBLE_BLOCK_DAY ? ' dbl' : ''}` : 'd';
+			cells += `<span class="${k}">${d.getDate()}</span>`;
+		}
+	}
+	return `<div class="context-card">
+		<p class="eyebrow" style="margin:0">¿Cuántas clases caben?</p>
+		<div class="cal">${cells}</div>
+		<div class="legend" style="flex-wrap:wrap">
+			<span><span class="sw" style="background:var(--gradient-action)"></span>Clase</span>
+			<span><span class="sw" style="box-shadow:inset 0 0 0 2px var(--aurora-2);background:var(--gradient-action)"></span>Bloque doble = 1 clase</span>
+			<span><span class="sw" style="border:1px dashed var(--border-strong)"></span>Día no lectivo</span>
+		</div>
+	</div>`;
+}
+
+function sessRow(e, d, idx) {
+	const day = `<span class="sess-date"><span class="sess-day">${d.date.getDate()}</span><span class="sess-mon">${DOW[d.date.getDay()]} ${MON[d.date.getMonth()]}</span></span>`;
+	const s = e.sessions[idx];
+	if (!s) {
+		return `<div class="sess empty-slot">${day}<div class="grow"><span class="meta">Sin sesión</span></div>
+			<button class="mini go pressable" data-act="sess-new" data-i="${idx}">${icon('plus', 13)} Crear</button></div>`;
+	}
+	if (s.editing) {
+		return `<div class="sess">${day}<div class="grow">
+			<input class="field" data-bind-sess="${idx}" value="${esc(s.title)}" placeholder="Título de la sesión" />
+			<input class="field" data-bind-topics="${idx}" value="${esc(s.topics)}" placeholder="Temas (p. ej., resta con canjes)" style="margin-top:6px" />
+			<select class="field" data-bind-sessev="${idx}" style="margin-top:6px">
+				<option value="">Sin evidencia en esta sesión</option>
+				${e.evidences.map((ev) => `<option value="${ev.id}" ${s.evId === ev.id ? 'selected' : ''}>Evidencia: ${esc(ev.name || 'sin nombre')}</option>`).join('')}
+			</select>
+			<div class="crit-actions"><button class="mini go pressable" data-act="sess-done" data-i="${idx}">${icon('check', 13)} Listo</button></div>
+		</div></div>`;
+	}
+	const ev = e.evidences.find((x) => x.id === s.evId);
+	return `<div class="sess">${day}<div class="grow">
+		<span class="sess-title" style="display:block">${esc(s.title || 'Sesión sin título')}</span>
+		${s.topics ? `<div class="meta">Temas: ${esc(s.topics)}</div>` : ''}
+		${ev ? `<span class="ev-line">${icon('clipboard-check', 14)} ${esc(ev.name || 'Evidencia sin nombre')}</span>` : ''}
+		<div class="crit-actions">
+			${s.ai ? `<button class="mini go pressable" data-act="sess-accept" data-i="${idx}">${icon('check', 13)} Aceptar</button>` : ''}
+			<button class="mini pressable" data-act="sess-edit" data-i="${idx}">Editar</button>
+			<button class="mini quiet pressable" data-act="sess-remove" data-i="${idx}">${icon('trash', 13)} Quitar</button>
+		</div>
+	</div></div>`;
+}
+function sessScreen() {
+	const e = state.exp;
+	const n = classDates(...expWeeks(e)).length;
+	if (e.sessions.length !== n) e.sessions = Array.from({ length: n }, (_, i) => e.sessions[i] ?? null);
+	const dates = classDates(...expWeeks(e), true);
+	const filled = e.sessions.filter(Boolean).length;
+	const pending = e.sessions.some((x) => x?.ai);
+	const placed = new Set(e.sessions.filter(Boolean).map((x) => x.evId));
+	const loose = e.evidences.filter((ev) => !placed.has(ev.id));
+	let i = 0;
+	const rows = dates.map((d) => d.off
+		? `<div class="sess off"><span class="sess-date"><span class="sess-day">${d.date.getDate()}</span><span class="sess-mon">${DOW[d.date.getDay()]} ${MON[d.date.getMonth()]}</span></span><div class="grow"><span class="sess-title">Feriado</span><div class="meta">Sin clase · no se cuenta</div></div></div>`
+		: sessRow(e, d, i++)).join('');
+	const [a, b] = expWeeks(e);
+	return `${pathView()}
+	<div class="body">
+		<p class="eyebrow">Sesiones · esquema ligero</p>
+		<h1 class="screen-title sm">${n} clases en ${b - a + 1} semanas</h1>
+		<p class="screen-sub">${filled} de ${n} con sesión · contadas por fecha según tu horario</p>
+		<div class="section">${countCalendar(e)}</div>
+		${loose.length && filled ? `<div class="notice">${icon('alert', 16)}<div class="grow">Evidencias sin sesión: <b>${loose.map((x) => esc(x.name || 'sin nombre')).join(', ')}</b>. Edita una sesión para ubicarlas.</div></div>` : ''}
+		${filled < n ? `<button class="btn-block pressable" data-act="gen-sess" style="margin-top:14px">${icon('sparkles', 15)} ${filled ? 'Generar las sesiones que faltan' : 'Generar esquema con Mawta'}</button>` : ''}
+		<div class="section">
+			${pending ? '<p class="meta" style="margin:0 0 6px">Mawta propuso estas sesiones: acéptalas o edítalas.</p>' : ''}
+			${rows}
+		</div>
+		<p class="meta" style="margin-top:14px">Antes de cada clase, Mawta podrá preparar el detalle de la sesión.</p>
+	</div>
+	<div class="footer-action">
+		<button class="btn-block btn-primary pressable" data-act="to-save">Continuar ${icon('chevron-right', 16)}</button>
+	</div>`;
+}
+
+function saveScreen() {
+	const e = state.exp;
+	const [a, b] = expWeeks(e);
+	const comps = expComps(e);
+	const classes = classDates(a, b).length;
+	const perComp = comps.map((c) => {
+		const comp = COMPETENCIES[c];
+		const chosen = comp.caps.filter((cp) => e.caps.includes(cp.id)).length;
+		return `<div class="sum-row"><span>${esc(comp.short)}</span><span>${[...covered(c)].length}/${chosen} capacidades · ${(e.crit[c] ?? []).length} criterios</span></div>`;
+	}).join('');
+	const allCrit = comps.flatMap((c) => (e.crit[c] ?? []).map((k, i) => ({ c, k, i })));
+	const pend = pendingAi();
+	const gaps = comps.flatMap((c) => COMPETENCIES[c].caps.filter((cp) => e.caps.includes(cp.id) && !covered(c).has(cp.id)).map((cp) => `${COMPETENCIES[c].short}: ${cp.short}`));
+	return `${pathView()}
+	<div class="body">
+		<p class="eyebrow">Revisar y guardar</p>
+		<h1 class="screen-title sm">${esc(e.title || 'Nueva experiencia')}</h1>
+		<div class="context-card" style="margin-top:16px">
+			<div class="sum-row"><span>Situación</span><span>${esc(e.situation.split(':')[0])}</span></div>
+			<div class="sum-row"><span>${e.caps.length} capacidades</span><span>${comps.map((c) => esc(COMPETENCIES[c].short)).join(' · ')}</span></div>
+			<div class="sum-row"><span>${allCrit.length} criterios</span><span>${gaps.length ? `faltan ${gaps.length} capacidades` : 'cubren lo elegido'}</span></div>
+			<div class="sum-row"><span>${e.evidences.length} evidencias</span><span>${e.evidences.filter((ev) => e.sessions.some((x) => x?.evId === ev.id)).length} ubicadas en sesiones</span></div>
+			<div class="sum-row"><span>${e.sessions.filter(Boolean).length} de ${classes} sesiones</span><span>sem. ${a}–${b} · ${fmt(weekStart(a))} – ${fmt(addDays(weekStart(b), 4))}</span></div>
+		</div>
+		<details style="margin-top:10px"><summary class="meta" style="cursor:pointer">Detalle por competencia</summary><div class="context-card" style="margin-top:8px">${perComp}</div></details>
+		${gaps.length ? `<div class="notice">${icon('alert', 16)}<div class="grow">Falta mirar <b>${gaps.map(esc).join(', ')}</b>. Puedes guardar igual: es un aviso, no un bloqueo.</div></div>` : ''}
+		${pend ? `<div class="notice">${icon('sparkles', 16)}<div class="grow">Quedan <b>${pend}</b> criterios propuestos por Mawta sin aceptar. Puedes guardar igual.</div></div>` : ''}
+	</div>
+	<div class="footer-action">
+		<button class="btn-block btn-primary pressable" data-act="save">Guardar experiencia</button>
+	</div>`;
+}
+
+// ------------------------------------------------------------------ render --
+function render() {
+	const stepsEl = document.getElementById('steps');
+	const cur = STEPS.findIndex((s) => s.id === state.step);
+	stepsEl.innerHTML = STEPS.map((s, i) => `<li><button data-step="${s.id}" ${state.step === s.id ? 'aria-current="step"' : ''}><span class="n">${i + 1}</span>${s.label}</button></li>`).join('');
+	document.getElementById('pager').innerHTML = `
+		<button class="pill-light pressable" data-page="-1" ${cur === 0 ? 'disabled style="opacity:.4"' : ''}>${icon('chevron-left', 13)} Anterior</button>
+		<span class="meta">${cur + 1} / ${STEPS.length}</span>
+		<button class="pill-dark pressable" data-page="1" ${cur === STEPS.length - 1 ? 'disabled style="opacity:.4"' : ''}>Siguiente ${icon('chevron-right', 13)}</button>`;
+	document.getElementById('note').innerHTML = NOTES[state.step];
+	document.getElementById('back').style.visibility = state.step === 'home' ? 'hidden' : 'visible';
+	const screens = { home: homeScreen, panel: panelScreen, plan: planScreen, idea: ideaScreen, exp: expScreen, crit: critScreen, ev: evScreen, sess: sessScreen, save: saveScreen };
+	document.getElementById('screen').innerHTML = screens[state.step]();
+}
+
+function findCrit(id) {
+	for (const c of expComps(state.exp)) {
+		const k = (state.exp.crit[c] ?? []).find((x) => x.id === id);
+		if (k) return { c, k };
+	}
+	return {};
+}
+let seq = 100;
+
+// Experiencia de ejemplo para saltar directo a un paso intermedio.
+function demoExperience() {
+	const e = newExperience();
+	e.title = 'La tiendita escolar';
+	e.titleAi = true;
+	e.idea = 'que armen y atiendan una tiendita en la feria del aula';
+	setComps(e, ['cantidad', 'datos']);
+	e.situation = BANK.situation;
+	e.situationAi = true;
+	return e;
+}
+function saveExperience(e) {
+	state.saved.push({
+		title: e.title || 'Experiencia sin nombre',
+		weeks: expWeeks(e),
+		comps: expComps(e),
+		caps: [...new Set(Object.values(e.crit).flat().flatMap((k) => k.caps))],
+		classes: classDates(...expWeeks(e)).length,
+		firstSession: e.sessions.find(Boolean)?.title ?? '',
+	});
+}
+
+// Saltar directamente a cualquier pantalla: si aún no hay experiencia en
+// curso, se usa una de ejemplo para que el recorrido siempre funcione.
+function jump(s) {
+	if (PLAN_STEPS.includes(s) && !state.exp) {
+		state.exp = demoExperience();
+	}
+	if (PLAN_STEPS.includes(s) && !['idea', 'exp'].includes(s) && dateProblem(state.exp)) state.exp.start = firstFreeWeek();
+	// El paso al que se salta queda vacío para ver su estado inicial; los
+	// anteriores se completan con el ejemplo.
+	const ex = state.exp;
+	if (['ev', 'sess', 'save'].includes(s)) ex.comps.forEach((c) => { if (!(ex.crit[c] ?? []).length) genCriteria(ex, c); });
+	if (['sess', 'save'].includes(s) && !ex.evidences.length) genEvidences(ex);
+	if (s === 'save' && !ex.sessions.some(Boolean)) genSessions(ex);
+	if (s === 'crit') { state.compIdx = 0; state.adding = false; state.visited = [0]; }
+	go(s);
+}
+
+document.addEventListener('keydown', (ev) => {
+	if (ev.target.closest('input, textarea, select')) return;
+	const cur = STEPS.findIndex((s) => s.id === state.step);
+	if (ev.key === 'ArrowRight' && cur < STEPS.length - 1) jump(STEPS[cur + 1].id);
+	if (ev.key === 'ArrowLeft' && cur > 0) jump(STEPS[cur - 1].id);
+});
+
+document.addEventListener('click', (ev) => {
+	const stepBtn = ev.target.closest('[data-step]');
+	if (stepBtn) { jump(stepBtn.dataset.step); return; }
+	const pageBtn = ev.target.closest('[data-page]');
+	if (pageBtn && !pageBtn.disabled) {
+		const cur = STEPS.findIndex((s) => s.id === state.step);
+		const next = STEPS[cur + Number(pageBtn.dataset.page)];
+		if (next) jump(next.id);
+		return;
+	}
+	if (ev.target.closest('#back')) {
+		// Volver sigue la navegación real, no el orden de la lista de pasos.
+		const parent = { panel: 'home', plan: 'panel', idea: 'plan', exp: 'idea', crit: 'exp', ev: 'crit', sess: 'ev', save: 'sess' }[state.step];
+		if (parent === 'crit') { state.compIdx = expComps(state.exp).length - 1; state.visited = expComps(state.exp).map((_, i) => i); }
+		if (parent) go(parent);
+		return;
+	}
+	const el = ev.target.closest('[data-act]');
+	if (!el || el.disabled) return;
+	const act = el.dataset.act;
+	const e = state.exp;
+	switch (act) {
+		case 'open-panel': go('panel'); break;
+		case 'open-plan': go('plan'); break;
+		case 'demo-saved': {
+			if (!state.saved.length) {
+				const d = demoExperience();
+				d.start = 1;
+				generate(d);
+				genSessions(d);
+				saveExperience(d);
+			}
+			render();
+			break;
+		}
+		case 'new-exp':
+			state.exp = newExperience();
+			go('idea');
+			break;
+		case 'build': {
+			if (!e.idea.trim()) { toast('Cuéntanos tu idea en una o dos frases'); break; }
+			e.building = true;
+			render();
+			setTimeout(() => {
+				const due = tracking().filter((t) => t.due).map((t) => t.comp);
+				const comps = e.pick.length ? e.pick : detectComps(e.idea);
+				setComps(e, comps);
+				e.title = TITLES[e.comps[0]] ?? 'Nueva experiencia';
+				e.titleAi = true;
+				e.situation = suggestSituation(e);
+				e.situationAi = true;
+				e.building = false;
+				state.dueHint = due;
+				go('exp');
+			}, 1300);
+			break;
+		}
+		case 'comp-toggle': {
+			const c = el.dataset.comp;
+			setComps(e, e.comps.includes(c) ? e.comps.filter((x) => x !== c) : [...e.comps, c]);
+			render();
+			break;
+		}
+		case 'add-crit': state.adding = !state.adding; render(); break;
+		case 'gen-crit': {
+			const compKey = expComps(e)[state.compIdx];
+			const before = (e.crit[compKey] ?? []).length;
+			genCriteria(e, compKey);
+			const added = e.crit[compKey].length - before;
+			render();
+			toast(added ? `Mawta propuso ${added} criterio${added > 1 ? 's' : ''}` : 'No hay más propuestas para esta competencia');
+			break;
+		}
+		case 'comp-prev':
+		case 'comp-next': {
+			state.compIdx += act === 'comp-next' ? 1 : -1;
+			if (!state.visited.includes(state.compIdx)) state.visited.push(state.compIdx);
+			state.adding = false;
+			render();
+			window.scrollTo({ top: 0 });
+			break;
+		}
+		case 'last-mode': state.lastMode = !state.lastMode; render(); break;
+		case 'len': e.length = Math.min(6, Math.max(1, e.length + Number(el.dataset.d))); render(); break;
+		case 'suggest-situation': {
+			if (!e.comps.length) { toast('Elige al menos una competencia'); break; }
+			e.suggesting = true;
+			render();
+			setTimeout(() => {
+				e.suggesting = false;
+				e.situation = e.situation === suggestSituation(e) ? ALT_SITUATIONS[e.comps[0]] ?? suggestSituation(e) : suggestSituation(e);
+				e.situationAi = true;
+				if (state.step === 'exp') render();
+			}, 1200);
+			break;
+		}
+		case 'toggle-path': state.pathOpen = !state.pathOpen; render(); break;
+		case 'to-crit':
+			state.adding = false;
+			state.visited = [0];
+			state.compIdx = 0;
+			go('crit');
+			break;
+		case 'to-ev': go('ev'); break;
+		case 'to-sess': go('sess'); break;
+		case 'pick-comp': {
+			const c = el.dataset.comp;
+			e.pick = e.pick.includes(c) ? e.pick.filter((x) => x !== c) : [...e.pick, c];
+			render();
+			break;
+		}
+		case 'gen-ev': {
+			const before = e.evidences.length;
+			genEvidences(e);
+			render();
+			toast(e.evidences.length > before ? 'Mawta propuso evidencias' : 'No hay más propuestas de evidencias');
+			break;
+		}
+		case 'ev-add': {
+			const id = `ev${seq++}`;
+			e.evidences.push({ id, name: '', kind: 'Producción', crit: [], ai: false, editing: true });
+			render();
+			break;
+		}
+		case 'ev-accept': { const ev = e.evidences.find((x) => x.id === el.dataset.id); ev.ai = false; render(); break; }
+		case 'ev-edit': { const ev = e.evidences.find((x) => x.id === el.dataset.id); ev.editing = true; render(); break; }
+		case 'ev-done': { const ev = e.evidences.find((x) => x.id === el.dataset.id); ev.editing = false; ev.ai = false; render(); break; }
+		case 'ev-kind': { const ev = e.evidences.find((x) => x.id === el.dataset.id); ev.kind = el.dataset.kind; render(); break; }
+		case 'ev-crit': {
+			const ev = e.evidences.find((x) => x.id === el.dataset.id);
+			const c = el.dataset.crit;
+			ev.crit = ev.crit.includes(c) ? ev.crit.filter((x) => x !== c) : [...ev.crit, c];
+			render();
+			break;
+		}
+		case 'ev-remove': {
+			const i = e.evidences.findIndex((x) => x.id === el.dataset.id);
+			state.undoEv = { ev: e.evidences[i], i };
+			e.evidences.splice(i, 1);
+			render();
+			toast('Evidencia quitada', { act: 'undo-ev', label: 'Deshacer' });
+			break;
+		}
+		case 'undo-ev': {
+			const u = state.undoEv;
+			if (u) { e.evidences.splice(u.i, 0, u.ev); state.undoEv = null; }
+			hideToast();
+			render();
+			break;
+		}
+		case 'to-save': go('save'); break;
+		case 'gen-sess': genSessions(e); render(); toast('Mawta propuso las sesiones que faltaban'); break;
+		case 'sess-new': e.sessions[Number(el.dataset.i)] = { title: '', topics: '', evId: '', ai: false, editing: true }; render(); break;
+		case 'sess-edit': e.sessions[Number(el.dataset.i)].editing = true; render(); break;
+		case 'sess-done': { const x = e.sessions[Number(el.dataset.i)]; x.editing = false; x.ai = false; render(); break; }
+		case 'sess-accept': e.sessions[Number(el.dataset.i)].ai = false; render(); break;
+		case 'sess-remove': {
+			const i = Number(el.dataset.i);
+			state.undoSess = { i, s: e.sessions[i] };
+			e.sessions[i] = null;
+			render();
+			toast('Sesión quitada', { act: 'undo-sess', label: 'Deshacer' });
+			break;
+		}
+		case 'undo-sess': {
+			const u = state.undoSess;
+			if (u) { e.sessions[u.i] = u.s; state.undoSess = null; }
+			hideToast();
+			render();
+			break;
+		}
+		case 'crit-accept': { const { k } = findCrit(el.dataset.id); k.ai = false; render(); break; }
+		case 'crit-edit': { const { k } = findCrit(el.dataset.id); k.editing = true; render(); break; }
+		case 'crit-done': { const { k } = findCrit(el.dataset.id); k.editing = false; k.ai = false; k.suggestedCap = false; render(); break; }
+		case 'crit-origin': { const { k } = findCrit(el.dataset.id); k.showOrigin = !k.showOrigin; render(); break; }
+		case 'crit-remove': {
+			const { c, k } = findCrit(el.dataset.id);
+			const idx = e.crit[c].indexOf(k);
+			const evs = e.evidences.filter((ev) => ev.crit.includes(k.id));
+			evs.forEach((ev) => { ev.crit = ev.crit.filter((x) => x !== k.id); });
+			state.undo = { c, k, idx, evs };
+			e.crit[c] = e.crit[c].filter((x) => x !== k);
+			render();
+			toast(`K${idx + 1} quitado`, { act: 'undo', label: 'Deshacer' });
+			break;
+		}
+		case 'undo': {
+			const u = state.undo;
+			if (u) { e.crit[u.c].splice(u.idx, 0, u.k); u.evs.forEach((ev) => ev.crit.push(u.k.id)); state.undo = null; }
+			hideToast();
+			render();
+			break;
+		}
+		case 'crit-cap': {
+			const { k } = findCrit(el.dataset.id);
+			const cap = el.dataset.cap;
+			k.caps = k.caps.includes(cap) ? k.caps.filter((x) => x !== cap) : [...k.caps, cap];
+			if (!k.caps.length) k.caps = [cap]; // Regla 1: al menos una capacidad por criterio.
+			render();
+			break;
+		}
+		case 'propose': {
+			const compKey = expComps(e)[state.compIdx];
+			const alt = BANK.alternatives[el.dataset.cap];
+			if (alt) insertByCap(compKey, { ...alt, id: `n${seq++}`, ai: true });
+			toast('Mawta propuso un criterio');
+			render();
+			break;
+		}
+		case 'use-perf': {
+			const compKey = expComps(e)[state.compIdx];
+			const p = perfOf(compKey, el.dataset.perf);
+			insertByCap(compKey, { text: '', caps: [p.cap], perf: p.id, id: `n${seq++}`, ai: false, editing: true });
+			state.adding = false;
+			render();
+			break;
+		}
+		case 'save': {
+			saveExperience(e);
+			state.exp = null;
+			state.showAllSess = false;
+			go('plan');
+			toast('Experiencia guardada');
+			break;
+		}
+	}
+});
+
+document.addEventListener('input', (ev) => {
+	const t = ev.target;
+	if (t.dataset.bind === 'title') { state.exp.title = t.value; state.exp.titleAi = false; }
+	if (t.dataset.bind === 'idea') state.exp.idea = t.value;
+	if (t.dataset.bind === 'situation') { state.exp.situation = t.value; state.exp.situationAi = false; }
+	if (t.dataset.bindCrit) { const { k } = findCrit(t.dataset.bindCrit); k.text = t.value; }
+	if (t.dataset.bindEv) { const ev = state.exp.evidences.find((x) => x.id === t.dataset.bindEv); ev.name = t.value; }
+	if (t.dataset.bindSess) { const s = state.exp.sessions[Number(t.dataset.bindSess)]; s.title = t.value; s.ai = false; }
+	if (t.dataset.bindTopics) { const s = state.exp.sessions[Number(t.dataset.bindTopics)]; s.topics = t.value; s.ai = false; }
+});
+// Las marcas y validaciones se actualizan al salir del campo, para no
+// redibujar mientras se escribe.
+document.addEventListener('change', (ev) => {
+	const t = ev.target;
+	if (t.dataset.bind === 'start') { state.exp.start = Number(t.value); render(); return; }
+	if (t.dataset.bindSessev) { state.exp.sessions[Number(t.dataset.bindSessev)].evId = t.value; return; }
+	if (t.dataset.bind === 'title' || t.dataset.bind === 'situation' || t.dataset.bindCrit) render();
+});
+
+render();
+</script>
+</body>
+</html>
