@@ -20,6 +20,7 @@ type Summary struct {
 	TenantID        uuid.UUID
 	Usuarios        []string
 	Periodos        int
+	DiasNoLectivos  int
 	Docentes        int
 	Areas           int
 	Competencias    int
@@ -38,7 +39,7 @@ type Summary struct {
 func (s *Summary) String() string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "Colegio:        %s (%s)\n", s.Colegio, s.TenantID)
-	fmt.Fprintf(&b, "Periodos:       %d\n", s.Periodos)
+	fmt.Fprintf(&b, "Periodos:       %d, con %d días no lectivos\n", s.Periodos, s.DiasNoLectivos)
 	fmt.Fprintf(&b, "Docentes:       %d (%s)\n", s.Docentes, strings.Join(s.Usuarios, ", "))
 	fmt.Fprintf(&b, "Áreas:          %d, con %d competencias, %d capacidades y %d criterios\n", s.Areas, s.Competencias, s.Capacidades, s.Criterios)
 	fmt.Fprintf(&b, "Currículo:      %d estándares y %d desempeños de grado\n", s.Estandares, s.Desempenos)
@@ -221,6 +222,23 @@ func (l *loader) colegio() error {
 			return err
 		}
 		l.sum.Periodos++
+	}
+	// One row per day: non_teaching_days is a set of dates, so a vacation
+	// range becomes every date in it. Validate already rejected duplicates.
+	for _, d := range a.DiasNoLectivos {
+		desde, hasta := d.Desde, d.Hasta
+		if strings.TrimSpace(d.Fecha) != "" {
+			desde, hasta = d.Fecha, d.Fecha
+		}
+		tag, err := l.tx.Exec(l.ctx, `
+			insert into non_teaching_days (tenant_id, academic_year_id, day, kind, label)
+			select $1, $2, g.d::date, $3, $4
+			  from generate_series($5::text::date, $6::text::date, interval '1 day') as g(d)`,
+			l.tenant, l.year, d.Tipo, nz(d.Nombre), desde, hasta)
+		if err != nil {
+			return fmt.Errorf("día no lectivo %s: %w", desde, err)
+		}
+		l.sum.DiasNoLectivos += int(tag.RowsAffected())
 	}
 	return nil
 }
@@ -759,8 +777,9 @@ func roomFor(c Clase, f Franja) string {
 // sesiones materialises the lessons. The app only ever reads class_sessions,
 // it never creates them, so without this a freshly loaded teacher would see
 // no lesson at all. One session per horario franja per matching date inside
-// each periodo, all 'scheduled'; the time zone conversion is Postgres' so the
-// dates line up with how the app computes "today" in the school's zone.
+// each periodo, all 'scheduled', skipping the días no lectivos; the time
+// zone conversion is Postgres' so the dates line up with how the app computes
+// "today" in the school's zone.
 func (l *loader) sesiones() error {
 	tz := l.s.Colegio.ZonaHoraria
 	if tz == "" {
@@ -779,7 +798,10 @@ func (l *loader) sesiones() error {
 					       (g.d::date + $10::text::time) at time zone $9,
 					       'scheduled', $11
 					  from generate_series($12::text::date, $13::text::date, interval '1 day') as g(d)
-					 where extract(isodow from g.d) = $14`,
+					 where extract(isodow from g.d) = $14
+					   and not exists (select 1 from non_teaching_days n
+					                    where n.tenant_id = $3 and n.academic_year_id = $4
+					                      and n.day = g.d::date and n.deleted_at is null)`,
 					fmt.Sprintf("session:%s:%s:%s:", l.mod, l.anio, c.Codigo), clock(f.Inicio),
 					l.tenant, l.year, classID, l.scheduleID(c.Codigo, dia, f.Inicio), l.termID(p),
 					clock(f.Inicio), tz, clock(f.Fin), nz(roomFor(c, f)), p.Inicio, p.Fin, dia)

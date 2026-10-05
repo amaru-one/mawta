@@ -23,7 +23,8 @@
         "fin": "<AAAA-MM-DD>",
         "fecha_entrega_notas": ""
       }
-    ]
+    ],
+    "dias_no_lectivos": []
   },
   "docentes": [
     {

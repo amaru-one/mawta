@@ -193,6 +193,20 @@ func TestValidationRules(t *testing.T) {
 			"clases[0].sesiones[1].fecha: la fecha de sesión \"2026-03-02\" está repetido"},
 		{"leftover placeholder", func(s *Spec) { s.Clases[0].Sesiones[0].Tema = "<nombre de la sesión>" },
 			"clases[0].sesiones[0].tema: falta completar"},
+		{"sesión on a día no lectivo", func(s *Spec) { s.Clases[0].Sesiones[3].Fecha = "2026-06-29" },
+			"clases[0].sesiones[3].fecha: 2026-06-29 es un día no lectivo (anio_escolar.dias_no_lectivos[3])"},
+		{"día no lectivo outside the year", func(s *Spec) { s.AnioEscolar.DiasNoLectivos[0].Fecha = "2026-01-01" },
+			"anio_escolar.dias_no_lectivos[0]: del 2026-01-01 al 2026-01-01 se sale del año escolar"},
+		{"día no lectivo of an unknown tipo", func(s *Spec) { s.AnioEscolar.DiasNoLectivos[0].Tipo = "fiesta" },
+			"anio_escolar.dias_no_lectivos[0].tipo: \"fiesta\" no es válido"},
+		{"día no lectivo range ending before it starts", func(s *Spec) { s.AnioEscolar.DiasNoLectivos[5].Hasta = "2026-07-20" },
+			"anio_escolar.dias_no_lectivos[5].hasta: 2026-07-20 es anterior a desde"},
+		{"día no lectivo with fecha and a range", func(s *Spec) { s.AnioEscolar.DiasNoLectivos[0].Desde = "2026-04-01" },
+			"anio_escolar.dias_no_lectivos[0]: usa fecha (un día) o desde y hasta"},
+		{"día no lectivo without a date", func(s *Spec) { s.AnioEscolar.DiasNoLectivos[0].Fecha = "" },
+			"anio_escolar.dias_no_lectivos[0]: falta fecha"},
+		{"día no lectivo declared twice", func(s *Spec) { s.AnioEscolar.DiasNoLectivos[4].Fecha = "2026-07-28" },
+			"anio_escolar.dias_no_lectivos[5]: el día 2026-07-28 ya está en anio_escolar.dias_no_lectivos[4]"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

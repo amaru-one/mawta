@@ -43,12 +43,25 @@ type Colegio struct {
 }
 
 type AnioEscolar struct {
-	Anio       int       `json:"anio"`
-	Nombre     string    `json:"nombre"`
-	Inicio     string    `json:"inicio"`
-	Fin        string    `json:"fin"`
-	Estructura string    `json:"estructura"`
-	Periodos   []Periodo `json:"periodos"`
+	Anio           int            `json:"anio"`
+	Nombre         string         `json:"nombre"`
+	Inicio         string         `json:"inicio"`
+	Fin            string         `json:"fin"`
+	Estructura     string         `json:"estructura"`
+	Periodos       []Periodo      `json:"periodos"`
+	DiasNoLectivos []DiaNoLectivo `json:"dias_no_lectivos"`
+}
+
+// DiaNoLectivo is a day, or an inclusive range of days, without class:
+// feriados, vacaciones and días de gestión. Either Fecha is set (one day) or
+// Desde and Hasta are (a range). The loader writes one non_teaching_days row
+// per day, and no class_sessions are generated on those days.
+type DiaNoLectivo struct {
+	Fecha  string `json:"fecha"`
+	Desde  string `json:"desde"`
+	Hasta  string `json:"hasta"`
+	Tipo   string `json:"tipo"` // feriado | vacaciones | gestion
+	Nombre string `json:"nombre"`
 }
 
 type Periodo struct {

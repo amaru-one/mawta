@@ -18,6 +18,16 @@
       { "numero": 1, "nombre": "Trimestre I", "abreviatura": "T-I", "inicio": "2026-03-02", "fin": "2026-05-29", "fecha_entrega_notas": "2026-06-05" },
       { "numero": 2, "nombre": "Trimestre II", "abreviatura": "T-II", "inicio": "2026-06-01", "fin": "2026-08-28", "fecha_entrega_notas": "2026-09-04" },
       { "numero": 3, "nombre": "Trimestre III", "abreviatura": "T-III", "inicio": "2026-08-31", "fin": "2026-12-18", "fecha_entrega_notas": "2026-12-23" }
+    ],
+    "dias_no_lectivos": [
+      { "fecha": "2026-04-02", "tipo": "feriado", "nombre": "Jueves Santo" },
+      { "fecha": "2026-04-03", "tipo": "feriado", "nombre": "Viernes Santo" },
+      { "fecha": "2026-05-01", "tipo": "feriado", "nombre": "Día del Trabajo" },
+      { "fecha": "2026-06-29", "tipo": "feriado", "nombre": "San Pedro y San Pablo" },
+      { "fecha": "2026-07-23", "tipo": "feriado", "nombre": "Día de la Fuerza Aérea del Perú" },
+      { "desde": "2026-07-27", "hasta": "2026-08-07", "tipo": "vacaciones", "nombre": "Vacaciones de medio año" },
+      { "fecha": "2026-10-08", "tipo": "feriado", "nombre": "Combate de Angamos" },
+      { "fecha": "2026-12-08", "tipo": "feriado", "nombre": "Inmaculada Concepción" }
     ]
   },
   "docentes": [
