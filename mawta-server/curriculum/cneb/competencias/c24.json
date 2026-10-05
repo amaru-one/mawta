@@ -1,0 +1,458 @@
+{
+  "numero_cneb": 24,
+  "nombre": "Resuelve problemas de regularidad, equivalencia y cambio",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Traduce datos y condiciones a expresiones algebraicas"
+    },
+    {
+      "numero": 2,
+      "nombre": "Comunica su comprensión sobre las relaciones algebraicas"
+    },
+    {
+      "numero": 3,
+      "nombre": "Usa estrategias y procedimientos para encontrar reglas generales"
+    },
+    {
+      "numero": 4,
+      "nombre": "Argumenta afirmaciones sobre relaciones de cambio y equivalencia"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene como base el nivel 1 de las competencias “Resuelve problemas de cantidad” y “Resuelve problemas de regularidad, equivalencia y cambio”."
+    },
+    {
+      "nivel": 2,
+      "texto": "Este nivel tiene como base el nivel 2 de las competencias “Resuelve problemas de cantidad” y “Resuelve problemas de regularidad, equivalencia y cambio”."
+    },
+    {
+      "nivel": 3,
+      "texto": "Resuelve problemas que presentan equivalencias o regularidades, traduciéndolas a igualdades que contienen operaciones de adición o de sustracción y a patrones de repetición de dos criterios perceptuales y patrones aditivos. Expresa su comprensión de las equivalencias y de cómo es un patrón, usando material concreto y diversas representaciones. Emplea estrategias, la descomposición de números, cálculos sencillos para encontrar equivalencias, o para continuar y crear patrones. Explica las relaciones que encuentra en los patrones y lo que debe hacer para mantener el “equilibrio” o la igualdad, con base en experiencias y ejemplos concretos."
+    },
+    {
+      "nivel": 4,
+      "texto": "Resuelve problemas que presentan dos equivalencias, regularidades o relación de cambio entre dos magnitudes y expresiones; traduciéndolas a igualdades que contienen operaciones aditivas o multiplicativas, a tablas de valores y a patrones de repetición que combinan criterios y patrones aditivos o multiplicativos. Expresa su comprensión de la regla de formación de un patrón y del signo igual para expresar equivalencias. Así también, describe la relación de cambio entre una magnitud y otra; usando lenguaje matemático y diversas representaciones. Emplea estrategias, la descomposición de números, el cálculo mental, para crear, continuar o completar patrones de repetición. Hace afirmaciones sobre patrones, la equivalencia entre expresiones y sus variaciones y las propiedades de la igualdad, las justifica con argumentos y ejemplos concretos."
+    },
+    {
+      "nivel": 5,
+      "texto": "Resuelve problemas de equivalencias, regularidades o relaciones de cambio entre dos magnitudes o entre expresiones; traduciéndolas a ecuaciones que combinan las cuatro operaciones, a expresiones de desigualdad o a relaciones de proporcionalidad directa, y patrones de repetición que combinan criterios geométricos y cuya regla de formación se asocia a la posición de sus elementos. Expresa su comprensión del término general de un patrón, las condiciones de desigualdad expresadas con los signos > y <, así como de la relación proporcional como un cambio constante; usando lenguaje matemático y diversas representaciones. Emplea recursos, estrategias y propiedades de las igualdades para resolver ecuaciones o hallar valores que cumplen una condición de desigualdad o proporcionalidad; así como procedimientos para crear, continuar o completar patrones. Realiza afirmaciones a partir de sus experiencias concretas, sobre patrones y sus elementos no inmediatos; las justifica con ejemplos, procedimientos, y propiedades de la igualdad y desigualdad."
+    },
+    {
+      "nivel": 6,
+      "texto": "Resuelve problemas referidos a interpretar cambios constantes o regularidades entre magnitudes, valores o entre expresiones; traduciéndolas a patrones numéricos y gráficos⁴¹, progresiones aritméticas, ecuaciones e inecuaciones con una incógnita, funciones lineales y afín, y relaciones de proporcionalidad directa e inversa. Comprueba si la expresión algebraica usada expresó o reprodujo las condiciones del problema. Expresa su comprensión de: la relación entre función lineal y proporcionalidad directa; las diferencias entre una ecuación e inecuación lineal y sus propiedades; la variable como un valor que cambia; el conjunto de valores que puede tomar un término desconocido para verificar una inecuación; las usa para interpretar enunciados, expresiones algebraicas o textos diversos de contenido matemático. Selecciona, emplea y combina recursos, estrategias, métodos gráficos y procedimientos matemáticos para determinar el valor de términos desconocidos en una progresión aritmética, simplificar expresiones algebraicas y dar solución a ecuaciones e inecuaciones lineales, y evaluar funciones lineales. Plantea afirmaciones sobre propiedades de las progresiones aritméticas, ecuaciones e inecuaciones así como de una función lineal, lineal afín con base a sus experiencias, y las justifica mediante ejemplos y propiedades matemáticas; encuentra errores o vacíos en las argumentaciones propias y las de otros y las corrige."
+    },
+    {
+      "nivel": 7,
+      "texto": "Resuelve problemas referidos a analizar cambios continuos o periódicos, o regularidades entre magnitudes, valores o expresiones, traduciéndolas a expresiones algebraicas que pueden contener la regla general de progresiones geométricas, sistema de ecuaciones lineales, ecuaciones y funciones cuadráticas y exponenciales. Evalúa si la expresión algebraica reproduce las condiciones del problema. Expresa su comprensión de la regla de formación de sucesiones y progresiones geométricas; la solución o conjunto solución de sistemas de ecuaciones lineales e inecuaciones; la diferencia entre una función lineal y una función cuadrática y exponencial y sus parámetros; las usa para interpretar enunciados o textos o fuentes de información usando lenguaje matemático y gráficos. Selecciona, combina y adapta variados recursos, estrategias y procedimientos matemáticos para determinar términos desconocidos en progresiones geométricas, solucionar ecuaciones lineales o cuadráticas, simplificar expresiones usando identidades algebraicas; evalúa y opta por aquellos más idóneos según las condiciones del problema. Plantea afirmaciones sobre enunciados opuestos o casos especiales que se cumplen entre expresiones algebraicas; así como predecir el comportamiento de variables; comprueba o descarta la validez de la afirmación mediante contraejemplos y propiedades matemáticas."
+    },
+    {
+      "nivel": 8,
+      "texto": "Resuelve problemas referidos a analizar cambios discontinuos o regularidades, entre magnitudes, valores o expresiones; traduciéndolas a expresiones algebraicas que pueden incluir la regla de formación de sucesiones convergentes o divergentes, funciones periódicas seno y coseno, o ecuaciones exponenciales que mejor se ajusten al comportamiento. Expresa su comprensión de las propiedades o elementos de los sistemas de inecuaciones lineales, ecuaciones exponenciales y funciones definidas en tramos; usando lenguaje formal y diversas representaciones; y las usa para interpretar información científica, financiera y matemática. Combina e integra un amplio repertorio de recursos, estrategias o procedimientos matemáticos para interpolar, extrapolar valores o calcular el valor máximo o mínimo de sucesiones y sumatorias notables, así como de funciones trigonométricas y evaluar o definir funciones por tramos; optando por los más pertinentes a la situación. Elabora afirmaciones sobre la validez general de relaciones entre conceptos y procedimientos algebraicos, así como predecir el comportamiento de las variables; las sustenta con demostraciones o argumentos que evidencian su solvencia conceptual."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1P",
+      "orden": 1,
+      "texto": "Establece relaciones de equivalencias entre dos grupos de hasta diez objetos y las trasforma en igualdades que contienen adiciones. Ejemplo: En un platillo de una balanza hay 2 pelotas rojas y 5 pelotas azules (del mismo tamaño) y en el otro platillo hay 3 pelotas amarillas y 4 pelotas rojas. El estudiante representa con una igualdad lo que observa en la balanza (2 + 5 = 3 + 4)."
+    },
+    {
+      "grado": "1P",
+      "orden": 2,
+      "texto": "Establece relaciones entre los datos que se repiten (objetos, colores, diseños, sonidos o movimientos) o entre cantidades que aumentan regularmente, y los transforma en patrones de repetición o en patrones aditivos."
+    },
+    {
+      "grado": "1P",
+      "orden": 3,
+      "texto": "Describe, usando lenguaje cotidiano y representaciones concretas y dibujos, su comprensión de la equivalencia como equilibrio o igual valor entre dos colecciones o cantidades; asimismo, cómo se forma el patrón de repetición (de un criterio perceptual) y el patrón aditivo creciente hasta el 20 (de 1 en 1 y 2 en 2)."
+    },
+    {
+      "grado": "1P",
+      "orden": 4,
+      "texto": "Emplea estrategias heurísticas y estrategias de cálculo (como el conteo, el ensayo-error y la descomposición aditiva) para encontrar equivalencias o crear, continuar y completar patrones."
+    },
+    {
+      "grado": "1P",
+      "orden": 5,
+      "texto": "Explica cómo continúa el patrón y lo que debe hacer para encontrar una equivalencia, así como su proceso de resolución. Ejemplo: En una balanza de platillos, se colocan 5 cubos en el lado izquierdo y 8 cubos en el lado derecho. ¿Cuántos cubos hay que poner del lado izquierdo para lograr el equilibrio de ambos lados?"
+    },
+    {
+      "grado": "2P",
+      "orden": 1,
+      "texto": "Establece relaciones de equivalencias entre dos grupos de hasta veinte objetos y las trasforma en igualdades que contienen adiciones o sustracciones."
+    },
+    {
+      "grado": "2P",
+      "orden": 2,
+      "texto": "Establece relaciones entre los datos que se repiten (objetos, colores, diseños, sonidos o movimientos) o entre cantidades que aumentan o disminuyen regularmente, y los transforma en patrones de repetición o patrones aditivos."
+    },
+    {
+      "grado": "2P",
+      "orden": 3,
+      "texto": "Expresa, con lenguaje cotidiano y representaciones concretas o dibujos, su comprensión de la equivalencia como equilibrio o igualdad entre dos colecciones o cantidades."
+    },
+    {
+      "grado": "2P",
+      "orden": 4,
+      "texto": "Describe, usando lenguaje cotidiano y representaciones concretas y dibujos, el patrón de repetición (con dos criterios perceptuales), y cómo aumentan o disminuyen los números en un patrón aditivo con números de hasta 2 cifras."
+    },
+    {
+      "grado": "2P",
+      "orden": 5,
+      "texto": "Emplea estrategias heurísticas y estrategias de cálculo (el conteo o la descomposición aditiva) para encontrar equivalencias, mantener la igualdad (“equilibrio”) o crear, continuar y completar patrones. Ejemplo: El estudiante podría decir: “Si tú tienes tres frutas y yo cinco, ¿qué podemos hacer para que cada uno tenga el mismo número de frutas?”."
+    },
+    {
+      "grado": "2P",
+      "orden": 6,
+      "texto": "Explica lo que debe hacer para mantener el “equilibrio” o la igualdad, y cómo continúa el patrón y las semejanzas que encuentra en dos versiones del mismo patrón, con base en ejemplos concretos. Así también, explica su proceso de resolución. Ejemplo: El estudiante podría decir: “El collar lleva dos hojas, tres frutos secos, una concha, una y otra vez; y los bloques van dos rojos, tres azules y uno blanco, una y otra vez; ambos se forman así: dos, luego tres, luego uno”."
+    },
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Establece relaciones de equivalencias entre dos grupos de hasta veinte objetos y las trasforma en igualdades que contienen adiciones, sustracciones o multiplicaciones."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Establece relaciones entre los datos que se repiten (objetos, colores, diseños, sonidos o movimientos) o entre cantidades que aumentan o disminuyen regularmente, y los transforma en patrones de repetición (con criterios perceptuales o de cambio de posición) o patrones aditivos (con números de hasta 3 cifras)."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Describe, con algunas expresiones del lenguaje algebraico (igualdad, patrón, etc.) y representaciones, su comprensión de la igualdad como equivalencia entre dos colecciones o cantidades, así como que un patrón puede representarse de diferentes formas."
+    },
+    {
+      "grado": "3P",
+      "orden": 4,
+      "texto": "Describe el cambio de una magnitud con respecto al paso del tiempo, apoyándose en tablas o dibujos. Ejemplo: El estudiante representa el mismo patrón de diferentes maneras: triángulo, rectángulo, triángulo como ABA, ABA, ABA."
+    },
+    {
+      "grado": "3P",
+      "orden": 5,
+      "texto": "Emplea estrategias heurísticas y estrategias de cálculo (la descomposición aditiva y multiplicativa, agregar o quitar en ambos lados de la igualdad, relaciones inversas entre operaciones y otras), para encontrar equivalencias, mantener la igualdad (“equilibrio”), encontrar relaciones de cambio entre dos magnitudes o continuar, completar y crear patrones."
+    },
+    {
+      "grado": "3P",
+      "orden": 6,
+      "texto": "Hace afirmaciones y explica lo que sucede al modificar las cantidades que intervienen en una relación de igualdad y cómo equiparar dos cantidades, así como lo que debe considerar para continuar o completar el patrón y las semejanzas que encuentra en dos versiones del mismo patrón, mediante ejemplos concretos. Así también, explica su proceso de resolución. Ejemplo: El estudiante podría decir: “Si quito 2 kilos en este platillo de la balanza, se perderá el equilibrio”."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Establece relaciones entre datos de hasta dos equivalencias y las trasforma en igualdades que contienen adiciones o sustracciones, o multiplicaciones o divisiones."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Establece relaciones entre los datos de una regularidad y los transforma en patrones de repetición (que combinan criterios perceptuales y un criterio geométrico de simetría) o patrones aditivos o multiplicativos (con números de hasta 4 cifras)."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Expresa, usando lenguaje algebraico (ícono y operaciones) y diversas representaciones, su comprensión de la regla de formación de un patrón, de la igualdad (con un término desconocido) y del signo igual, distinguiéndolo de su uso en el resultado de una operación."
+    },
+    {
+      "grado": "4P",
+      "orden": 4,
+      "texto": "Describe la relación de cambio de una magnitud con respecto de otra, apoyándose en tablas o dibujos."
+    },
+    {
+      "grado": "4P",
+      "orden": 5,
+      "texto": "Emplea estrategias heurísticas o estrategias de cálculo (duplicar o repartir en cada lado de la igualdad, relación inversa entre operaciones), para encontrar equivalencias, completar, crear o continuar patrones, o para encontrar relaciones de cambio entre dos magnitudes."
+    },
+    {
+      "grado": "4P",
+      "orden": 6,
+      "texto": "Hace afirmaciones sobre la equivalencia entre expresiones; para ello, usa nocionalmente las propiedades de la igualdad: uniformidad y cancelativa."
+    },
+    {
+      "grado": "4P",
+      "orden": 7,
+      "texto": "Hace afirmaciones sobre las regularidades, las relaciones de cambio entre magnitudes, así como los números o elementos que siguen en un patrón, y las justifica con sus experiencias concretas. Así también, justifica sus procesos de resolución."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Establece relaciones entre datos y valores desconocidos de una equivalencia y relaciones de variación entre los datos de dos magnitudes, y las transforma en ecuaciones simples (por ejemplo: x + a = b) con números naturales, o en tablas de proporcionalidad."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Establece relaciones entre los datos de una regularidad y los transforma en un patrón de repetición (que combine un criterio geométrico de simetría o traslación y un criterio perceptual) o en un patrón aditivo de segundo orden (por ejemplo: 13 - 15 - 18 - 22 - 27 - …)."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Expresa, con lenguaje algebraico y diversas representaciones, su comprensión de la regla de formación de un patrón de segundo orden, así como de los símbolos o letras en la ecuación y de la proporcionalidad como un cambio constante."
+    },
+    {
+      "grado": "5P",
+      "orden": 4,
+      "texto": "Emplea estrategias heurísticas, estrategias de cálculo y propiedades de la igualdad (uniformidad y cancelativa) para encontrar el valor de la incógnita en una ecuación, para hallar la regla de formación de un patrón o para encontrar valores de magnitudes proporcionales."
+    },
+    {
+      "grado": "5P",
+      "orden": 5,
+      "texto": "Elabora afirmaciones sobre los elementos no inmediatos que continúan un patrón y las justifica con ejemplos y cálculos sencillos. Asimismo, justifica sus procesos de resolución mediante el uso de propiedades de la igualdad y cálculos."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Establece relaciones entre datos y valores desconocidos de una equivalencia, de no equivalencia (“desequilibrio”) y de variación entre los datos de dos magnitudes, y las transforma en ecuaciones que contienen las cuatro operaciones, desigualdades con números naturales o decimales, o en proporcionalidad directa."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Establece relaciones entre los datos de una regularidad y los transforma en patrones de repetición (con criterios geométricos de traslación y giros), patrones (con y sin configuraciones puntuales) cuya regla se asocia a la posición de sus elementos y patrones aditivos o multiplicativos."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Expresa, con lenguaje algebraico y diversas representaciones, su comprensión del término general de un patrón (por ejemplo: 2, 5, 8, 11, 14...--> término general = triple de un número, menos 1), condiciones de desigualdad expresadas con los signos > y <, así como de la relación proporcional como un cambio constante."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Emplea estrategias heurísticas y estrategias de cálculo para determinar la regla o el término general de un patrón, y propiedades de la igualdad (uniformidad y cancelativa) para resolver ecuaciones o hallar valores que cumplen una condición de desigualdad o de proporcionalidad."
+    },
+    {
+      "grado": "6P",
+      "orden": 5,
+      "texto": "Elabora afirmaciones sobre los términos no inmediatos en un patrón y sobre lo que ocurre cuando modifica cantidades que intervienen en los miembros de una desigualdad, y las justifica con ejemplos, cálculos, propiedades de la igualdad o a través de sus conocimientos. Así también, justifica su proceso de resolución."
+    },
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Establece relaciones entre datos, regularidades, valores desconocidos, o relaciones de equivalencia o variación entre dos magnitudes. Transforma esas relaciones a expresiones algebraicas (modelo) que incluyen la regla de formación de progresiones aritméticas con números enteros, a ecuaciones lineales (ax + b = cx + d, a y c ∈ Z), a desigualdades (x > a o x < b), a funciones lineales, a proporcionalidad directa o a gráficos cartesianos. También las transforma a patrones gráficos (con traslaciones, rotaciones o ampliaciones)."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Comprueba si la expresión algebraica o gráfica (modelo) que planteó le permitió solucionar el problema, y reconoce qué elementos de la expresión representan las condiciones del problema: datos, términos desconocidos, regularidades, relaciones de equivalencia o variación entre dos magnitudes."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Expresa, con diversas representaciones gráficas, tabulares y simbólicas, y con lenguaje algebraico, su comprensión sobre la formación de un patrón gráfico o una progresión aritmética, para interpretar un problema según su contexto y estableciendo relaciones entre representaciones."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Expresa, con diversas representaciones gráficas, tabulares y simbólicas, y con lenguaje algebraico, su comprensión sobre la solución de una ecuación lineal y sobre la solución del conjunto solución de una condición de desigualdad, para interpretar un problema según su contexto y estableciendo relaciones entre representaciones."
+    },
+    {
+      "grado": "1S",
+      "orden": 5,
+      "texto": "Interrelaciona representaciones gráficas, tabulares y algebraicas para expresar el comportamiento de la función lineal y sus elementos: intercepto con los ejes, pendiente, dominio y rango, para interpretar y resolver un problema según su contexto. Ejemplo: Un estudiante puede reconocer a partir de la gráfica los precios de tres tipos de arroz, representados por las siguientes funciones: y = 3x; y = 3,3x; y = 2,80. Reconoce el tipo de arroz más barato y el más caro a partir de las expresiones dadas o sus correspondientes gráficas."
+    },
+    {
+      "grado": "1S",
+      "orden": 6,
+      "texto": "Establece la relación de correspondencia entre la razón de cambio de una función lineal y la constante de proporcionalidad para resolver un problema según su contexto."
+    },
+    {
+      "grado": "1S",
+      "orden": 7,
+      "texto": "Selecciona y emplea recursos, estrategias heurísticas y procedimientos pertinentes a las condiciones del problema, como determinar términos desconocidos en un patrón gráfico o progresión aritmética; simplificar expresiones algebraicas, solucionar ecuaciones y determinar el conjunto de valores que cumplen una desigualdad usando propiedades de la igualdad y de las operaciones; y determinar valores que cumplen una relación de proporcionalidad directa e inversa entre magnitudes."
+    },
+    {
+      "grado": "1S",
+      "orden": 8,
+      "texto": "Plantea afirmaciones sobre las propiedades de igualdad que sustentan la simplificación de ambos miembros de una ecuación. Las justifica usando ejemplos y sus conocimientos matemáticos. Reconoce errores en sus justificaciones o en las de otros, y las corrige."
+    },
+    {
+      "grado": "1S",
+      "orden": 9,
+      "texto": "Plantea afirmaciones sobre las condiciones para que dos ecuaciones sean equivalentes o exista una solución posible. Las justifica usando ejemplos y sus conocimientos matemáticos. Reconoce errores en sus justificaciones o en las de otros, y las corrige."
+    },
+    {
+      "grado": "1S",
+      "orden": 10,
+      "texto": "Plantea afirmaciones sobre las características y propiedades de las funciones lineales. Las justifica con ejemplos y sus conocimientos matemáticos. Reconoce errores en sus justificaciones o en las de otros, y las corrige."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Establece relaciones entre datos, regularidades, valores desconocidos, o relaciones de equivalencia o variación entre dos magnitudes. Transforma esas relaciones a expresiones algebraicas o gráficas (modelos) que incluyen la regla de formación de progresiones aritméticas con números enteros, a ecuaciones lineales (ax + b = cx + d, a y c ∈ Q), a inecuaciones de la forma (ax > b, ax < b, ax ≥ b y ax ≤ b ∀ a ≠ 0), a funciones lineales y afines, a proporcionalidad directa e inversa con expresiones fraccionarias o decimales, o a gráficos cartesianos. También las transforma a patrones gráficos que combinan traslaciones, rotaciones o ampliaciones. Ejemplo: Un estudiante expresa el sueldo fijo de S/700 y las comisiones de S/30 por cada artículo que vende, mediante la expresión y = 30x + 700. Es decir, modela la situación con una función lineal."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Comprueba si la expresión algebraica o gráfica (modelo) que planteó le permitió solucionar el problema, y reconoce qué elementos de la expresión representan las condiciones del problema: datos, términos desconocidos, regularidades, relaciones de equivalencia o variación entre dos magnitudes."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Expresa, con diversas representaciones gráficas, tabulares y simbólicas, y con lenguaje algebraico, su comprensión sobre la regla de formación de patrones gráficos y progresiones aritméticas, y sobre la suma de sus términos, para interpretar un problema en su contexto y estableciendo relaciones entre dichas representaciones."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Expresa, con diversas representaciones gráficas, tabulares y simbólicas, y con lenguaje algebraico, su comprensión sobre la solución de una ecuación lineal y sobre el conjunto solución de una condición de desigualdad, para interpretarlas y explicarlas en el contexto de la situación. Establece conexiones entre dichas representaciones y pasa de una a otra representación cuando la situación lo requiere."
+    },
+    {
+      "grado": "2S",
+      "orden": 5,
+      "texto": "Expresa, usando lenguaje matemático y representaciones gráficas, tabulares y simbólicas, su comprensión de la relación de correspondencia entre la constante de cambio de una función lineal y el valor de su pendiente, las diferencias entre función afín y función lineal, así como su comprensión de las diferencias entre una proporcionalidad directa e inversa, para interpretarlas y explicarlas en el contexto de la situación. Establece conexiones entre dichas representaciones y pasa de una a otra representación cuando la situación lo requiere. Ejemplo: Un estudiante observa los cambios en la pendiente de una gráfica que representa el movimiento de un auto relacionando tiempo y distancia. Describe, por ejemplo, que el auto avanza 240 km en tres horas, luego se detiene cuatro horas y regresa al punto de partida también en tres horas."
+    },
+    {
+      "grado": "2S",
+      "orden": 6,
+      "texto": "Selecciona y combina recursos, estrategias heurísticas y el procedimiento matemático más conveniente a las condiciones de un problema para determinar términos desconocidos o la suma de “n” términos de una progresión aritmética, simplificar expresiones algebraicas usando propiedades de la igualdad y propiedades de las operaciones, solucionar ecuaciones e inecuaciones lineales, y evaluar el conjunto de valores de una función lineal."
+    },
+    {
+      "grado": "2S",
+      "orden": 7,
+      "texto": "Plantea afirmaciones sobre la relación entre la posición de un término en una progresión aritmética y su regla de formación, u otras relaciones de cambio que descubre. Justifica la validez de sus afirmaciones usando ejemplos y sus conocimientos matemáticos. Reconoce errores en sus justificaciones o en las de otros, y las corrige."
+    },
+    {
+      "grado": "2S",
+      "orden": 8,
+      "texto": "Plantea afirmaciones sobre las propiedades que sustentan la igualdad o la simplificación de expresiones algebraicas para solucionar ecuaciones e inecuaciones lineales, u otras relaciones que descubre. Justifica la validez de sus afirmaciones mediante ejemplos y sus conocimientos matemáticos. Reconoce errores en sus justificaciones o en las de otros, y las corrige."
+    },
+    {
+      "grado": "2S",
+      "orden": 9,
+      "texto": "Plantea afirmaciones sobre las diferencias entre la función lineal y una función lineal afín, y sobre la diferencia entre una proporcionalidad directa y una proporcionalidad inversa, u otras relaciones que descubre. Justifica la validez de sus afirmaciones usando ejemplos y sus conocimientos matemáticos. Reconoce errores en sus justificaciones o en las de otros, y las corrige."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Establece relaciones entre datos, valores desconocidos, regularidades, condiciones de equivalencia o variación entre magnitudes. Transforma esas relaciones a expresiones algebraicas o gráficas (modelos) que incluyen la regla de formación de una progresión geométrica, a sistemas de ecuaciones lineales con dos variables, a inecuaciones (ax ± b < c, ax ± b > c, ax ± b ≤ c y ax + b ≥ c, ∀ a ∈ Q y a ≠ 0), a ecuaciones cuadráticas (ax² = c) y a funciones cuadráticas (f(x) = x², f(x) = ax² + c, ∀ a ≠ 0) con coeficientes enteros y proporcionalidad compuesta."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Evalúa si la expresión algebraica o gráfica (modelo) que planteó representó todas las condiciones del problema: datos, términos desconocidos, regularidades, relaciones de equivalencia o variación entre dos magnitudes."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Expresa, con diversas representaciones gráficas, tabulares y simbólicas, y con lenguaje algebraico, su comprensión sobre la regla de formación de una progresión geométrica y reconoce la diferencia entre un crecimiento aritmético y uno geométrico para interpretar un problema en su contexto y estableciendo relaciones entre dichas representaciones."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Expresa, con diversas representaciones gráficas, tabulares y simbólicas, y con lenguaje algebraico, su comprensión sobre la solución de un sistema de ecuaciones lineales y de la ecuación cuadrática e inecuación lineal, para interpretar su solución en el contexto de la situación y estableciendo conexiones entre dichas representaciones."
+    },
+    {
+      "grado": "3S",
+      "orden": 5,
+      "texto": "Expresa, con diversas representaciones gráficas, tabulares y simbólicas y con lenguaje algebraico, su comprensión sobre el comportamiento gráfico de una función cuadrática, sus valores máximos, mínimos e interceptos, su eje de simetría, vértice y orientación, para interpretar su solución en el contexto de la situación y estableciendo conexiones entre dichas representaciones."
+    },
+    {
+      "grado": "3S",
+      "orden": 6,
+      "texto": "Selecciona y combina estrategias heurísticas, métodos gráficos, recursos y procedimientos matemáticos más convenientes para determinar términos desconocidos, simplificar expresiones algebraicas, y solucionar ecuaciones cuadráticas y sistemas de ecuaciones lineales e inecuaciones, usando productos notables o propiedades de las igualdades. Reconoce cómo afecta a una gráfica la variación de los coeficientes en una función cuadrática."
+    },
+    {
+      "grado": "3S",
+      "orden": 7,
+      "texto": "Plantea afirmaciones sobre la relación entre la posición de un término y su regla de formación en una progresión geométrica, y las diferencias entre crecimientos aritméticos y geométricos, u otras relaciones de cambio que descubre. Justifica y comprueba la validez de sus afirmaciones mediante ejemplos, propiedades matemáticas, o razonamiento inductivo y deductivo."
+    },
+    {
+      "grado": "3S",
+      "orden": 8,
+      "texto": "Plantea afirmaciones sobre el significado de los puntos de intersección de dos funciones lineales que satisfacen dos ecuaciones simultáneamente, la relación de correspondencia entre dos o más sistemas de ecuaciones equivalentes, u otras relaciones que descubre. Justifica y comprueba la validez de sus afirmaciones mediante ejemplos, propiedades matemáticas, o razonamiento inductivo y deductivo."
+    },
+    {
+      "grado": "3S",
+      "orden": 9,
+      "texto": "Plantea afirmaciones sobre el cambio que produce el signo de coeficiente cuadrático de una función cuadrática en su gráfica, relaciones entre coeficientes y variación en la gráfica, u otras relaciones que descubre. Justifica y comprueba la validez de sus afirmaciones mediante ejemplos, propiedades matemáticas o razonamiento inductivo y deductivo."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Establece relaciones entre datos, valores desconocidos, regularidades, y condiciones de equivalencia o variación entre magnitudes. Transforma esas relaciones a expresiones algebraicas o gráficas (modelos) que incluyen la regla de formación de una progresión geométrica, a sistemas de ecuaciones lineales con dos incógnitas, a inecuaciones (ax + b < cx + d, ax + b > cx + d, ax + b ≤ cx + d y ax + b ≥ cx + d, ∀ a y c ≠ 0), a ecuaciones cuadráticas (ax² + bx + c = 0, a ≠ 0 y a, b y c ∈ Q) y a funciones cuadráticas (f(x)= ax²+ bx +c, ∀ a ≠ 0 y a ∈ Q). También las transforma a repartos proporcionales⁴⁴."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Evalúa expresiones algebraicas o gráficas (modelo) planteadas para un mismo problema y determina cuál representó mejor las condiciones del problema."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Expresa, con diversas representaciones gráficas, tabulares y simbólicas, y con lenguaje algebraico, su comprensión sobre la suma de términos de una progresión geométrica para interpretar un problema en su contexto y estableciendo relaciones entre dichas representaciones."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Expresa, con diversas representaciones gráficas, tabulares y simbólicas, y con lenguaje algebraico, su comprensión sobre la solución o soluciones de un sistema de ecuaciones lineales y de una ecuación cuadrática, y sobre el conjunto solución de inecuaciones lineales, para interpretar un problema en su contexto y estableciendo relaciones entre dichas representaciones."
+    },
+    {
+      "grado": "4S",
+      "orden": 5,
+      "texto": "Expresa, con diversas representaciones gráficas, tabulares y simbólicas y con lenguaje algebraico, su comprensión sobre el dominio y rango de una función cuadrática, la relación entre la variación de sus coeficientes, y los cambios que se observan en su representación gráfica, para interpretar un problema en su contexto y estableciendo relaciones entre dichas representaciones. Ejemplo: Un estudiante observa la gráfica e identifica que el ingreso mayor se logra con un descuento de 15 dólares. De esta forma, determina que el rango del ingreso en dólares es de 0 hasta 10 125 dólares y que, para descuentos mayores o menores que 15 dólares, el ingreso es menor."
+    },
+    {
+      "grado": "4S",
+      "orden": 6,
+      "texto": "Combina y adapta estrategias heurísticas, recursos, métodos gráficos, procedimientos y propiedades algebraicas más óptimas para determinar términos desconocidos y la suma de términos de una progresión geométrica, simplificar expresiones algebraicas, y solucionar sistemas de ecuaciones lineales e inecuaciones usando identidades algebraicas o propiedades de las igualdades y desigualdades."
+    },
+    {
+      "grado": "4S",
+      "orden": 7,
+      "texto": "Plantea afirmaciones sobre las características que distinguen un crecimiento geométrico, o relaciones que descubre en una sucesión gráfica o numérica, u otras relaciones de cambio que descubre. Justifica o descarta la validez de sus afirmaciones mediante un contraejemplo, propiedades matemáticas, o razonamiento inductivo y deductivo."
+    },
+    {
+      "grado": "4S",
+      "orden": 8,
+      "texto": "Plantea afirmaciones sobre las posibles soluciones a un sistema de ecuaciones lineales, ecuaciones cuadráticas o inecuaciones lineales, u otras relaciones que descubre. Justifica o descarta la validez de sus afirmaciones mediante un contraejemplo, propiedades matemáticas, o razonamiento inductivo y deductivo."
+    },
+    {
+      "grado": "4S",
+      "orden": 9,
+      "texto": "Plantea afirmaciones sobre relaciones de cambio que observa entre las variables de una función cuadrática y en repartos proporcionales, u otras relaciones que descubre. Justifica o descarta la validez de afirmaciones mediante un contraejemplo, propiedades matemáticas, o razonamiento inductivo y deductivo."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Establece relaciones entre datos, valores desconocidos, regularidades, y condiciones de equivalencia o de variación entre magnitudes. Transforma esas relaciones a expresiones algebraicas o gráficas (modelos) que incluyen sucesiones crecientes o decrecientes, a sistemas de ecuaciones lineales con dos incógnitas, a inecuaciones, a funciones cuadráticas con coeficientes racionales y a funciones exponenciales. Ejemplo: El estudiante resuelve la siguiente situación: \"Si al doble de la cantidad de monedas de 5 soles que tengo le sumo 1000 soles, juntaré más de 3700 soles. ¿Cuántas monedas de 5 soles tengo cómo mínimo?\". Para ello, plantea inecuaciones lineales y halla la cantidad mínima de monedas."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Realiza ajustes o modificaciones a la expresión algebraica o gráfica (modelos) planteada cuando no cumple con todas las condiciones del problema o, si lo considera necesario, la ajusta a nuevas condiciones en problemas similares."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Expresa, con diversas representaciones gráficas, tabulares y simbólicas, y con lenguaje algebraico, su comprensión sobre la regla de formación de una sucesión creciente y decreciente, para interpretar un problema en su contexto y estableciendo relaciones entre dichas representaciones."
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Expresa, con diversas representaciones gráficas, tabulares y simbólicas, y con lenguaje algebraico, su comprensión sobre la solución o soluciones de una ecuación cuadrática y el sentido de sus valores máximos o mínimos e interceptos, en el contexto del problema. Interrelaciona estas representaciones y selecciona la más conveniente."
+    },
+    {
+      "grado": "5S",
+      "orden": 5,
+      "texto": "Expresa, con diversas representaciones gráficas, tabulares y simbólicas, y con lenguaje algebraico, su comprensión sobre la dilatación, la contracción, los desplazamientos horizontales y verticales, las intersecciones con los ejes de una función cuadrática, y la función exponencial al variar sus coeficientes."
+    },
+    {
+      "grado": "5S",
+      "orden": 6,
+      "texto": "Combina y adapta estrategias heurísticas, recursos, métodos gráficos o procedimientos más óptimos para hallar términos desconocidos de una sucesión creciente o decreciente, y para solucionar sistemas de ecuaciones lineales, ecuaciones cuadráticas y exponenciales, usando identidades algebraicas o propiedades de las desigualdades."
+    },
+    {
+      "grado": "5S",
+      "orden": 7,
+      "texto": "Plantea afirmaciones sobre características de una sucesión creciente y decreciente, u otras relaciones de cambio que descubre. Justifica y comprueba la validez de una afirmación opuesta a otra o de un caso especial mediante ejemplos, contraejemplos, conocimientos geométricos, o razonamiento inductivo y deductivo."
+    },
+    {
+      "grado": "5S",
+      "orden": 8,
+      "texto": "Plantea afirmaciones sobre la posibilidad o imposibilidad de solucionar una ecuación cuadrática sobre la base del análisis de sus coeficientes o el valor del discriminante. Justifica y comprueba la validez de una afirmación opuesta a otra o de un caso especial mediante ejemplos, contraejemplos, conocimientos geométricos, o razonamiento inductivo y deductivo."
+    },
+    {
+      "grado": "5S",
+      "orden": 9,
+      "texto": "Plantea afirmaciones sobre relaciones de cambio que observa entre las variables de una función exponencial o funciones cuadráticas. Justifica y comprueba la validez de una afirmación opuesta a otra o de un caso especial mediante ejemplos, contraejemplos, conocimientos geométricos, o razonamiento inductivo y deductivo. Ejemplo: El estudiante observa el gráfico y describe que, al cabo de 13 o 14 horas, las bacterias habrán superado el número de 10 000 y que el crecimiento es más acelerado cuando pasa el tiempo."
+    }
+  ]
+}
