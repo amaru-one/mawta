@@ -1,0 +1,265 @@
+{
+  "numero_cneb": 2,
+  "nombre": "Se desenvuelve de manera autónoma a través de su motricidad",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Comprende su cuerpo"
+    },
+    {
+      "numero": 2,
+      "nombre": "Se expresa corporalmente"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Se desenvuelve de manera autónoma a través de su motricidad cuando explora y descubre sus posibilidades de movimientos las partes de su cuerpo y su imagen corporal. Realiza acciones motrices básicas en las que coordina movimientos para desplazarse y manipular objetos. Expresa corporalmente a través del gesto, el tono, las posturas y movimientos sus sensaciones y emociones en situaciones cotidianas.²¹"
+    },
+    {
+      "nivel": 2,
+      "texto": "Se desenvuelve de manera autónoma a través de su motricidad cuando explora y descubre su lado dominante y sus posibilidades de movimiento por propia iniciativa en situaciones cotidianas. Realiza acciones motrices básicas en las que coordina movimientos para desplazarse con seguridad y utiliza objetos con precisión, orientándose y regulando sus acciones en relación a estos, a las personas, el espacio y el tiempo. Expresa corporalmente sus sensaciones, emociones y sentimientos a través del tono, gesto, posturas, ritmo y movimiento en situaciones de juego."
+    },
+    {
+      "nivel": 3,
+      "texto": "Se desenvuelve de manera autónoma a través de su motricidad cuando comprende cómo usar su cuerpo en las diferentes acciones que realiza utilizando su lado dominante y realiza movimientos coordinados que le ayudan a sentirse seguro en la práctica de actividades físicas. Se orienta espacialmente en relación a sí mismo y a otros puntos de referencia. Se expresa corporalmente con sus pares de diferentes utilizando el ritmo, gestos y movimientos como recursos para comunicar."
+    },
+    {
+      "nivel": 4,
+      "texto": "Se desenvuelve de manera autónoma a través de su motricidad cuando comprende cómo usar su cuerpo explorando la alternancia de sus lados corporales de acuerdo a su utilidad y ajustando la posición del cuerpo en el espacio y en el tiempo en diferentes etapas de las acciones motrices, con una actitud positiva y una voluntad de experimentar situaciones diversas. Experimenta nuevas posibilidades expresivas de su cuerpo y las utiliza para relacionarse y comunicar ideas, emociones, sentimientos, pensamientos."
+    },
+    {
+      "nivel": 5,
+      "texto": "Se desenvuelve de manera autónoma a través de su motricidad cuando acepta sus posibilidades y limitaciones según su desarrollo e imagen corporal. Realiza secuencias de movimientos coordinados aplicando la alternancia de sus lados corporales de acuerdo a su utilidad. Produce con sus pares secuencias de movimientos corporales, expresivos²⁰ o rítmicos en relación a una intención."
+    },
+    {
+      "nivel": 6,
+      "texto": "Se desenvuelve de manera autónoma a través de su motricidad cuando relaciona cómo su imagen corporal y la aceptación de los otros influyen en el concepto de sí mismo. Realiza habilidades motrices específicas, regulando su tono, postura, equilibrio y tomando como referencia la trayectoria de objetos, los otros y sus propios desplazamientos. Produce secuencias de movimientos y gestos corporales para manifestar sus emociones con base en el ritmo y la música y utilizando diferentes materiales."
+    },
+    {
+      "nivel": 7,
+      "texto": "Se desenvuelve de manera autónoma a través de su motricidad cuando toma conciencia de cómo su imagen corporal contribuye a la construcción de su identidad y autoestima. Organiza su cuerpo en relación a las acciones y habilidades motrices según la práctica de actividad física que quiere realizar. Produce con sus compañeros diálogos corporales¹⁹ que combinan movimientos en los que expresan emociones, sentimientos y pensamientos sobre temas de su interés en un determinado contexto."
+    },
+    {
+      "nivel": 8,
+      "texto": "Se desenvuelve de manera autónoma a través de su motricidad cuando evalúa críticamente los procesos físicos, en relación a aspectos sociales, emocionales, afectivos y cognitivos vinculándolos con las características de su desarrollo y su identidad corporal. Demuestra habilidades en la ejecución de movimientos complejos cuando practica actividad física. Crea, se apropia y evalúa prácticas corporales y expresivas de diferentes contextos, fusionando a través del movimiento características de expresión de su cultura y de otras culturas."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1P",
+      "orden": 1,
+      "texto": "Explora de manera autónoma las posibilidades de su cuerpo en diferentes acciones para mejorar sus movimientos (saltar, correr, lanzar) al mantener y/o recuperar el equilibrio en el espacio y con los objetos, cuando utiliza conscientemente distintas bases de sustentación; así, conoce en sí mismo su lado dominante."
+    },
+    {
+      "grado": "1P",
+      "orden": 2,
+      "texto": "Se orienta en un espacio y tiempo determinados, reconociendo su lado izquierdo y derecho, y a través de las nociones “arriba- abajo”, “dentro-fuera”, “cerca-lejos”, con relación a sí mismo y de acuerdo a sus intereses y necesidades."
+    },
+    {
+      "grado": "1P",
+      "orden": 3,
+      "texto": "Explora nuevos movimientos y gestos para representar objetos, personajes, estados de ánimo y ritmos sencillos de distintos orígenes: de la naturaleza, del propio cuerpo, de la música, etc."
+    },
+    {
+      "grado": "1P",
+      "orden": 4,
+      "texto": "Se expresa motrizmente para comunicar sus emociones (miedo, angustia, alegría, placer, torpeza, inhibición, rabia, entre otras) y representa en el juego acciones cotidianas de su familia y de la comunidad; así, afirma su identidad personal."
+    },
+    {
+      "grado": "2P",
+      "orden": 1,
+      "texto": "Explora de manera autónoma sus posibilidades de movimiento al realizar con seguridad y confianza habilidades motrices básicas¹⁰, mediante movimientos coordinados según sus intereses, necesidades y posibilidades."
+    },
+    {
+      "grado": "2P",
+      "orden": 2,
+      "texto": "Se orienta en el espacio y tiempo con relación a sí mismo y a otros puntos de referencia; reconoce sus posibilidades de equilibrio con diferentes bases de sustentación en acciones lúdicas."
+    },
+    {
+      "grado": "2P",
+      "orden": 3,
+      "texto": "Resuelve situaciones motrices al utilizar su lenguaje corporal (gesto, contacto visual, actitud corporal, apariencia, etc.), verbal y sonoro, que lo ayudan a sentirse seguro, confiado y aceptado."
+    },
+    {
+      "grado": "2P",
+      "orden": 4,
+      "texto": "Utiliza su cuerpo y el movimiento para expresar ideas y emociones en la práctica de actividades lúdicas con diferentes tipos de ritmos y música, a fin de expresarse corporalmente y mediante el uso de diversos elementos."
+    },
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Reconoce la izquierda y la derecha con relación a objetos y a sus pares, para mejorar sus posibilidades de movimiento en diferentes acciones lúdicas."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Se orienta en un espacio y tiempo determinados, con relación a sí mismo, a los objetos y a sus compañeros; coordina sus movimientos en situaciones lúdicas y regula su equilibrio al variar la base de sustentación y la altura de la superficie de apoyo, de esta manera, afianza sus habilidades motrices básicas."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Resuelve situaciones motrices al utilizar su lenguaje corporal (gestos, contacto visual, actitud corporal, apariencia, etc.), verbal y sonoro para comunicar actitudes, sensaciones, estados de ánimo y acciones que le posibilitan comunicarse mejor con los otros y disfrutar de las actividades lúdicas."
+    },
+    {
+      "grado": "3P",
+      "orden": 4,
+      "texto": "Vivencia el ritmo y se apropia de secuencias rítmicas corporales en situaciones de juego para expresarse corporalmente a través de la música."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Regula la posición del cuerpo en situaciones de equilibrio, con modificación del espacio, teniendo como referencia la trayectoria de objetos, los otros y sus propios desplazamientos, para afianzar sus habilidades motrices básicas."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Alterna sus lados corporales de acuerdo a su utilidad y/o necesidad y se orienta en el espacio y en el tiempo, con relación a sí mismo y a otros puntos de referencia en actividades lúdicas y predeportivas."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Utiliza su cuerpo (posturas, gestos y mímica) y diferentes movimientos para expresar formas, ideas, emociones, sentimientos y pensamientos en la actividad física."
+    },
+    {
+      "grado": "4P",
+      "orden": 4,
+      "texto": "Utiliza lenguaje corporal para expresar su forma particular de moverse, creando secuencias sencillas de movimientos relacionados con el ritmo, la música de su cultura y la historia de su región."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Aplica la alternancia de sus lados corporales de acuerdo a su preferencia, utilidad y/o necesidad, y anticipa las acciones motrices a realizar en un espacio y tiempo, para mejorar las posibilidades de respuesta en una actividad física."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Explora y regula su cuerpo para dar respuesta a las situaciones motrices en contextos lúdicos y predeportivos; así, pone en práctica las habilidades motrices relacionadas con la carrera, el salto y los lanzamientos."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Crea movimientos y desplazamientos rítmicos e incorpora las particularidades de su lenguaje corporal teniendo como base la música de su región, al asumir diferentes roles en la práctica de actividad física."
+    },
+    {
+      "grado": "5P",
+      "orden": 4,
+      "texto": "Valora en sí mismo y en sus pares nuevas formas de movimiento y gestos corporales; de esta manera, acepta la existencia de nuevas formas de movimiento y expresión para comunicar ideas y emociones en diferentes situaciones motrices."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Aplica la alternancia de sus lados corporales de acuerdo a su preferencia, utilidad y/o necesidad, y anticipa las acciones motrices a realizar en un espacio y tiempo, para mejorar las posibilidades de respuesta en una actividad física."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Regula su cuerpo para dar respuesta a las situaciones motrices en contextos lúdicos, predeportivos, etc.; de este modo, afianza las habilidades motrices específicas relacionadas con la carrera, el salto y los lanzamientos."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Expresa su forma particular de moverse, al asumir y adjudicar diferentes roles en la práctica de actividad física, aplicando su lenguaje corporal."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Crea con sus pares una secuencia de movimientos corporales, expresivos y/o rítmicos, de manera programada y estructurada; así, se expresa de diferentes formas y con diversos recursos, a través del cuerpo y el movimiento, para comunicar ideas y emociones."
+    },
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Muestra coordinación (ajuste del cuerpo, fluidez y armonía en los movimientos, entre otros) al realizar actividades lúdicas, recreativas, predeportivas y deportivas para afianzar sus habilidades motrices específicas y mejorar la calidad de respuesta en diferentes acciones."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Resuelve situaciones motrices¹³ a través del dominio y alternancia de sus lados orientándose en un espacio y un tiempo determinados, en interacción con los objetos y los otros, tomando conciencia de su cuerpo en la acción."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Realiza técnicas de expresión motriz (mímica, gestual y postural) para la manifestación de sus emociones en situaciones de juego y actividades físicas diversas. Representa secuencias de movimiento y gestos corporales propios de las manifestaciones culturales de su región."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Expresa emociones, ideas y sentimientos a través de su cuerpo y el movimiento, utilizando diferentes materiales (cintas, balones, bastones, cuerdas, etc.) para encontrarse consigo mismo y con los demás."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Regula su tono muscular, postura y equilibrio teniendo como referencia la trayectoria de objetos y de otras personas, y sus propios desplazamientos al realizar habilidades motrices específicas en actividades lúdicas, recreativas, predeportivas y deportivas."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Coordina su cuerpo con seguridad y confianza al realizar diversos movimientos en diferentes situaciones y entornos."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Realiza secuencias de movimientos y gestos corporales adaptando su cuerpo para manifestar sus emociones a partir del ritmo y la música de su región."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Crea acciones motrices o secuencias de movimiento utilizando diferentes materiales (cintas, balones, bastones, cuerdas, etc.) expresándose a través de su cuerpo y sus movimientos para encontrarse consigo mismo y con los demás."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Combina con eficacia¹⁵ las habilidades motrices específicas y regula su cuerpo en situaciones predeportivas y deportivas. Toma como referencia la trayectoria de objetos y a sus compañeros."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Se adapta a los cambios que experimenta su cuerpo en relación con su imagen corporal en la pubertad durante la práctica de actividades lúdicas, recreativas, predeportivas y deportivas."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Elabora secuencias rítmicas individuales comunicando sus ideas y emociones, y aceptando y valorando sus aportes y el de sus compañeros."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Crea rutinas de movimientos colectivos (drilles, coreografías, etc.) incorporando diferentes materiales (cintas, balones, bastones, cuerdas, etc.)."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Coordina su cuerpo de manera autónoma con precisión en acciones motrices de su preferencia para lograr un objetivo determinado y actúa de acuerdo con sus posibilidades y limitaciones."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Analiza el control y ejecución de sus habilidades motrices específicas para mejorarlas durante la práctica de diferentes actividades físicas."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Crea prácticas corporales-expresivas para la producción de secuencias coreográficas individuales relacionadas con historias, mitos, leyendas, cuentos autóctonos, etc."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Crea con sus pares secuencias rítmicas, musicales, lúdicas y deportivas a partir de aquellas propias de su región, de otras regiones y de otras partes del mundo, como medio de comunicación de ideas y emociones."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Coordina su cuerpo y da respuestas motrices eficaces durante la práctica de diversas actividades físicas, monitoreando las mejoras en el control de su cuerpo en donde se aplique la comprensión de las fases de movimiento, y la preparación y ejecución de las acciones, con seguridad y confianza."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Se adapta a los cambios que experimenta su cuerpo en relación con su imagen corporal en la adolescencia durante la práctica de actividades lúdicas, recreativas, predeportivas y deportivas."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Elabora con sus compañeros diálogos corporales con seguridad y confianza (secuencias rítmicas de movimiento, gestos, coreografías, imágenes, figuras corporales expresivas, etc.), que combinen movimiento y representación de expresiones emocionales y afectivas, en un determinado contexto histórico y cultural."
+    }
+  ]
+}

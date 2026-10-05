@@ -2,7 +2,7 @@
 
 ## Scope and status
 
-This is an incremental transcription, not the complete requested catalog. Mathematics, Social Sciences, Personal Social, and DPCC have been transcribed: nine competencies, 33 capacities, 72 standards, and 616 grade performances. The Personal Social and DPCC entries reference the same competency 1 and 16 files, each containing all eleven grades. The Social Sciences files include their primary Personal Social performances. Two scan-punctuation readings are flagged below for review. Every included source page was rendered with pypdfium2 and read visually. Primary-program text and local macOS Vision OCR were used as drafts and corrected against the rendered pages. No Internet sources were used. Source spelling, punctuation, apparent errors, and differences between editions are retained.
+This is an incremental transcription, not the complete requested catalog. Mathematics, Social Sciences, Personal Social, DPCC, and Physical Education have been transcribed: twelve competencies, 39 capacities, 96 standards, and 742 grade performances. The Personal Social and DPCC entries reference the same competency 1 and 16 files, each containing all eleven grades. The Social Sciences files include their primary Personal Social performances. Scan-punctuation readings are flagged below for review. Every included source page was rendered with pypdfium2 and read visually. Primary-program text and local macOS Vision OCR were used as drafts and corrected against the rendered pages. No Internet sources were used. Source spelling, punctuation, apparent errors, and differences between editions are retained.
 
 Only `mawta-server/curriculum/cneb/` is changed. Work is on `data/cneb-catalog`, created from `main` at `4af29aa`. No Go code, seed changes, push, or merge.
 
@@ -155,7 +155,7 @@ The primary area and competency order are verified on primary PDF p. 73 and its 
 - **1, cycle III:** primary p. 78 substitutes `mujer o varón` for CNEB p. 33 `niña o niño`.
 - **1, cycle IV:** primary p. 80 substitutes `las personas` for CNEB p. 33 `las niñas y niños`.
 - **1, cycle V:** primary p. 81 matches CNEB p. 33.
-- **1, cycle VI:** secondary p. 35 stops at `criterios éticos.` It omits the CNEB's final three sentences, beginning `Se relaciona con igualdad o equidad` and ending `salud sexual y reproductiva.` The complete CNEB standard is retained.
+- **1, cycle VI:** secondary p. 35 stops at `criterios éticos.` It omits the CNEB's final two sentences, beginning `Se relaciona con igualdad o equidad` and ending `salud sexual y reproductiva.` The complete CNEB standard is retained.
 - **1, cycle VII:** secondary pp. 36–37 add `de manera regulada` after `Manifiesta`; CNEB p. 33 says `Manifiesta sus emociones`. The footnote reference is 6 on secondary p. 36 and 7 on p. 37, versus 18 in CNEB. Other wording matches.
 - **16, cycles III–V:** primary pp. 86, 87, 89 match CNEB p. 63.
 - **16, cycles VI–VII:** secondary pp. 40–42 match CNEB p. 63.
@@ -165,6 +165,69 @@ The competency 16 name in CNEB p. 62 is `Convive y participa democráticamente`.
 All new words were legible after column extraction and visual checks. Source irregularities are retained: CNEB p. 33 level 2 prints `con ira; triste o alegre`; secondary p. 35, second-grade performance 4, prints `los. principios éticos`. CNEB p. 33 level 6 has a small period-like mark after `protegerse` (represented as `protegerse. de situaciones`); whether that mark is punctuation or scan noise remains uncertain and should be checked against a clearer copy. CNEB p. 63 level 6 retains `otros también las cumplan`.
 
 The seed contains neither competency 1 nor competency 16, so their nine capacity names have no seed counterpart. The three shared Social Sciences competencies retain the comparison already documented above. No additional or missing area code was found for PS or DPCC.
+
+## Physical Education inventory and sources
+
+The area is verified on primary PDF p. 111 and secondary p. 61. `EF-C1`, `EF-C2`, and `EF-C3` map to CNEB 2, 3, and 4, following the detailed competency sections in both programs. The secondary introductory list on p. 61 instead lists 2, 4, 3; this internal ordering discrepancy is recorded here. No additional or missing area code was found.
+
+| File | Competency | Capacities | Standards | CNEB capacity page | CNEB standard page |
+| --- | --- | ---: | ---: | ---: | ---: |
+| `c02.json` | Se desenvuelve de manera autónoma a través de su motricidad | 2 | 8 | 34 | 35 |
+| `c03.json` | Asume una vida saludable | 2 | 8 | 36 | 37 |
+| `c04.json` | Interactúa a través de sus habilidades sociomotrices | 2 | 8 | 38 | 39 |
+
+| Competency | Grade | Performance count | Program | PDF source page |
+| --- | --- | ---: | --- | ---: |
+| 2 | 1P | 4 | Primary | 116 |
+| 2 | 2P | 4 | Primary | 116 |
+| 2 | 3P | 4 | Primary | 117 |
+| 2 | 4P | 4 | Primary | 117 |
+| 2 | 5P | 4 | Primary | 118 |
+| 2 | 6P | 4 | Primary | 118 |
+| 2 | 1S | 4 | Secondary | 65 |
+| 2 | 2S | 4 | Secondary | 65 |
+| 2 | 3S | 4 | Secondary | 66 |
+| 2 | 4S | 4 | Secondary | 66 |
+| 2 | 5S | 3 | Secondary | 67 |
+| 3 | 1P | 4 | Primary | 122 |
+| 3 | 2P | 4 | Primary | 122 |
+| 3 | 3P | 4 | Primary | 123 |
+| 3 | 4P | 4 | Primary | 123 |
+| 3 | 5P | 4 | Primary | 124 |
+| 3 | 6P | 5 | Primary | 124 |
+| 3 | 1S | 5 | Secondary | 70 |
+| 3 | 2S | 6 | Secondary | 70 |
+| 3 | 3S | 5 | Secondary | 71 |
+| 3 | 4S | 5 | Secondary | 71 |
+| 3 | 5S | 4 | Secondary | 72 |
+| 4 | 1P | 3 | Primary | 128 |
+| 4 | 2P | 3 | Primary | 128 |
+| 4 | 3P | 3 | Primary | 129 |
+| 4 | 4P | 3 | Primary | 129 |
+| 4 | 5P | 3 | Primary | 130 |
+| 4 | 6P | 3 | Primary | 130 |
+| 4 | 1S | 3 | Secondary | 75 |
+| 4 | 2S | 3 | Secondary | 75 |
+| 4 | 3S | 3 | Secondary | 76 |
+| 4 | 4S | 3 | Secondary | 76 |
+| 4 | 5S | 3 | Secondary | 77 |
+
+### Physical Education source comparisons
+
+- **2, cycle III:** primary p. 116 omits CNEB p. 35 `de diferentes` after `Se expresa corporalmente con sus pares`. The unusual CNEB wording is retained.
+- **2, cycle IV:** primary p. 117 matches CNEB p. 35.
+- **2, cycle V:** primary p. 118 matches except footnote 11 versus CNEB 20.
+- **2, cycle VI:** secondary p. 65 matches CNEB p. 35.
+- **2, cycle VII:** secondary pp. 66–67 match except footnote 14 and 16, respectively, versus CNEB 19.
+- **3, cycles III–V:** primary pp. 122–124 match CNEB p. 37.
+- **3, cycles VI–VII:** secondary pp. 70–72 match CNEB p. 37.
+- **4, cycles III and V:** primary pp. 128 and 130 match CNEB p. 39.
+- **4, cycle IV:** primary p. 129 adds `sus` in `la inclusión de sus compañeros`; CNEB p. 39 says `la inclusión de compañeros`.
+- **4, cycles VI–VII:** secondary pp. 75–77 match CNEB p. 39.
+
+All six capacity names have no counterpart in `ejemplo-san-felipe.json`, which contains Mathematics, Social Sciences, and the two transversals only. The seed remains unchanged.
+
+Source irregularities retained include CNEB p. 35 level 1 `sus posibilidades de movimientos las partes de su cuerpo`, primary p. 116 `arriba- abajo`, primary p. 123 `por el uso que se hacen` and the missing final period in third-grade performance 4, and secondary p. 70 `propone mejorar`. The directional pair `arriba- abajo` is an intentional source hyphen and is exempted from the residual word-break check. Secondary p. 75, first-grade performance 2, and p. 76, fourth-grade performance 3, contain short baseline marks in `promueve_la` and `para_mejorar`; these are retained as underscores and flagged for review against a clearer copy because punctuation versus scan noise is uncertain. Both passages were additionally inspected at 4× rendering scale. No unresolved word readings remain for this area.
 
 ## Differences between CNEB standards and program cycle descriptions
 
@@ -247,6 +310,6 @@ No missing or additional in-scope areas were found in the program tables of cont
 
 ## Validation and remaining work
 
-Validation ran from `/private/tmp/cneb-transcripcion/validate.py`, outside the repository. It checks JSON validity and duplicate keys; exact allowed key sets; unique codes and competency numbers; area/file references; consecutive capacities; exactly levels 1–8; valid grades and consecutive performance orders; all eleven grades for each included competency; whitespace, control characters, soft hyphens, and residual word-break hyphens. The included files pass structural validation: 9 competencies, 72 standards, 616 performances. This does not resolve the scan-punctuation questions documented above.
+Validation ran from `/private/tmp/cneb-transcripcion/validate.py`, outside the repository. It checks JSON validity and duplicate keys; exact allowed key sets; unique codes and competency numbers; area/file references; consecutive capacities; exactly levels 1–8; valid grades and consecutive performance orders; all eleven grades for each included competency; whitespace, control characters, soft hyphens, and residual word-break hyphens. The included files pass structural validation: 12 competencies, 96 standards, 742 performances. This does not resolve the scan-punctuation questions documented above.
 
-The full-catalog presence check is explicitly **incomplete**, not passing: competencies 2–15, 20–22, and 27–31 are absent (22 of the requested 31 remain). Completed area checkpoints: MAT, CCSS, PS, and DPCC. Next: EF, AYC, COM, CAS, ING, CYT, EPT, ER, and the two transversals; add each completed area entry without duplicating shared competency files. Their source pages, counts, legibility checks, and standard/seed comparisons remain to be completed. Resolve the Religious Education numbering/source discrepancy before claiming all 31 CNEB-numbered files.
+The full-catalog presence check is explicitly **incomplete**, not passing: competencies 5–15, 20–22, and 27–31 are absent (19 of the requested 31 remain). Completed area checkpoints: MAT, CCSS, PS, DPCC, and EF. Next: AYC, COM, CAS, ING, CYT, EPT, ER, and the two transversals; add each completed area entry without duplicating shared competency files. Their source pages, counts, legibility checks, and standard/seed comparisons remain to be completed. Resolve the Religious Education numbering/source discrepancy before claiming all 31 CNEB-numbered files.

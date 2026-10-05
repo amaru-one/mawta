@@ -92,6 +92,28 @@
           "numero_cneb": 16
         }
       ]
+    },
+    {
+      "codigo": "EF",
+      "nombre": "Educación Física",
+      "niveles": [
+        "primaria",
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "EF-C1",
+          "numero_cneb": 2
+        },
+        {
+          "codigo": "EF-C2",
+          "numero_cneb": 3
+        },
+        {
+          "codigo": "EF-C3",
+          "numero_cneb": 4
+        }
+      ]
     }
   ],
   "transversales": []

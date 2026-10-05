@@ -1,0 +1,300 @@
+{
+  "numero_cneb": 3,
+  "nombre": "Asume una vida saludable",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Comprende las relaciones entre la actividad física, alimentación, postura e higiene personal y del ambiente, y la salud"
+    },
+    {
+      "numero": 2,
+      "nombre": "Incorpora prácticas que mejoran su calidad de vida"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene principalmente como base el nivel 1 de la competencia “Se desenvuelve de manera autónoma a través de su motricidad”."
+    },
+    {
+      "nivel": 2,
+      "texto": "Este nivel tiene principalmente como base el nivel 2 de la competencia “Se desenvuelve de manera autónoma a través de su motricidad”."
+    },
+    {
+      "nivel": 3,
+      "texto": "Asume una vida saludable cuando diferencia los alimentos saludables de su dieta personal y familiar, los momentos adecuados para ingerirlos y las posturas que lo ayudan al buen desempeño en la práctica de actividades físicas, recreativas y de la vida cotidiana, reconociendo la importancia del autocuidado. Participa regularmente en la práctica de actividades lúdicas identificando su ritmo cardiaco, respiración y sudoración; utiliza prácticas de activación corporal y psicológica antes de la actividad lúdica."
+    },
+    {
+      "nivel": 4,
+      "texto": "Asume una vida saludable cuando diferencia los alimentos de su dieta personal, familiar y de su región que son saludables de los que no lo son. Previene riesgos relacionados con la postura e higiene conociendo aquellas que favorecen y no favorecen su salud e identifica su fuerza, resistencia y velocidad en la práctica de actividades lúdicas. Adapta su esfuerzo en la práctica de actividad física de acuerdo a las características de la actividad y a sus posibilidades, aplicando conocimientos relacionados con el ritmo cardiaco, la respiración y la sudoración. Realiza prácticas de activación corporal y psicológica, e incorpora el autocuidado relacionado con los ritmos de actividad y descanso para mejorar el funcionamiento de su organismo."
+    },
+    {
+      "nivel": 5,
+      "texto": "Asume una vida saludable cuando utiliza instrumentos que miden la aptitud física y estado nutricional e interpreta la información de los resultados obtenidos para mejorar su calidad de vida. Replantea sus hábitos saludables, higiénicos y alimenticios tomando en cuenta los cambios físicos propios de la edad, evita la realización de ejercicios y posturas contraindicadas para la salud en la práctica de actividad física. Incorpora prácticas saludables para su organismo consumiendo alimentos adecuados a las características personales y evitando el consumo de drogas. Propone ejercicios de activación y relajación antes, durante y después de la práctica y participa en actividad física de distinta intensidad regulando su esfuerzo."
+    },
+    {
+      "nivel": 6,
+      "texto": "Asume una vida saludable cuando comprende los beneficios que la práctica de actividad física produce sobre su salud, para mejorar su calidad de vida. Conoce su estado nutricional e identifica los beneficios nutritivos y el origen de los alimentos, promueve el consumo de alimentos de su región, analiza la proporción adecuada de ingesta para mejorar su rendimiento físico y mental. Analiza los hábitos perjudiciales para su organismo. Realiza prácticas de higiene personal y del ambiente. Adopta posturas adecuadas para evitar lesiones y accidentes en la práctica de actividad física y en la vida cotidiana. Realiza prácticas que ayuden a mejorar sus capacidades físicas con las que regula su esfuerzo controlando su frecuencia cardiaca y respiratoria, al participar en sesiones de actividad física de diferente intensidad."
+    },
+    {
+      "nivel": 7,
+      "texto": "Asume una vida saludable cuando evalúa sus necesidades calóricas y toma en cuenta su gasto calórico diario, los alimentos que consume, su origen e inocuidad, y las características de la actividad física que practica. Elabora un programa de actividad física y alimentación saludable, interpretando los resultados de las pruebas de aptitud física, entre otras, para mantener y/o mejorar su bienestar. Participa regularmente en sesiones de actividad física de diferente intensidad y promueve campañas donde se promocione la salud integrada al bienestar colectivo."
+    },
+    {
+      "nivel": 8,
+      "texto": "Asume una vida saludable cuando investiga sobre las causas que generan los principales problemas y trastornos posturales del aparato locomotor y comprende cómo los desórdenes alimenticios, los malos hábitos y la ingesta de sustancias perjudiciales, influyen sobre su salud y su bienestar. Organiza eventos con el fin de promover la actividad física y la salud en la comunidad educativa; elabora planes de actividad física orientados a la mejora de su calidad de vida incluyendo prácticas de alimentación saludable y consumo responsable."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1P",
+      "orden": 1,
+      "texto": "Describe los alimentos de su dieta familiar y las posturas que son beneficiosas para su salud en la vida cotidiana y en la práctica de actividades lúdicas."
+    },
+    {
+      "grado": "1P",
+      "orden": 2,
+      "texto": "Regula su esfuerzo al participar en actividades lúdicas e identifica en sí mismo y en otros la diferencia entre inspiración y espiración, en reposo y movimiento, en las actividades lúdicas."
+    },
+    {
+      "grado": "1P",
+      "orden": 3,
+      "texto": "Realiza con autonomía prácticas de cuidado personal al asearse, al vestirse, al adoptar posturas adecuadas en la práctica de actividades lúdicas y de la vida cotidiana. Ejemplo: El estudiante usa diversos medios de protección frente a la radiación solar."
+    },
+    {
+      "grado": "1P",
+      "orden": 4,
+      "texto": "Busca satisfacer sus necesidades corporales cuando tiene sed y resuelve las dificultades que le producen el cansancio, la incomodidad y la inactividad; evidencia su bienestar al realizar actividades lúdicas y se siente bien consigo mismo, con los otros y con su entorno."
+    },
+    {
+      "grado": "2P",
+      "orden": 1,
+      "texto": "Explica la importancia de la activación corporal (calentamiento) y psicológica (atención, concentración y motivación) antes de la actividad lúdica, e identifica los signos y síntomas relacionados con el ritmo cardiaco, la respiración agitada y la sudoración, que aparecen en el organismo al practicar actividades lúdicas."
+    },
+    {
+      "grado": "2P",
+      "orden": 2,
+      "texto": "Diferencia los alimentos saludables y nutritivos que forman parte de su dieta personal y familiar, y los momentos adecuados para ingerirlos; explica la importancia de hidratarse; conoce las posturas adecuadas en la práctica de actividad física y en la vida cotidiana, que le permiten mayor seguridad."
+    },
+    {
+      "grado": "2P",
+      "orden": 3,
+      "texto": "Incorpora prácticas de cuidado al asearse y vestirse; adopta posturas adecuadas en la práctica de actividades lúdicas y en la vida cotidiana, que le permiten la participación en el juego sin afectar su desempeño."
+    },
+    {
+      "grado": "2P",
+      "orden": 4,
+      "texto": "Regula su esfuerzo en la práctica de actividades lúdicas y reconoce la importancia del autocuidado para prevenir enfermedades."
+    },
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Explica la importancia de la activación corporal (calentamiento) y psicológica (atención, concentración y motivación), que lo ayuda a estar predispuesto a la actividad."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Practica diferentes actividades lúdicas adaptando su esfuerzo y aplicando los conocimientos de los beneficios de la práctica de actividad física y de la salud relacionados con el ritmo cardiaco, la respiración y la sudoración."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Incorpora el autocuidado relacionado con los ritmos de actividad-descanso, para mejorar el funcionamiento de su organismo."
+    },
+    {
+      "grado": "3P",
+      "orden": 4,
+      "texto": "Identifica los alimentos propios de su región que forman parte de su dieta personal y familiar, y los clasifica en saludables o no, de acuerdo a la actividad física que realiza. Reconoce aquellos que son amigables con el ambiente (por el uso que se hacen de los recursos naturales, el empaquetado, etc.)"
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Selecciona actividades para la activación corporal (calentamiento) y psicológica (atención, concentración y motivación) antes de la actividad, e identifica en sí mismo las variaciones en la frecuencia cardiaca y respiratoria con relación a los diferentes niveles de esfuerzo en la práctica de actividades lúdicas."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Selecciona e incorpora en su dieta personal y familiar los alimentos nutritivos y energéticos de la región que contribuyen a su bienestar."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Incorpora el autocuidado relacionado con los ritmos de actividad-descanso, hidratación y exposición a los rayos solares, para mejorar el funcionamiento de su organismo, y sustenta las razones de su importancia."
+    },
+    {
+      "grado": "4P",
+      "orden": 4,
+      "texto": "Adopta posturas adecuadas para prevenir problemas musculares y óseos e incorpora el autocuidado relacionado con los ritmos de actividad-descanso para mejorar el funcionamiento de su organismo y prevenir enfermedades."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Explica las condiciones que favorecen la aptitud física (Índice de Masa Corporal - IMC, consumo de alimentos favorables, cantidad y proporción necesarias) y las pruebas que la miden (resistencia, velocidad, flexibilidad y fuerza) para mejorar la calidad de vida, con relación a sus características personales."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Adapta sus prácticas de higiene a los cambios físicos propios de la edad; describe las prácticas alimenticias beneficiosas y perjudiciales para el organismo y el ambiente, y analiza la importancia de la alimentación con relación a su IMC."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Describe posturas y ejercicios contraindicados para la salud en la práctica de actividad física."
+    },
+    {
+      "grado": "5P",
+      "orden": 4,
+      "texto": "Realiza actividades de activación corporal, psicológica y de recuperación antes, durante y después de la práctica de actividad física; de esta manera, aplica los beneficios relacionados con la salud y planifica dietas saludables adaptadas a su edad y sus recursos."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Utiliza diferentes métodos de evaluación para determinar la aptitud física; asimismo, selecciona los que mejor se adecúen a sus posibilidades y utiliza la información que obtiene en beneficio de su salud."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Explica la relación entre los cambios físicos propios de la edad y la repercusión en la higiene, en la práctica de actividad física y en actividades de la vida cotidiana; practica actividad física y explica la importancia que tiene en su vida cotidiana."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Realiza actividad física y evita posturas y ejercicios contraindicados que perjudican su salud."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Muestra hábitos saludables y evita hábitos perjudiciales para su organismo, como el consumo de comida rápida, de alcohol, de tabaco, de drogas, desórdenes alimenticios, entre otros; proporciona el fundamento respectivo y desarrolla dietas saludables."
+    },
+    {
+      "grado": "6P",
+      "orden": 5,
+      "texto": "Explica la importancia de la vacunación y sus consecuencias en la salud."
+    },
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Explica acerca del bienestar (predisposición, disponibilidad y motivación) que produce la práctica de actividad física en relación con la salud (física, emocional, psicológica, etc.) antes, durante y después de la práctica."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Explica la importancia de realizar ejercicios y movimientos específicos para la activación y relajación señalando su utilidad antes, durante y después de la práctica de actividad física y establece relaciones de causa-efecto entre los principales trastornos posturales, de desplazamiento y alimenticios para prevenirlos.¹⁷"
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Realiza ejercicios y movimientos que no dañen su salud en la práctica de actividad física y utiliza los resultados obtenidos en las pruebas que evalúan la aptitud física para mejorar su calidad de vida y en relación con sus características personales. Ejemplo: Los estudiantes se hidratan antes, durante y después de la práctica de actividad física."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Incorpora prácticas de higiene personal y ambiental al tomar conciencia de los cambios (físicos, orgánicos y psicológicos) que experimenta su cuerpo en la práctica de actividad física y en las actividades de la vida cotidiana dentro y fuera de la escuela."
+    },
+    {
+      "grado": "1S",
+      "orden": 5,
+      "texto": "Reconoce su estado nutricional y sus hábitos alimenticios, y cómo impactan en su salud integral, y propone mejorar para potenciar su bienestar físico y mental."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Explica los beneficios que la práctica de actividad física de su preferencia produce sobre su salud (física, emocional, psicológica, etc.) para mejorar su aptitud física y calidad de vida."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Reconoce las prácticas alimenticias culturales y sociales de su comunidad, y reflexiona sobre su impacto en la salud, el ambiente y la agrobiodiversidad local y nacional."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Explica la cantidad de carbohidratos, proteínas, grasas, vitaminas y minerales que son necesarios para mantenerse saludables y para la práctica de actividad física de su preferencia y que ayudan a la mejora de su rendimiento físico y mental. Evita hábitos perjudiciales para su organismo, como el consumo de alimentos no saludables, alcohol, tabaco, drogas, entre otros."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Adopta posturas adecuadas en desplazamientos, saltos y lanzamientos para evitar lesiones y accidentes en la práctica de actividad física y en actividades de su vida cotidiana."
+    },
+    {
+      "grado": "2S",
+      "orden": 5,
+      "texto": "Realiza actividad física para mejorar sus capacidades condicionales (fuerza, resistencia y velocidad) controlando su frecuencia cardiaca y respiratoria antes, durante y después de la actividad física. Realiza ejercicios y movimientos específicos para la activación y relajación explicando su utilidad e identificando la intensidad del esfuerzo¹⁸ requerido."
+    },
+    {
+      "grado": "2S",
+      "orden": 6,
+      "texto": "Promueve actividades de promoción de los hábitos de higiene personal y del ambiente (lavado de manos, limpieza bucal, higiene corporal, limpieza de los espacios educativos, entre otros) entre sus compañeros y compañeras de la escuela."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Evalúa sus necesidades calóricas diarias en función del gasto energético que le demanda la práctica de actividad física para mantener su salud. Explica las consecuencias que el sedentarismo y los hábitos perjudiciales (consumo de comida rápida, alcohol, tabaco, drogas) producen sobre su salud."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Explica la repercusión que tiene la práctica de actividad física sobre su estado de ánimo y sus emociones. Dosifica su esfuerzo y aprende a observarlo en sus compañeros al participar en actividades predeportivas y deportivas."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Realiza actividad física para mejorar sus capacidades condicionales, que contribuyan al mejoramiento de su rendimiento y su salud según su aptitud física. Ejecuta de manera autónoma ejercicios y movimientos específicos para la activación y relajación explicando su utilidad e identificando la intensidad del esfuerzo antes, durante y después de la práctica de actividad física."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Realiza acciones para la promoción y el cuidado de la salud que ayuden a prevenir hábitos perjudiciales para el organismo, como el consumo de alimentos no saludables, alcohol, tabaco, drogas, entre otros."
+    },
+    {
+      "grado": "3S",
+      "orden": 5,
+      "texto": "Realiza un análisis y reflexión crítica sobre los centros de expendio de alimentos dentro y fuera de la institución educativa, optando por aquellos alimentos beneficiosos para su salud y el ambiente."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Explica con fundamento la importancia de mantener o mejorar su bienestar (físico, psicológico y emocional) teniendo en cuenta su estado nutricional, su gasto calórico diario, sus prácticas alimentarias y las actividades físicas que practica."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Explica los efectos negativos que produce el abuso de la actividad física, así como el uso de sustancias utilizadas para evitar el cansancio e incrementar el rendimiento físico, y evita su consumo."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Incorpora prácticas saludables (actividades en la naturaleza, actividades recreativas, deportivas, etc.) evitando el sedentarismo y el uso excesivo de las tecnologías, y elaborando en equipo un plan de actividades para la promoción de la salud."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Participa en actividades físicas de diferente intensidad de acuerdo con sus intereses personales, desarrollando sus capacidades condicionales y ejecutando de manera autónoma actividades de activación y relajación."
+    },
+    {
+      "grado": "4S",
+      "orden": 5,
+      "texto": "Participa en actividades de promoción de los hábitos de higiene personal y del ambiente en su comunidad."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Argumenta la importancia de la actividad física que debe realizar según sus características individuales para la mejora de la calidad de vida."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Organiza y ejecuta campañas en donde se promocione la salud (física, psicológica y emocional) integrada al bienestar colectivo y participa regularmente en sesiones de actividad física que vayan de acuerdo con sus necesidades e intereses."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Elabora un plan de actividades para mantener o mejorar su bienestar (físico, psicológico y emocional) tomando en cuenta su estado nutricional, su gasto calórico diario, sus prácticas alimentarias y las características de la actividad física que practica, e interpretando los resultados de las pruebas que miden su aptitud física."
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Participa en actividades de promoción de hábitos alimenticios saludables y sostenibles, consumiendo y combinando de forma óptima alimentos locales y disponibles, evaluando sus características y necesidades calóricas, e incluyendo hábitos de higiene integral, de actividad física diaria y prácticas amigables con el ambiente, para su óptimo desempeño diario."
+    }
+  ]
+}
