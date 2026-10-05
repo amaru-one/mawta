@@ -75,6 +75,13 @@ values exactly as specified below.
 - **Academic year (`anio_escolar`):** `estructura` is `bimestre`, `trimestre`,
   or `semestre`. **At least one term** is required. Terms cannot share a date:
   if one ends on May 29, the next starts on May 30 or later.
+  `dias_no_lectivos` lists the days without class: each entry has either
+  `fecha` (one day) or `desde` and `hasta` (an inclusive range), a `tipo`
+  (`feriado`, `vacaciones`, or `gestion`), and an optional `nombre`, for example
+  `{ "desde": "2026-07-27", "hasta": "2026-08-07", "tipo": "vacaciones", "nombre": "Vacaciones de medio año" }`.
+  Every day must fall within the academic year and be declared only once (a
+  holiday inside a vacation range is already covered). Use `[]` when the school
+  has none yet.
 - **Teachers (`docentes`):** `usuario` is lowercase, without spaces, and is
   used to log in. `clave` contains 10 to 72 characters.
 - **Subjects (`areas`):** `codigo` is a catalog area code (`MAT`, `CCSS`, `PS`,
@@ -104,13 +111,17 @@ values exactly as specified below.
     cannot overlap for the same classroom or teacher.
   - `sesiones` (optional): topics for specific sessions, such as
     `{ "fecha": "2026-03-04", "tema": "Equations" }`. The date must match the
-    class timetable and fall within a term.
+    class timetable, fall within a term, and not be a `dias_no_lectivos` day.
 
 ## What the loader creates beyond the file
 
 - **Sessions:** one session for every matching timetable date in each term,
-  all with `scheduled` status. The application reads sessions but does not
-  create them, so teachers would have none without this step.
+  all with `scheduled` status, except on `dias_no_lectivos` days. The
+  application reads sessions but does not create them, so teachers would have
+  none without this step.
+- **Days without class:** one `non_teaching_days` row per declared day (a range
+  becomes one row per date, weekends included). Planning uses them to count
+  class dates and lay out sessions.
 - **Scales:** the official MINEDU AD/A/B/C scale and internal 0–20 scale.
 - **Curriculum from the catalog:** for each subject, its competencies and
   capabilities, the standards (levels 1–8) of those competencies, the

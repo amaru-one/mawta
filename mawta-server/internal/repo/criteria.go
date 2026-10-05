@@ -225,6 +225,9 @@ func CreateCriterion(ctx context.Context, tx pgx.Tx, classID, competencyID, capa
 // DeleteCriterion soft-deletes a criterio. Evidence already tagged with it
 // keeps the tag, since what a teacher set out to look at in a piece of work is
 // part of that work's record even once the criterio stops being used.
+//
+// A planned evidence is different: it is a promise of what will be observed,
+// not a record, so the deleted criterio leaves its list.
 func DeleteCriterion(ctx context.Context, tx pgx.Tx, criterionID uuid.UUID) error {
 	tag, err := tx.Exec(ctx, `
 		update evaluation_criteria set deleted_at = now()
@@ -236,5 +239,9 @@ func DeleteCriterion(ctx context.Context, tx pgx.Tx, criterionID uuid.UUID) erro
 	if tag.RowsAffected() == 0 {
 		return db.NewAppError(http.StatusNotFound, "not_found", "criterio not found")
 	}
-	return nil
+	_, err = tx.Exec(ctx, `
+		update planned_evidence_criteria set deleted_at = now()
+		 where criterion_id = $1 and deleted_at is null
+	`, criterionID)
+	return err
 }

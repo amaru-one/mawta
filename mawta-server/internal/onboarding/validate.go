@@ -60,11 +60,12 @@ func ValidateWithCatalog(s *Spec, cat *curriculum.Catalog) error {
 	v := &checker{cat: cat}
 	v.colegio(s.Colegio)
 	periodos := v.anio(s.AnioEscolar)
+	noLectivos := v.diasNoLectivos(s.AnioEscolar)
 	docentes := v.docentes(s.Docentes)
 	areas := v.areas(s.Areas, s.CompetenciasTransversales)
 	grados := v.grados(s.Grados)
 	aulas := v.aulas(s.Aulas, grados, docentes, s.AnioEscolar)
-	v.clases(s.Clases, areas, aulas, docentes, periodos)
+	v.clases(s.Clases, areas, aulas, docentes, periodos, noLectivos)
 	if len(v.errs) > 0 {
 		return v.errs
 	}
@@ -263,6 +264,68 @@ func (v *checker) anio(a AnioEscolar) []periodoRange {
 			}
 		}
 		out = append(out, periodoRange{numero: p.Numero, inicio: pi, fin: pf})
+	}
+	return out
+}
+
+// ------------------------------------------------------- días no lectivos --
+
+// diasNoLectivos checks the school's days without class and returns them by
+// date, each with the path that declared it, so a session tema on one of those
+// days can name where the day came from.
+func (v *checker) diasNoLectivos(a AnioEscolar) map[string]string {
+	out := map[string]string{}
+	inicio, errI := parseDate(a.Inicio)
+	fin, errF := parseDate(a.Fin)
+	yearKnown := errI == nil && errF == nil
+	for i, d := range a.DiasNoLectivos {
+		path := fmt.Sprintf("anio_escolar.dias_no_lectivos[%d]", i)
+		if v.required(path+".tipo", d.Tipo) {
+			v.oneOf(path+".tipo", d.Tipo, "feriado", "vacaciones", "gestion")
+		}
+		v.optional(path+".nombre", d.Nombre)
+
+		var desde, hasta time.Time
+		hasFecha := strings.TrimSpace(d.Fecha) != ""
+		hasRango := strings.TrimSpace(d.Desde) != "" || strings.TrimSpace(d.Hasta) != ""
+		switch {
+		case hasFecha && hasRango:
+			v.addf(path, "usa fecha (un día) o desde y hasta (un rango), no ambos")
+			continue
+		case hasFecha:
+			f, ok := v.date(path+".fecha", d.Fecha)
+			if !ok {
+				continue
+			}
+			desde, hasta = f, f
+		case hasRango:
+			de, okD := v.date(path+".desde", d.Desde)
+			ha, okH := v.date(path+".hasta", d.Hasta)
+			if !okD || !okH {
+				continue
+			}
+			if ha.Before(de) {
+				v.addf(path+".hasta", "%s es anterior a desde (%s)", d.Hasta, d.Desde)
+				continue
+			}
+			desde, hasta = de, ha
+		default:
+			v.addf(path, "falta fecha (un día) o desde y hasta (un rango)")
+			continue
+		}
+		if yearKnown && (desde.Before(inicio) || hasta.After(fin)) {
+			v.addf(path, "del %s al %s se sale del año escolar (%s a %s)",
+				desde.Format("2006-01-02"), hasta.Format("2006-01-02"), a.Inicio, a.Fin)
+			continue
+		}
+		for day := desde; !day.After(hasta); day = day.AddDate(0, 0, 1) {
+			key := day.Format("2006-01-02")
+			if prev, seen := out[key]; seen {
+				v.addf(path, "el día %s ya está en %s; cada día no lectivo se declara una sola vez", key, prev)
+				continue
+			}
+			out[key] = path
+		}
 	}
 	return out
 }
@@ -540,7 +603,7 @@ type slot struct {
 	dia, inicio, fin           int
 }
 
-func (v *checker) clases(cs []Clase, areas map[string]bool, aulas map[string]Aula, docentes map[string]bool, periodos []periodoRange) {
+func (v *checker) clases(cs []Clase, areas map[string]bool, aulas map[string]Aula, docentes map[string]bool, periodos []periodoRange, noLectivos map[string]string) {
 	if len(cs) == 0 {
 		v.addf("clases", "debe haber al menos una clase")
 	}
@@ -630,6 +693,9 @@ func (v *checker) clases(cs []Clase, areas map[string]bool, aulas map[string]Aul
 			}
 			if len(dias) > 0 && !dias[isoWeekday(d)] {
 				v.addf(spath+".fecha", "%s es %s y la clase no tiene horario ese día; sus días son: %s", s.Fecha, weekdayNames[isoWeekday(d)], dayList(dias))
+			}
+			if prev, ok := noLectivos[d.Format("2006-01-02")]; ok {
+				v.addf(spath+".fecha", "%s es un día no lectivo (%s); ese día no hay sesión para ponerle tema", s.Fecha, prev)
 			}
 		}
 	}

@@ -164,10 +164,54 @@ func (a *API) requireCompetencyAccess(ctx context.Context, tx pgx.Tx, tc db.Tena
 	return a.requireSubjectAccess(ctx, tx, tc, subjectID)
 }
 
+// requireCriterionAccess authorizes a criterio by what it belongs to: one
+// anchored to a learning experience belongs to that experience's class; a
+// global one belongs to its área.
 func (a *API) requireCriterionAccess(ctx context.Context, tx pgx.Tx, tc db.TenantCtx, criterionID uuid.UUID) error {
+	classID, err := repo.ClassIDForCriterion(ctx, tx, criterionID)
+	if err != nil {
+		return err
+	}
+	if classID != uuid.Nil {
+		return a.requireClassAccess(ctx, tx, tc, classID)
+	}
 	subjectID, err := repo.SubjectIDForCriterion(ctx, tx, criterionID)
 	if err != nil {
 		return err
 	}
 	return a.requireSubjectAccess(ctx, tx, tc, subjectID)
+}
+
+// requireExperienceAccess authorizes a learning experience through its class
+// and returns that class.
+func (a *API) requireExperienceAccess(ctx context.Context, tx pgx.Tx, tc db.TenantCtx, experienceID uuid.UUID) (uuid.UUID, error) {
+	classID, err := repo.ClassIDForExperience(ctx, tx, experienceID)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return classID, a.requireClassAccess(ctx, tx, tc, classID)
+}
+
+// requireEvidenceAccess authorizes a planned evidence through its
+// experience's class and returns that class.
+func (a *API) requireEvidenceAccess(ctx context.Context, tx pgx.Tx, tc db.TenantCtx, evidenceID uuid.UUID) (uuid.UUID, error) {
+	classID, err := repo.ClassIDForEvidence(ctx, tx, evidenceID)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return classID, a.requireClassAccess(ctx, tx, tc, classID)
+}
+
+// requirePlannedCriterionAccess authorizes a criterio of a learning
+// experience through its class and returns that class. A global criterio is
+// not part of any plan, so the planning routes answer 404 for it.
+func (a *API) requirePlannedCriterionAccess(ctx context.Context, tx pgx.Tx, tc db.TenantCtx, criterionID uuid.UUID) (uuid.UUID, error) {
+	classID, err := repo.ClassIDForCriterion(ctx, tx, criterionID)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	if classID == uuid.Nil {
+		return uuid.Nil, pgx.ErrNoRows
+	}
+	return classID, a.requireClassAccess(ctx, tx, tc, classID)
 }

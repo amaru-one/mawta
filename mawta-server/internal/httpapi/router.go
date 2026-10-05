@@ -81,6 +81,27 @@ func (a *API) Router() http.Handler {
 			r.Post("/classes/{classID}/competencies/{competencyID}/criteria", a.handleCreateCriterion)
 			r.Post("/criteria/{criterionID}/delete", a.handleDeleteCriterion)
 
+			// Term planning (docs/api-planificacion.md): learning experiences
+			// with their criteria, planned evidences and session outline.
+			r.Get("/classes/{classID}/plan", a.handleClassPlan)
+			r.Get("/classes/{classID}/curriculum", a.handleClassCurriculum)
+			r.Get("/classes/{classID}/calendar", a.handleClassCalendar)
+			r.Get("/experiences/{experienceID}", a.handleGetExperience)
+			r.Post("/classes/{classID}/experiences", a.handleCreateExperience)
+			r.Put("/experiences/{experienceID}", a.handleUpdateExperience)
+			r.Post("/experiences/{experienceID}/confirm", a.handleConfirmExperience)
+			r.Post("/experiences/{experienceID}/delete", a.handleDeleteExperience)
+			r.Post("/experiences/{experienceID}/criteria", a.handleCreatePlannedCriterion)
+			r.Put("/criteria/{criterionID}", a.handleUpdatePlannedCriterion)
+			r.Post("/criteria/{criterionID}/accept", a.handleAcceptPlannedCriterion)
+			r.Post("/experiences/{experienceID}/evidences", a.handleCreatePlannedEvidence)
+			r.Put("/evidences/{evidenceID}", a.handleUpdatePlannedEvidence)
+			r.Post("/evidences/{evidenceID}/accept", a.handleAcceptPlannedEvidence)
+			r.Post("/evidences/{evidenceID}/delete", a.handleDeletePlannedEvidence)
+			r.Put("/experiences/{experienceID}/sessions/{date}", a.handlePutSessionEntry)
+			r.Post("/experiences/{experienceID}/sessions/{date}/accept", a.handleAcceptSessionEntry)
+			r.Post("/experiences/{experienceID}/sessions/{date}/delete", a.handleDeleteSessionEntry)
+
 			r.Post("/sessions/{sessionID}/start", a.handleSessionStart)
 			r.Get("/sessions/{sessionID}", a.handleSessionRoster)
 			r.Put("/sessions/{sessionID}/attendance/{studentID}", a.handleAttendanceUpsert)

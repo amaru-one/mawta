@@ -54,6 +54,9 @@ func TestClassScopedRoutesRequireAnAssignment(t *testing.T) {
 		{"student competencies", "GET", "/api/v1/classes/" + class + "/students/" + student + "/competencies", ""},
 		{"class criteria", "GET", "/api/v1/classes/" + class + "/criteria", ""},
 		{"session header", "GET", "/api/v1/sessions/" + fx.SessionOne.String(), ""},
+		{"term plan", "GET", "/api/v1/classes/" + class + "/plan?term_id=" + fx.TermII.String(), ""},
+		{"class curriculum", "GET", "/api/v1/classes/" + class + "/curriculum", ""},
+		{"class calendar", "GET", "/api/v1/classes/" + class + "/calendar?from=2026-06-01&to=2026-06-30", ""},
 	}
 
 	for _, rt := range routes {
@@ -118,6 +121,9 @@ func TestClassScopedWritesRequireAnAssignment(t *testing.T) {
 		{"create a criterio in another área", "POST",
 			"/api/v1/classes/" + class + "/competencies/" + fx.CompetencyC2.String() + "/criteria",
 			`{"description":"criterio ajeno","capability_id":"` + fx.CapabilityC2.String() + `"}`},
+		{"plan an experience in someone else's class", "POST", "/api/v1/classes/" + class + "/experiences",
+			fmt.Sprintf(`{"term_id":%q,"title":"Ajena","idea_text":"idea","starts_on":"2026-06-01","ends_on":"2026-06-12","competency_ids":[%q]}`,
+				fx.TermII, fx.CompetencyC1)},
 	}
 
 	for _, rt := range routes {
@@ -242,5 +248,70 @@ func TestUnauthenticatedRequestsAreStillRejected(t *testing.T) {
 
 	if w.Code != http.StatusUnauthorized {
 		t.Errorf("got %d, want 401", w.Code)
+	}
+}
+
+// The planning routes name an experience, a criterion or an evidence as often
+// as a class, so each is resolved to its class first. The same three callers,
+// on every route of the contract: Rojas and Flores are refused before Quispe
+// makes the call succeed, in an order where each write finds what it needs
+// (the deletes go last).
+func TestPlanningRoutesRequireAnAssignment(t *testing.T) {
+	env := dbtest.Setup(t)
+	h := newAPI(t, env)
+	quispe, rojas, flores := callers(t, env)
+	fx := env.Fx
+
+	classID := planClass(t, env)
+	class := classID.String()
+	exp := createExperience(t, h, quispe.token, env, classID, "2026-06-01", "2026-06-30", fx.CompetencyC1)
+	e := "/api/v1/experiences/" + exp.ID.String()
+	crit := createCriterion(t, h, quispe.token, exp.ID, fx.CompetencyC1, planPerfC1a, planCapC1a)
+	c := "/api/v1/criteria/" + crit.ID.String()
+	w := mustDo(t, h, quispe.token, "POST", e+"/evidences",
+		fmt.Sprintf(`{"name":"Lista","kind":"produccion","criterion_ids":[%q]}`, crit.ID), http.StatusCreated)
+	var ev struct {
+		ID uuid.UUID `json:"id"`
+	}
+	decodeInto(t, w, &ev)
+	v := "/api/v1/evidences/" + ev.ID.String()
+
+	routes := []route{
+		{"term plan", "GET", "/api/v1/classes/" + class + "/plan?term_id=" + fx.TermII.String(), ""},
+		{"class curriculum", "GET", "/api/v1/classes/" + class + "/curriculum", ""},
+		{"class calendar", "GET", "/api/v1/classes/" + class + "/calendar?from=2026-06-01&to=2026-06-30", ""},
+		{"read an experience", "GET", e, ""},
+		{"create an experience", "POST", "/api/v1/classes/" + class + "/experiences",
+			experienceBody(env, "2026-07-01", "2026-07-10", fx.CompetencyC1)},
+		{"edit an experience", "PUT", e, `{"title":"Editada"}`},
+		{"write a criterion", "POST", e + "/criteria", criterionBody(fx.CompetencyC1, planPerfC1b, planCapC1b)},
+		{"edit a criterion", "PUT", c, `{"description":"Editado"}`},
+		{"accept a criterion", "POST", c + "/accept", ""},
+		{"plan an evidence", "POST", e + "/evidences",
+			fmt.Sprintf(`{"name":"Otra","kind":"actuacion","criterion_ids":[%q]}`, crit.ID)},
+		{"edit an evidence", "PUT", v, `{"name":"Lista editada"}`},
+		{"accept an evidence", "POST", v + "/accept", ""},
+		{"plan a session", "PUT", e + "/sessions/2026-06-03", `{"title":"Inicio"}`},
+		{"accept a session", "POST", e + "/sessions/2026-06-03/accept", ""},
+		{"confirm an experience", "POST", e + "/confirm", ""},
+		{"delete a session", "POST", e + "/sessions/2026-06-03/delete", ""},
+		{"delete an evidence", "POST", v + "/delete", ""},
+		{"delete a criterion of an experience", "POST", c + "/delete", ""},
+		{"delete an experience", "POST", e + "/delete", ""},
+	}
+
+	for _, rt := range routes {
+		t.Run(rt.name, func(t *testing.T) {
+			w := do(t, h, rojas.token, rt.method, rt.path, rt.body)
+			if w.Code != http.StatusForbidden || errorCode(t, w) != "not_assigned_to_class" {
+				t.Errorf("%s: got %d %q, want 403 not_assigned_to_class", rojas.name, w.Code, errorCode(t, w))
+			}
+			if w := do(t, h, flores.token, rt.method, rt.path, rt.body); w.Code != http.StatusNotFound && w.Code != http.StatusForbidden {
+				t.Errorf("%s: got %d, want 404 or 403 — never a success", flores.name, w.Code)
+			}
+			if w := do(t, h, quispe.token, rt.method, rt.path, rt.body); w.Code >= 300 {
+				t.Errorf("%s: got %d (%s), want a success", quispe.name, w.Code, strings.TrimSpace(w.Body.String()))
+			}
+		})
 	}
 }

@@ -42,6 +42,13 @@ func TestLoadExample(t *testing.T) {
 
 	tenant := ID("tenant", "0723519", "")
 	wantSessions := expectedSessions(t, s)
+	noClass := noTeachingDays(t, s)
+	if len(noClass) == 0 {
+		t.Fatal("the example must declare dias_no_lectivos, or the exclusion below tests nothing")
+	}
+	if sum.DiasNoLectivos != len(noClass) {
+		t.Errorf("summary.DiasNoLectivos = %d, want %d", sum.DiasNoLectivos, len(noClass))
+	}
 	if sum.Docentes != 2 || sum.Estudiantes != 10 || sum.Franjas != 5 || sum.Periodos != 3 ||
 		sum.Sesiones != wantSessions || sum.SesionesConTema != 6 {
 		t.Errorf("summary = %+v, want 2 docentes, 10 estudiantes, 5 franjas, 3 periodos, %d sesiones, 6 con tema", sum, wantSessions)
@@ -91,6 +98,10 @@ func TestLoadExample(t *testing.T) {
 			"select count(*) from grade_level_performances":                               wantPerformances,
 			"select count(*) from standard_level_mappings":                                1,
 			"select count(*) from grade_levels where cycle = 'ciclo_vi'":                  1,
+			"select count(*) from non_teaching_days":                                      len(noClass),
+			// No session is generated on a day without class.
+			`select count(*) from class_sessions cs
+			   join non_teaching_days n on n.day = cs.session_date`: 0,
 		}
 		for q, want := range counts {
 			var got int
@@ -139,6 +150,16 @@ func TestLoadExample(t *testing.T) {
 		}
 		if expected != 6 {
 			t.Errorf("(ebr, ciclo_vi) → %d, want 6", expected)
+		}
+
+		// A range is one row per date, with its kind and label.
+		var kind, label string
+		if err := tx.QueryRow(ctx, `
+			select kind, label from non_teaching_days where day = '2026-08-03'`).Scan(&kind, &label); err != nil {
+			return err
+		}
+		if kind != "vacaciones" || label != "Vacaciones de medio año" {
+			t.Errorf("2026-08-03 = (%q, %q), want (vacaciones, Vacaciones de medio año)", kind, label)
 		}
 
 		// Each tema lands on the session of its date.
@@ -438,6 +459,7 @@ func loadLegacySchool(t *testing.T, env *dbtest.Env, ctx context.Context, cat *c
 // each franja falls inside a periodo.
 func expectedSessions(t *testing.T, s *Spec) int {
 	t.Helper()
+	noClass := noTeachingDays(t, s)
 	n := 0
 	for _, c := range s.Clases {
 		for _, f := range c.Horario {
@@ -446,7 +468,7 @@ func expectedSessions(t *testing.T, s *Spec) int {
 				from, _ := parseDate(p.Inicio)
 				to, _ := parseDate(p.Fin)
 				for d := from; !d.After(to); d = d.AddDate(0, 0, 1) {
-					if isoWeekday(d) == dia {
+					if isoWeekday(d) == dia && !noClass[d.Format("2006-01-02")] {
 						n++
 					}
 				}
@@ -454,4 +476,29 @@ func expectedSessions(t *testing.T, s *Spec) int {
 		}
 	}
 	return n
+}
+
+// noTeachingDays expands the file's dias_no_lectivos into the set of dates
+// they cover, the way the loader writes them.
+func noTeachingDays(t *testing.T, s *Spec) map[string]bool {
+	t.Helper()
+	out := map[string]bool{}
+	for _, d := range s.AnioEscolar.DiasNoLectivos {
+		desde, hasta := d.Desde, d.Hasta
+		if d.Fecha != "" {
+			desde, hasta = d.Fecha, d.Fecha
+		}
+		from, err := parseDate(desde)
+		if err != nil {
+			t.Fatalf("día no lectivo %+v: %v", d, err)
+		}
+		to, err := parseDate(hasta)
+		if err != nil {
+			t.Fatalf("día no lectivo %+v: %v", d, err)
+		}
+		for day := from; !day.After(to); day = day.AddDate(0, 0, 1) {
+			out[day.Format("2006-01-02")] = true
+		}
+	}
+	return out
 }

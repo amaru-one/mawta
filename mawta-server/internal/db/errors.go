@@ -43,6 +43,10 @@ func MapError(err error) *AppError {
 
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
+		if known, ok := constraintErrors[pgErr.ConstraintName]; ok {
+			mapped := known
+			return &mapped
+		}
 		mapped := &AppError{Message: pgErr.Message, Hint: pgErr.Hint}
 		switch pgErr.Code {
 		case "23001": // restrict_violation
@@ -68,4 +72,21 @@ func MapError(err error) *AppError {
 	}
 
 	return &AppError{Status: http.StatusInternalServerError, Code: "internal_error", Message: "internal error"}
+}
+
+// constraintErrors names the constraints whose violation is a domain error
+// with a stable code. The repo checks these conditions before writing; the
+// constraint is what still catches two requests racing past that check, and
+// this table keeps the answer the same in both cases.
+var constraintErrors = map[string]AppError{
+	"learning_experiences_no_overlap": {
+		Status:  http.StatusConflict,
+		Code:    "experience_overlap",
+		Message: "las fechas se cruzan con otra experiencia de esta clase",
+	},
+	"session_outline_entries_date_key": {
+		Status:  http.StatusConflict,
+		Code:    "session_date_taken",
+		Message: "ya hay una sesión planificada en esa fecha",
+	},
 }
