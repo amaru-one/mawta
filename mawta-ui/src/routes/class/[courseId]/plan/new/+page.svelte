@@ -184,8 +184,7 @@
 	let generating = $state(false);
 	let genError = $state<string | null>(null);
 
-	const sleep = (ms: number): Promise<void> =>
-		new Promise((resolve) => setTimeout(resolve, ms));
+	const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
 	// The generation runs in the background: poll about every second until it
 	// completes or fails.
@@ -291,8 +290,8 @@
 			<p class="eyebrow">Nueva experiencia de aprendizaje</p>
 			<h1 class="screen-title">¿Qué tienes en mente?</h1>
 			<p class="helper">
-				Cuéntalo en una o dos frases. Mawta detecta las competencias y arma la propuesta; luego
-				tú la revisas.
+				Cuéntalo en una o dos frases. Mawta detecta las competencias y arma la propuesta; luego tú
+				la revisas.
 			</p>
 
 			{#if generating}
@@ -305,8 +304,7 @@
 					class="field"
 					rows="4"
 					bind:value={ideaText}
-					placeholder="Ej.: que armen y atiendan una tiendita en la feria del aula"
-				></textarea>
+					placeholder="Ej.: que armen y atiendan una tiendita en la feria del aula"></textarea>
 			{/if}
 
 			{#if genError !== null}
@@ -397,7 +395,7 @@
 					<p class="f-label grow">Competencias</p>
 					<button class="link pressable" onclick={() => (step = 'change')}>Cambiar</button>
 				</div>
-				<p class="comp-sentence">Con {joinY(selectedNames)}.</p>
+				<p class="comp-sentence">{joinY(selectedNames)}.</p>
 			</div>
 
 			<div class="section">
@@ -447,10 +445,7 @@
 			<button
 				class="btn-block btn-primary pressable primary"
 				onclick={() => void save()}
-				disabled={saving ||
-					selected.length === 0 ||
-					title.trim() === '' ||
-					situation.trim() === ''}
+				disabled={saving || selected.length === 0 || title.trim() === '' || situation.trim() === ''}
 			>
 				Guardar borrador
 			</button>
