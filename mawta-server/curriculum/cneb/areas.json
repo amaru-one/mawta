@@ -116,5 +116,14 @@
       ]
     }
   ],
-  "transversales": []
+  "transversales": [
+    {
+      "codigo": "TR-C1",
+      "numero_cneb": 28
+    },
+    {
+      "codigo": "TR-C2",
+      "numero_cneb": 29
+    }
+  ]
 }

@@ -1,0 +1,56 @@
+{
+  "numero_cneb": 28,
+  "nombre": "Se desenvuelve en los entornos virtuales generados por las TIC",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Personaliza entornos virtuales"
+    },
+    {
+      "numero": 2,
+      "nombre": "Gestiona información del entorno virtual"
+    },
+    {
+      "numero": 3,
+      "nombre": "Interactúa en entornos virtuales"
+    },
+    {
+      "numero": 4,
+      "nombre": "Crea objetos virtuales en diversos formatos"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Indaga mediante métodos científicos”."
+    },
+    {
+      "nivel": 2,
+      "texto": "Se desenvuelve en los entornos virtuales cuando busca y manipula objetos del entorno virtual para realizar actividades preferidas que le permita registrar, comunicar ideas y emociones."
+    },
+    {
+      "nivel": 3,
+      "texto": "Se desenvuelve en los entornos virtuales cuando analiza y ejecuta procedimientos para elaborar o modificar objetos virtuales que representan y comunican vivencias en espacios virtuales adecuados a su edad, realizando intentos sucesivos hasta concretar su propósito."
+    },
+    {
+      "nivel": 4,
+      "texto": "Se desenvuelve en los entornos virtuales cuando comprende los procedimientos e intercambios que realiza para elegir y aplicar estrategias, participar en actividades colaborativas, así como para representar experiencias y conceptos a través de objetos virtuales."
+    },
+    {
+      "nivel": 5,
+      "texto": "Se desenvuelve en los entornos virtuales cuando personaliza de manera coherente y organizada su espacio virtual representando su identidad, conocimiento y formas de interacción con otros. Elabora material digital (presentaciones, videos, documentos, diseños, entre otros) comparando y seleccionando distintas actividades según sus necesidades, actitudes y valores."
+    },
+    {
+      "nivel": 6,
+      "texto": "Se desenvuelve en los entornos virtuales cuando integra distintas actividades, actitudes y conocimientos de diversos contextos socioculturales en su entorno virtual personal. Crea materiales digitales (presentaciones, videos, documentos, diseños, entre otros) que responde a necesidades concretas de acuerdo sus procesos cognitivos y la manifestación de su individualidad."
+    },
+    {
+      "nivel": 7,
+      "texto": "Se desenvuelve en los entornos virtuales cuando interactúa en diversos espacios (como portales educativos, foros, redes sociales, entre otros) de manera consciente y sistemática administrando información y creando materiales digitales en interacción con sus pares de distintos contextos socioculturales expresando su identidad personal."
+    },
+    {
+      "nivel": 8,
+      "texto": "Se desenvuelve en los entornos virtuales cuando optimiza sus estrategias de participación, creación, construcción del conocimiento y expresión de su individualidad para consolidar, gestionar y compartir su experiencia en diversos contextos socioculturales."
+    }
+  ]
+}
