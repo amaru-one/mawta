@@ -2,6 +2,12 @@
 // áreas con su árbol CNEB, aulas con estudiantes, clases, horario y las
 // sesiones que ese horario produce — from one JSON file filled in by the
 // onboarding team. See docs/instalar-un-colegio.md for the file format.
+//
+// The curriculum tree (competencias, capacidades, estándares, desempeños) is
+// no longer typed in the file: each área names a catalog area by codigo and
+// the loader copies the tree from the embedded CNEB catalog
+// (mawta-server/curriculum). What the school decides is which áreas, grados
+// and transversales it uses.
 package onboarding
 
 import (
@@ -16,14 +22,14 @@ import (
 // it in are; entries point at each other by code (area "MAT", aula "1S-A",
 // docente "jeffrey"), never by id.
 type Spec struct {
-	Colegio                   Colegio       `json:"colegio"`
-	AnioEscolar               AnioEscolar   `json:"anio_escolar"`
-	Docentes                  []Docente     `json:"docentes"`
-	Areas                     []Area        `json:"areas"`
-	CompetenciasTransversales []Competencia `json:"competencias_transversales"`
-	Grados                    []Grado       `json:"grados"`
-	Aulas                     []Aula        `json:"aulas"`
-	Clases                    []Clase       `json:"clases"`
+	Colegio                   Colegio     `json:"colegio"`
+	AnioEscolar               AnioEscolar `json:"anio_escolar"`
+	Docentes                  []Docente   `json:"docentes"`
+	Areas                     []Area      `json:"areas"`
+	CompetenciasTransversales []string    `json:"competencias_transversales"`
+	Grados                    []Grado     `json:"grados"`
+	Aulas                     []Aula      `json:"aulas"`
+	Clases                    []Clase     `json:"clases"`
 }
 
 type Colegio struct {
@@ -66,31 +72,28 @@ type Docente struct {
 	FechaIngreso   string `json:"fecha_ingreso"`
 }
 
+// Area names a catalog area by codigo; the loader copies that area's
+// competencies, capabilities, standards and the performances of the school's
+// grades from the catalog. Nombre, Icono and EsquemaCalificacion stay in the
+// file because they are school decisions, not curriculum.
 type Area struct {
-	Codigo              string        `json:"codigo"`
-	Nombre              string        `json:"nombre"`
-	Icono               string        `json:"icono"`
-	EsTutoria           bool          `json:"es_tutoria"`
-	Competencias        []Competencia `json:"competencias"`
-	EsquemaCalificacion *Esquema      `json:"esquema_calificacion"`
+	Codigo              string           `json:"codigo"` // catalog area code, e.g. MAT
+	Nombre              string           `json:"nombre"` // how the school names the subject
+	Icono               string           `json:"icono"`
+	EsTutoria           bool             `json:"es_tutoria"`
+	CriteriosLegacy     []CriterioLegacy `json:"criterios_legacy"` // optional, see CriterioLegacy
+	EsquemaCalificacion *Esquema         `json:"esquema_calificacion"`
 }
 
-type Competencia struct {
-	Codigo      string      `json:"codigo"`
-	Nombre      string      `json:"nombre"`
-	Tipo        string      `json:"tipo"`
-	Capacidades []Capacidad `json:"capacidades"`
-}
-
-type Capacidad struct {
-	Codigo    string     `json:"codigo"`
-	Nombre    string     `json:"nombre"`
-	Criterios []Criterio `json:"criterios"`
-}
-
-type Criterio struct {
+// CriterioLegacy is an evaluation criterion the school already uses, kept so
+// seed/seed_demo.sql and existing schools keep working. It points at a
+// capability by code (the catalog derives capability codes as
+// <competency code>-CAP<numero>), because a criterion must hang off a
+// capability (evaluation_criteria.capability_id).
+type CriterioLegacy struct {
 	Codigo      string `json:"codigo"`
 	Descripcion string `json:"descripcion"`
+	Capacidad   string `json:"capacidad"` // capability code, e.g. MAT-C1-CAP1
 }
 
 type Esquema struct {
@@ -107,12 +110,16 @@ type Componente struct {
 	DescartarMasBajas int     `json:"descartar_mas_bajas"`
 }
 
+// Grado is a grade as the school names it. GradoCNEB names the catalog grade
+// (e.g. "1S"), which sets grade_levels.stage and grade_levels.cycle and
+// selects which performances the loader copies.
 type Grado struct {
 	Codigo      string `json:"codigo"`
 	Etiqueta    string `json:"etiqueta"`
 	NombreLargo string `json:"nombre_largo"`
 	Nivel       string `json:"nivel"`
 	Orden       int    `json:"orden"`
+	GradoCNEB   string `json:"grado_cneb"`
 }
 
 type Aula struct {

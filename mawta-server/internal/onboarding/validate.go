@@ -9,6 +9,7 @@ import (
 	"time"
 	_ "time/tzdata" // the api image is debian-slim without tzdata; zona_horaria must still validate
 
+	"mawta-server/curriculum"
 	"mawta-server/internal/auth"
 )
 
@@ -40,8 +41,23 @@ var maxPeriodos = map[string]int{"bimestre": 4, "trimestre": 3, "semestre": 2}
 // allowed values, every cross-reference, date ranges, overlapping horarios.
 // Most of these the schema enforces too, but a Postgres constraint name means
 // nothing to the person who filled in the file.
+//
+// The curriculum tree comes from the embedded CNEB catalog: área and
+// transversal codes, grado_cneb values and legacy criteria are all checked
+// against it, so an area not yet in the catalog is a named error rather than
+// a school installed against half a curriculum.
 func Validate(s *Spec) error {
-	v := &checker{}
+	cat, err := curriculum.Load()
+	if err != nil {
+		return fmt.Errorf("el catálogo CNEB no es válido: %w", err)
+	}
+	return ValidateWithCatalog(s, cat)
+}
+
+// ValidateWithCatalog is Validate against an already-loaded catalog, so the
+// loader does not decode the embedded data twice.
+func ValidateWithCatalog(s *Spec, cat *curriculum.Catalog) error {
+	v := &checker{cat: cat}
 	v.colegio(s.Colegio)
 	periodos := v.anio(s.AnioEscolar)
 	docentes := v.docentes(s.Docentes)
@@ -56,6 +72,7 @@ func Validate(s *Spec) error {
 }
 
 type checker struct {
+	cat  *curriculum.Catalog
 	errs Errors
 }
 
@@ -290,33 +307,40 @@ func (v *checker) docentes(ds []Docente) map[string]bool {
 
 // ------------------------------------------------------------------ áreas --
 
-func (v *checker) areas(as []Area, transversales []Competencia) map[string]bool {
+// areas checks each área against the catalog: the code must name a catalog
+// area, and the legacy criteria (if any) must point at capabilities that the
+// catalog defines for that area. Transversales are catalog codes too.
+func (v *checker) areas(as []Area, transversales []string) map[string]bool {
 	known := map[string]bool{}
 	if len(as) == 0 {
 		v.addf("areas", "debe haber al menos un área")
 	}
 	areaCodes, schemeCodes := map[string]string{}, map[string]string{}
-	// Competencia, capacidad and criterio codes are unique across the whole
-	// school, not just within their parent: seed_demo.sql and every report
-	// find them by code alone.
-	comps, caps, crits := map[string]string{}, map[string]string{}, map[string]string{}
+	// Criterio codes are unique across the whole school, not just within
+	// their parent: seed_demo.sql and every report find them by code alone.
+	crits := map[string]string{}
 	for i, a := range as {
 		path := fmt.Sprintf("areas[%d]", i)
 		if v.required(path+".codigo", a.Codigo) {
 			v.unique(areaCodes, path+".codigo", "el código de área", a.Codigo)
 			known[a.Codigo] = true
+			if _, ok := v.cat.Area[a.Codigo]; !ok {
+				v.addf(path+".codigo", "%q no es un área del catálogo CNEB; las áreas disponibles son: %s", a.Codigo, v.catAreaList())
+			}
 		}
 		v.required(path+".nombre", a.Nombre)
 		v.optional(path+".icono", a.Icono)
-		if len(a.Competencias) == 0 {
-			v.addf(path+".competencias", "el área debe tener al menos una competencia")
-		}
-		for j, c := range a.Competencias {
-			cpath := fmt.Sprintf("%s.competencias[%d]", path, j)
-			if c.Tipo != "" {
-				v.oneOf(cpath+".tipo", c.Tipo, "area", "adicional_area")
+		for j, cr := range a.CriteriosLegacy {
+			cpath := fmt.Sprintf("%s.criterios_legacy[%d]", path, j)
+			if v.required(cpath+".codigo", cr.Codigo) {
+				v.unique(crits, cpath+".codigo", "el código de criterio", cr.Codigo)
 			}
-			v.competencia(cpath, c, comps, caps, crits)
+			v.required(cpath+".descripcion", cr.Descripcion)
+			if v.required(cpath+".capacidad", cr.Capacidad) {
+				if !v.cat.CapabilityCodesByArea[a.Codigo][cr.Capacidad] {
+					v.addf(cpath+".capacidad", "%q no es una capacidad del área %s en el catálogo CNEB", cr.Capacidad, a.Codigo)
+				}
+			}
 		}
 		s := schemeFor(a)
 		spath := path + ".esquema_calificacion"
@@ -325,40 +349,33 @@ func (v *checker) areas(as []Area, transversales []Competencia) map[string]bool 
 		}
 		v.esquema(spath, s, schemeCodes)
 	}
-	for i, c := range transversales {
+	seenTransversal := map[string]string{}
+	for i, code := range transversales {
 		cpath := fmt.Sprintf("competencias_transversales[%d]", i)
-		if c.Tipo != "" && c.Tipo != "transversal" {
-			v.addf(cpath+".tipo", "las competencias transversales no llevan tipo (o llevan \"transversal\")")
+		if v.required(cpath, code) {
+			v.unique(seenTransversal, cpath, "la competencia transversal", code)
+			if _, ok := v.cat.Transversal[code]; !ok {
+				v.addf(cpath, "%q no es una competencia transversal del catálogo CNEB; las disponibles son: %s", code, v.catTransversalList())
+			}
 		}
-		v.competencia(cpath, c, comps, caps, crits)
 	}
 	return known
 }
 
-func (v *checker) competencia(path string, c Competencia, comps, caps, crits map[string]string) {
-	if v.required(path+".codigo", c.Codigo) {
-		v.unique(comps, path+".codigo", "el código de competencia", c.Codigo)
+func (v *checker) catAreaList() string {
+	codes := make([]string, 0, len(v.cat.Areas))
+	for _, a := range v.cat.Areas {
+		codes = append(codes, a.Codigo)
 	}
-	v.required(path+".nombre", c.Nombre)
-	// A criterio must hang off a capacidad (evaluation_criteria.capability_id
-	// is NOT NULL), so a competencia without capacidades can never be assessed.
-	if len(c.Capacidades) == 0 {
-		v.addf(path+".capacidades", "la competencia debe tener al menos una capacidad")
+	return strings.Join(codes, ", ")
+}
+
+func (v *checker) catTransversalList() string {
+	codes := make([]string, 0, len(v.cat.Transversales))
+	for _, t := range v.cat.Transversales {
+		codes = append(codes, t.Codigo)
 	}
-	for k, cap := range c.Capacidades {
-		kpath := fmt.Sprintf("%s.capacidades[%d]", path, k)
-		if v.required(kpath+".codigo", cap.Codigo) {
-			v.unique(caps, kpath+".codigo", "el código de capacidad", cap.Codigo)
-		}
-		v.required(kpath+".nombre", cap.Nombre)
-		for m, cr := range cap.Criterios {
-			mpath := fmt.Sprintf("%s.criterios[%d]", kpath, m)
-			if v.required(mpath+".codigo", cr.Codigo) {
-				v.unique(crits, mpath+".codigo", "el código de criterio", cr.Codigo)
-			}
-			v.required(mpath+".descripcion", cr.Descripcion)
-		}
-	}
+	return strings.Join(codes, ", ")
 }
 
 func (v *checker) esquema(path string, s Esquema, schemeCodes map[string]string) {
@@ -417,8 +434,23 @@ func (v *checker) grados(gs []Grado) map[string]Grado {
 		} else {
 			v.unique(ordenes, path+".orden", "el orden", fmt.Sprint(g.Orden))
 		}
+		// grado_cneb names a catalog grade: it sets grade_levels.stage and
+		// cycle, and selects which performances the loader copies.
+		if v.required(path+".grado_cneb", g.GradoCNEB) {
+			if _, ok := v.cat.Grado[g.GradoCNEB]; !ok {
+				v.addf(path+".grado_cneb", "%q no es un grado del catálogo CNEB; los grados son: %s", g.GradoCNEB, v.catGradeList())
+			}
+		}
 	}
 	return known
+}
+
+func (v *checker) catGradeList() string {
+	codes := make([]string, 0, len(v.cat.Grados))
+	for _, g := range v.cat.Grados {
+		codes = append(codes, g.Codigo)
+	}
+	return strings.Join(codes, ", ")
 }
 
 // ------------------------------------------------------------------ aulas --

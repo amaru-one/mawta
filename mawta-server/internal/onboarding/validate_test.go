@@ -4,7 +4,19 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"mawta-server/curriculum"
 )
+
+// catalog loads the embedded CNEB catalog once for the package's tests.
+func catalog(t *testing.T) *curriculum.Catalog {
+	t.Helper()
+	cat, err := curriculum.Load()
+	if err != nil {
+		t.Fatalf("the embedded catalog must validate: %v", err)
+	}
+	return cat
+}
 
 // example loads the San Felipe example with its (deliberately empty)
 // passwords filled in, so it validates.
@@ -27,7 +39,7 @@ func example(t *testing.T) *Spec {
 
 func errorsOf(t *testing.T, s *Spec) []string {
 	t.Helper()
-	err := Validate(s)
+	err := ValidateWithCatalog(s, catalog(t))
 	if err == nil {
 		return nil
 	}
@@ -74,7 +86,8 @@ func TestTemplateReportsEveryPlaceholder(t *testing.T) {
 		"colegio.nombre: falta completar",
 		"colegio.codigo_modular: falta completar",
 		"docentes[0].clave: falta completar",
-		"areas[0].competencias[0].capacidades[0].codigo: falta completar",
+		"areas[0].codigo: falta completar",
+		"grados[0].grado_cneb: falta completar",
 		"clases[0].horario[0].dia: falta completar",
 		"clases[0].sesiones[0].tema: falta completar",
 	} {
@@ -126,10 +139,22 @@ func TestValidationRules(t *testing.T) {
 			"docentes[0].clave: debe tener entre 10 y 72 caracteres"},
 		{"duplicate email", func(s *Spec) { s.Docentes[1].Email = "AmaruOrihuela@gmail.com" },
 			"docentes[1].email: el correo \"amaruorihuela@gmail.com\" está repetido"},
-		{"competencia code reused across areas", func(s *Spec) { s.Areas[1].Competencias[0].Codigo = "MAT-C1" },
-			"areas[1].competencias[0].codigo: el código de competencia \"MAT-C1\" está repetido"},
-		{"competencia without capacidades", func(s *Spec) { s.Areas[0].Competencias[0].Capacidades = nil },
-			"areas[0].competencias[0].capacidades: la competencia debe tener al menos una capacidad"},
+		{"area not in the catalog", func(s *Spec) { s.Areas[1].Codigo = "COM" },
+			"areas[1].codigo: \"COM\" no es un área del catálogo CNEB"},
+		{"transversal not in the catalog", func(s *Spec) { s.CompetenciasTransversales[0] = "TR-C9" },
+			"competencias_transversales[0]: \"TR-C9\" no es una competencia transversal del catálogo CNEB"},
+		{"repeated transversal", func(s *Spec) { s.CompetenciasTransversales[1] = "TR-C1" },
+			"competencias_transversales[1]: la competencia transversal \"TR-C1\" está repetido"},
+		{"legacy criterion pointing at an unknown capability", func(s *Spec) { s.Areas[0].CriteriosLegacy[0].Capacidad = "MAT-C1-CAP9" },
+			"areas[0].criterios_legacy[0].capacidad: \"MAT-C1-CAP9\" no es una capacidad del área MAT"},
+		{"legacy criterion pointing at another area's capability", func(s *Spec) { s.Areas[0].CriteriosLegacy[0].Capacidad = "CCSS-C1-CAP1" },
+			"areas[0].criterios_legacy[0].capacidad: \"CCSS-C1-CAP1\" no es una capacidad del área MAT"},
+		{"duplicate legacy criterion code", func(s *Spec) { s.Areas[0].CriteriosLegacy[1].Codigo = "MAT-C1-CR1" },
+			"areas[0].criterios_legacy[1].codigo: el código de criterio \"MAT-C1-CR1\" está repetido"},
+		{"grado_cneb not in the catalog", func(s *Spec) { s.Grados[0].GradoCNEB = "9S" },
+			"grados[0].grado_cneb: \"9S\" no es un grado del catálogo CNEB"},
+		{"missing grado_cneb", func(s *Spec) { s.Grados[0].GradoCNEB = "" },
+			"grados[0].grado_cneb: es obligatorio"},
 		{"weights not summing to 1", func(s *Spec) { s.Areas[0].EsquemaCalificacion.Componentes[2].Peso = 0.25 },
 			"areas[0].esquema_calificacion.componentes: los pesos suman 1.05"},
 		{"aula of an unknown grado", func(s *Spec) { s.Aulas[0].Grado = "2S" },

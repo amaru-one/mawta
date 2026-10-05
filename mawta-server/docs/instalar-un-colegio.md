@@ -4,9 +4,11 @@ A new school is installed from **one JSON file**. The onboarding team fills it
 in, and a command loads it locally or on the droplet. Everything runs in one
 transaction: the whole school is created, or nothing is saved.
 
-The file gives each teacher their classrooms and students, subjects with
-competencies and capabilities, classes, timetable, and term sessions, including
-topics where provided.
+The file gives each teacher their classrooms and students, subjects, classes,
+timetable, and term sessions, including topics where provided. The curriculum
+(competencies, capabilities, standards, and grade performances) is **not** in the
+file: the loader copies it from the CNEB catalog embedded in the binary
+(`curriculum/cneb/`, transcribed from RM 281-2016 and RM 649-2016).
 
 ## Files
 
@@ -15,7 +17,8 @@ topics where provided.
 | `seed/onboarding/plantilla.json` | Blank template. **Share this file** with the onboarding team. |
 | `seed/onboarding/ejemplo-san-felipe.json` | Complete example school used by the demo; reference for filling in the template. |
 | `seed/onboarding/colegios/` | Completed school files. **Ignored by Git** because they contain passwords and minors' data. |
-| `seed/onboard.sh` | Command for loading a file. |
+| `seed/onboard.sh` | Command for loading a file, or syncing an existing school's curriculum. |
+| `curriculum/cneb/` | The CNEB catalog: `cneb.json` (grades, cycles, expected levels), `areas.json` (areas and their competency codes), `competencias/cNN.json` (one file per CNEB competency). Data only; never edited by hand outside a reviewed transcription. |
 
 ## Step by step
 
@@ -74,16 +77,22 @@ values exactly as specified below.
   if one ends on May 29, the next starts on May 30 or later.
 - **Teachers (`docentes`):** `usuario` is lowercase, without spaces, and is
   used to log in. `clave` contains 10 to 72 characters.
-- **Subjects (`areas`):** each includes its complete tree:
-  `competencias` → `capacidades` → `criterios` (criteria are optional).
-  Competency, capability, and criterion codes must be unique across the school
-  (`MAT-C1`, `MAT-C1-CAP1`, `MAT-C1-CR1`). `esquema_calificacion` may be `null`:
+- **Subjects (`areas`):** `codigo` is a catalog area code (`MAT`, `CCSS`, `PS`,
+  `DPCC`, `EF`, …; see `curriculum/cneb/areas.json`) and `nombre` is how the
+  school names it. The loader copies that area's competencies (`MAT-C1`…),
+  capabilities (`MAT-C1-CAP1`…), standards, and the performances of the school's
+  grades. An area the catalog does not have yet is rejected; the catalog grows
+  area by area. `criterios_legacy` (optional, normally `[]`) keeps criteria a
+  school already uses, each with `codigo`, `descripcion`, and the `capacidad`
+  code it belongs to. `esquema_calificacion` may be `null`:
   the subject then receives the standard scheme (practice 40%, dropping the
   lowest score; exams 40%; projects 20%). Custom weights must total exactly 1.
-- **Cross-curricular competencies (`competencias_transversales`):** the template
-  includes both CNEB competencies.
+- **Cross-curricular competencies (`competencias_transversales`):** a list of
+  catalog codes; the template includes both (`TR-C1`, `TR-C2`).
 - **Grades (`grados`):** `orden` is the schooling position, from 1 to 11
-  (first primary grade = 1; first secondary grade = 7).
+  (first primary grade = 1; first secondary grade = 7). `grado_cneb` is the
+  catalog grade (`1P`–`6P`, `1S`–`5S`); it sets the grade's level and cycle and
+  selects which performances are loaded.
 - **Classrooms (`aulas`):** identified by grade and section. A classroom with
   `"grado": "1S"` and `"seccion": "A"` is referenced as `"1S-A"` by classes.
   `tutor` is an optional teacher username. Each classroom lists its `estudiantes`.
@@ -103,6 +112,12 @@ values exactly as specified below.
   all with `scheduled` status. The application reads sessions but does not
   create them, so teachers would have none without this step.
 - **Scales:** the official MINEDU AD/A/B/C scale and internal 0–20 scale.
+- **Curriculum from the catalog:** for each subject, its competencies and
+  capabilities, the standards (levels 1–8) of those competencies, the
+  performances of the school's grades, and the (modality, cycle) → expected level
+  rows of the school's cycles. A performance is *in progress* towards its cycle's
+  level unless its grade is the last of the cycle; neither value is in the data
+  files.
 - **One course per subject and grade**, named "<subject> <grade>" (for example,
   "Mathematics, first secondary grade"). Classes for that subject and grade share it.
 
@@ -110,6 +125,24 @@ Each row's id derives from its identity:
 `md5('<type>:<modular code>:<key>')::uuid`, for example
 `md5('class:0723519:2026:MAT-1A')::uuid` (see `internal/onboarding/ids.go`).
 Loading the same file into an empty database produces the same ids.
+
+## Updating an existing school's curriculum
+
+A school installed before the catalog existed, or before an area was added to
+it, is brought up to date with `--sync`. Each `--grado` maps one of the school's
+grade codes to a catalog grade:
+
+```sh
+./seed/onboard.sh --target local --dry-run --sync --modular 0723519 --grado 1S=1S
+./seed/onboard.sh --target local           --sync --modular 0723519 --grado 1S=1S
+```
+
+The sync matches the school's competencies and capabilities by code and inserts
+what is missing (capabilities, standards, performances of the mapped grades,
+expected-level rows) and sets the mapped grades' level and cycle. It does not
+add subjects the school does not have. When a name differs from the catalog, it
+**reports** the difference and leaves the school's name alone. It runs in one
+transaction, and a second run changes nothing.
 
 ## Demo data (optional)
 

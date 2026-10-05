@@ -40,59 +40,23 @@
   ],
   "areas": [
     {
-      "codigo": "<código corto del área, por ejemplo MAT>",
+      "codigo": "<código del área en el catálogo CNEB, por ejemplo MAT>",
       "nombre": "<nombre del área, por ejemplo Matemática>",
       "icono": "",
       "es_tutoria": false,
-      "competencias": [
-        {
-          "codigo": "<código de la competencia, por ejemplo MAT-C1>",
-          "nombre": "<nombre CNEB de la competencia>",
-          "capacidades": [
-            {
-              "codigo": "<código de la capacidad, por ejemplo MAT-C1-CAP1>",
-              "nombre": "<nombre CNEB de la capacidad>",
-              "criterios": [
-                {
-                  "codigo": "<código del criterio, por ejemplo MAT-C1-CR1>",
-                  "descripcion": "<qué se evalúa>"
-                }
-              ]
-            }
-          ]
-        }
-      ],
+      "criterios_legacy": [],
       "esquema_calificacion": null
     }
   ],
-  "competencias_transversales": [
-    {
-      "codigo": "TR-C1",
-      "nombre": "Se desenvuelve en los entornos virtuales generados por las TIC",
-      "capacidades": [
-        { "codigo": "TR-C1-CAP1", "nombre": "Personaliza entornos virtuales" },
-        { "codigo": "TR-C1-CAP2", "nombre": "Gestiona información del entorno virtual" },
-        { "codigo": "TR-C1-CAP3", "nombre": "Interactúa en entornos virtuales" },
-        { "codigo": "TR-C1-CAP4", "nombre": "Crea objetos virtuales en diversos formatos" }
-      ]
-    },
-    {
-      "codigo": "TR-C2",
-      "nombre": "Gestiona su aprendizaje de manera autónoma",
-      "capacidades": [
-        { "codigo": "TR-C2-CAP1", "nombre": "Define metas de aprendizaje" },
-        { "codigo": "TR-C2-CAP2", "nombre": "Organiza acciones estratégicas para alcanzar sus metas de aprendizaje" },
-        { "codigo": "TR-C2-CAP3", "nombre": "Monitorea y ajusta su desempeño durante el proceso de aprendizaje" }
-      ]
-    }
-  ],
+  "competencias_transversales": ["TR-C1", "TR-C2"],
   "grados": [
     {
       "codigo": "<código corto del grado, por ejemplo 1S>",
       "etiqueta": "<por ejemplo 1ro>",
       "nombre_largo": "<por ejemplo Primero de secundaria>",
       "nivel": "<inicial | primaria | secundaria>",
-      "orden": 7
+      "orden": 7,
+      "grado_cneb": "<grado del catálogo CNEB, por ejemplo 1S>"
     }
   ],
   "aulas": [
