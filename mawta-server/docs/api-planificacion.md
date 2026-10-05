@@ -46,12 +46,6 @@ Same as the rest of the API:
 - `learning_experiences.status`: `borrador` (default) or `planificada`. The
   overlap exclusion still applies to drafts, so two drafts cannot take the same
   weeks either.
-- `planning_generations` (tenant-scoped, RLS like every school table): id,
-  class, experience (null for an experience proposal), kind
-  (`experience`, `criteria`, `evidences`, `sessions`), requested by, status
-  (`pending`, `running`, `completed`, `failed`), input, result, error,
-  timestamps. The queued job only carries the generation id: the `jobs` table
-  has no RLS and no result column, so it is never exposed.
 - Onboarding: `dias_no_lectivos` in the school file (`fecha` or `desde`/`hasta`,
   `tipo` = `feriado` | `vacaciones` | `gestion`, optional `nombre`), loaded into
   `non_teaching_days`. Generated `class_sessions` skip those dates.
@@ -209,6 +203,16 @@ One entry per class date of the experience.
 `date` must be a class date inside the experience and not a non-teaching day.
 
 ## Generate with Mawta (implemented with the planning agent, ticket 6)
+
+Ticket 4 does not implement these routes; they arrive with the planning agent
+in ticket 6, together with the table they need:
+
+- `planning_generations` (tenant-scoped, RLS like every school table): id,
+  class, experience (null for an experience proposal), kind
+  (`experience`, `criteria`, `evidences`, `sessions`), requested by, status
+  (`pending`, `running`, `completed`, `failed`), input, result, error,
+  timestamps. The queued job only carries the generation id: the `jobs` table
+  has no RLS and no result column, so it is never exposed.
 
 Each route creates a generation and returns `202` with it at once:
 `{"id": "…", "kind": "criteria", "status": "pending"}`.
