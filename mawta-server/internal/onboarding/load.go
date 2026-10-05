@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
+	"mawta-server/curriculum"
 	"mawta-server/internal/auth"
 )
 
@@ -24,6 +25,8 @@ type Summary struct {
 	Competencias    int
 	Capacidades     int
 	Criterios       int
+	Estandares      int
+	Desempenos      int
 	Aulas           int
 	Estudiantes     int
 	Clases          int
@@ -38,6 +41,7 @@ func (s *Summary) String() string {
 	fmt.Fprintf(&b, "Periodos:       %d\n", s.Periodos)
 	fmt.Fprintf(&b, "Docentes:       %d (%s)\n", s.Docentes, strings.Join(s.Usuarios, ", "))
 	fmt.Fprintf(&b, "Áreas:          %d, con %d competencias, %d capacidades y %d criterios\n", s.Areas, s.Competencias, s.Capacidades, s.Criterios)
+	fmt.Fprintf(&b, "Currículo:      %d estándares y %d desempeños de grado\n", s.Estandares, s.Desempenos)
 	fmt.Fprintf(&b, "Aulas:          %d, con %d estudiantes\n", s.Aulas, s.Estudiantes)
 	fmt.Fprintf(&b, "Clases:         %d, con %d franjas de horario\n", s.Clases, s.Franjas)
 	fmt.Fprintf(&b, "Sesiones:       %d generadas, %d con tema\n", s.Sesiones, s.SesionesConTema)
@@ -52,14 +56,15 @@ func (s *Summary) String() string {
 // Nothing is written unless the file validates and the school does not exist
 // yet; any failure part-way leaves the transaction for the caller to roll
 // back, so there is never a half-installed school.
-func Load(ctx context.Context, tx pgx.Tx, s *Spec, bcryptCost int) (*Summary, error) {
-	if err := Validate(s); err != nil {
+func Load(ctx context.Context, tx pgx.Tx, s *Spec, cat *curriculum.Catalog, bcryptCost int) (*Summary, error) {
+	if err := ValidateWithCatalog(s, cat); err != nil {
 		return nil, err
 	}
 	l := &loader{
 		ctx:     ctx,
 		tx:      tx,
 		s:       s,
+		cat:     cat,
 		mod:     s.Colegio.CodigoModular,
 		anio:    fmt.Sprint(s.AnioEscolar.Anio),
 		schemes: map[string]uuid.UUID{},
@@ -86,6 +91,9 @@ func Load(ctx context.Context, tx pgx.Tx, s *Spec, bcryptCost int) (*Summary, er
 		{"docentes", func() error { return l.docentes(bcryptCost) }},
 		{"áreas, competencias y capacidades", l.areas},
 		{"aulas y estudiantes", l.aulas},
+		// After aulas: performances reference the grade_levels rows that
+		// aulas creates.
+		{"desempeños, estándares y niveles esperados", l.curriculumData},
 		{"clases y horario", l.clases},
 		{"sesiones", l.sesiones},
 	}
@@ -101,6 +109,7 @@ type loader struct {
 	ctx      context.Context
 	tx       pgx.Tx
 	s        *Spec
+	cat      *curriculum.Catalog
 	mod      string // codigo_modular: part of every derived id
 	anio     string
 	tenant   uuid.UUID
@@ -268,11 +277,16 @@ func (l *loader) teacherID(usuario string) uuid.UUID { return ID("teacher", l.mo
 
 // ------------------------------------------------------------------ áreas --
 
+// areas copies each área's competency tree from the catalog: the subject row
+// is the school's (its name, icon and scheme are school decisions), but the
+// competencies, capabilities and their order come from the CNEB. Legacy
+// criteria stay possible at area level so seed_demo.sql keeps working.
 func (l *loader) areas() error {
 	if err := l.scales(); err != nil {
 		return err
 	}
 	for i, a := range l.s.Areas {
+		catArea := l.cat.Area[a.Codigo]
 		subjectID := ID("subject", l.mod, a.Codigo)
 		if err := l.exec(`
 			insert into subjects (id, tenant_id, code, name, area_curricular, icon_key, is_tutoria, sort_order)
@@ -281,12 +295,14 @@ func (l *loader) areas() error {
 			return fmt.Errorf("área %s: %w", a.Codigo, err)
 		}
 		l.sum.Areas++
-		for j, c := range a.Competencias {
-			kind := c.Tipo
-			if kind == "" {
-				kind = "area"
+		for j, cc := range catArea.Competencias {
+			comp := l.cat.Competencias[cc.NumeroCNEB]
+			if err := l.competencia(cc.Codigo, comp, &subjectID, "area", j+1); err != nil {
+				return err
 			}
-			if err := l.competencia(c, &subjectID, kind, j+1); err != nil {
+		}
+		for j, cr := range a.CriteriosLegacy {
+			if err := l.criterioLegacy(cr, j+1); err != nil {
 				return err
 			}
 		}
@@ -297,42 +313,188 @@ func (l *loader) areas() error {
 	// Transversales hang off no área and no single teacher, and never count
 	// toward promotion; competencies_transversal_has_no_subject needs the
 	// null subject.
-	for j, c := range l.s.CompetenciasTransversales {
-		if err := l.competencia(c, nil, "transversal", j+1); err != nil {
+	for j, code := range l.s.CompetenciasTransversales {
+		comp, ok := l.cat.CompetenciaByCode(code)
+		if !ok {
+			return fmt.Errorf("competencia transversal %s: no está en el catálogo", code)
+		}
+		if err := l.competencia(code, comp, nil, "transversal", j+1); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (l *loader) competencia(c Competencia, subjectID *uuid.UUID, kind string, order int) error {
-	compID := ID("competency", l.mod, c.Codigo)
+// competencia inserts one competency and its capabilities from the catalog.
+// The names are the official ones, stored verbatim; the capability code is
+// derived as <competency code>-CAP<numero>, the convention schools and
+// seed_demo.sql already use, so the md5-derived ids do not change.
+func (l *loader) competencia(codigo string, comp curriculum.Competencia, subjectID *uuid.UUID, kind string, order int) error {
+	compID := ID("competency", l.mod, codigo)
 	if err := l.exec(`
 		insert into competencies (id, tenant_id, subject_id, code, name, kind, sort_order, is_active)
 		values ($1, $2, $3, $4, $5, $6, $7, true)`,
-		compID, l.tenant, subjectID, c.Codigo, c.Nombre, kind, order); err != nil {
-		return fmt.Errorf("competencia %s: %w", c.Codigo, err)
+		compID, l.tenant, subjectID, codigo, comp.Nombre, kind, order); err != nil {
+		return fmt.Errorf("competencia %s: %w", codigo, err)
 	}
 	l.sum.Competencias++
-	for k, cap := range c.Capacidades {
-		capID := ID("capability", l.mod, cap.Codigo)
+	for k, cap := range comp.Capacidades {
+		capCode := curriculum.CapabilityCode(codigo, cap.Numero)
+		capID := ID("capability", l.mod, capCode)
 		if err := l.exec(`
 			insert into capabilities (id, tenant_id, competency_id, code, name, sort_order)
 			values ($1, $2, $3, $4, $5, $6)`,
-			capID, l.tenant, compID, cap.Codigo, cap.Nombre, k+1); err != nil {
-			return fmt.Errorf("capacidad %s: %w", cap.Codigo, err)
+			capID, l.tenant, compID, capCode, cap.Nombre, k+1); err != nil {
+			return fmt.Errorf("capacidad %s: %w", capCode, err)
 		}
 		l.sum.Capacidades++
-		for m, cr := range cap.Criterios {
-			if err := l.exec(`
-				insert into evaluation_criteria (id, tenant_id, competency_id, capability_id, code,
-				                                 description, sort_order)
-				values ($1, $2, $3, $4, $5, $6, $7)`,
-				ID("criterion", l.mod, cr.Codigo), l.tenant, compID, capID, cr.Codigo, cr.Descripcion, m+1); err != nil {
-				return fmt.Errorf("criterio %s: %w", cr.Codigo, err)
-			}
-			l.sum.Criterios++
+	}
+	return nil
+}
+
+// criterioLegacy inserts one legacy criterion. It points at a capability by
+// code; the capability exists because validation checked the code against
+// the catalog and areas() already inserted the tree.
+func (l *loader) criterioLegacy(cr CriterioLegacy, order int) error {
+	// The capability code is <competency code>-CAP<numero>, so the
+	// competency code is everything before the last "-CAP".
+	compCodigo := cr.Capacidad[:strings.LastIndex(cr.Capacidad, "-CAP")]
+	compID := ID("competency", l.mod, compCodigo)
+	capID := ID("capability", l.mod, cr.Capacidad)
+	if err := l.exec(`
+		insert into evaluation_criteria (id, tenant_id, competency_id, capability_id, code,
+		                                 description, sort_order)
+		values ($1, $2, $3, $4, $5, $6, $7)`,
+		ID("criterion", l.mod, cr.Codigo), l.tenant, compID, capID, cr.Codigo, cr.Descripcion, order); err != nil {
+		return fmt.Errorf("criterio %s: %w", cr.Codigo, err)
+	}
+	l.sum.Criterios++
+	return nil
+}
+
+// ------------------------------------------------- desempeños y estándares --
+
+// curriculumData loads, for every competency the school has: its learning
+// standards (levels 1-8), the grade-level performances of the school's grades
+// with the derived stance, and the (modality, cycle) → expected level mapping
+// for the cycles those grades belong to. Official texts are stored verbatim.
+func (l *loader) curriculumData() error {
+	// Which CNEB grades the school has, and the grade_levels row each maps to.
+	var grades []schoolGrade
+	for _, g := range l.s.Grados {
+		cg, ok := l.cat.Grado[g.GradoCNEB]
+		if !ok {
+			return fmt.Errorf("grado %s: grado_cneb %q no está en el catálogo", g.Codigo, g.GradoCNEB)
 		}
+		grades = append(grades, schoolGrade{cneb: cg, level: ID("grade", l.mod, g.Codigo)})
+	}
+
+	// The (modality, cycle) → level mapping, for every cycle a school grade
+	// uses. The modality is the one the shipped catalog maps; the mapping
+	// table is the only source of the correspondence.
+	seenCiclo := map[string]bool{}
+	for _, g := range grades {
+		if seenCiclo[g.cneb.Ciclo] {
+			continue
+		}
+		seenCiclo[g.cneb.Ciclo] = true
+		level, ok := l.cat.ExpectedLevel(curriculum.DefaultModality, g.cneb.Ciclo)
+		if !ok {
+			return fmt.Errorf("ciclo %s: el catálogo no declara el nivel esperado para la modalidad %s", g.cneb.Ciclo, curriculum.DefaultModality)
+		}
+		if err := l.exec(`
+			insert into standard_level_mappings (id, tenant_id, modality, cycle, expected_level)
+			values ($1, $2, $3, $4, $5)`,
+			ID("standard_level_mapping", l.mod, curriculum.DefaultModality+":"+g.cneb.Ciclo),
+			l.tenant, curriculum.DefaultModality, g.cneb.Ciclo, level); err != nil {
+			return fmt.Errorf("nivel esperado del ciclo %s: %w", g.cneb.Ciclo, err)
+		}
+	}
+
+	// Standards and performances, per competency the school has.
+	for _, a := range l.s.Areas {
+		catArea := l.cat.Area[a.Codigo]
+		for _, cc := range catArea.Competencias {
+			if err := l.curriculumOfCompetency(cc.Codigo, grades); err != nil {
+				return err
+			}
+		}
+	}
+	for _, code := range l.s.CompetenciasTransversales {
+		// Transversals have no grade-level performances (deferred); their
+		// standards still serve the descriptive conclusion.
+		comp, ok := l.cat.CompetenciaByCode(code)
+		if !ok {
+			return fmt.Errorf("competencia transversal %s: no está en el catálogo", code)
+		}
+		if err := l.standards(code, comp); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// schoolGrade pairs a catalog grade with the grade_levels row the school's
+// grado maps to.
+type schoolGrade struct {
+	cneb  curriculum.Grade
+	level uuid.UUID
+}
+
+func (l *loader) curriculumOfCompetency(codigo string, grades []schoolGrade) error {
+	comp, ok := l.cat.CompetenciaByCode(codigo)
+	if !ok {
+		return fmt.Errorf("competencia %s: no está en el catálogo", codigo)
+	}
+	if err := l.standards(codigo, comp); err != nil {
+		return err
+	}
+	compID := ID("competency", l.mod, codigo)
+	for _, g := range grades {
+		enProceso := l.cat.EnProceso(g.cneb.Codigo)
+		expected, ok := l.cat.ExpectedLevel(curriculum.DefaultModality, g.cneb.Ciclo)
+		if !ok {
+			return fmt.Errorf("ciclo %s: el catálogo no declara el nivel esperado para la modalidad %s", g.cneb.Ciclo, curriculum.DefaultModality)
+		}
+		for _, d := range comp.Desempenos {
+			if d.Grado != g.cneb.Codigo {
+				continue
+			}
+			var suggested *uuid.UUID
+			if d.CapacidadSugerida != nil {
+				id := ID("capability", l.mod, curriculum.CapabilityCode(codigo, *d.CapacidadSugerida))
+				suggested = &id
+			}
+			if err := l.exec(`
+				insert into grade_level_performances (id, tenant_id, competency_id, grade_level_id,
+				                                      sort_order, official_text, en_proceso,
+				                                      expected_standard_level, suggested_capability_id)
+				values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+				ID("performance", l.mod, codigo+":"+g.cneb.Codigo+":"+fmt.Sprint(d.Orden)),
+				l.tenant, compID, g.level, d.Orden, d.Texto, enProceso, expected, suggested); err != nil {
+				return fmt.Errorf("desempeño %s %s #%d: %w", codigo, g.cneb.Codigo, d.Orden, err)
+			}
+			l.sum.Desempenos++
+		}
+	}
+	return nil
+}
+
+// standards stores a competency's learning standards verbatim. A standard's
+// text may be a note instead of a description (level 1 of both transversals
+// points at another competency's level 1); it is stored verbatim like any
+// other text.
+func (l *loader) standards(codigo string, comp curriculum.Competencia) error {
+	compID := ID("competency", l.mod, codigo)
+	for _, e := range comp.Estandares {
+		if err := l.exec(`
+			insert into learning_standards (id, tenant_id, competency_id, level, official_text)
+			values ($1, $2, $3, $4, $5)`,
+			ID("standard", l.mod, fmt.Sprintf("%s:%d", codigo, e.Nivel)),
+			l.tenant, compID, e.Nivel, e.Texto); err != nil {
+			return fmt.Errorf("estándar %s nivel %d: %w", codigo, e.Nivel, err)
+		}
+		l.sum.Estandares++
 	}
 	return nil
 }
@@ -418,10 +580,17 @@ func (l *loader) scheme(a Area) error {
 
 func (l *loader) aulas() error {
 	for _, g := range l.s.Grados {
+		// stage and cycle come from the catalog grade, not from the file:
+		// they are curriculum facts, and the file's nivel is only what the
+		// school calls it.
+		cg, ok := l.cat.Grado[g.GradoCNEB]
+		if !ok {
+			return fmt.Errorf("grado %s: grado_cneb %q no está en el catálogo", g.Codigo, g.GradoCNEB)
+		}
 		if err := l.exec(`
 			insert into grade_levels (id, tenant_id, code, label, long_label, stage, cycle, ordinal)
-			values ($1, $2, $3, $4, $5, $6, null, $7)`,
-			ID("grade", l.mod, g.Codigo), l.tenant, g.Codigo, g.Etiqueta, g.NombreLargo, g.Nivel, g.Orden); err != nil {
+			values ($1, $2, $3, $4, $5, $6, $7, $8)`,
+			ID("grade", l.mod, g.Codigo), l.tenant, g.Codigo, g.Etiqueta, g.NombreLargo, cg.Nivel, cg.Ciclo, g.Orden); err != nil {
 			return fmt.Errorf("grado %s: %w", g.Codigo, err)
 		}
 	}

@@ -50,57 +50,17 @@
       "nombre": "Matemática",
       "icono": "calculadora",
       "es_tutoria": false,
-      "competencias": [
-        {
-          "codigo": "MAT-C1",
-          "nombre": "Resuelve problemas de cantidad",
-          "capacidades": [
-            { "codigo": "MAT-C1-CAP1", "nombre": "Traduce cantidades a expresiones numéricas",
-              "criterios": [ { "codigo": "MAT-C1-CR1", "descripcion": "Expresa cantidades y magnitudes usando números enteros y racionales" } ] },
-            { "codigo": "MAT-C1-CAP2", "nombre": "Comunica su comprensión sobre los números y las operaciones" },
-            { "codigo": "MAT-C1-CAP3", "nombre": "Usa estrategias y procedimientos de estimación y cálculo",
-              "criterios": [ { "codigo": "MAT-C1-CR2", "descripcion": "Selecciona y emplea estrategias de cálculo para resolver problemas con enteros" } ] },
-            { "codigo": "MAT-C1-CAP4", "nombre": "Argumenta afirmaciones sobre las relaciones numéricas y las operaciones",
-              "criterios": [ { "codigo": "MAT-C1-CR3", "descripcion": "Justifica el procedimiento elegido y la razonabilidad del resultado" } ] }
-          ]
-        },
-        {
-          "codigo": "MAT-C2",
-          "nombre": "Resuelve problemas de regularidad, equivalencia y cambio",
-          "capacidades": [
-            { "codigo": "MAT-C2-CAP1", "nombre": "Traduce datos y condiciones a expresiones algebraicas y gráficas",
-              "criterios": [ { "codigo": "MAT-C2-CR1", "descripcion": "Plantea la ecuación o inecuación lineal que modela la situación" } ] },
-            { "codigo": "MAT-C2-CAP2", "nombre": "Comunica su comprensión sobre las relaciones algebraicas" },
-            { "codigo": "MAT-C2-CAP3", "nombre": "Usa estrategias y procedimientos para encontrar equivalencias y reglas generales",
-              "criterios": [ { "codigo": "MAT-C2-CR2", "descripcion": "Aplica propiedades de igualdad para hallar el valor desconocido" } ] },
-            { "codigo": "MAT-C2-CAP4", "nombre": "Argumenta afirmaciones sobre relaciones de cambio y equivalencia",
-              "criterios": [ { "codigo": "MAT-C2-CR3", "descripcion": "Argumenta por qué dos expresiones algebraicas son equivalentes" } ] }
-          ]
-        },
-        {
-          "codigo": "MAT-C3",
-          "nombre": "Resuelve problemas de forma, movimiento y localización",
-          "capacidades": [
-            { "codigo": "MAT-C3-CAP1", "nombre": "Modela objetos con formas geométricas y sus transformaciones",
-              "criterios": [ { "codigo": "MAT-C3-CR1", "descripcion": "Representa formas bidimensionales y sus transformaciones en el plano" } ] },
-            { "codigo": "MAT-C3-CAP2", "nombre": "Comunica su comprensión sobre las formas y relaciones geométricas" },
-            { "codigo": "MAT-C3-CAP3", "nombre": "Usa estrategias y procedimientos para orientarse en el espacio",
-              "criterios": [ { "codigo": "MAT-C3-CR2", "descripcion": "Emplea estrategias para calcular perímetros, áreas y ubicaciones" } ] },
-            { "codigo": "MAT-C3-CAP4", "nombre": "Argumenta afirmaciones sobre relaciones geométricas" }
-          ]
-        },
-        {
-          "codigo": "MAT-C4",
-          "nombre": "Resuelve problemas de gestión de datos e incertidumbre",
-          "capacidades": [
-            { "codigo": "MAT-C4-CAP1", "nombre": "Representa datos con gráficos y medidas estadísticas o probabilísticas",
-              "criterios": [ { "codigo": "MAT-C4-CR1", "descripcion": "Organiza datos en tablas y gráficos estadísticos pertinentes" } ] },
-            { "codigo": "MAT-C4-CAP2", "nombre": "Comunica su comprensión de los conceptos estadísticos y probabilísticos" },
-            { "codigo": "MAT-C4-CAP3", "nombre": "Usa estrategias y procedimientos para recopilar y procesar datos" },
-            { "codigo": "MAT-C4-CAP4", "nombre": "Sustenta conclusiones o decisiones con base en la información obtenida",
-              "criterios": [ { "codigo": "MAT-C4-CR2", "descripcion": "Sustenta conclusiones sobre los datos a partir de medidas de tendencia central" } ] }
-          ]
-        }
+      "criterios_legacy": [
+        { "codigo": "MAT-C1-CR1", "descripcion": "Expresa cantidades y magnitudes usando números enteros y racionales", "capacidad": "MAT-C1-CAP1" },
+        { "codigo": "MAT-C1-CR2", "descripcion": "Selecciona y emplea estrategias de cálculo para resolver problemas con enteros", "capacidad": "MAT-C1-CAP3" },
+        { "codigo": "MAT-C1-CR3", "descripcion": "Justifica el procedimiento elegido y la razonabilidad del resultado", "capacidad": "MAT-C1-CAP4" },
+        { "codigo": "MAT-C2-CR1", "descripcion": "Plantea la ecuación o inecuación lineal que modela la situación", "capacidad": "MAT-C2-CAP1" },
+        { "codigo": "MAT-C2-CR2", "descripcion": "Aplica propiedades de igualdad para hallar el valor desconocido", "capacidad": "MAT-C2-CAP3" },
+        { "codigo": "MAT-C2-CR3", "descripcion": "Argumenta por qué dos expresiones algebraicas son equivalentes", "capacidad": "MAT-C2-CAP4" },
+        { "codigo": "MAT-C3-CR1", "descripcion": "Representa formas bidimensionales y sus transformaciones en el plano", "capacidad": "MAT-C3-CAP1" },
+        { "codigo": "MAT-C3-CR2", "descripcion": "Emplea estrategias para calcular perímetros, áreas y ubicaciones", "capacidad": "MAT-C3-CAP3" },
+        { "codigo": "MAT-C4-CR1", "descripcion": "Organiza datos en tablas y gráficos estadísticos pertinentes", "capacidad": "MAT-C4-CAP1" },
+        { "codigo": "MAT-C4-CR2", "descripcion": "Sustenta conclusiones sobre los datos a partir de medidas de tendencia central", "capacidad": "MAT-C4-CAP4" }
       ],
       "esquema_calificacion": {
         "codigo": "matematica_1ro",
@@ -118,39 +78,13 @@
       "nombre": "Ciencias Sociales",
       "icono": "mundo",
       "es_tutoria": false,
-      "competencias": [
-        {
-          "codigo": "CCSS-C1",
-          "nombre": "Construye interpretaciones históricas",
-          "capacidades": [
-            { "codigo": "CCSS-C1-CAP1", "nombre": "Interpreta críticamente fuentes diversas",
-              "criterios": [ { "codigo": "CCSS-C1-CR1", "descripcion": "Distingue entre fuente primaria y secundaria, y evalúa su fiabilidad" } ] },
-            { "codigo": "CCSS-C1-CAP2", "nombre": "Comprende el tiempo histórico",
-              "criterios": [ { "codigo": "CCSS-C1-CR2", "descripcion": "Ubica procesos históricos en secuencias temporales y establece simultaneidad" } ] },
-            { "codigo": "CCSS-C1-CAP3", "nombre": "Elabora explicaciones sobre procesos históricos",
-              "criterios": [ { "codigo": "CCSS-C1-CR3", "descripcion": "Explica un proceso histórico relacionando causas y consecuencias" } ] }
-          ]
-        },
-        {
-          "codigo": "CCSS-C2",
-          "nombre": "Gestiona responsablemente el espacio y el ambiente",
-          "capacidades": [
-            { "codigo": "CCSS-C2-CAP1", "nombre": "Comprende las relaciones entre los elementos naturales y sociales",
-              "criterios": [ { "codigo": "CCSS-C2-CR1", "descripcion": "Explica cómo interactúan los elementos naturales y sociales de un territorio" } ] },
-            { "codigo": "CCSS-C2-CAP2", "nombre": "Maneja fuentes de información para comprender el espacio geográfico y el ambiente",
-              "criterios": [ { "codigo": "CCSS-C2-CR2", "descripcion": "Interpreta mapas, croquis e imágenes para describir el espacio geográfico" } ] },
-            { "codigo": "CCSS-C2-CAP3", "nombre": "Genera acciones para conservar el ambiente local y global",
-              "criterios": [ { "codigo": "CCSS-C2-CR3", "descripcion": "Propone acciones concretas de conservación del ambiente en su localidad" } ] }
-          ]
-        },
-        {
-          "codigo": "CCSS-C3",
-          "nombre": "Gestiona responsablemente los recursos económicos",
-          "capacidades": [
-            { "codigo": "CCSS-C3-CAP1", "nombre": "Comprende las relaciones entre los elementos del sistema económico y financiero" },
-            { "codigo": "CCSS-C3-CAP2", "nombre": "Toma decisiones económicas y financieras" }
-          ]
-        }
+      "criterios_legacy": [
+        { "codigo": "CCSS-C1-CR1", "descripcion": "Distingue entre fuente primaria y secundaria, y evalúa su fiabilidad", "capacidad": "CCSS-C1-CAP1" },
+        { "codigo": "CCSS-C1-CR2", "descripcion": "Ubica procesos históricos en secuencias temporales y establece simultaneidad", "capacidad": "CCSS-C1-CAP2" },
+        { "codigo": "CCSS-C1-CR3", "descripcion": "Explica un proceso histórico relacionando causas y consecuencias", "capacidad": "CCSS-C1-CAP3" },
+        { "codigo": "CCSS-C2-CR1", "descripcion": "Explica cómo interactúan los elementos naturales y sociales de un territorio", "capacidad": "CCSS-C2-CAP1" },
+        { "codigo": "CCSS-C2-CR2", "descripcion": "Interpreta mapas, croquis e imágenes para describir el espacio geográfico", "capacidad": "CCSS-C2-CAP2" },
+        { "codigo": "CCSS-C2-CR3", "descripcion": "Propone acciones concretas de conservación del ambiente en su localidad", "capacidad": "CCSS-C2-CAP3" }
       ],
       "esquema_calificacion": {
         "codigo": "ccss_1ro",
@@ -164,32 +98,9 @@
       }
     }
   ],
-  "competencias_transversales": [
-    {
-      "codigo": "TR-C1",
-      "nombre": "Se desenvuelve en los entornos virtuales generados por las TIC",
-      "capacidades": [
-        { "codigo": "TR-C1-CAP1", "nombre": "Personaliza entornos virtuales" },
-        { "codigo": "TR-C1-CAP2", "nombre": "Gestiona información del entorno virtual",
-          "criterios": [ { "codigo": "TR-C1-CR1", "descripcion": "Selecciona y organiza información digital verificando su procedencia" } ] },
-        { "codigo": "TR-C1-CAP3", "nombre": "Interactúa en entornos virtuales" },
-        { "codigo": "TR-C1-CAP4", "nombre": "Crea objetos virtuales en diversos formatos" }
-      ]
-    },
-    {
-      "codigo": "TR-C2",
-      "nombre": "Gestiona su aprendizaje de manera autónoma",
-      "capacidades": [
-        { "codigo": "TR-C2-CAP1", "nombre": "Define metas de aprendizaje",
-          "criterios": [ { "codigo": "TR-C2-CR1", "descripcion": "Define metas de aprendizaje alcanzables y verificables" } ] },
-        { "codigo": "TR-C2-CAP2", "nombre": "Organiza acciones estratégicas para alcanzar sus metas de aprendizaje" },
-        { "codigo": "TR-C2-CAP3", "nombre": "Monitorea y ajusta su desempeño durante el proceso de aprendizaje",
-          "criterios": [ { "codigo": "TR-C2-CR2", "descripcion": "Ajusta sus estrategias cuando comprueba que no avanza hacia la meta" } ] }
-      ]
-    }
-  ],
+  "competencias_transversales": ["TR-C1", "TR-C2"],
   "grados": [
-    { "codigo": "1S", "etiqueta": "1ro", "nombre_largo": "Primero de secundaria", "nivel": "secundaria", "orden": 7 }
+    { "codigo": "1S", "etiqueta": "1ro", "nombre_largo": "Primero de secundaria", "nivel": "secundaria", "orden": 7, "grado_cneb": "1S" }
   ],
   "aulas": [
     {

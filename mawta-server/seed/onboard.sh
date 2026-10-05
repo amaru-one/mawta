@@ -8,6 +8,14 @@
 #   ./seed/onboard.sh --target local             seed/onboarding/colegios/mi-colegio.json
 #   ./seed/onboard.sh --target droplet --dry-run seed/onboarding/colegios/mi-colegio.json
 #
+# Para un colegio ya instalado, --sync trae su currículo al día con el
+# catálogo CNEB (capacidades, estándares, desempeños y ciclo de cada grado
+# que falten). Reporta los nombres distintos sin sobrescribirlos y una
+# segunda ejecución no cambia nada. Cada --grado une un grado del colegio con
+# un grado del catálogo (1P-6P, 1S-5S):
+#
+#   ./seed/onboard.sh --target local --dry-run --sync --modular 0723519 --grado 1S=1S
+#
 # --dry-run valida el archivo y ejecuta la carga completa, pero la deshace al
 # final: úsalo siempre primero.
 #
@@ -29,13 +37,16 @@ DROPLET_SSH_HOST='mawta'
 DROPLET_API_CONTAINER='mawta-api-1'
 # --------------------------------------------------------------------------
 
-usage() { sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '2,28p' "$0" | sed 's/^# \{0,1\}//'; }
 
-TARGET='' DRY_RUN='' FILE=''
+TARGET='' DRY_RUN='' FILE='' SYNC='' MODULAR='' GRADOS=()
 while [ $# -gt 0 ]; do
   case "$1" in
     --target)  TARGET="${2:-}"; shift 2 ;;
     --dry-run) DRY_RUN='-dry-run'; shift ;;
+    --sync)    SYNC=1; shift ;;
+    --modular) MODULAR="${2:-}"; shift 2 ;;
+    --grado)   GRADOS+=(-grado "${2:-}"); shift 2 ;;
     -h|--help) usage; exit 0 ;;
     -*)        echo "opción desconocida: $1" >&2; exit 2 ;;
     *)         FILE="$1"; shift ;;
@@ -46,6 +57,27 @@ case "$TARGET" in
   local|droplet) ;;
   *) echo "error: falta --target local|droplet" >&2; exit 2 ;;
 esac
+if [ -n "$SYNC" ]; then
+  if [ -z "$MODULAR" ] || [ ${#GRADOS[@]} -eq 0 ]; then
+    echo "error: --sync requiere --modular <código> y al menos un --grado <grado>=<grado_cneb>" >&2; exit 2
+  fi
+  if [ -n "$FILE" ]; then
+    echo "error: --sync no lleva archivo JSON" >&2; exit 2
+  fi
+  if [ "$TARGET" = local ]; then
+    root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    while [ ! -f "$root/go.mod" ] && [ "$root" != / ]; do
+      root="$(dirname "$root")"
+    done
+    cd "$root"
+    ADMIN_DATABASE_URL="postgres://${LOCAL_DB_USER}:${LOCAL_DB_PASSWORD}@127.0.0.1:${LOCAL_DB_PORT}/${LOCAL_DB}?sslmode=disable" \
+      go run ./cmd/onboard -sync -modular "$MODULAR" "${GRADOS[@]}" $DRY_RUN
+  else
+    ssh "$DROPLET_SSH_HOST" "docker exec $DROPLET_API_CONTAINER onboard -sync -modular $MODULAR ${GRADOS[*]} $DRY_RUN"
+  fi
+  exit 0
+fi
+
 if [ -z "$FILE" ]; then
   echo "error: falta el archivo JSON del colegio" >&2; exit 2
 fi
