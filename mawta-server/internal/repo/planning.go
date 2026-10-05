@@ -2,7 +2,9 @@ package repo
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -857,4 +859,998 @@ func experienceWarnings(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID) 
 		out = append(out, Warning{Code: "pending_proposals", Count: &pending})
 	}
 	return out, nil
+}
+
+// ---------------------------------------------------------------- writes --
+//
+// Every domain rule the schema enforces at commit (the deferred triggers of
+// 00002) or with a raw Postgres error is checked here first, so the API
+// answers with the contract's stable codes instead. The constraints stay the
+// last word; db.MapError translates the two that only concurrency can reach
+// (experience overlap, one session entry per date).
+
+func badInput(code, message string) error {
+	return db.NewAppError(http.StatusBadRequest, code, message)
+}
+
+func unprocessable(code, message string) error {
+	return db.NewAppError(http.StatusUnprocessableEntity, code, message)
+}
+
+func conflict(code, message string) error {
+	return db.NewAppError(http.StatusConflict, code, message)
+}
+
+// dedupe drops repeated ids, keeping the first occurrence's order.
+func dedupe(ids []uuid.UUID) []uuid.UUID {
+	seen := make(map[uuid.UUID]bool, len(ids))
+	out := make([]uuid.UUID, 0, len(ids))
+	for _, id := range ids {
+		if !seen[id] {
+			seen[id] = true
+			out = append(out, id)
+		}
+	}
+	return out
+}
+
+// trimmedOrNil turns blank optional text into NULL.
+func trimmedOrNil(s *string) *string {
+	if s == nil {
+		return nil
+	}
+	t := strings.TrimSpace(*s)
+	if t == "" {
+		return nil
+	}
+	return &t
+}
+
+type experienceHeader struct {
+	ID       uuid.UUID
+	ClassID  uuid.UUID
+	TermID   uuid.UUID
+	Status   string
+	StartsOn time.Time
+	EndsOn   time.Time
+}
+
+// lockExperience reads an experience and locks its row, so two edits of the
+// same experience apply one after the other.
+func lockExperience(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID) (experienceHeader, error) {
+	var h experienceHeader
+	err := tx.QueryRow(ctx, `
+		select id, class_id, term_id, status, starts_on, ends_on
+		  from learning_experiences
+		 where id = $1 and deleted_at is null
+		   for update
+	`, experienceID).Scan(&h.ID, &h.ClassID, &h.TermID, &h.Status, &h.StartsOn, &h.EndsOn)
+	if err == pgx.ErrNoRows {
+		return h, db.NewAppError(http.StatusNotFound, "not_found", "no se encontró la experiencia")
+	}
+	return h, err
+}
+
+func termRange(ctx context.Context, tx pgx.Tx, termID uuid.UUID) (yearID uuid.UUID, from, to time.Time, err error) {
+	err = tx.QueryRow(ctx, `
+		select academic_year_id, starts_on, ends_on from terms where id = $1 and deleted_at is null
+	`, termID).Scan(&yearID, &from, &to)
+	if err == pgx.ErrNoRows {
+		err = db.NewAppError(http.StatusNotFound, "not_found", "no se encontró el periodo")
+	}
+	return yearID, from, to, err
+}
+
+// checkExperienceDates applies the date rules of an experience: a valid
+// range, inside its term (check_inside_term), and not crossing another
+// experience of the class, drafts included (learning_experiences_no_overlap).
+func checkExperienceDates(ctx context.Context, tx pgx.Tx, classID, experienceID uuid.UUID,
+	termFrom, termTo, startsOn, endsOn time.Time) error {
+	if endsOn.Before(startsOn) {
+		return badInput("bad_request", "ends_on no puede ser anterior a starts_on")
+	}
+	if startsOn.Before(termFrom) || endsOn.After(termTo) {
+		return unprocessable("outside_term", fmt.Sprintf(
+			"la experiencia debe empezar y terminar dentro del periodo (%s a %s)",
+			termFrom.Format(dateLayout), termTo.Format(dateLayout)))
+	}
+	var overlap bool
+	if err := tx.QueryRow(ctx, `
+		select exists (
+		  select 1 from learning_experiences
+		   where class_id = $1 and id <> $2 and deleted_at is null
+		     and daterange(starts_on, ends_on, '[]') && daterange($3::date, $4::date, '[]')
+		)
+	`, classID, experienceID, startsOn, endsOn).Scan(&overlap); err != nil {
+		return err
+	}
+	if overlap {
+		return conflict("experience_overlap", "las fechas se cruzan con otra experiencia de esta clase")
+	}
+	return nil
+}
+
+// checkCompetenciesInSubject requires every competency to be an active
+// competency of the class's área (check_competency_subject).
+func checkCompetenciesInSubject(ctx context.Context, tx pgx.Tx, subjectID uuid.UUID, ids []uuid.UUID) error {
+	var n int
+	if err := tx.QueryRow(ctx, `
+		select count(*) from competencies
+		 where id = any($1) and subject_id = $2 and is_active and deleted_at is null
+	`, ids, subjectID).Scan(&n); err != nil {
+		return err
+	}
+	if n != len(ids) {
+		return unprocessable("competency_not_in_subject", "esa competencia no es del área de esta clase")
+	}
+	return nil
+}
+
+type ExperienceInput struct {
+	TermID        uuid.UUID
+	Title         string
+	IdeaText      string
+	SituationText *string
+	StartsOn      time.Time
+	EndsOn        time.Time
+	CompetencyIDs []uuid.UUID
+}
+
+// CreateExperience creates a draft experience with its competencies. Its
+// academic year is the term's.
+func CreateExperience(ctx context.Context, tx pgx.Tx, classID uuid.UUID, in ExperienceInput) (uuid.UUID, error) {
+	title := strings.TrimSpace(in.Title)
+	if title == "" {
+		return uuid.Nil, badInput("missing_title", "la experiencia necesita un título")
+	}
+	idea := strings.TrimSpace(in.IdeaText)
+	if idea == "" {
+		return uuid.Nil, badInput("missing_idea", "la experiencia necesita la idea de la que nace")
+	}
+	competencyIDs := dedupe(in.CompetencyIDs)
+	if len(competencyIDs) == 0 {
+		return uuid.Nil, badInput("missing_competencies", "elige al menos una competencia")
+	}
+
+	cc, err := loadClassContext(ctx, tx, classID)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	yearID, termFrom, termTo, err := termRange(ctx, tx, in.TermID)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	if yearID != cc.YearID {
+		return uuid.Nil, db.NewAppError(http.StatusNotFound, "not_found", "no se encontró el periodo")
+	}
+	if err := checkExperienceDates(ctx, tx, classID, uuid.Nil, termFrom, termTo, in.StartsOn, in.EndsOn); err != nil {
+		return uuid.Nil, err
+	}
+	if err := checkCompetenciesInSubject(ctx, tx, cc.SubjectID, competencyIDs); err != nil {
+		return uuid.Nil, err
+	}
+
+	var id uuid.UUID
+	if err := tx.QueryRow(ctx, `
+		insert into learning_experiences
+		  (tenant_id, class_id, academic_year_id, term_id, title, idea_text, situation_text, starts_on, ends_on)
+		values (app.current_tenant_id(), $1, $2, $3, $4, $5, $6, $7, $8)
+		returning id
+	`, classID, yearID, in.TermID, title, idea, trimmedOrNil(in.SituationText), in.StartsOn, in.EndsOn).Scan(&id); err != nil {
+		return uuid.Nil, err
+	}
+	if _, err := tx.Exec(ctx, `
+		insert into experience_competencies (tenant_id, experience_id, competency_id)
+		select app.current_tenant_id(), $1, c from unnest($2::uuid[]) as c
+	`, id, competencyIDs); err != nil {
+		return uuid.Nil, err
+	}
+	return id, nil
+}
+
+// ExperiencePatch changes the fields that are set. An empty SituationText
+// clears the situation. CompetencyIDs, when set, is the experience's whole
+// new competency list.
+type ExperiencePatch struct {
+	Title         *string
+	SituationText *string
+	StartsOn      *time.Time
+	EndsOn        *time.Time
+	CompetencyIDs *[]uuid.UUID
+}
+
+// UpdateExperience edits an experience. New dates must keep its session
+// outline inside them; removing a competency that still has criteria is
+// refused, so no criterion is ever left on a competency the experience no
+// longer works.
+func UpdateExperience(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID, p ExperiencePatch) error {
+	h, err := lockExperience(ctx, tx, experienceID)
+	if err != nil {
+		return err
+	}
+	if p.Title != nil && strings.TrimSpace(*p.Title) == "" {
+		return badInput("missing_title", "la experiencia necesita un título")
+	}
+
+	startsOn, endsOn := h.StartsOn, h.EndsOn
+	if p.StartsOn != nil {
+		startsOn = *p.StartsOn
+	}
+	if p.EndsOn != nil {
+		endsOn = *p.EndsOn
+	}
+	if !startsOn.Equal(h.StartsOn) || !endsOn.Equal(h.EndsOn) {
+		_, termFrom, termTo, err := termRange(ctx, tx, h.TermID)
+		if err != nil {
+			return err
+		}
+		if err := checkExperienceDates(ctx, tx, h.ClassID, h.ID, termFrom, termTo, startsOn, endsOn); err != nil {
+			return err
+		}
+		var outside bool
+		if err := tx.QueryRow(ctx, `
+			select exists (
+			  select 1 from session_outline_entries
+			   where experience_id = $1 and deleted_at is null
+			     and class_date not between $2 and $3
+			)
+		`, h.ID, startsOn, endsOn).Scan(&outside); err != nil {
+			return err
+		}
+		if outside {
+			return unprocessable("date_not_in_experience",
+				"hay sesiones planificadas fuera de las nuevas fechas; muévelas o elimínalas primero")
+		}
+	}
+
+	if p.CompetencyIDs != nil {
+		if err := replaceExperienceCompetencies(ctx, tx, h, dedupe(*p.CompetencyIDs)); err != nil {
+			return err
+		}
+	}
+
+	var title *string
+	if p.Title != nil {
+		t := strings.TrimSpace(*p.Title)
+		title = &t
+	}
+	_, err = tx.Exec(ctx, `
+		update learning_experiences
+		   set title = coalesce($2, title),
+		       situation_text = case when $3 then $4 else situation_text end,
+		       starts_on = $5, ends_on = $6
+		 where id = $1
+	`, h.ID, title, p.SituationText != nil, trimmedOrNil(p.SituationText), startsOn, endsOn)
+	return err
+}
+
+func replaceExperienceCompetencies(ctx context.Context, tx pgx.Tx, h experienceHeader, ids []uuid.UUID) error {
+	if len(ids) == 0 {
+		return badInput("missing_competencies", "elige al menos una competencia")
+	}
+	cc, err := loadClassContext(ctx, tx, h.ClassID)
+	if err != nil {
+		return err
+	}
+	if err := checkCompetenciesInSubject(ctx, tx, cc.SubjectID, ids); err != nil {
+		return err
+	}
+	var withCriteria bool
+	if err := tx.QueryRow(ctx, `
+		select exists (
+		  select 1 from evaluation_criteria
+		   where experience_id = $1 and deleted_at is null and not (competency_id = any($2))
+		)
+	`, h.ID, ids).Scan(&withCriteria); err != nil {
+		return err
+	}
+	if withCriteria {
+		return conflict("competency_has_criteria",
+			"esa competencia todavía tiene criterios en esta experiencia; elimínalos primero")
+	}
+	if _, err := tx.Exec(ctx, `
+		update experience_competencies set deleted_at = now()
+		 where experience_id = $1 and deleted_at is null and not (competency_id = any($2))
+	`, h.ID, ids); err != nil {
+		return err
+	}
+	_, err = tx.Exec(ctx, `
+		insert into experience_competencies (tenant_id, experience_id, competency_id)
+		select app.current_tenant_id(), $1, c from unnest($2::uuid[]) as c
+		 where not exists (
+		   select 1 from experience_competencies ec
+		    where ec.experience_id = $1 and ec.competency_id = c and ec.deleted_at is null
+		 )
+	`, h.ID, ids)
+	return err
+}
+
+// ConfirmExperience is "Revisar y guardar": a draft becomes planned.
+func ConfirmExperience(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID) error {
+	h, err := lockExperience(ctx, tx, experienceID)
+	if err != nil {
+		return err
+	}
+	if h.Status != "borrador" {
+		return conflict("experience_not_draft", "la experiencia ya está planificada")
+	}
+	_, err = tx.Exec(ctx, `update learning_experiences set status = 'planificada' where id = $1`, h.ID)
+	return err
+}
+
+// DeleteExperience soft-deletes an experience with everything planned in it.
+// The competency links go before the experience: check_competency_subject
+// reads the live experience on every write to experience_competencies.
+func DeleteExperience(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID) error {
+	h, err := lockExperience(ctx, tx, experienceID)
+	if err != nil {
+		return err
+	}
+	for _, q := range []string{
+		`update planned_evidence_criteria set deleted_at = now()
+		  where deleted_at is null
+		    and evidence_id in (select id from planned_evidences where experience_id = $1)`,
+		`update evaluation_criterion_capabilities set deleted_at = now()
+		  where deleted_at is null
+		    and criterion_id in (select id from evaluation_criteria where experience_id = $1)`,
+		`update evaluation_criteria set deleted_at = now() where experience_id = $1 and deleted_at is null`,
+		`update planned_evidences set deleted_at = now() where experience_id = $1 and deleted_at is null`,
+		`update session_outline_entries set deleted_at = now() where experience_id = $1 and deleted_at is null`,
+		`update experience_competencies set deleted_at = now() where experience_id = $1 and deleted_at is null`,
+		`update learning_experiences set deleted_at = now() where id = $1`,
+	} {
+		if _, err := tx.Exec(ctx, q, h.ID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// -------------------------------------------------------------- criteria --
+
+type CriterionInput struct {
+	CompetencyID  uuid.UUID
+	Description   string
+	CapabilityIDs []uuid.UUID
+	PerformanceID uuid.UUID
+}
+
+// checkCriterionCompetency requires the competency to be one the experience
+// works (check_criterion_experience).
+func checkCriterionCompetency(ctx context.Context, tx pgx.Tx, h experienceHeader, competencyID uuid.UUID) error {
+	var inExperience bool
+	if err := tx.QueryRow(ctx, `
+		select exists (
+		  select 1 from experience_competencies
+		   where experience_id = $1 and competency_id = $2 and deleted_at is null
+		)
+	`, h.ID, competencyID).Scan(&inExperience); err != nil {
+		return err
+	}
+	if inExperience {
+		return nil
+	}
+	cc, err := loadClassContext(ctx, tx, h.ClassID)
+	if err != nil {
+		return err
+	}
+	if err := checkCompetenciesInSubject(ctx, tx, cc.SubjectID, []uuid.UUID{competencyID}); err != nil {
+		return err
+	}
+	return unprocessable("competency_not_in_experience",
+		"esa competencia no está en esta experiencia; agrégala a la experiencia primero")
+}
+
+// checkCriterionCapabilities requires at least one capability, all of the
+// criterion's competency (check_criterion_has_capability and the composite
+// FK of evaluation_criterion_capabilities).
+func checkCriterionCapabilities(ctx context.Context, tx pgx.Tx, competencyID uuid.UUID, ids []uuid.UUID) error {
+	if len(ids) == 0 {
+		return unprocessable("criterion_needs_capability", "un criterio mira al menos una capacidad")
+	}
+	var n int
+	if err := tx.QueryRow(ctx, `
+		select count(*) from capabilities
+		 where id = any($1) and competency_id = $2 and is_active and deleted_at is null
+	`, ids, competencyID).Scan(&n); err != nil {
+		return err
+	}
+	if n != len(ids) {
+		return unprocessable("capability_not_in_competency", "esa capacidad no es de la competencia del criterio")
+	}
+	return nil
+}
+
+// checkCriterionPerformance requires the performance to be one of the
+// competency's for the class's grade.
+func checkCriterionPerformance(ctx context.Context, tx pgx.Tx, classID, competencyID, performanceID uuid.UUID) error {
+	var ok bool
+	if err := tx.QueryRow(ctx, `
+		select exists (
+		  select 1
+		    from grade_level_performances p
+		    join courses co on co.grade_level_id = p.grade_level_id
+		    join classes cl on cl.course_id = co.id
+		   where cl.id = $1 and p.competency_id = $2 and p.id = $3 and p.deleted_at is null
+		)
+	`, classID, competencyID, performanceID).Scan(&ok); err != nil {
+		return err
+	}
+	if !ok {
+		return unprocessable("performance_not_in_grade", "ese desempeño no es de esta competencia en el grado de la clase")
+	}
+	return nil
+}
+
+// CreatePlannedCriterion writes a teacher's criterion for one of the
+// experience's competencies, with its capabilities, in the same transaction:
+// check_criterion_on_write fails the commit for a criterion without them.
+func CreatePlannedCriterion(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID, in CriterionInput) (uuid.UUID, error) {
+	h, err := lockExperience(ctx, tx, experienceID)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	description := strings.TrimSpace(in.Description)
+	if description == "" {
+		return uuid.Nil, badInput("missing_description",
+			"un criterio necesita una descripción: es contra lo que se lee la evidencia")
+	}
+	capabilityIDs := dedupe(in.CapabilityIDs)
+	if err := checkCriterionCompetency(ctx, tx, h, in.CompetencyID); err != nil {
+		return uuid.Nil, err
+	}
+	if err := checkCriterionCapabilities(ctx, tx, in.CompetencyID, capabilityIDs); err != nil {
+		return uuid.Nil, err
+	}
+	if err := checkCriterionPerformance(ctx, tx, h.ClassID, in.CompetencyID, in.PerformanceID); err != nil {
+		return uuid.Nil, err
+	}
+
+	var id uuid.UUID
+	if err := tx.QueryRow(ctx, `
+		insert into evaluation_criteria
+		  (tenant_id, competency_id, description, sort_order, experience_id, performance_id,
+		   proposed_by, accepted_at)
+		select app.current_tenant_id(), $1, $2, coalesce(max(sort_order), 0) + 1, $3, $4, 'teacher', now()
+		  from evaluation_criteria where experience_id = $3 and deleted_at is null
+		returning id
+	`, in.CompetencyID, description, h.ID, in.PerformanceID).Scan(&id); err != nil {
+		return uuid.Nil, err
+	}
+	return id, setCriterionCapabilities(ctx, tx, id, in.CompetencyID, capabilityIDs)
+}
+
+// setCriterionCapabilities makes ids the criterion's whole capability list.
+// competency_id is copied from the criterion, as
+// check_criterion_capability_competency requires.
+func setCriterionCapabilities(ctx context.Context, tx pgx.Tx, criterionID, competencyID uuid.UUID, ids []uuid.UUID) error {
+	if _, err := tx.Exec(ctx, `
+		update evaluation_criterion_capabilities set deleted_at = now()
+		 where criterion_id = $1 and deleted_at is null and not (capability_id = any($2))
+	`, criterionID, ids); err != nil {
+		return err
+	}
+	_, err := tx.Exec(ctx, `
+		insert into evaluation_criterion_capabilities (tenant_id, criterion_id, competency_id, capability_id)
+		select app.current_tenant_id(), $1, $2, c from unnest($3::uuid[]) as c
+		 where not exists (
+		   select 1 from evaluation_criterion_capabilities x
+		    where x.criterion_id = $1 and x.capability_id = c and x.deleted_at is null
+		 )
+	`, criterionID, competencyID, ids)
+	return err
+}
+
+type CriterionPatch struct {
+	Description   *string
+	CapabilityIDs *[]uuid.UUID
+	PerformanceID *uuid.UUID
+}
+
+// lockPlannedCriterion reads a criterion of an experience and locks its
+// experience. A global criterion is not part of any plan: not found.
+func lockPlannedCriterion(ctx context.Context, tx pgx.Tx, criterionID uuid.UUID) (experienceHeader, uuid.UUID, error) {
+	var experienceID, competencyID uuid.UUID
+	err := tx.QueryRow(ctx, `
+		select experience_id, competency_id from evaluation_criteria
+		 where id = $1 and experience_id is not null and deleted_at is null
+	`, criterionID).Scan(&experienceID, &competencyID)
+	if err == pgx.ErrNoRows {
+		return experienceHeader{}, uuid.Nil, db.NewAppError(http.StatusNotFound, "not_found", "no se encontró el criterio")
+	}
+	if err != nil {
+		return experienceHeader{}, uuid.Nil, err
+	}
+	h, err := lockExperience(ctx, tx, experienceID)
+	return h, competencyID, err
+}
+
+// UpdatePlannedCriterion edits a criterion. Editing a proposal accepts it.
+func UpdatePlannedCriterion(ctx context.Context, tx pgx.Tx, criterionID uuid.UUID, p CriterionPatch) error {
+	h, competencyID, err := lockPlannedCriterion(ctx, tx, criterionID)
+	if err != nil {
+		return err
+	}
+	var description *string
+	if p.Description != nil {
+		d := strings.TrimSpace(*p.Description)
+		if d == "" {
+			return badInput("missing_description",
+				"un criterio necesita una descripción: es contra lo que se lee la evidencia")
+		}
+		description = &d
+	}
+	if p.PerformanceID != nil {
+		if err := checkCriterionPerformance(ctx, tx, h.ClassID, competencyID, *p.PerformanceID); err != nil {
+			return err
+		}
+	}
+	if p.CapabilityIDs != nil {
+		ids := dedupe(*p.CapabilityIDs)
+		if err := checkCriterionCapabilities(ctx, tx, competencyID, ids); err != nil {
+			return err
+		}
+		if err := setCriterionCapabilities(ctx, tx, criterionID, competencyID, ids); err != nil {
+			return err
+		}
+	}
+	_, err = tx.Exec(ctx, `
+		update evaluation_criteria
+		   set description = coalesce($2, description),
+		       performance_id = coalesce($3, performance_id),
+		       accepted_at = coalesce(accepted_at, now())
+		 where id = $1
+	`, criterionID, description, p.PerformanceID)
+	return err
+}
+
+// AcceptPlannedCriterion accepts a proposal unchanged. Accepting an accepted
+// criterion is a no-op.
+func AcceptPlannedCriterion(ctx context.Context, tx pgx.Tx, criterionID uuid.UUID) error {
+	if _, _, err := lockPlannedCriterion(ctx, tx, criterionID); err != nil {
+		return err
+	}
+	_, err := tx.Exec(ctx, `
+		update evaluation_criteria set accepted_at = coalesce(accepted_at, now()) where id = $1
+	`, criterionID)
+	return err
+}
+
+// GetPlannedCriterion returns one criterion of an experience.
+func GetPlannedCriterion(ctx context.Context, tx pgx.Tx, criterionID uuid.UUID) (ExperienceCriterion, error) {
+	var experienceID uuid.UUID
+	if err := tx.QueryRow(ctx, `
+		select experience_id from evaluation_criteria
+		 where id = $1 and experience_id is not null and deleted_at is null
+	`, criterionID).Scan(&experienceID); err != nil {
+		return ExperienceCriterion{}, err
+	}
+	list, err := listExperienceCriteria(ctx, tx, experienceID, criterionID)
+	if err != nil {
+		return ExperienceCriterion{}, err
+	}
+	if len(list) == 0 {
+		return ExperienceCriterion{}, pgx.ErrNoRows
+	}
+	return list[0], nil
+}
+
+// ------------------------------------------------------------- evidences --
+
+var evidenceKinds = map[string]bool{"produccion": true, "actuacion": true, "prueba_escrita": true}
+
+type EvidenceInput struct {
+	Name         string
+	Kind         string
+	CriterionIDs []uuid.UUID
+	SessionDate  *time.Time
+}
+
+func checkEvidenceKind(kind string) error {
+	if !evidenceKinds[kind] {
+		return badInput("bad_request", "kind debe ser produccion, actuacion o prueba_escrita")
+	}
+	return nil
+}
+
+// checkEvidenceCriteria requires at least one criterion, all of this
+// experience (check_evidence_criterion_experience). They may come from any
+// of its competencies.
+func checkEvidenceCriteria(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID, ids []uuid.UUID) error {
+	if len(ids) == 0 {
+		return badInput("missing_criteria", "una evidencia observa al menos un criterio")
+	}
+	var n int
+	if err := tx.QueryRow(ctx, `
+		select count(*) from evaluation_criteria
+		 where id = any($1) and experience_id = $2 and deleted_at is null
+	`, ids, experienceID).Scan(&n); err != nil {
+		return err
+	}
+	if n != len(ids) {
+		return unprocessable("criterion_other_experience", "ese criterio no es de esta experiencia")
+	}
+	return nil
+}
+
+// sessionEntryAt returns the experience's session entry of a date, which a
+// placed evidence needs.
+func sessionEntryAt(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID, date time.Time) (uuid.UUID, error) {
+	var id uuid.UUID
+	err := tx.QueryRow(ctx, `
+		select id from session_outline_entries
+		 where experience_id = $1 and class_date = $2 and deleted_at is null
+	`, experienceID, date).Scan(&id)
+	if err == pgx.ErrNoRows {
+		return uuid.Nil, unprocessable("date_not_in_experience",
+			"no hay una sesión planificada en esa fecha de la experiencia")
+	}
+	return id, err
+}
+
+// placeEvidence sets where an evidence is collected, keeping both sides of
+// the relation in step: planned_evidences.session_entry_id and
+// session_outline_entries.planned_evidence_id. A session holds one evidence,
+// so placing an evidence in a session unplaces the one that was there.
+func placeEvidence(ctx context.Context, tx pgx.Tx, evidenceID uuid.UUID, entryID *uuid.UUID) error {
+	if _, err := tx.Exec(ctx, `
+		update session_outline_entries set planned_evidence_id = null
+		 where planned_evidence_id = $1 and deleted_at is null and ($2::uuid is null or id <> $2)
+	`, evidenceID, entryID); err != nil {
+		return err
+	}
+	if entryID != nil {
+		if _, err := tx.Exec(ctx, `
+			update planned_evidences set session_entry_id = null
+			 where session_entry_id = $1 and id <> $2
+		`, *entryID, evidenceID); err != nil {
+			return err
+		}
+		if _, err := tx.Exec(ctx, `
+			update session_outline_entries set planned_evidence_id = $2 where id = $1
+		`, *entryID, evidenceID); err != nil {
+			return err
+		}
+	}
+	_, err := tx.Exec(ctx, `update planned_evidences set session_entry_id = $2 where id = $1`, evidenceID, entryID)
+	return err
+}
+
+// unplaceEntry empties a session entry and unplaces the evidence it held.
+func unplaceEntry(ctx context.Context, tx pgx.Tx, entryID uuid.UUID) error {
+	if _, err := tx.Exec(ctx, `
+		update planned_evidences set session_entry_id = null where session_entry_id = $1
+	`, entryID); err != nil {
+		return err
+	}
+	_, err := tx.Exec(ctx, `
+		update session_outline_entries set planned_evidence_id = null
+		 where id = $1 and planned_evidence_id is not null
+	`, entryID)
+	return err
+}
+
+func setEvidenceCriteria(ctx context.Context, tx pgx.Tx, evidenceID uuid.UUID, ids []uuid.UUID) error {
+	if _, err := tx.Exec(ctx, `
+		update planned_evidence_criteria set deleted_at = now()
+		 where evidence_id = $1 and deleted_at is null and not (criterion_id = any($2))
+	`, evidenceID, ids); err != nil {
+		return err
+	}
+	_, err := tx.Exec(ctx, `
+		insert into planned_evidence_criteria (tenant_id, evidence_id, criterion_id)
+		select app.current_tenant_id(), $1, c from unnest($2::uuid[]) as c
+		 where not exists (
+		   select 1 from planned_evidence_criteria pc
+		    where pc.evidence_id = $1 and pc.criterion_id = c and pc.deleted_at is null
+		 )
+	`, evidenceID, ids)
+	return err
+}
+
+// CreatePlannedEvidence writes a teacher's planned evidence, optionally
+// placed in the session entry of SessionDate.
+func CreatePlannedEvidence(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID, in EvidenceInput) (uuid.UUID, error) {
+	h, err := lockExperience(ctx, tx, experienceID)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	name := strings.TrimSpace(in.Name)
+	if name == "" {
+		return uuid.Nil, badInput("missing_name", "la evidencia necesita un nombre")
+	}
+	if err := checkEvidenceKind(in.Kind); err != nil {
+		return uuid.Nil, err
+	}
+	criterionIDs := dedupe(in.CriterionIDs)
+	if err := checkEvidenceCriteria(ctx, tx, h.ID, criterionIDs); err != nil {
+		return uuid.Nil, err
+	}
+	var entryID *uuid.UUID
+	if in.SessionDate != nil {
+		id, err := sessionEntryAt(ctx, tx, h.ID, *in.SessionDate)
+		if err != nil {
+			return uuid.Nil, err
+		}
+		entryID = &id
+	}
+
+	var id uuid.UUID
+	if err := tx.QueryRow(ctx, `
+		insert into planned_evidences (tenant_id, experience_id, name, kind, proposed_by, accepted_at)
+		values (app.current_tenant_id(), $1, $2, $3, 'teacher', now())
+		returning id
+	`, h.ID, name, in.Kind).Scan(&id); err != nil {
+		return uuid.Nil, err
+	}
+	if err := setEvidenceCriteria(ctx, tx, id, criterionIDs); err != nil {
+		return uuid.Nil, err
+	}
+	if entryID != nil {
+		if err := placeEvidence(ctx, tx, id, entryID); err != nil {
+			return uuid.Nil, err
+		}
+	}
+	return id, nil
+}
+
+// EvidencePatch changes the fields that are set. SessionDateSet with a nil
+// SessionDate unplaces the evidence.
+type EvidencePatch struct {
+	Name           *string
+	Kind           *string
+	CriterionIDs   *[]uuid.UUID
+	SessionDateSet bool
+	SessionDate    *time.Time
+}
+
+func lockPlannedEvidence(ctx context.Context, tx pgx.Tx, evidenceID uuid.UUID) (experienceHeader, error) {
+	var experienceID uuid.UUID
+	err := tx.QueryRow(ctx, `
+		select experience_id from planned_evidences where id = $1 and deleted_at is null
+	`, evidenceID).Scan(&experienceID)
+	if err == pgx.ErrNoRows {
+		return experienceHeader{}, db.NewAppError(http.StatusNotFound, "not_found", "no se encontró la evidencia")
+	}
+	if err != nil {
+		return experienceHeader{}, err
+	}
+	return lockExperience(ctx, tx, experienceID)
+}
+
+// UpdatePlannedEvidence edits a planned evidence. Editing a proposal accepts
+// it.
+func UpdatePlannedEvidence(ctx context.Context, tx pgx.Tx, evidenceID uuid.UUID, p EvidencePatch) error {
+	h, err := lockPlannedEvidence(ctx, tx, evidenceID)
+	if err != nil {
+		return err
+	}
+	var name *string
+	if p.Name != nil {
+		n := strings.TrimSpace(*p.Name)
+		if n == "" {
+			return badInput("missing_name", "la evidencia necesita un nombre")
+		}
+		name = &n
+	}
+	if p.Kind != nil {
+		if err := checkEvidenceKind(*p.Kind); err != nil {
+			return err
+		}
+	}
+	if p.CriterionIDs != nil {
+		ids := dedupe(*p.CriterionIDs)
+		if err := checkEvidenceCriteria(ctx, tx, h.ID, ids); err != nil {
+			return err
+		}
+		if err := setEvidenceCriteria(ctx, tx, evidenceID, ids); err != nil {
+			return err
+		}
+	}
+	if p.SessionDateSet {
+		var entryID *uuid.UUID
+		if p.SessionDate != nil {
+			id, err := sessionEntryAt(ctx, tx, h.ID, *p.SessionDate)
+			if err != nil {
+				return err
+			}
+			entryID = &id
+		}
+		if err := placeEvidence(ctx, tx, evidenceID, entryID); err != nil {
+			return err
+		}
+	}
+	_, err = tx.Exec(ctx, `
+		update planned_evidences
+		   set name = coalesce($2, name), kind = coalesce($3, kind),
+		       accepted_at = coalesce(accepted_at, now())
+		 where id = $1
+	`, evidenceID, name, p.Kind)
+	return err
+}
+
+// AcceptPlannedEvidence accepts a proposal unchanged.
+func AcceptPlannedEvidence(ctx context.Context, tx pgx.Tx, evidenceID uuid.UUID) error {
+	if _, err := lockPlannedEvidence(ctx, tx, evidenceID); err != nil {
+		return err
+	}
+	_, err := tx.Exec(ctx, `
+		update planned_evidences set accepted_at = coalesce(accepted_at, now()) where id = $1
+	`, evidenceID)
+	return err
+}
+
+// DeletePlannedEvidence soft-deletes a planned evidence, its criterion links
+// and its place in the session outline.
+func DeletePlannedEvidence(ctx context.Context, tx pgx.Tx, evidenceID uuid.UUID) error {
+	if _, err := lockPlannedEvidence(ctx, tx, evidenceID); err != nil {
+		return err
+	}
+	for _, q := range []string{
+		`update planned_evidence_criteria set deleted_at = now() where evidence_id = $1 and deleted_at is null`,
+		`update session_outline_entries set planned_evidence_id = null where planned_evidence_id = $1`,
+		`update planned_evidences set deleted_at = now(), session_entry_id = null where id = $1`,
+	} {
+		if _, err := tx.Exec(ctx, q, evidenceID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// GetPlannedEvidence returns one planned evidence.
+func GetPlannedEvidence(ctx context.Context, tx pgx.Tx, evidenceID uuid.UUID) (ExperienceEvidence, error) {
+	var experienceID uuid.UUID
+	if err := tx.QueryRow(ctx, `
+		select experience_id from planned_evidences where id = $1 and deleted_at is null
+	`, evidenceID).Scan(&experienceID); err != nil {
+		return ExperienceEvidence{}, err
+	}
+	list, err := listExperienceEvidences(ctx, tx, experienceID, evidenceID)
+	if err != nil {
+		return ExperienceEvidence{}, err
+	}
+	if len(list) == 0 {
+		return ExperienceEvidence{}, pgx.ErrNoRows
+	}
+	return list[0], nil
+}
+
+// ------------------------------------------------------- session outline --
+
+type SessionInput struct {
+	Title             string
+	Topics            *string
+	PlannedEvidenceID *uuid.UUID
+}
+
+// checkSessionDate requires a class date of the experience: inside its
+// range, with a non-cancelled session of the class, and not a non-teaching
+// day.
+func checkSessionDate(ctx context.Context, tx pgx.Tx, h experienceHeader, date time.Time) error {
+	if date.Before(h.StartsOn) || date.After(h.EndsOn) {
+		return unprocessable("date_not_in_experience", "esa fecha está fuera de la experiencia")
+	}
+	n, err := countClassDates(ctx, tx, h.ClassID, date, date)
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return unprocessable("date_not_in_experience", "esa fecha no es un día de clase de esta clase")
+	}
+	return nil
+}
+
+// PutSessionEntry creates or replaces the session entry of a date, and
+// accepts it. The body is the entry's whole state: no planned_evidence_id
+// empties the session.
+func PutSessionEntry(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID, date time.Time, in SessionInput) error {
+	h, err := lockExperience(ctx, tx, experienceID)
+	if err != nil {
+		return err
+	}
+	title := strings.TrimSpace(in.Title)
+	if title == "" {
+		return badInput("missing_title", "la sesión necesita un título")
+	}
+	if err := checkSessionDate(ctx, tx, h, date); err != nil {
+		return err
+	}
+	if in.PlannedEvidenceID != nil {
+		var ok bool
+		if err := tx.QueryRow(ctx, `
+			select exists (
+			  select 1 from planned_evidences
+			   where id = $1 and experience_id = $2 and deleted_at is null
+			)
+		`, *in.PlannedEvidenceID, h.ID).Scan(&ok); err != nil {
+			return err
+		}
+		if !ok {
+			return unprocessable("evidence_not_in_experience", "esa evidencia no es de esta experiencia")
+		}
+	}
+
+	topics := trimmedOrNil(in.Topics)
+	var entryID uuid.UUID
+	err = tx.QueryRow(ctx, `
+		update session_outline_entries
+		   set title = $3, topics = $4, accepted_at = now()
+		 where experience_id = $1 and class_date = $2 and deleted_at is null
+		returning id
+	`, h.ID, date, title, topics).Scan(&entryID)
+	if err == pgx.ErrNoRows {
+		err = tx.QueryRow(ctx, `
+			insert into session_outline_entries
+			  (tenant_id, experience_id, class_date, title, topics, proposed_by, accepted_at)
+			values (app.current_tenant_id(), $1, $2, $3, $4, 'teacher', now())
+			returning id
+		`, h.ID, date, title, topics).Scan(&entryID)
+	}
+	if err != nil {
+		return err
+	}
+
+	if in.PlannedEvidenceID != nil {
+		return placeEvidence(ctx, tx, *in.PlannedEvidenceID, &entryID)
+	}
+	return unplaceEntry(ctx, tx, entryID)
+}
+
+func sessionEntryNotFound() error {
+	return db.NewAppError(http.StatusNotFound, "not_found", "no hay una sesión planificada en esa fecha")
+}
+
+// AcceptSessionEntry accepts a proposed session entry unchanged.
+func AcceptSessionEntry(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID, date time.Time) error {
+	if _, err := lockExperience(ctx, tx, experienceID); err != nil {
+		return err
+	}
+	tag, err := tx.Exec(ctx, `
+		update session_outline_entries set accepted_at = coalesce(accepted_at, now())
+		 where experience_id = $1 and class_date = $2 and deleted_at is null
+	`, experienceID, date)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return sessionEntryNotFound()
+	}
+	return nil
+}
+
+// DeleteSessionEntry soft-deletes the session entry of a date; the evidence
+// it held stays in the experience, unplaced.
+func DeleteSessionEntry(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID, date time.Time) error {
+	if _, err := lockExperience(ctx, tx, experienceID); err != nil {
+		return err
+	}
+	var entryID uuid.UUID
+	err := tx.QueryRow(ctx, `
+		select id from session_outline_entries
+		 where experience_id = $1 and class_date = $2 and deleted_at is null
+	`, experienceID, date).Scan(&entryID)
+	if err == pgx.ErrNoRows {
+		return sessionEntryNotFound()
+	}
+	if err != nil {
+		return err
+	}
+	if err := unplaceEntry(ctx, tx, entryID); err != nil {
+		return err
+	}
+	_, err = tx.Exec(ctx, `update session_outline_entries set deleted_at = now() where id = $1`, entryID)
+	return err
+}
+
+// GetSessionEntry returns the experience's session entry of one date.
+func GetSessionEntry(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID, date time.Time) (ExperienceSession, error) {
+	list, err := listExperienceSessions(ctx, tx, experienceID, &date)
+	if err != nil {
+		return ExperienceSession{}, err
+	}
+	if len(list) == 0 {
+		return ExperienceSession{}, sessionEntryNotFound()
+	}
+	return list[0], nil
 }

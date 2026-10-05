@@ -54,8 +54,9 @@ Same as the rest of the API:
 
 ### `GET /classes/{classID}/plan?term_id=`
 
-"Tu trimestre". Without `term_id`, the term that contains today, or else the
-next one.
+"Tu trimestre". Without `term_id`, the term of the class's year that contains
+today, or else the next one, or else the last one. A `term_id` of another year
+is `404`.
 
 ```json
 {
@@ -78,20 +79,31 @@ next one.
 }
 ```
 
-- `class_dates`: distinct dates with a scheduled session of the class in the
-  range, excluding non-teaching days (a double block is one date).
+- `class_dates`: distinct dates with a non-cancelled session of the class in
+  the range, excluding non-teaching days (a double block is one date).
+- `non_teaching_days`: runs of consecutive days with the same kind and label.
 - Competency `status`, computed (no stored summary):
   - `planificada`: it has a non-deleted experience in this term;
   - `toca`: otherwise, if it still needs terms to reach two worked terms in the
     year and the terms left (this one included) are no more than it needs;
   - `puede_esperar`: otherwise.
-- The class's area competencies come first, then the transversal ones the
-  school assigns to classes.
+
+  A worked term is a term of the year with a non-deleted experience (drafts
+  included) of this class working the competency.
+- Coverage (`capabilities_with_criteria`, `capabilities_covered_this_term`)
+  counts accepted criteria only: a pending Mawta proposal is not planned work
+  yet.
+- Only the class's area competencies are listed. Transversal competencies are
+  not, for now: the schema has no way to assign one to a class, and
+  `check_competency_subject` (00002) only links area competencies to an
+  experience.
 
 ### `GET /classes/{classID}/curriculum`
 
-Competencies of the class's area (and transversal ones), each with its
-capabilities and the performances of the class's grade. No standards.
+Competencies of the class's area, each with its capabilities and the
+performances of the class's grade. No standards. `expected_level` comes from
+`standard_level_mappings` (EBR) and is `null` when the grade has no cycle or
+the mapping is missing.
 
 ```json
 {
@@ -107,8 +119,10 @@ capabilities and the performances of the class's grade. No standards.
 
 ### `GET /classes/{classID}/calendar?from=&to=`
 
-Dates with class and non-teaching days in the range (at most one term long),
-for choosing experience dates and laying out sessions.
+Dates with class and non-teaching days in the range, for choosing experience
+dates and laying out sessions. `from` and `to` are required, and the range may
+be at most as long as the longest term of the year (`400 bad_request`
+otherwise).
 
 ```json
 {
@@ -151,20 +165,26 @@ screens.
 ```
 
 Warnings never block; they are what the summary screen shows.
+`capability_without_criterion` is listed for every capability of the
+experience's competencies that no accepted criterion looks at.
+
+Criteria and evidences also carry `experience_id`, so the same object can be
+returned by the routes that name a criterion or an evidence directly.
 
 ## Experience
 
 | Route | Body | Result |
 |---|---|---|
-| `POST /classes/{classID}/experiences` | `term_id`, `title`, `idea_text`, `situation_text`, `starts_on`, `ends_on`, `competency_ids` (≥1) | `201` with the experience, `status = "borrador"` |
-| `PUT /experiences/{experienceID}` | any of `title`, `situation_text`, `starts_on`, `ends_on`, `competency_ids` | `200` with the experience |
+| `POST /classes/{classID}/experiences` | `term_id`, `title`, `idea_text`, optional `situation_text`, `starts_on`, `ends_on`, `competency_ids` (≥1) | `201` with the experience, `status = "borrador"` |
+| `PUT /experiences/{experienceID}` | any of `title`, `situation_text` (`""` clears it), `starts_on`, `ends_on`, `competency_ids` (the whole new list) | `200` with the experience |
 | `POST /experiences/{experienceID}/confirm` | — | `200`, `status = "planificada"`, with `warnings` |
 | `POST /experiences/{experienceID}/delete` | — | `204`; its criteria, evidences and sessions go with it |
 
 Changing dates keeps sessions inside the new range and rejects the change if a
 session or a placed evidence would fall outside (`date_not_in_experience`).
 Removing a competency that has criteria is rejected (`competency_has_criteria`);
-the teacher deletes those criteria first.
+the teacher deletes those criteria first. `idea_text` is not editable: it is
+the seed the experience came from.
 
 ## Criteria
 
@@ -175,12 +195,19 @@ the teacher deletes those criteria first.
 | `POST /criteria/{criterionID}/accept` | — accepts a proposal unchanged |
 | `POST /criteria/{criterionID}/delete` | — (existing route; also removes it from evidences) |
 
+`performance_id` is required: criteria come only from the grade's
+performances. Creating, editing and accepting answer with the criterion as the
+experience read shows it (`201` / `200`). The edit and accept routes only
+reach criteria of an experience; a global criterion is `404` there. A
+criterion of an experience is authorized through its class (the delete route
+included); a global one still through its area.
+
 ## Planned evidences
 
 | Route | Body |
 |---|---|
 | `POST /experiences/{experienceID}/evidences` | `name`, `kind` (`produccion` \| `actuacion` \| `prueba_escrita`), `criterion_ids` (≥1, of this experience, any of its competencies), optional `session_date` |
-| `PUT /evidences/{evidenceID}` | any of the above; editing a proposal also accepts it |
+| `PUT /evidences/{evidenceID}` | any of the above; `"session_date": null` takes it out of its session, leaving the key out keeps it; editing a proposal also accepts it |
 | `POST /evidences/{evidenceID}/accept` | — |
 | `POST /evidences/{evidenceID}/delete` | — |
 
@@ -188,7 +215,12 @@ the teacher deletes those criteria first.
 exist. Placement is one relation seen from both sides: setting an evidence's
 `session_date` and setting a session's `planned_evidence_id` are the same
 change, and the server keeps `planned_evidences.session_entry_id` and
-`session_outline_entries.planned_evidence_id` in step.
+`session_outline_entries.planned_evidence_id` in step. A session holds one
+evidence, so placing an evidence in a session takes out the one that was there,
+and moving an evidence empties its previous session. Deleting an evidence
+empties its session; deleting a session leaves its evidence unplaced.
+
+Creating, editing and accepting answer with the evidence (`201` / `200`).
 
 ## Session outline
 
@@ -201,6 +233,9 @@ One entry per class date of the experience.
 | `POST /experiences/{experienceID}/sessions/{date}/delete` | — |
 
 `date` must be a class date inside the experience and not a non-teaching day.
+The `PUT` body is the entry's whole state: leaving `planned_evidence_id` out
+empties the session. `PUT` and `accept` answer `200` with the entry; `delete`
+answers `204`.
 
 ## Generate with Mawta (implemented with the planning agent, ticket 6)
 
@@ -236,15 +271,24 @@ kind for the same experience while one is pending returns the pending one.
 |---|---|---|
 | `experience_overlap` | 409 | The dates cross another experience of the class (drafts included) |
 | `outside_term` | 422 | The experience starts before or ends after its term |
-| `competency_not_in_subject` | 422 | A competency is not of the class's area (or an assigned transversal one) |
+| `competency_not_in_subject` | 422 | A competency is not of the class's area |
+| `competency_not_in_experience` | 422 | A criterion's competency is of the area but not one the experience works |
 | `competency_has_criteria` | 409 | Removing a competency that still has criteria |
 | `capability_not_in_competency` | 422 | A criterion capability belongs to another competency |
 | `criterion_needs_capability` | 422 | A criterion with no capability |
 | `performance_not_in_grade` | 422 | The performance is of another competency or grade |
 | `criterion_other_experience` | 422 | An evidence uses a criterion of another experience |
-| `date_not_in_experience` | 422 | A session or placed evidence date outside the experience, not a class date, or a non-teaching day |
+| `date_not_in_experience` | 422 | A session or placed evidence date outside the experience, not a class date, or a non-teaching day; a `session_date` with no session entry; new experience dates that leave a session outside |
+| `evidence_not_in_experience` | 422 | A session's `planned_evidence_id` is not an evidence of the experience |
+| `session_date_taken` | 409 | Two requests created the same date's session entry at once |
 | `experience_not_draft` | 409 | Confirming an experience that is already planned |
 | `generation_failed` | 200 (in the generation) | The agent could not produce a valid result; `error` says why |
+
+Malformed or missing input is `400`: `bad_request` (an id or date that does
+not parse, an unknown evidence `kind`, `ends_on` before `starts_on`) or a
+`missing_*` code (`missing_title`, `missing_idea`, `missing_competencies`,
+`missing_description`, `missing_name`, `missing_criteria`). Messages are in
+Spanish; the UI keys on the code.
 
 ## Out of scope
 
