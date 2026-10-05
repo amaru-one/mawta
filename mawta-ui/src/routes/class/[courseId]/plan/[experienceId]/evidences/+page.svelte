@@ -297,6 +297,11 @@
 <div class="body">
 	{#if ready && experience}
 		<p class="eyebrow">{experience.title} · Evidencias</p>
+		{#if experience.status === 'planificada'}
+			<a class="to-summary pressable" href={`/class/${courseId}/plan/${experienceId}/summary`}>
+				‹ Volver al resumen
+			</a>
+		{/if}
 		<h1 class="screen-title sm">¿Dónde observarás tus criterios?</h1>
 		<p class="meta intro">
 			Producciones o actuaciones de tus estudiantes. Una evidencia puede reunir criterios de varias
@@ -687,5 +692,15 @@
 		margin: var(--space-lg) 0 0;
 		font-size: 13px;
 		color: var(--text-muted);
+	}
+
+	/* A planned experience keeps a way back to its summary. */
+	.to-summary {
+		display: inline-block;
+		margin: 2px 0 6px;
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--aurora-deep);
+		text-decoration: none;
 	}
 </style>

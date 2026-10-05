@@ -121,17 +121,21 @@
 				</span>
 				<span class="chevron"><Icon name="chevron-right" size={18} /></span>
 			</a>
-			<a
-				class="quiet-row pressable"
-				href="/class/{courseId}/criteria?course={encodeURIComponent(d.name)}"
-				onclick={hapticTap}
-			>
-				<span class="quiet-t">
-					Criterios de evaluación
-					<span class="quiet-d">Lo que valoras en cada competencia</span>
-				</span>
-				<span class="chevron"><Icon name="chevron-right" size={18} /></span>
-			</a>
+			<!-- With the planning flow on, criteria are written inside each
+			     experience, so the old school-wide criteria row is hidden. -->
+			{#if !PLANNING_ENABLED}
+				<a
+					class="quiet-row pressable"
+					href="/class/{courseId}/criteria?course={encodeURIComponent(d.name)}"
+					onclick={hapticTap}
+				>
+					<span class="quiet-t">
+						Criterios de evaluación
+						<span class="quiet-d">Lo que valoras en cada competencia</span>
+					</span>
+					<span class="chevron"><Icon name="chevron-right" size={18} /></span>
+				</a>
+			{/if}
 			<!-- The term-planning flow's only entry, hidden until it exists:
 			     PUBLIC_PLANNING_ENABLED shows the row, and the plan screen it
 			     opens is the flow's home ("Tu trimestre"). -->
