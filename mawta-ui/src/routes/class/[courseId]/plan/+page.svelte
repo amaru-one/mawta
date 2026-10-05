@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
 	import { list } from '$lib/api/client';
 	import type { ClassPlanDto, NonTeachingDayKind, PlanExperienceDto } from '$lib/api/dto';
-	import { getClassPlan } from '$lib/api/endpoints/planning';
+	import { getClassPlan, getExperience } from '$lib/api/endpoints/planning';
 	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
+	import { showToast } from '$lib/toast';
 
 	const courseId = $derived(page.params.courseId ?? '');
 
@@ -26,6 +28,37 @@
 	}
 
 	onMount(load);
+
+	// Opening an experience: a planned one goes to its summary, from where every
+	// step is reachable; a draft resumes at its first step still empty.
+	let opening = $state<string | null>(null);
+
+	async function openExperience(experience: PlanExperienceDto): Promise<void> {
+		if (opening) return;
+		hapticTap();
+		const base = `/class/${courseId}/plan/${experience.id}`;
+		if (experience.status === 'planificada') {
+			void goto(`${base}/summary`);
+			return;
+		}
+		opening = experience.id;
+		try {
+			const detail = await getExperience(experience.id);
+			const step =
+				list(detail.criteria).length === 0
+					? 'criteria'
+					: list(detail.evidences).length === 0
+						? 'evidences'
+						: list(detail.sessions).length === 0
+							? 'sessions'
+							: 'summary';
+			void goto(`${base}/${step}`);
+		} catch {
+			showToast('No se pudo abrir la experiencia');
+		} finally {
+			opening = null;
+		}
+	}
 
 	// The plan screen's whole read is one request; a failed load only offers
 	// the retry, the same as the criteria screen.
@@ -263,7 +296,11 @@
 				<div class="stack">
 					{#each experiences as experience (experience.id)}
 						{@const coverage = coverageOf(experience)}
-						<div class="card exp">
+						<button
+							class="card exp pressable"
+							disabled={opening === experience.id}
+							onclick={() => void openExperience(experience)}
+						>
 							<div class="row exp-head">
 								<p class="grow exp-title">{experience.title}</p>
 								<p class="exp-status">
@@ -282,7 +319,7 @@
 							<p class="exp-coverage">
 								{coverage.withCriteria} de {coverage.total} capacidades con criterio
 							</p>
-						</div>
+						</button>
 					{/each}
 				</div>
 			{:else}
@@ -513,8 +550,18 @@
 		gap: var(--space-sm);
 	}
 
+	/* The whole card opens the experience. */
 	.exp {
+		display: block;
+		width: 100%;
 		padding: var(--space-md);
+		text-align: left;
+		font-family: inherit;
+		color: inherit;
+	}
+
+	.exp:disabled {
+		opacity: 0.6;
 	}
 
 	.row.exp-head {

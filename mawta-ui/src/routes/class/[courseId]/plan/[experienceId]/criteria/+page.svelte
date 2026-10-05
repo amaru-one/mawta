@@ -295,6 +295,11 @@
 <div class="body">
 	{#if ready && experience && current}
 		<p class="eyebrow">{experience.title} · Criterios</p>
+		{#if experience.status === 'planificada'}
+			<a class="to-summary pressable" href={`/class/${courseId}/plan/${experienceId}/summary`}>
+				‹ Volver al resumen
+			</a>
+		{/if}
 
 		<div class="comp-nav row">
 			<button
@@ -745,5 +750,15 @@
 		margin: var(--space-lg) 0 0;
 		font-size: 13px;
 		color: var(--text-muted);
+	}
+
+	/* A planned experience keeps a way back to its summary. */
+	.to-summary {
+		display: inline-block;
+		margin: 2px 0 6px;
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--aurora-deep);
+		text-decoration: none;
 	}
 </style>
