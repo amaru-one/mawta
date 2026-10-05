@@ -264,7 +264,11 @@ const COMPETENCIES: Competency[] = [
 		name: 'Resuelve problemas de cantidad',
 		worked_before: [1],
 		capabilities: [
-			{ id: 'mat-c1-cap1', code: 'MAT-C1-CAP1', name: 'Traduce cantidades a expresiones numéricas' },
+			{
+				id: 'mat-c1-cap1',
+				code: 'MAT-C1-CAP1',
+				name: 'Traduce cantidades a expresiones numéricas',
+			},
 			{
 				id: 'mat-c1-cap2',
 				code: 'MAT-C1-CAP2',
@@ -491,7 +495,9 @@ const COMPETENCIES: Competency[] = [
 const competencyById = (id: string): Competency | undefined =>
 	COMPETENCIES.find((competency) => competency.id === id);
 
-const capabilityById = (id: string): { competency: Competency; capability: Capability } | undefined => {
+const capabilityById = (
+	id: string
+): { competency: Competency; capability: Capability } | undefined => {
 	for (const competency of COMPETENCIES) {
 		const capability = competency.capabilities.find((item) => item.id === id);
 		if (capability) return { competency, capability };
@@ -524,7 +530,8 @@ function seedExperience(): void {
 		term_id: TERM.id,
 		status: 'planificada',
 		title: 'La tiendita escolar',
-		idea_text: 'Quiero armar una tiendita en el aula: ponemos precios, compramos, damos el vuelto y registramos qué se vende más.',
+		idea_text:
+			'Quiero armar una tiendita en el aula: ponemos precios, compramos, damos el vuelto y registramos qué se vende más.',
 		situation_text:
 			'Organizamos la tiendita de la feria del aula: ponemos precios con descuentos, cobramos, damos el vuelto y registramos qué se vende más para decidir qué ofrecer en la próxima feria.',
 		starts_on: startsOn,
@@ -684,7 +691,9 @@ const liveSessionsOf = (experienceId: string): SessionEntry[] =>
 	sessions.filter((item) => item.experience_id === experienceId && !item.deleted);
 
 const sessionOf = (experienceId: string, date: string): SessionEntry | undefined =>
-	sessions.find((item) => item.experience_id === experienceId && item.date === date && !item.deleted);
+	sessions.find(
+		(item) => item.experience_id === experienceId && item.date === date && !item.deleted
+	);
 
 // ---------- derived fields (computed, never stored) ----------
 
@@ -799,11 +808,7 @@ function requireNoOverlap(startsOn: string, endsOn: string, exceptId?: string): 
 			endsOn >= experience.starts_on
 	);
 	if (clash) {
-		fail(
-			409,
-			'experience_overlap',
-			`Las fechas se cruzan con otra experiencia: ${clash.title}.`
-		);
+		fail(409, 'experience_overlap', `Las fechas se cruzan con otra experiencia: ${clash.title}.`);
 	}
 }
 
@@ -812,11 +817,7 @@ function requireNoOverlap(startsOn: string, endsOn: string, exceptId?: string): 
 function requireClassDateIn(experience: Experience, date: string): void {
 	const inside = date >= experience.starts_on && date <= experience.ends_on;
 	if (!inside || !CLASS_WEEKDAYS.includes(fromISO(date).getDay()) || isNonTeaching(date)) {
-		fail(
-			422,
-			'date_not_in_experience',
-			'La fecha no es un día de clase dentro de la experiencia.'
-		);
+		fail(422, 'date_not_in_experience', 'La fecha no es un día de clase dentro de la experiencia.');
 	}
 }
 
@@ -857,11 +858,7 @@ function requireEvidenceCriteria(experience: Experience, criterionIds: string[])
 	const own = new Set(liveCriteriaOf(experience.id).map((criterion) => criterion.id));
 	for (const criterionId of criterionIds) {
 		if (!own.has(criterionId)) {
-			fail(
-				422,
-				'criterion_other_experience',
-				'Un criterio no pertenece a esta experiencia.'
-			);
+			fail(422, 'criterion_other_experience', 'Un criterio no pertenece a esta experiencia.');
 		}
 	}
 }
@@ -932,17 +929,20 @@ function startGeneration(
 		error: null,
 	};
 	generations.set(generation.id, generation);
-	setTimeout(() => {
-		if (generation.status !== 'pending') return;
-		try {
-			generation.result = complete(generation);
-			generation.status = 'completed';
-		} catch (error) {
-			generation.status = 'failed';
-			generation.error =
-				error instanceof Error ? error.message : 'No se pudo generar la propuesta.';
-		}
-	}, GENERATION_MS + Math.random() * 500);
+	setTimeout(
+		() => {
+			if (generation.status !== 'pending') return;
+			try {
+				generation.result = complete(generation);
+				generation.status = 'completed';
+			} catch (error) {
+				generation.status = 'failed';
+				generation.error =
+					error instanceof Error ? error.message : 'No se pudo generar la propuesta.';
+			}
+		},
+		GENERATION_MS + Math.random() * 500
+	);
 	return generation;
 }
 
@@ -1067,7 +1067,10 @@ const PROPOSAL_SITUATIONS: Record<string, string> = {
 
 // Competencias the agent detects in the idea text when the teacher did not pick.
 const IDEA_KEYWORDS: { match: RegExp; competency_id: string }[] = [
-	{ match: /precio|compra|vuelto|dinero|presupuesto|cantidad|porcentaje/i, competency_id: 'mat-c1' },
+	{
+		match: /precio|compra|vuelto|dinero|presupuesto|cantidad|porcentaje/i,
+		competency_id: 'mat-c1',
+	},
 	{ match: /patr[óo]n|regularidad|secuencia|regla|equivalencia/i, competency_id: 'mat-c2' },
 	{ match: /figura|plano|maqueta|forma|ubicar|medir|dibujo/i, competency_id: 'mat-c3' },
 	{ match: /encuesta|dato|gr[áa]fico|tabla|estad[íi]st|probabilidad/i, competency_id: 'mat-c4' },
@@ -1172,7 +1175,11 @@ export async function getClassCurriculum(classId: string): Promise<CurriculumDto
 	});
 }
 
-export async function getCalendar(_classId: string, from: string, to: string): Promise<CalendarDto> {
+export async function getCalendar(
+	_classId: string,
+	from: string,
+	to: string
+): Promise<CalendarDto> {
 	await delay();
 	const nonTeaching: CalendarNonTeachingDayDto[] = [];
 	for (const range of NON_TEACHING_DAYS) {
@@ -1294,7 +1301,10 @@ export async function updateExperience(
 		}
 	}
 	for (const evidence of liveEvidencesOf(experienceId)) {
-		if (evidence.session_date !== null && (evidence.session_date < startsOn || evidence.session_date > endsOn)) {
+		if (
+			evidence.session_date !== null &&
+			(evidence.session_date < startsOn || evidence.session_date > endsOn)
+		) {
 			fail(
 				422,
 				'date_not_in_experience',

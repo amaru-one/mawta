@@ -199,11 +199,9 @@ export function generateCriteria(
 	competencyId: string
 ): Promise<GenerationDto> {
 	if (USE_MOCK) return mock.generateCriteria(experienceId, competencyId);
-	return apiSend<GenerationDto>(
-		'POST',
-		`/experiences/${experienceId}/criteria/generate`,
-		{ competency_id: competencyId }
-	);
+	return apiSend<GenerationDto>('POST', `/experiences/${experienceId}/criteria/generate`, {
+		competency_id: competencyId,
+	});
 }
 
 // "Generar con Mawta" for evidences: pending evidences over the experience's
