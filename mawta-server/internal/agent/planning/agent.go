@@ -41,7 +41,7 @@ const (
 
 // promptVersion changes whenever the instructions in prompts/ change, so a
 // generation can be traced to the prompt that produced it.
-const promptVersion = "planning-2026-10-06.1"
+const promptVersion = "planning-2026-10-06.5"
 
 //go:embed prompts/*.md
 var promptFS embed.FS

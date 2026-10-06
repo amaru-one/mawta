@@ -105,6 +105,20 @@ func prepareExperience(ctx context.Context, tx pgx.Tx, gen repo.AgentGeneration)
 	for _, w := range windows {
 		fmt.Fprintf(&pr, "- del %s al %s: %d días de clase\n", w.StartsOn, w.EndsOn, w.ClassDates)
 	}
+	if len(plan.NonTeachingDays) > 0 {
+		pr.WriteString("\nDías sin clases (feriados, vacaciones y días de gestión):\n")
+		for _, n := range plan.NonTeachingDays {
+			label := n.Kind
+			if n.Label != nil {
+				label = *n.Label
+			}
+			if n.From == n.To {
+				fmt.Fprintf(&pr, "- %s: %s\n", n.From, label)
+			} else {
+				fmt.Fprintf(&pr, "- del %s al %s: %s\n", n.From, n.To, label)
+			}
+		}
+	}
 	pr.WriteString("\nSeguimiento de competencias en el año:\n")
 	for _, c := range cur.Competencies {
 		fmt.Fprintf(&pr, "- id=%s %s: %s\n", c.ID, c.Name, statusText(status[c.ID]))
@@ -128,7 +142,7 @@ func prepareExperience(ctx context.Context, tx pgx.Tx, gen repo.AgentGeneration)
 			System:    system("experience", ctxText.String()),
 			Prompt:    pr.String(),
 			Tool:      experienceTool,
-			MaxTokens: 1500,
+			MaxTokens: 2500,
 		},
 		State: experienceState{Offered: offered, Chosen: in.CompetencyIDs, Term: term},
 	}, nil

@@ -258,7 +258,7 @@ func addUsage(a, b repo.Usage) repo.Usage {
 func repairSpec(spec Spec, previous json.RawMessage, why error) Spec {
 	spec.Prompt = fmt.Sprintf("%s\n\n<respuesta_anterior>\n%s\n</respuesta_anterior>\n\n"+
 		"Tu respuesta anterior no se pudo usar: %s\n"+
-		"Vuelve a responder usando la herramienta, corrigiendo eso y usando solo los ids entregados.",
+		"Vuelve a responder con el objeto JSON pedido, corrigiendo eso y usando solo los ids entregados.",
 		spec.Prompt, string(previous), why.(*InvalidAnswer).Reason)
 	return spec
 }

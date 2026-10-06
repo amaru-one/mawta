@@ -124,7 +124,7 @@ func prepareCriteria(ctx context.Context, tx pgx.Tx, gen repo.AgentGeneration) (
 			System:    system("criteria", ""),
 			Prompt:    pr.String(),
 			Tool:      criteriaTool,
-			MaxTokens: 2000,
+			MaxTokens: 4000,
 		},
 		State: st,
 	}, nil

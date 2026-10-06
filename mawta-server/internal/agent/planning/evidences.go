@@ -104,7 +104,7 @@ func prepareEvidences(ctx context.Context, tx pgx.Tx, gen repo.AgentGeneration) 
 			System:    system("evidences", ""),
 			Prompt:    pr.String(),
 			Tool:      evidencesTool,
-			MaxTokens: 1500,
+			MaxTokens: 3000,
 		},
 		State: evidencesState{ExperienceID: expID},
 	}, nil

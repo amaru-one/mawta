@@ -2,16 +2,18 @@ package llm
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
 )
 
-// Anthropic calls Claude through the Messages API with a forced tool call.
+// Anthropic calls Claude through the Messages API with structured outputs.
 type Anthropic struct {
 	client anthropic.Client
 	model  string
@@ -53,22 +55,22 @@ func (a *Anthropic) Generate(ctx context.Context, req Request) (Response, error)
 		}
 		system = append(system, tb)
 	}
-	tool := anthropic.ToolParam{
-		Name:        req.Tool.Name,
-		Description: anthropic.String(req.Tool.Description),
-		InputSchema: anthropic.ToolInputSchemaParam{
-			Properties: req.Tool.Properties,
-			Required:   req.Tool.Required,
-		},
-	}
+	// Structured outputs: the answer must be a JSON object matching the
+	// tool's schema. (Forcing a tool call is not supported by every model —
+	// claude-sonnet-5-5 rejects tool_choice "tool" — while structured outputs
+	// guarantee the shape on all of them.)
+	schema := strictSchema(map[string]any{
+		"type":       "object",
+		"properties": req.Tool.Properties,
+		"required":   req.Tool.Required,
+	})
 
 	msg, err := a.client.Messages.New(ctx, anthropic.MessageNewParams{
-		Model:      anthropic.Model(a.model),
-		MaxTokens:  req.MaxTokens,
-		System:     system,
-		Messages:   []anthropic.MessageParam{anthropic.NewUserMessage(anthropic.NewTextBlock(req.Prompt))},
-		Tools:      []anthropic.ToolUnionParam{{OfTool: &tool}},
-		ToolChoice: anthropic.ToolChoiceParamOfTool(req.Tool.Name),
+		Model:        anthropic.Model(a.model),
+		MaxTokens:    req.MaxTokens,
+		System:       system,
+		Messages:     []anthropic.MessageParam{anthropic.NewUserMessage(anthropic.NewTextBlock(req.Prompt))},
+		OutputConfig: anthropic.OutputConfigParam{Format: anthropic.JSONOutputFormatParam{Schema: schema}},
 	})
 	if err != nil {
 		return Response{}, classify(err)
@@ -87,13 +89,58 @@ func (a *Anthropic) Generate(ctx context.Context, req Request) (Response, error)
 	if msg.StopReason == anthropic.StopReasonMaxTokens {
 		return resp, fmt.Errorf("%w: answer cut off at max_tokens", ErrPermanent)
 	}
+	if msg.StopReason == anthropic.StopReasonRefusal {
+		return resp, fmt.Errorf("%w: the model refused to answer", ErrPermanent)
+	}
+	var text strings.Builder
 	for _, block := range msg.Content {
-		if block.Type == "tool_use" && block.Name == req.Tool.Name {
-			resp.Input = block.Input
-			return resp, nil
+		if block.Type == "text" {
+			text.WriteString(block.Text)
 		}
 	}
-	return resp, fmt.Errorf("%w: the model did not call %s (stop_reason %s)", ErrPermanent, req.Tool.Name, msg.StopReason)
+	answer := strings.TrimSpace(text.String())
+	if answer == "" || !json.Valid([]byte(answer)) {
+		return resp, fmt.Errorf("%w: the answer is not the requested JSON (stop_reason %s)", ErrPermanent, msg.StopReason)
+	}
+	resp.Input = json.RawMessage(answer)
+	return resp, nil
+}
+
+// strictSchema closes every object of a JSON schema (additionalProperties:
+// false), which structured outputs require, without changing the caller's
+// map.
+func strictSchema(node any) map[string]any {
+	m, ok := node.(map[string]any)
+	if !ok {
+		return nil
+	}
+	out := make(map[string]any, len(m)+1)
+	for k, v := range m {
+		switch k {
+		case "properties":
+			props := map[string]any{}
+			for name, p := range v.(map[string]any) {
+				if sub := strictSchema(p); sub != nil {
+					props[name] = sub
+				} else {
+					props[name] = p
+				}
+			}
+			out[k] = props
+		case "items":
+			if sub := strictSchema(v); sub != nil {
+				out[k] = sub
+			} else {
+				out[k] = v
+			}
+		default:
+			out[k] = v
+		}
+	}
+	if out["type"] == "object" {
+		out["additionalProperties"] = false
+	}
+	return out
 }
 
 // classify sorts provider errors into transient (worth a retry) and

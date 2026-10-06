@@ -5,4 +5,5 @@ Cómo hacerlo:
 - Redáctalo en tercera persona, empezando con un verbo en presente (por ejemplo: "Representa…", "Explica…", "Propone…"). Una sola oración, de 15 a 35 palabras.
 - Cada criterio cita un desempeño de la lista (performance_id) y una o más capacidades de la competencia (capability_ids). Al menos una de sus capacidades debe estar entre las que no tienen criterio.
 - Entre todos tus criterios cubre todas las capacidades sin criterio. Puedes cubrir varias capacidades con un mismo criterio si el desempeño las integra de forma natural.
+- Propón como máximo un criterio por cada capacidad sin criterio: pocos criterios bien elegidos, no uno por cada desempeño.
 - No repitas criterios que ya existen.
