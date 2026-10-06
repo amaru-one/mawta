@@ -1,4 +1,13 @@
 <script lang="ts">
+	import {
+		Button,
+		Checkbox,
+		EmptyState,
+		Field,
+		Icon,
+		LoadingState,
+		Segmented,
+	} from '$lib/design-system';
 	// Registering a piece of evidencia: a prueba calificada, an examen de
 	// recuperación, a tarea — for the whole class, or for one student.
 	//
@@ -23,7 +32,6 @@
 	} from '$lib/api/dto';
 	import { createAssessment, getGradingComponents } from '$lib/api/endpoints/classes';
 	import { getClassCriteria } from '$lib/api/endpoints/criteria';
-	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
 	import { usesInternalGrading } from '$lib/stores';
@@ -165,238 +173,223 @@
 <svelte:head>
 	<title>Nueva evidencia — {courseName || 'Clase'}</title>
 </svelte:head>
+<div class="view">
+	<TopBar back="/class/{courseId}" useHistory />
 
-<TopBar back="/class/{courseId}" useHistory />
-
-<div class="body">
-	{#if ready}
-		<h1 class="title">Nueva evidencia</h1>
-		{#if courseName}<span class="sub">{courseName}</span>{/if}
-		<p class="lede">
-			{#if scopeStudentId === null}
-				Registras una evaluación para toda la clase — una prueba calificada, un examen de
-				recuperación, una tarea. Queda en la pantalla de cada alumno.
-			{:else}
-				Solo para {scopeStudentName}. No aparece en la lista de los demás.
-			{/if}
-		</p>
-
-		<form onsubmit={submit}>
-			<p class="eyebrow">La evaluación</p>
-
-			<label class="field">
-				<span class="lbl">Título</span>
-				<input class="in lead" type="text" bind:value={title} placeholder="Práctica calificada" />
-			</label>
-
-			<div class="pair">
-				<label class="field">
-					<span class="lbl">Tipo</span>
-					<select class="in" bind:value={kind}>
-						{#each KINDS as k (k.value)}
-							<option value={k.value}>{k.label}</option>
-						{/each}
-					</select>
-				</label>
-				<label class="field">
-					<span class="lbl">Componente</span>
-					{#if components.length > 0}
-						<select
-							class="in"
-							value={effectiveComponent}
-							onchange={(ev) => (componentCode = ev.currentTarget.value)}
-						>
-							{#each components as c (c.code)}
-								<option value={c.code}>{c.name}</option>
-							{/each}
-						</select>
-					{:else}
-						<span class="warn">Esta clase no tiene componentes configurados.</span>
-					{/if}
-				</label>
-			</div>
-
-			<label class="field">
-				<span class="lbl">Entrega (opcional)</span>
-				<input class="in" type="date" bind:value={dueAt} />
-			</label>
-
-			<!-- The scale belongs to the evidence, not to the app: one school runs a
-			     vigesimal system, another values in letters only. This is what
-			     decides which control appears on the student's screen. -->
-			<div class="field">
-				<span class="lbl">Cómo se valora</span>
-				<div class="scale">
-					<button
-						type="button"
-						class="scell"
-						class:on={scale === 'numeric'}
-						disabled={!$usesInternalGrading}
-						onclick={() => (scale = 'numeric')}
-					>
-						<span class="scode">0–20</span>
-						<span class="sname">Vigesimal</span>
-					</button>
-					<button
-						type="button"
-						class="scell"
-						class:on={scale === 'ordinal'}
-						onclick={() => (scale = 'ordinal')}
-					>
-						<span class="scode">AD–C</span>
-						<span class="sname">Literal</span>
-					</button>
-				</div>
-			</div>
-
-			{#if scale === 'numeric'}
-				<label class="field narrow">
-					<span class="lbl">Sobre</span>
-					<input class="in" type="number" step="0.01" min="0.01" bind:value={maxScore} />
-				</label>
-			{/if}
-			<p class="note">
-				{#if scale === 'ordinal'}
-					Una letra en un trabajo no es un nivel de logro: ese lo pones tú al cierre, leyendo todo
-					el periodo.
+	<div class="body">
+		{#if ready}
+			<h1 class="title">Nueva evidencia</h1>
+			{#if courseName}<span class="sub">{courseName}</span>{/if}
+			<p class="lede">
+				{#if scopeStudentId === null}
+					Registras una evaluación para toda la clase — una prueba calificada, un examen de
+					recuperación, una tarea. Queda en la pantalla de cada alumno.
+				{:else}
+					Solo para {scopeStudentName}. No aparece en la lista de los demás.
 				{/if}
 			</p>
 
-			<!-- What makes the evidence usable later. -->
-			<p class="eyebrow gap">Qué competencia ayuda a valorar</p>
-			<p class="note tight">
-				Y con qué criterios la vas a leer. El criterio no se califica: es lo que miras en el
-				trabajo.
-			</p>
+			<form onsubmit={submit}>
+				<p class="eyebrow">La evaluación</p>
 
-			{#if current === null}
-				<p class="warn">Esta clase no tiene competencias configuradas.</p>
-			{:else}
-				<div class="comp">
-					<div class="comphead">
-						<span class="grow">
-							<span class="ccode">{current.code}</span>
-							<span class="cname">{current.name}</span>
-						</span>
+				<Field label="Título" type="text" bind:value={title} placeholder="Práctica calificada" />
+
+				<div class="pair">
+					<Field kind="select" label="Tipo" bind:value={kind}>
+						{#each KINDS as k (k.value)}
+							<option value={k.value}>{k.label}</option>
+						{/each}
+					</Field>
+					<div class="field">
+						{#if components.length > 0}
+							<Field
+								kind="select"
+								label="Componente"
+								value={effectiveComponent}
+								onchange={(ev) => (componentCode = ev.currentTarget.value)}
+							>
+								{#each components as c (c.code)}
+									<option value={c.code}>{c.name}</option>
+								{/each}
+							</Field>
+						{:else}
+							<span class="warn">Esta clase no tiene componentes configurados.</span>
+						{/if}
+					</div>
+				</div>
+
+				<Field label="Entrega (opcional)" type="date" bind:value={dueAt} />
+
+				<!-- The scale belongs to the evidence, not to the app: one school runs a
+			     vigesimal system, another values in letters only. This is what
+			     decides which control appears on the student's screen. -->
+				<div class="field">
+					<span class="lbl">Cómo se valora</span>
+					<Segmented
+						label="Cómo se valora"
+						value={scale}
+						onchange={(value) => (scale = value as typeof scale)}
+						options={[
+							{ value: 'numeric', label: 'Vigesimal · 0–20', disabled: !$usesInternalGrading },
+							{ value: 'ordinal', label: 'Literal · AD–C' },
+						]}
+					/>
+				</div>
+
+				{#if scale === 'numeric'}
+					<Field
+						label="Sobre"
+						type="number"
+						step="0.01"
+						min="0.01"
+						bind:value={maxScore}
+						class="narrow"
+					/>
+				{/if}
+				<p class="note">
+					{#if scale === 'ordinal'}
+						Una letra en un trabajo no es un nivel de logro: ese lo pones tú al cierre, leyendo todo
+						el periodo.
+					{/if}
+				</p>
+
+				<!-- What makes the evidence usable later. -->
+				<p class="eyebrow gap">Qué competencia ayuda a valorar</p>
+				<p class="note tight">
+					Y con qué criterios la vas a leer. El criterio no se califica: es lo que miras en el
+					trabajo.
+				</p>
+
+				{#if current === null}
+					<EmptyState title="Esta clase no tiene competencias configuradas." />
+				{:else}
+					<div class="comp">
+						<div class="comphead">
+							<span class="grow">
+								<span class="ccode">{current.code}</span>
+								<span class="cname">{current.name}</span>
+							</span>
+						</div>
+
+						{#if list(current.criteria).length === 0}
+							<EmptyState
+								title="Esta competencia todavía no tiene criterios. Escríbelos en «Criterios de evaluación» y
+							vuelve."
+							/>
+						{:else}
+							<div class="crits">
+								{#each list(current.criteria) as c (c.criterion_id)}
+									<Checkbox
+										label={`${c.code ?? 'CRIT'} · ${c.description}`}
+										checked={picked.has(c.criterion_id)}
+										onchange={() => toggleCriterion(c.criterion_id)}
+									/>
+								{/each}
+							</div>
+						{/if}
 					</div>
 
-					{#if list(current.criteria).length === 0}
-						<p class="warn inset">
-							Esta competencia todavía no tiene criterios. Escríbelos en «Criterios de evaluación» y
-							vuelve.
-						</p>
-					{:else}
-						<div class="crits">
-							{#each list(current.criteria) as c (c.criterion_id)}
+					{#if others.length > 0}
+						<div class="rest">
+							{#each others as c (c.competency_id)}
 								<button
 									type="button"
-									class="crit"
-									aria-pressed={picked.has(c.criterion_id)}
-									onclick={() => toggleCriterion(c.criterion_id)}
+									class="orow"
+									onclick={() => selectCompetency(c.competency_id)}
 								>
-									<span class="box" class:on={picked.has(c.criterion_id)}>
-										{#if picked.has(c.criterion_id)}<Icon name="check" size={14} />{/if}
-									</span>
-									<span class="grow ctext">
-										<span class="ccode">{c.code ?? 'CRIT'}</span> · {c.description}
-									</span>
+									<span class="ocode">{c.code}</span>
+									<span class="grow oname">{c.name}</span>
+									<span class="ocount">{list(c.criteria).length}</span>
+									<span class="chevron"><Icon name="chevron-right" size={16} /></span>
 								</button>
 							{/each}
 						</div>
 					{/if}
-				</div>
-
-				{#if others.length > 0}
-					<div class="rest">
-						{#each others as c (c.competency_id)}
-							<button type="button" class="orow" onclick={() => selectCompetency(c.competency_id)}>
-								<span class="ocode">{c.code}</span>
-								<span class="grow oname">{c.name}</span>
-								<span class="ocount">{list(c.criteria).length}</span>
-								<span class="chevron"><Icon name="chevron-right" size={16} /></span>
-							</button>
-						{/each}
-					</div>
 				{/if}
-			{/if}
 
-			<p class="note">
-				Esta evidencia no calcula ni sugiere nada. Al cierre, tú pones el nivel de logro de la
-				competencia leyendo todas las del periodo.
-			</p>
+				<p class="note">
+					Esta evidencia no calcula ni sugiere nada. Al cierre, tú pones el nivel de logro de la
+					competencia leyendo todas las del periodo.
+				</p>
 
-			{#if scale === 'numeric'}
-				<label class="internal">
-					<input type="checkbox" bind:checked={countsInternal} />
-					<span class="grow">
-						Cuenta para el promedio interno del colegio
-						<span class="isub">
-							Es el sistema vigesimal de la IE, aparte del registro oficial. Marcarla o no, no
-							cambia el nivel de logro.
+				{#if scale === 'numeric'}
+					<Checkbox bind:checked={countsInternal}>
+						<span class="grow">
+							Cuenta para el promedio interno del colegio
+							<span class="isub">
+								Es el sistema vigesimal de la IE, aparte del registro oficial. Marcarla o no, no
+								cambia el nivel de logro.
+							</span>
 						</span>
-					</span>
-				</label>
-			{/if}
+					</Checkbox>
+				{/if}
 
-			<button
-				type="submit"
-				class="btn-block btn-primary pressable submit"
-				disabled={!canSubmit || submitting}
-			>
-				Guardar evidencia
-			</button>
-			<p class="caption">
-				{#if current !== null}{current.code} · {picked.size}
-					{picked.size === 1 ? 'criterio' : 'criterios'}{/if}
+				<Button
+					variant="primary"
+					block
+					class="submit"
+					type="submit"
+					disabled={!canSubmit || submitting}
+				>
+					Guardar evidencia
+				</Button>
+				<p class="caption">
+					{#if current !== null}{current.code} · {picked.size}
+						{picked.size === 1 ? 'criterio' : 'criterios'}{/if}
+				</p>
+			</form>
+		{:else if loadError}
+			<p class="warn">
+				No se pudo cargar el formulario.
+				<Button variant="secondary" onclick={load}>Reintentar</Button>
 			</p>
-		</form>
-	{:else if loadError}
-		<p class="warn">
-			No se pudo cargar el formulario.
-			<button class="pill-light pressable" onclick={load}>Reintentar</button>
-		</p>
-	{/if}
+		{:else}<LoadingState label="Cargando…" />{/if}
+	</div>
 </div>
 
 <style>
+	form {
+		display: grid;
+		gap: var(--mw-space-4);
+	}
 	.body {
-		padding: 22px 18px 40px;
+		padding: 20px 20px 32px;
 	}
 
 	.title {
 		margin: 0;
 		padding-bottom: 14px;
-		border-bottom: 1.5px solid var(--text-primary);
-		font-size: 34px;
-		font-weight: 700;
-		letter-spacing: -0.02em;
-		line-height: 1.1;
+
+		font-size: var(--mw-type-title-size);
+		font-weight: 800;
+		letter-spacing: -0.03em;
+		line-height: var(--mw-type-title-line);
 	}
 
 	.sub {
 		display: block;
 		margin: 10px 0 0;
-		font-family: var(--font-mono);
-		font-size: 11px;
+		font-family: var(--mw-font-sans);
+		font-size: var(--mw-type-label-size);
 		text-transform: uppercase;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
 
 	.lede {
 		margin: 10px 0 0;
-		font-size: 13px;
+		font-size: var(--mw-type-small-size);
 		line-height: 1.45;
-		color: var(--text-secondary);
+		color: var(--mw-ink-secondary);
 		text-wrap: pretty;
 	}
 
 	.eyebrow {
 		margin: 26px 0 12px;
-		font-size: 11px;
+		font-size: var(--mw-type-label-size);
 		font-weight: 600;
-		letter-spacing: 0.08em;
+		letter-spacing: 0.04em;
 		text-transform: uppercase;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
 
 	.eyebrow.gap {
@@ -409,44 +402,20 @@
 		gap: 6px;
 		margin-bottom: 14px;
 	}
-
-	.field.narrow {
+	.view .field:global(.narrow) {
 		max-width: 120px;
 	}
 
 	.lbl {
-		font-family: var(--font-mono);
-		font-size: 10px;
+		font-family: var(--mw-font-sans);
+		font-size: var(--mw-type-label-size);
 		font-weight: 700;
-		letter-spacing: 0.08em;
+		letter-spacing: 0.04em;
 		text-transform: uppercase;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
-
-	.in {
+	.view :global(.in) {
 		width: 100%;
-		height: 48px;
-		padding: 0 14px;
-		border: 1px solid var(--border);
-		border-radius: 12px;
-		background: var(--surface-2);
-		font-family: inherit;
-		font-size: 15px;
-		color: var(--text-primary);
-	}
-
-	/* The title is what the teacher is really writing; it gets the strong stroke
-	   and a size the rest of the form does not. */
-	.in.lead {
-		border: 1px solid var(--border-strong);
-		background: var(--surface-2);
-		font-size: 15px;
-		padding: 11px 12px;
-	}
-
-	.in:focus {
-		outline: none;
-		border-color: var(--border-strong);
 	}
 
 	.pair {
@@ -459,60 +428,11 @@
 		min-width: 0;
 	}
 
-	.scale {
-		display: flex;
-		border: 1px solid var(--border-strong);
-		border-radius: var(--radius);
-		overflow: hidden;
-	}
-
-	.scell {
-		flex: 1;
-		min-width: 0;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		gap: 2px;
-		height: 54px;
-		border-right: 1px solid var(--border-strong);
-	}
-
-	.scell:last-child {
-		border-right: none;
-	}
-
-	.scell.on {
-		background: var(--gradient-action);
-		color: var(--on-primary);
-	}
-
-	.scell:disabled {
-		opacity: 0.4;
-		cursor: not-allowed;
-	}
-
-	.scode {
-		font-size: 15px;
-		font-weight: 600;
-		line-height: 1;
-	}
-
-	.sname {
-		font-size: 10px;
-		line-height: 1.2;
-		color: var(--text-muted);
-	}
-
-	.scell.on .sname {
-		color: rgba(255, 255, 255, 0.7);
-	}
-
 	.note {
 		margin: 10px 0 0;
-		font-size: 12px;
+		font-size: var(--mw-type-caption-size);
 		line-height: 1.45;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 		text-wrap: pretty;
 	}
 
@@ -520,13 +440,9 @@
 		margin: 0 0 14px;
 	}
 
-	/* The chosen competencia is the only 1px-stroked block of the form: it is the
-	   decision that makes the evidence usable later. */
-	/* The competencia block is the decision that makes the evidence usable
-	   later, so it sits on the tint rather than inside a stroke. */
 	.comp {
-		background: var(--aurora-tint);
-		border-radius: 16px;
+		background: var(--mw-surface-tint);
+		border-radius: var(--mw-radius-xl);
 		padding: 14px;
 	}
 
@@ -537,17 +453,17 @@
 	}
 
 	.ccode {
-		font-size: 11px;
+		font-size: var(--mw-type-label-size);
 		font-weight: 600;
 		letter-spacing: 0.04em;
-		color: var(--text-muted);
-		font-family: var(--font-mono);
+		color: var(--mw-ink-muted);
+		font-family: var(--mw-font-sans);
 	}
 
 	.cname {
 		display: block;
 		margin-top: 4px;
-		font-size: 15px;
+		font-size: var(--mw-type-body-size);
 		font-weight: 500;
 		line-height: 1.3;
 		text-wrap: pretty;
@@ -559,42 +475,6 @@
 		margin-top: 12px;
 	}
 
-	.crit {
-		display: flex;
-		align-items: flex-start;
-		gap: 10px;
-		width: 100%;
-		padding: 12px 0;
-		border-top: 0.5px solid var(--border);
-		text-align: left;
-	}
-
-	.box {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 22px;
-		height: 22px;
-		flex-shrink: 0;
-		margin-top: 1px;
-		border: 1px solid var(--border-strong);
-		border-radius: 5px;
-		background: var(--surface-2);
-	}
-
-	.box.on {
-		border-color: var(--aurora-deep);
-		background: var(--aurora-deep);
-		color: var(--on-primary);
-	}
-
-	.ctext {
-		font-size: 13px;
-		line-height: 1.35;
-		text-wrap: pretty;
-	}
-
-	/* The other competencias stay present and one tap away — hairlines, no box. */
 	.rest {
 		display: flex;
 		flex-direction: column;
@@ -607,85 +487,64 @@
 		gap: 10px;
 		width: 100%;
 		padding: 14px 4px;
-		border-bottom: 0.5px solid var(--border);
+		border-bottom: 1px solid var(--mw-line);
 		text-align: left;
 	}
 
 	.ocode {
 		flex-shrink: 0;
-		font-size: 11px;
+		font-size: var(--mw-type-label-size);
 		font-weight: 600;
 		letter-spacing: 0.04em;
-		color: var(--text-muted);
-		font-family: var(--font-mono);
+		color: var(--mw-ink-muted);
+		font-family: var(--mw-font-sans);
 	}
 
 	.oname {
-		font-size: 13px;
+		font-size: var(--mw-type-small-size);
 		line-height: 1.3;
-		color: var(--text-secondary);
+		color: var(--mw-ink-secondary);
 	}
 
 	.ocount {
 		flex-shrink: 0;
-		font-size: 11px;
-		color: var(--text-muted);
-		font-family: var(--font-mono);
+		font-size: var(--mw-type-label-size);
+		color: var(--mw-ink-muted);
+		font-family: var(--mw-font-sans);
 	}
 
 	.chevron {
 		display: flex;
 		flex-shrink: 0;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
-
-	.internal {
-		display: flex;
-		align-items: flex-start;
-		gap: var(--space-sm);
+	.view :global(.internal) {
 		margin-top: 22px;
-		font-size: 13px;
-		line-height: 1.35;
-	}
-
-	.internal input {
-		flex-shrink: 0;
-		margin-top: 2px;
 	}
 
 	.isub {
 		display: block;
 		margin-top: 2px;
-		font-size: 11px;
+		font-size: var(--mw-type-label-size);
 		line-height: 1.35;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
-
-	.submit {
+	.view :global(.submit) {
 		margin-top: 24px;
-	}
-
-	.submit:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
 	}
 
 	.caption {
 		margin: 10px 0 0;
-		font-size: 12px;
+		font-size: var(--mw-type-caption-size);
 		text-align: center;
-		color: var(--text-muted);
-		font-family: var(--font-mono);
+		color: var(--mw-ink-muted);
+		font-family: var(--mw-font-sans);
 	}
 
 	.warn {
 		margin: 0;
-		font-size: 13px;
+		font-size: var(--mw-type-small-size);
 		line-height: 1.45;
-		color: var(--text-muted);
-	}
-
-	.warn.inset {
-		margin-top: 12px;
+		color: var(--mw-ink-muted);
 	}
 </style>

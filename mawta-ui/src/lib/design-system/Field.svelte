@@ -6,6 +6,7 @@
 		HTMLAttributes<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
 		'children'
 	> {
+		control?: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null;
 		name?: string;
 		form?: string;
 		type?:
@@ -32,6 +33,7 @@
 		minlength?: number;
 		maxlength?: number;
 		pattern?: string;
+		children?: Snippet;
 		label: string;
 		value?: string | number | null;
 		kind?: 'input' | 'textarea' | 'select';
@@ -44,6 +46,8 @@
 	}
 	const uid = $props.id();
 	let {
+		children,
+		control = $bindable(null),
 		label,
 		value = $bindable<string | number | null | undefined>(),
 		kind = 'input',
@@ -72,6 +76,7 @@
 	</div>
 	{#if kind === 'textarea'}
 		<textarea
+			bind:this={control}
 			{...rest}
 			{id}
 			{rows}
@@ -81,19 +86,21 @@
 			class="mw-input {large ? 'mw-input--lg' : ''}"></textarea>
 	{:else if kind === 'select'}
 		<select
+			bind:this={control}
 			{...rest}
 			{id}
 			bind:value
 			aria-describedby={description}
 			aria-invalid={error ? true : rest['aria-invalid']}
 			class="mw-input {large ? 'mw-input--lg' : ''}"
-			>{#each options as option (option.value)}<option
-					value={option.value}
-					disabled={option.disabled}>{option.label}</option
-				>{/each}</select
+			>{#if children}{@render children()}{:else}{#each options as option (option.value)}<option
+						value={option.value}
+						disabled={option.disabled}>{option.label}</option
+					>{/each}{/if}</select
 		>
 	{:else}
 		<input
+			bind:this={control}
 			{...rest}
 			{type}
 			{id}

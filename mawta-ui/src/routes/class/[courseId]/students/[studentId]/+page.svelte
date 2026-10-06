@@ -1,4 +1,13 @@
 <script lang="ts">
+	import {
+		Button,
+		Card,
+		Checkbox,
+		EmptyState,
+		Field,
+		Icon,
+		LoadingState,
+	} from '$lib/design-system';
 	// One student, one competencia: read, then decide.
 	//
 	// The order of the screen IS the order of the judgement. The evidence comes
@@ -27,7 +36,6 @@
 	import { correctScore, createScore } from '$lib/api/endpoints/grades';
 	import { getStudentEvidence } from '$lib/api/endpoints/students';
 	import CompetencyIndex from '$lib/components/CompetencyIndex.svelte';
-	import Icon from '$lib/components/Icon.svelte';
 	import LevelScale from '$lib/components/LevelScale.svelte';
 	import LevelSelector from '$lib/components/LevelSelector.svelte';
 	import ScoreRuler from '$lib/components/ScoreRuler.svelte';
@@ -54,7 +62,7 @@
 	let levels = $state<CompetencyLevelDto[]>([]);
 	let comps = $state<CompetencyCriteriaDto[]>([]);
 	let selected = $state('');
-	/** assessment_id of a score being written — one card never blocks another. */
+
 	let savingScore = $state<Set<string>>(new Set());
 	let savingLevel = $state(false);
 	let switching = $state(false);
@@ -262,9 +270,10 @@
 	// `includes_recommendations` is not on the DTO, so the box always starts
 	// unticked — see this route's SPEC.md.
 	$effect(() => {
-		const l = currentLevel;
+		const competencyId = selected;
+		if (!ready || competencyId === '') return;
 		untrack(() => {
-			draft = l?.conclusion_body ?? '';
+			draft = currentLevel?.conclusion_body ?? '';
 			withRecs = false;
 		});
 	});
@@ -328,167 +337,164 @@
 <svelte:head>
 	<title>{studentName} — {courseName || 'Clase'}</title>
 </svelte:head>
+<div class="view">
+	<TopBar back="/class/{courseId}/students" useHistory />
 
-<TopBar back="/class/{courseId}/students" useHistory />
+	<div class="body">
+		{#if ready}
+			<h1 class="title">{studentName}</h1>
+			{#if courseName}<span class="sub">{courseName}</span>{/if}
 
-<div class="body">
-	{#if ready}
-		<h1 class="title">{studentName}</h1>
-		{#if courseName}<span class="sub">{courseName}</span>{/if}
-
-		{#if indexItems.length > 0}
-			<div class="idx">
-				<CompetencyIndex items={indexItems} selectedId={selected} onselect={selectCompetency} />
-			</div>
-		{/if}
-
-		{#if current !== null}
-			<p class="comp">{current.name}</p>
-
-			<!-- READ -->
-			<p class="eyebrow">Evidencias del periodo</p>
-			<p class="hint">Cada evidencia se valora en su propia escala. Se guarda al tocar.</p>
-
-			{#if evidence.length === 0}
-				<p class="empty">
-					Esta competencia no tiene evidencia este periodo. Se registra desde el área, en «Añadir
-					evidencia», enlazándola a sus criterios.
-				</p>
-			{:else}
-				<div class="cards" class:switching>
-					{#each evidence as e (e.assessment_id)}
-						{@const off = notSubmitted(e)}
-						{@const busy = savingScore.has(e.assessment_id)}
-						<div class="card">
-							<div class="cardhead">
-								<span class="grow etitle">{e.title}</span>
-								<span class="emeta">{metaLine(e)}</span>
-							</div>
-							<p class="crit">{critLine(e)}</p>
-
-							<!-- The scale is a property of the evidence, so the control is
-							     chosen by the work rather than by the screen. `none` shows
-							     no control at all: registered, read, never valued. -->
-							{#if e.value_scale === 'numeric' && e.max_score !== null && $usesInternalGrading}
-								<div class="ruler">
-									<ScoreRuler
-										value={off ? null : markOf(e)}
-										max={e.max_score}
-										disabled={busy}
-										onselect={(v) => void writeScore(e, 'graded', v, null)}
-									/>
-								</div>
-							{:else if e.value_scale === 'ordinal'}
-								<div class="ruler">
-									<LevelScale
-										level={off ? null : letterOf(e)}
-										disabled={busy}
-										onselect={(l) => void writeScore(e, 'graded', null, l)}
-									/>
-								</div>
-							{:else}
-								<p class="noscale">
-									{#if e.value_scale === 'numeric'}
-										El colegio no lleva sistema propio de notas, así que esta evidencia no lleva
-										valor.
-									{:else}
-										Sin valor: esta evidencia se registra y se lee, no se puntúa.
-									{/if}
-								</p>
-							{/if}
-
-							<button
-								type="button"
-								class="mark pressable"
-								aria-pressed={off}
-								onclick={() => toggleNotSubmitted(e)}
-							>
-								<span class="grow marklbl" class:on={off}>No entregó</span>
-								<span class="box" class:on={off}>
-									{#if off}<Icon name="check" size={14} />{/if}
-								</span>
-							</button>
-
-							{#if !e.counts_toward_internal}
-								<p class="tag">Fuera del promedio interno</p>
-							{/if}
-						</div>
-					{/each}
+			{#if indexItems.length > 0}
+				<div class="idx">
+					<CompetencyIndex items={indexItems} selectedId={selected} onselect={selectCompetency} />
 				</div>
 			{/if}
 
-			<!-- DECIDE -->
-			<p class="eyebrow gap">Nivel de logro en esta competencia</p>
-			<p class="hint">Lo pones tú, leyendo lo de arriba. Ninguna nota lo calcula.</p>
-			<LevelSelector
-				level={currentLevel?.level ?? null}
-				disabled={savingLevel}
-				onselect={(l) => void setLevel(l)}
-			/>
+			{#if current !== null}
+				<p class="comp">{current.name}</p>
 
-			<p class="eyebrow gap">Conclusión descriptiva</p>
-			{#if currentLevel?.conclusion_required}
-				<p class="hint req">
-					{REQUIREMENT_TEXT[currentLevel.conclusion_requirement] ?? 'Obligatoria.'}
-				</p>
-			{:else}
-				<p class="hint">Opcional en esta competencia.</p>
+				<!-- READ -->
+				<p class="eyebrow">Evidencias del periodo</p>
+				<p class="hint">Cada evidencia se valora en su propia escala. Se guarda al tocar.</p>
+
+				{#if evidence.length === 0}
+					<EmptyState
+						title="Esta competencia no tiene evidencia este periodo. Se registra desde el área, en «Añadir
+					evidencia», enlazándola a sus criterios."
+					/>
+				{:else}
+					<div class="cards" class:switching>
+						{#each evidence as e (e.assessment_id)}
+							{@const off = notSubmitted(e)}
+							{@const busy = savingScore.has(e.assessment_id)}
+							<Card>
+								<div class="cardhead">
+									<span class="grow etitle">{e.title}</span>
+									<span class="emeta">{metaLine(e)}</span>
+								</div>
+								<p class="crit">{critLine(e)}</p>
+
+								<!-- The scale is a property of the evidence, so the control is
+							     chosen by the work rather than by the screen. `none` shows
+							     no control at all: registered, read, never valued. -->
+								{#if e.value_scale === 'numeric' && e.max_score !== null && $usesInternalGrading}
+									<div class="ruler">
+										<ScoreRuler
+											value={off ? null : markOf(e)}
+											max={e.max_score}
+											disabled={busy}
+											onselect={(v) => void writeScore(e, 'graded', v, null)}
+										/>
+									</div>
+								{:else if e.value_scale === 'ordinal'}
+									<div class="ruler">
+										<LevelScale
+											level={off ? null : letterOf(e)}
+											disabled={busy}
+											onselect={(l) => void writeScore(e, 'graded', null, l)}
+										/>
+									</div>
+								{:else}
+									<p class="noscale">
+										{#if e.value_scale === 'numeric'}
+											El colegio no lleva sistema propio de notas, así que esta evidencia no lleva
+											valor.
+										{:else}
+											Sin valor: esta evidencia se registra y se lee, no se puntúa.
+										{/if}
+									</p>
+								{/if}
+
+								<Checkbox
+									label="No entregó"
+									checked={off}
+									disabled={busy}
+									onchange={() => toggleNotSubmitted(e)}
+								/>
+
+								{#if !e.counts_toward_internal}
+									<p class="tag">Fuera del promedio interno</p>
+								{/if}
+							</Card>
+						{/each}
+					</div>
+				{/if}
+
+				<!-- DECIDE -->
+				<p class="eyebrow gap">Nivel de logro en esta competencia</p>
+				<p class="hint">Lo pones tú, leyendo lo de arriba. Ninguna nota lo calcula.</p>
+				<LevelSelector
+					level={currentLevel?.level ?? null}
+					disabled={savingLevel}
+					onselect={(l) => void setLevel(l)}
+				/>
+
+				<p class="eyebrow gap">Conclusión descriptiva</p>
+				{#if currentLevel?.conclusion_required}
+					<p class="hint req">
+						{REQUIREMENT_TEXT[currentLevel.conclusion_requirement] ?? 'Obligatoria.'}
+					</p>
+				{:else}
+					<p class="hint">Opcional en esta competencia.</p>
+				{/if}
+				<Field
+					kind="textarea"
+					label="Conclusión descriptiva"
+					rows={4}
+					bind:value={draft}
+					placeholder="Qué logró, qué le falta y cómo seguir."
+				/>
+				<Checkbox bind:checked={withRecs}>
+					<span class="grow">Incluye recomendaciones personalizadas</span>
+				</Checkbox>
+				<div class="actions">
+					<Button
+						variant="secondary"
+						type="button"
+						disabled={savingConclusion || draft.trim() === ''}
+						onclick={() => void saveConclusion('draft')}>Guardar borrador</Button
+					>
+					<Button
+						variant="primary"
+						type="button"
+						disabled={savingConclusion || draft.trim() === ''}
+						onclick={() => void saveConclusion('final')}>Marcar como final</Button
+					>
+				</div>
 			{/if}
-			<textarea
-				class="ta"
-				rows="4"
-				bind:value={draft}
-				placeholder="Qué logró, qué le falta y cómo seguir."></textarea>
-			<label class="recs">
-				<input type="checkbox" bind:checked={withRecs} />
-				<span class="grow">Incluye recomendaciones personalizadas</span>
-			</label>
-			<div class="actions">
-				<button
-					type="button"
-					class="pill-light pressable"
-					disabled={savingConclusion || draft.trim() === ''}
-					onclick={() => void saveConclusion('draft')}>Guardar borrador</button
-				>
-				<button
-					type="button"
-					class="pill-dark pressable"
-					disabled={savingConclusion || draft.trim() === ''}
-					onclick={() => void saveConclusion('final')}>Marcar como final</button
-				>
-			</div>
-		{/if}
-	{:else if loadError}
-		<p class="empty">
-			No se pudo cargar al alumno.
-			<button class="pill-light pressable" onclick={load}>Reintentar</button>
-		</p>
-	{/if}
+		{:else if loadError}
+			<p class="empty">
+				No se pudo cargar al alumno.
+				<Button variant="secondary" onclick={load}>Reintentar</Button>
+			</p>
+		{:else}<LoadingState label="Cargando…" />{/if}
+	</div>
 </div>
 
 <style>
 	.body {
-		padding: 22px 18px 40px;
+		padding: 20px 20px 32px;
 	}
 
 	.title {
 		margin: 0;
 		padding-bottom: 14px;
-		border-bottom: 1.5px solid var(--text-primary);
-		font-size: 34px;
-		font-weight: 700;
-		letter-spacing: -0.02em;
-		line-height: 1.1;
+
+		font-size: var(--mw-type-title-size);
+		font-weight: 800;
+		letter-spacing: -0.03em;
+		line-height: var(--mw-type-title-line);
 		text-wrap: pretty;
 	}
 
 	.sub {
 		display: block;
 		margin: 10px 0 0;
-		font-family: var(--font-mono);
-		font-size: 11px;
+		font-family: var(--mw-font-sans);
+		font-size: var(--mw-type-label-size);
 		text-transform: uppercase;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
 
 	.idx {
@@ -497,7 +503,7 @@
 
 	.comp {
 		margin: 16px 0 0;
-		font-size: 15px;
+		font-size: var(--mw-type-body-size);
 		font-weight: 600;
 		line-height: 1.3;
 		letter-spacing: -0.01em;
@@ -506,29 +512,27 @@
 
 	.eyebrow {
 		margin: 30px 0 4px;
-		font-size: 11px;
+		font-size: var(--mw-type-label-size);
 		font-weight: 600;
-		letter-spacing: 0.08em;
+		letter-spacing: 0.04em;
 		text-transform: uppercase;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
 
-	/* The decision needs more air above it than a section break: it is a
-	   different kind of act from everything above. */
 	.eyebrow.gap {
 		margin-top: 34px;
 	}
 
 	.hint {
 		margin: 0 0 6px;
-		font-size: 13px;
+		font-size: var(--mw-type-small-size);
 		line-height: 1.4;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 		text-wrap: pretty;
 	}
 
 	.hint.req {
-		color: var(--text-primary);
+		color: var(--mw-ink);
 	}
 
 	.cards {
@@ -536,30 +540,16 @@
 		flex-direction: column;
 	}
 
-	/* Switching competencia is a fresh read; the cards dim rather than vanish. */
 	.cards.switching {
 		opacity: 0.5;
 	}
 
-	/* An evidence with no scale still gets a line, so the gap where a control
-	   would be is named rather than left looking broken. */
 	.noscale {
 		margin: 16px 0 0;
-		font-size: 12px;
+		font-size: var(--mw-type-caption-size);
 		line-height: 1.4;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 		text-wrap: pretty;
-	}
-
-	/* No card chrome: a hairline is enough separation, and a box here would
-	   compete with the level selector below, which is the only boxed thing. */
-	.card {
-		padding: 18px 0;
-		border-top: 0.5px solid var(--border);
-	}
-
-	.card:last-child {
-		border-bottom: 0.5px solid var(--border);
 	}
 
 	.cardhead {
@@ -569,24 +559,24 @@
 	}
 
 	.etitle {
-		font-size: 16px;
+		font-size: var(--mw-type-heading-size);
 		font-weight: 600;
 		line-height: 1.25;
 	}
 
 	.emeta {
 		flex-shrink: 0;
-		font-size: 11px;
+		font-size: var(--mw-type-label-size);
 		letter-spacing: 0.04em;
-		color: var(--text-muted);
-		font-family: var(--font-mono);
+		color: var(--mw-ink-muted);
+		font-family: var(--mw-font-sans);
 	}
 
 	.crit {
 		margin: 8px 0 0;
-		font-size: 12px;
+		font-size: var(--mw-type-caption-size);
 		line-height: 1.4;
-		color: var(--text-secondary);
+		color: var(--mw-ink-secondary);
 		text-wrap: pretty;
 	}
 
@@ -594,100 +584,30 @@
 		margin-top: 16px;
 	}
 
-	.mark {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-		width: 100%;
-		margin-top: 14px;
-		text-align: left;
-	}
-
-	.marklbl {
-		font-size: 14px;
-		color: var(--text-secondary);
-	}
-
-	.marklbl.on {
-		font-weight: 500;
-		color: var(--text-primary);
-	}
-
-	/* The same marker square the evidence form uses for criterios — one glyph
-	   for "I ticked this", everywhere. */
-	.box {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 22px;
-		height: 22px;
-		flex-shrink: 0;
-		border: 1px solid var(--border-strong);
-		border-radius: 5px;
-		background: var(--surface-2);
-	}
-
-	.box.on {
-		border-color: var(--fill-primary);
-		background: var(--fill-primary);
-		color: var(--on-primary);
-	}
-
 	.tag {
 		margin: 10px 0 0;
-		font-size: 11px;
-		color: var(--text-muted);
-		font-family: var(--font-mono);
+		font-size: var(--mw-type-label-size);
+		color: var(--mw-ink-muted);
+		font-family: var(--mw-font-sans);
 	}
-
-	.ta {
+	.view :global(.ta) {
 		width: 100%;
-		padding: var(--space-md);
-		border: 0.5px solid var(--border);
-		border-radius: var(--radius-md);
-		background: var(--surface-1);
-		font-family: inherit;
-		font-size: 14px;
-		line-height: 1.45;
-		color: var(--text-primary);
-		resize: vertical;
 	}
-
-	.ta:focus {
-		outline: none;
-		border-color: var(--border-strong);
-	}
-
-	.recs {
-		display: flex;
-		align-items: flex-start;
-		gap: var(--space-sm);
-		margin-top: var(--space-md);
-		font-size: 13px;
-		line-height: 1.35;
-	}
-
-	.recs input {
-		flex-shrink: 0;
-		margin-top: 2px;
+	.view :global(.recs) {
+		margin-top: var(--mw-space-3);
 	}
 
 	.actions {
 		display: flex;
-		gap: var(--space-md);
-		margin-top: var(--space-lg);
-	}
-
-	.actions button:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
+		gap: var(--mw-space-3);
+		margin-top: var(--mw-space-4);
 	}
 
 	.empty {
 		margin: 12px 0 0;
-		font-size: 14px;
+		font-size: var(--mw-type-body-size);
 		line-height: 1.45;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 		text-wrap: pretty;
 	}
 </style>

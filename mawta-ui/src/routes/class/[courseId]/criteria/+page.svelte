@@ -1,11 +1,21 @@
 <script lang="ts">
+	import {
+		Action,
+		Button,
+		Card,
+		EmptyState,
+		Field,
+		Icon,
+		IconButton,
+		LoadingState,
+		Notice,
+	} from '$lib/design-system';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { ApiError, list } from '$lib/api/client';
 	import type { CompetencyCriteriaDto } from '$lib/api/dto';
 	import { createCriterion, deleteCriterion, getClassCriteria } from '$lib/api/endpoints/criteria';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
-	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
 	import { showToast } from '$lib/toast';
@@ -85,224 +95,175 @@
 <svelte:head>
 	<title>Criterios de evaluación</title>
 </svelte:head>
+<div class="view">
+	<TopBar back={`/class/${courseId}`} useHistory />
 
-<TopBar back={`/class/${courseId}`} useHistory />
+	<div class="body">
+		{#if ready}
+			<p class="title">Criterios de evaluación</p>
+			<p class="subtitle">{courseName}</p>
 
-<div class="body">
-	{#if ready}
-		<p class="title">Criterios de evaluación</p>
-		<p class="subtitle">{courseName}</p>
+			<p class="intro">
+				Cada competencia se valora contra los criterios que tú defines. Son la referencia para tu
+				juicio docente sobre la evidencia del periodo (RVM 094-2020); no se promedian ni se
+				convierten en nota.
+			</p>
 
-		<p class="intro">
-			Cada competencia se valora contra los criterios que tú defines. Son la referencia para tu
-			juicio docente sobre la evidencia del periodo (RVM 094-2020); no se promedian ni se convierten
-			en nota.
-		</p>
+			{#if withoutCriteria > 0}
+				<Notice variant="attention">
+					<p class="grow notice-text">
+						{withoutCriteria === 1
+							? '1 competencia todavía no tiene criterios'
+							: `${withoutCriteria} competencias todavía no tienen criterios`}
+					</p>
+				</Notice>
+			{/if}
 
-		{#if withoutCriteria > 0}
-			<div class="row notice">
-				<Icon name="alert" size={16} />
-				<p class="grow notice-text">
-					{withoutCriteria === 1
-						? '1 competencia todavía no tiene criterios'
-						: `${withoutCriteria} competencias todavía no tienen criterios`}
-				</p>
-			</div>
-		{/if}
+			<div class="stack">
+				{#each competencies as comp (comp.competency_id)}
+					{@const criteria = list(comp.criteria)}
+					<Card>
+						<p class="comp-name">{comp.name}</p>
+						{#if comp.kind === 'transversal'}
+							<p class="comp-kind">Competencia transversal</p>
+						{/if}
 
-		<div class="stack">
-			{#each competencies as comp (comp.competency_id)}
-				{@const criteria = list(comp.criteria)}
-				<div class="card comp">
-					<p class="comp-name">{comp.name}</p>
-					{#if comp.kind === 'transversal'}
-						<p class="comp-kind">Competencia transversal</p>
-					{/if}
+						{#if criteria.length === 0}
+							<EmptyState title="Sin criterios definidos." />
+						{:else}
+							{#each criteria as c (c.criterion_id)}
+								<div class="row criterion">
+									<p class="grow criterion-text">{c.description}</p>
+									<IconButton
+										icon="trash"
+										label="Eliminar criterio"
+										onclick={() => (deletingId = c.criterion_id)}
+										title="Eliminar"
+									/>
+								</div>
+							{/each}
+						{/if}
 
-					{#if criteria.length === 0}
-						<p class="empty">Sin criterios definidos.</p>
-					{:else}
-						{#each criteria as c (c.criterion_id)}
-							<div class="row criterion">
-								<p class="grow criterion-text">{c.description}</p>
-								<button
-									class="action pressable"
-									onclick={() => (deletingId = c.criterion_id)}
-									aria-label="Eliminar criterio"
-									title="Eliminar"
-								>
-									<Icon name="trash" size={15} />
-								</button>
-							</div>
-						{/each}
-					{/if}
-
-					{#if composingFor === comp.competency_id}
-						<textarea
-							class="draft"
-							bind:value={draft}
-							rows="3"
-							placeholder="Ej.: Traduce un problema verbal con dos incógnitas a un sistema de ecuaciones."
-							disabled={saving}></textarea>
-						<div class="row actions">
-							<button
-								class="btn-light"
-								onclick={() => {
-									composingFor = null;
-									draft = '';
-								}}
+						{#if composingFor === comp.competency_id}
+							<Field
+								kind="textarea"
+								label="Criterio"
+								bind:value={draft}
+								rows={3}
+								placeholder="Ej.: Traduce un problema verbal con dos incógnitas a un sistema de ecuaciones."
 								disabled={saving}
-							>
-								Cancelar
-							</button>
-							<button
-								class="btn-dark"
-								onclick={() => void save(comp.competency_id)}
-								disabled={saving || draft.trim() === ''}
-							>
-								Guardar
-							</button>
-						</div>
-					{:else}
-						<button class="add pressable" onclick={() => startComposing(comp.competency_id)}>
-							+ Agregar criterio
-						</button>
-					{/if}
-				</div>
-			{/each}
-		</div>
-	{:else if loadError}
-		<p class="empty">No se pudieron cargar los criterios.</p>
+							/>
+							<div class="row actions">
+								<Button
+									variant="secondary"
+									onclick={() => {
+										composingFor = null;
+										draft = '';
+									}}
+									disabled={saving}
+								>
+									Cancelar
+								</Button>
+								<Button
+									variant="primary"
+									onclick={() => void save(comp.competency_id)}
+									disabled={saving || draft.trim() === ''}
+								>
+									Guardar
+								</Button>
+							</div>
+						{:else}
+							<Action variant="link" onclick={() => startComposing(comp.competency_id)}>
+								+ Agregar criterio
+							</Action>
+						{/if}
+					</Card>
+				{/each}
+			</div>
+		{:else if loadError}
+			<Notice variant="danger" live>No se pudieron cargar los criterios.</Notice>
+		{:else}<LoadingState label="Cargando…" />{/if}
+	</div>
+
+	{#if deletingId !== null}
+		<ConfirmDialog
+			title="¿Eliminar este criterio?"
+			text="Los niveles ya registrados contra él se conservan como parte del historial."
+			confirmLabel="Eliminar"
+			onconfirm={() => void remove(deletingId ?? '')}
+			oncancel={() => (deletingId = null)}
+		/>
 	{/if}
 </div>
-
-{#if deletingId !== null}
-	<ConfirmDialog
-		title="¿Eliminar este criterio?"
-		text="Los niveles ya registrados contra él se conservan como parte del historial."
-		confirmLabel="Eliminar"
-		onconfirm={() => void remove(deletingId ?? '')}
-		oncancel={() => (deletingId = null)}
-	/>
-{/if}
 
 <style>
 	.title {
 		margin: 0;
 		padding-bottom: 14px;
-		border-bottom: 1.5px solid var(--text-primary);
-		font-size: 34px;
-		font-weight: 700;
-		letter-spacing: -0.02em;
-		line-height: 1.1;
+
+		font-size: var(--mw-type-title-size);
+		font-weight: 800;
+		letter-spacing: -0.03em;
+		line-height: var(--mw-type-title-line);
 	}
 
 	.subtitle {
-		margin: 10px 0 var(--space-lg);
-		font-family: var(--font-mono);
-		font-size: 11px;
+		margin: 10px 0 var(--mw-space-4);
+		font-family: var(--mw-font-sans);
+		font-size: var(--mw-type-label-size);
 		text-transform: uppercase;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
 
 	.intro {
-		margin: 0 0 var(--space-md);
-		font-size: 12px;
+		margin: 0 0 var(--mw-space-3);
+		font-size: var(--mw-type-caption-size);
 		line-height: 1.45;
-		color: var(--text-muted);
-	}
-
-	.notice {
-		gap: var(--space-sm);
-		align-items: flex-start;
-		background: var(--bg-danger);
-		border-radius: var(--radius);
-		padding: var(--space-sm) var(--space-md);
-		margin-bottom: var(--space-md);
-		color: var(--text-danger);
+		color: var(--mw-ink-muted);
 	}
 
 	.notice-text {
 		margin: 0;
-		font-size: 13px;
-		color: var(--text-primary);
-	}
-
-	.comp {
-		padding: var(--space-md);
+		font-size: var(--mw-type-small-size);
+		color: var(--mw-ink);
 	}
 
 	.comp-name {
 		margin: 0;
-		font-size: 14px;
+		font-size: var(--mw-type-body-size);
 		line-height: 1.35;
 	}
 
 	.comp-kind {
 		margin: 2px 0 0;
-		font-size: 11px;
-		color: var(--text-muted);
+		font-size: var(--mw-type-label-size);
+		color: var(--mw-ink-muted);
 	}
 
 	.criterion {
-		gap: var(--space-sm);
+		gap: var(--mw-space-2);
 		align-items: flex-start;
-		padding: var(--space-sm) 0;
-		border-top: 0.5px solid var(--border-strong);
-		margin-top: var(--space-sm);
+		padding: var(--mw-space-2) 0;
+		border-top: 1px solid var(--mw-line-control);
+		margin-top: var(--mw-space-2);
 	}
 
 	.criterion-text {
 		margin: 0;
-		font-size: 13px;
+		font-size: var(--mw-type-small-size);
 		line-height: 1.35;
 	}
 
-	.action {
-		border: none;
-		background: none;
-		padding: 2px;
-		color: var(--text-muted);
-		cursor: pointer;
-		flex-shrink: 0;
-	}
-
-	.empty {
-		margin: var(--space-sm) 0 0;
-		font-size: 12px;
-		color: var(--text-muted);
-	}
-
-	.draft {
+	.view :global(.draft) {
 		width: 100%;
-		margin-top: var(--space-sm);
-		padding: 12px 14px;
-		border-radius: 12px;
-		border: 1px solid var(--border);
-		font-family: inherit;
-		font-size: 13px;
-		color: var(--text-primary);
-		resize: none;
-		box-sizing: border-box;
+		margin-top: var(--mw-space-2);
 	}
 
 	.actions {
-		gap: var(--space-sm);
-		margin-top: var(--space-sm);
+		gap: var(--mw-space-2);
+		margin-top: var(--mw-space-2);
 	}
-
-	.add {
-		display: inline-flex;
-		align-items: center;
-		margin-top: var(--space-md);
-		border: none;
-		padding: 10px 16px;
-		border-radius: 999px;
-		background: var(--aurora-tint);
-		font-family: inherit;
-		font-size: 14px;
-		font-weight: 700;
-		color: var(--aurora-deep);
-		cursor: pointer;
+	.view :global(.add) {
+		margin-top: var(--mw-space-3);
 	}
 </style>

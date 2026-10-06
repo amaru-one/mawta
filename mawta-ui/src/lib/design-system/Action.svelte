@@ -14,6 +14,7 @@
 		loading?: boolean;
 		type?: 'button' | 'submit' | 'reset';
 		onclick?: (event: MouseEvent) => void;
+		title?: string;
 		class?: string;
 		'aria-label'?: string;
 		'aria-describedby'?: string;

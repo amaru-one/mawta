@@ -1,15 +1,24 @@
 <script lang="ts">
+	import {
+		Button,
+		Card,
+		Context,
+		Icon,
+		IconButton,
+		LoadingState,
+		StatusList,
+	} from '$lib/design-system';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { list } from '$lib/api/client';
 	import type { ClassPlanDto, NonTeachingDayKind, PlanExperienceDto } from '$lib/api/dto';
 	import { getClassPlan, getExperience } from '$lib/api/endpoints/planning';
-	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
 	import { showToast } from '$lib/toast';
 
+	let timeline = $state<HTMLDivElement | null>(null);
 	const courseId = $derived(page.params.courseId ?? '');
 
 	let ready = $state(false);
@@ -207,162 +216,200 @@
 <svelte:head>
 	<title>Tu trimestre</title>
 </svelte:head>
+<div class="view">
+	<TopBar back={`/class/${courseId}`} useHistory />
 
-<TopBar back={`/class/${courseId}`} useHistory />
+	<div class="body">
+		{#if ready && plan}
+			<h1 class="screen-title">Tu trimestre</h1>
+			<p class="screen-sub">
+				{plan.term.name} · {fmtRange(plan.term.starts_on, plan.term.ends_on)} ·
+				{plan.class_dates_total} clases
+			</p>
 
-<div class="body">
-	{#if ready && plan}
-		<h1 class="screen-title">Tu trimestre</h1>
-		<p class="screen-sub">
-			{plan.term.name} · {fmtRange(plan.term.starts_on, plan.term.ends_on)} ·
-			{plan.class_dates_total} clases
-		</p>
-
-		<div class="section">
-			<p class="eyebrow">Tu trimestre por semanas</p>
-			<div class="timeline" style="--cols:{weekCount}">
-				<div class="tl-head">
-					{#each weekNumbers as week (week)}<span>{week}</span>{/each}
-				</div>
-				<div class="tl-track">
-					{#each weekNumbers as week (week)}
-						<span class="tl-week" style="grid-column:{week}"></span>
-					{/each}
-					{#each offBlocks as block (block.id)}
-						<span
-							class="tl-off"
-							style="grid-column:{block.from} / {block.to + 1}"
-							title={block.label}
-						>
-							<!-- A one-week cell is too narrow for the word; the stripes, the
-							     legend and the title say it. -->
-							{#if block.to > block.from}{block.text}{/if}
-						</span>
-					{/each}
-					{#each expBlocks as block (block.id)}
-						<span class="tl-block" style="grid-column:{block.from} / {block.to + 1}">
-							{block.title}
-							<small>{block.classes} clases</small>
-						</span>
-					{/each}
-				</div>
-				<div class="tl-marks">
-					{#each weekNumbers as week (week)}
-						{@const dot = offDots.find((item) => item.week === week)}
-						{#if dot}
-							<i class="tl-dot" title={dot.label}></i>
-						{:else}
-							<span></span>
-						{/if}
-					{/each}
-				</div>
-				<div class="legend">
-					<span><span class="sw sw-exp"></span>Experiencia</span>
-					<span><span class="sw sw-off"></span>Semana sin clases</span>
-					<span><span class="sw-dot"></span>Día sin clases</span>
-				</div>
-			</div>
-		</div>
-
-		<div class="section">
-			<div class="context-card">
-				<div class="label-row">
-					<p class="eyebrow">Competencias este trimestre</p>
-					<p class="meta">{dueCount > 0 ? `${dueCount} por trabajar` : 'al día'}</p>
-				</div>
-				{#each competencies as competency (competency.id)}
-					<div class="comp-row">
-						<div class="row comp-head">
-							<p class="grow comp-name">{competency.name}</p>
-							<p class="comp-status">
-								{COMPETENCY_STATUS[competency.status] ?? competency.status}
-							</p>
+			<div class="section">
+				<p class="eyebrow">Tu trimestre por semanas</p>
+				<div class="timeline" style="--cols:{weekCount}">
+					<div class="timeline-actions">
+						<IconButton
+							icon="chevron-left"
+							label="Semanas anteriores"
+							onclick={() => timeline?.scrollBy({ left: -240 })}
+						/><span class="meta">Desliza para ver el trimestre</span><IconButton
+							icon="chevron-right"
+							label="Semanas siguientes"
+							onclick={() => timeline?.scrollBy({ left: 240 })}
+						/>
+					</div>
+					<div
+						class="timeline-scroll"
+						bind:this={timeline}
+						role="region"
+						aria-label="Calendario por semanas"
+					>
+						<div class="tl-head">
+							{#each weekNumbers as week (week)}<span>{week}</span>{/each}
 						</div>
-						<p class="comp-detail">
-							{competency.capabilities_covered_this_term} de {competency.capabilities_total}
-							capacidades con criterio
-						</p>
-						{#if competency.status !== 'planificada'}
-							<p class="comp-detail">{termsWorkedText(list(competency.terms_worked))}</p>
-						{/if}
+						<div class="tl-track">
+							{#each weekNumbers as week (week)}
+								<span class="tl-week" style="grid-column:{week}"></span>
+							{/each}
+							{#each offBlocks as block (block.id)}
+								<span
+									class="tl-off"
+									style="grid-column:{block.from} / {block.to + 1}"
+									title={block.label}
+								>
+									<!-- A one-week cell is too narrow for the word; the stripes, the
+							     legend and the title say it. -->
+									{#if block.to > block.from}{block.text}{/if}
+								</span>
+							{/each}
+							{#each expBlocks as block (block.id)}
+								<span
+									class="tl-block"
+									title={block.title}
+									style="grid-column:{block.from} / {block.to + 1}"
+								>
+									<span class="tl-title">{block.title}</span>
+									<small>{block.classes} clases</small>
+								</span>
+							{/each}
+						</div>
+						<div class="tl-marks">
+							{#each weekNumbers as week (week)}
+								{@const dot = offDots.find((item) => item.week === week)}
+								{#if dot}
+									<i class="tl-dot" title={dot.label}></i>
+								{:else}
+									<span></span>
+								{/if}
+							{/each}
+						</div>
 					</div>
-				{/each}
+					<div class="legend">
+						<span><span class="sw sw-exp"></span>Experiencia</span>
+						<span><span class="sw sw-off"></span>Semana sin clases</span>
+						<span><span class="sw-dot"></span>Día sin clases</span>
+					</div>
+				</div>
 			</div>
-		</div>
 
-		<div class="section">
-			{#if experiences.length > 0}
-				<p class="eyebrow">Experiencias · {experiences.length}</p>
-				<div class="stack">
-					{#each experiences as experience (experience.id)}
-						{@const coverage = coverageOf(experience)}
-						<button
-							class="card exp pressable"
-							disabled={opening === experience.id}
-							onclick={() => void openExperience(experience)}
-						>
-							<div class="row exp-head">
-								<p class="grow exp-title">{experience.title}</p>
-								<p class="exp-status">
-									{EXPERIENCE_STATUS[experience.status] ?? experience.status}
-								</p>
-							</div>
-							<p class="meta">
-								{fmtRange(experience.starts_on, experience.ends_on)} · {experience.class_dates}
-								clases
-							</p>
-							<p class="exp-comps">
-								{list(experience.competencies)
-									.map((competency) => competency.name)
-									.join(' · ')}
-							</p>
-							<p class="exp-coverage">
-								{coverage.withCriteria} de {coverage.total} capacidades con criterio
-							</p>
-						</button>
-					{/each}
-				</div>
-			{:else}
-				<div class="card empty-card">
-					<div class="row empty-row">
-						<span class="icon-tile"><Icon name="calendar" size={18} /></span>
-						<span class="grow">
-							<p class="empty-title">Aún no hay experiencias en este trimestre</p>
-							<p class="empty-text">
-								Cuéntale a Mawta tu idea: detecta las competencias y arma la propuesta con
-								criterios, evidencias y sesiones.
-							</p>
-						</span>
+			<div class="section">
+				<Context>
+					<div class="label-row">
+						<p class="eyebrow">Competencias este trimestre</p>
+						<p class="meta">{dueCount > 0 ? `${dueCount} por trabajar` : 'al día'}</p>
 					</div>
-				</div>
-			{/if}
+					<StatusList
+						items={competencies.map((competency) => ({
+							id: competency.id,
+							name: competency.name,
+							status:
+								competency.status === 'planificada'
+									? 'done'
+									: competency.status === 'toca'
+										? 'due'
+										: 'waiting',
+							label: COMPETENCY_STATUS[competency.status] ?? competency.status,
+							detail: `${competency.capabilities_covered_this_term} de ${competency.capabilities_total} capacidades con criterio. ${competency.status !== 'planificada' ? termsWorkedText(list(competency.terms_worked)) : ''}`,
+						}))}
+					/>
+				</Context>
+			</div>
 
-			<a
-				class="btn-block btn-primary pressable create"
-				href={`/class/${courseId}/plan/new`}
-				onclick={hapticTap}
-			>
-				<Icon name="plus" size={16} /> Crear experiencia
-			</a>
-		</div>
-	{:else if loadError}
-		<p class="empty">
-			No se pudo cargar…
-			<button class="pill-light pressable" onclick={load}>Reintentar</button>
-		</p>
-	{/if}
+			<div class="section">
+				{#if experiences.length > 0}
+					<p class="eyebrow">Experiencias · {experiences.length}</p>
+					<div class="stack">
+						{#each experiences as experience (experience.id)}
+							{@const coverage = coverageOf(experience)}
+							<button
+								class="card exp pressable"
+								disabled={opening === experience.id}
+								onclick={() => void openExperience(experience)}
+							>
+								<div class="row exp-head">
+									<p class="grow exp-title">{experience.title}</p>
+									<p class="exp-status">
+										{EXPERIENCE_STATUS[experience.status] ?? experience.status}
+									</p>
+								</div>
+								<p class="meta">
+									{fmtRange(experience.starts_on, experience.ends_on)} · {experience.class_dates}
+									clases
+								</p>
+								<p class="exp-comps">
+									{list(experience.competencies)
+										.map((competency) => competency.name)
+										.join(' · ')}
+								</p>
+								<p class="exp-coverage">
+									{coverage.withCriteria} de {coverage.total} capacidades con criterio
+								</p>
+							</button>
+						{/each}
+					</div>
+				{:else}
+					<Card>
+						<div class="row empty-row">
+							<span class="icon-tile"><Icon name="calendar" size={18} /></span>
+							<span class="grow">
+								<p class="empty-title">Aún no hay experiencias en este trimestre</p>
+								<p class="empty-text">
+									Cuéntale a Mawta tu idea: detecta las competencias y arma la propuesta con
+									criterios, evidencias y sesiones.
+								</p>
+							</span>
+						</div>
+					</Card>
+				{/if}
+
+				<Button
+					variant="primary"
+					block
+					class="create"
+					href={`/class/${courseId}/plan/new`}
+					onclick={hapticTap}
+				>
+					<Icon name="plus" size={16} /> Crear experiencia
+				</Button>
+			</div>
+		{:else if loadError}
+			<p class="empty">
+				No se pudo cargar…
+				<Button variant="secondary" onclick={load}>Reintentar</Button>
+			</p>
+		{:else}<LoadingState label="Cargando…" />{/if}
+	</div>
 </div>
 
 <style>
+	.timeline-actions {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--mw-space-2);
+		margin-bottom: var(--mw-space-2);
+	}
+	.timeline-scroll {
+		overflow-x: auto;
+		padding-bottom: var(--mw-space-2);
+	}
+	.tl-title {
+		display: block;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
 	.screen-sub {
 		margin: 10px 0 0;
 	}
 
 	.section {
-		margin-top: var(--space-xl);
+		margin-top: var(--mw-space-6);
 	}
-
-	/* ---- the term as weeks ---- */
 
 	.timeline {
 		--cols: 1;
@@ -372,15 +419,15 @@
 	.tl-track,
 	.tl-marks {
 		display: grid;
-		grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+		grid-template-columns: repeat(var(--cols), minmax(80px, 1fr));
 		gap: 3px;
 	}
 
 	.tl-head span {
 		text-align: center;
-		font-family: var(--font-mono);
-		font-size: 10px;
-		color: var(--text-muted);
+		font-family: var(--mw-font-sans);
+		font-size: var(--mw-type-label-size);
+		color: var(--mw-ink-muted);
 	}
 
 	.tl-track {
@@ -390,19 +437,17 @@
 	.tl-week {
 		grid-row: 1;
 		height: 44px;
-		border-radius: var(--radius);
-		background: var(--aurora-tint);
+		border-radius: var(--mw-radius-md);
+		background: var(--mw-surface-tint);
 	}
 
-	/* What you planned carries the action gradient; the weeks it does not cover
-	   stay tinted and quiet — an empty stretch is just empty. */
 	.tl-block {
 		grid-row: 1;
 		height: 44px;
-		border-radius: var(--radius);
-		background: var(--gradient-action);
-		color: var(--on-primary);
-		font-size: 11px;
+		border-radius: var(--mw-radius-md);
+		background: var(--mw-accent);
+		color: var(--mw-on-accent);
+		font-size: var(--mw-type-label-size);
 		font-weight: 700;
 		line-height: 1.25;
 		padding: 6px 7px;
@@ -413,25 +458,21 @@
 	.tl-block small {
 		display: block;
 		margin-top: 2px;
-		font-family: var(--font-mono);
-		font-size: 9px;
+		font-family: var(--mw-font-sans);
+		font-size: var(--mw-type-label-size);
 		font-weight: 500;
 		opacity: 0.85;
 	}
 
-	/* The school's file, drawn as a quiet stripe over the weeks it takes. */
 	.tl-off {
 		grid-row: 1;
 		height: 44px;
-		border-radius: var(--radius);
-		background: repeating-linear-gradient(
-			135deg,
-			var(--surface-1) 0 5px,
-			var(--aurora-tint) 5px 10px
-		);
-		color: var(--text-muted);
-		font-family: var(--font-mono);
-		font-size: 9px;
+		border-radius: var(--mw-radius-md);
+		background: var(--mw-surface-page);
+		border: 1px dashed var(--mw-line-control);
+		color: var(--mw-ink-muted);
+		font-family: var(--mw-font-sans);
+		font-size: var(--mw-type-label-size);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -449,15 +490,16 @@
 		width: 6px;
 		height: 6px;
 		border-radius: 50%;
-		background: var(--text-faint);
+		background: var(--mw-ink-muted);
 	}
 
 	.legend {
+		flex-wrap: wrap;
 		display: flex;
 		gap: 14px;
 		margin-top: 10px;
-		font-size: 11px;
-		color: var(--text-muted);
+		font-size: var(--mw-type-label-size);
+		color: var(--mw-ink-muted);
 	}
 
 	.legend > span {
@@ -473,88 +515,44 @@
 	}
 
 	.sw-exp {
-		background: var(--gradient-action);
+		background: var(--mw-accent);
 	}
 
 	.sw-off {
-		background: repeating-linear-gradient(
-			135deg,
-			var(--surface-1) 0 3px,
-			var(--aurora-tint) 3px 6px
-		);
-		border: 0.5px solid var(--border);
+		background: var(--mw-surface-page);
+		border: 1px dashed var(--mw-line-control);
+		border: 1px solid var(--mw-line);
 	}
 
 	.sw-dot {
 		width: 6px;
 		height: 6px;
 		border-radius: 50%;
-		background: var(--text-faint);
+		background: var(--mw-ink-muted);
 	}
-
-	/* ---- competencias este trimestre ---- */
 
 	.label-row {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: var(--space-sm);
-		margin-bottom: var(--space-xs);
+		gap: var(--mw-space-2);
+		margin-bottom: var(--mw-space-1);
 	}
 
 	.label-row .eyebrow {
 		margin: 0;
 	}
 
-	.comp-row {
-		padding: var(--space-sm) 0;
-	}
-
-	.comp-row + .comp-row {
-		border-top: 0.5px solid var(--hair);
-	}
-
-	.row.comp-head {
-		justify-content: space-between;
-		gap: var(--space-sm);
-	}
-
-	.comp-name {
-		margin: 0;
-		font-size: 13px;
-		font-weight: 700;
-		line-height: 1.35;
-	}
-
-	/* Status is written as text, never a chip. */
-	.comp-status {
-		margin: 0;
-		flex-shrink: 0;
-		font-size: 12px;
-		font-weight: 600;
-		color: var(--text-secondary);
-	}
-
-	.comp-detail {
-		margin: 3px 0 0;
-		font-size: 12px;
-		line-height: 1.4;
-		color: var(--text-muted);
-	}
-
-	/* ---- experiencias ---- */
-
 	.stack {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-sm);
+		gap: var(--mw-space-2);
 	}
 
-	/* The whole card opens the experience. */
 	.exp {
 		display: block;
 		width: 100%;
-		padding: var(--space-md);
+		padding: var(--mw-space-3);
 		text-align: left;
 		font-family: inherit;
 		color: inherit;
@@ -565,12 +563,12 @@
 	}
 
 	.row.exp-head {
-		gap: var(--space-sm);
+		gap: var(--mw-space-2);
 	}
 
 	.exp-title {
 		margin: 0;
-		font-size: 15px;
+		font-size: var(--mw-type-body-size);
 		font-weight: 700;
 		letter-spacing: -0.01em;
 		line-height: 1.3;
@@ -579,9 +577,9 @@
 	.exp-status {
 		margin: 0;
 		flex-shrink: 0;
-		font-size: 12px;
+		font-size: var(--mw-type-caption-size);
 		font-weight: 600;
-		color: var(--text-secondary);
+		color: var(--mw-ink-secondary);
 	}
 
 	.exp .meta {
@@ -590,21 +588,15 @@
 
 	.exp-comps {
 		margin: 6px 0 0;
-		font-size: 12px;
+		font-size: var(--mw-type-caption-size);
 		line-height: 1.4;
-		color: var(--text-secondary);
+		color: var(--mw-ink-secondary);
 	}
 
 	.exp-coverage {
 		margin: 3px 0 0;
-		font-size: 12px;
-		color: var(--text-muted);
-	}
-
-	/* ---- empty state and the one primary action ---- */
-
-	.empty-card {
-		padding: var(--space-lg);
+		font-size: var(--mw-type-caption-size);
+		color: var(--mw-ink-muted);
 	}
 
 	.row.empty-row {
@@ -613,25 +605,24 @@
 
 	.empty-title {
 		margin: 0;
-		font-size: 15px;
+		font-size: var(--mw-type-body-size);
 		font-weight: 700;
 		line-height: 1.3;
 	}
 
 	.empty-text {
 		margin: 6px 0 0;
-		font-size: 13px;
+		font-size: var(--mw-type-small-size);
 		line-height: 1.45;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
-
-	.create {
-		margin-top: var(--space-md);
+	.view :global(.create) {
+		margin-top: var(--mw-space-3);
 	}
 
 	.empty {
-		margin: var(--space-lg) 0 0;
-		font-size: 13px;
-		color: var(--text-muted);
+		margin: var(--mw-space-4) 0 0;
+		font-size: var(--mw-type-small-size);
+		color: var(--mw-ink-muted);
 	}
 </style>

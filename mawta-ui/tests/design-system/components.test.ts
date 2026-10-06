@@ -155,7 +155,7 @@ describe('Nítido interaction contracts', () => {
 		expect(getComputedStyle(date).fontVariantNumeric).toBe('tabular-nums');
 	});
 
-	test('tokens and resets stay inside the design system with legacy CSS loaded', async () => {
+	test('tokens and resets stay inside the design system with application CSS loaded', async () => {
 		const screen = await render(Fixture, { scenario: 'actions' });
 		const save = screen.getByRole('button', { name: 'Guardar experiencia' }).element();
 		const style = getComputedStyle(save);
@@ -163,10 +163,10 @@ describe('Nítido interaction contracts', () => {
 		expect(style.backgroundImage).toBe('none');
 		expect(style.borderRadius).toBe('12px');
 		expect(save.getBoundingClientRect().height).toBeGreaterThanOrEqual(48);
-		expect(getComputedStyle(screen.getByTestId('legacy-button').element()).borderRadius).toBe(
-			'999px'
+		expect(getComputedStyle(screen.getByTestId('outside-button').element()).borderRadius).toBe(
+			'3px'
 		);
-		expect(getComputedStyle(screen.getByTestId('legacy-input').element()).fontSize).toBe('14px');
+		expect(getComputedStyle(screen.getByTestId('outside-input').element()).fontSize).toBe('14px');
 		const icon = screen.getByRole('button', { name: 'Agregar criterio' }).element();
 		expect(icon.getBoundingClientRect().height).toBeGreaterThanOrEqual(40);
 	});

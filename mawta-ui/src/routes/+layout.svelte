@@ -1,10 +1,10 @@
 <script lang="ts">
+	import { DesignSystem, LoadingState } from '$lib/design-system';
 	import '../app.css';
 	import { onMount } from 'svelte';
 	import { afterNavigate, goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import favicon from '$lib/assets/favicon.svg';
-	import IconSprite from '$lib/components/IconSprite.svelte';
 	import Toast from '$lib/components/Toast.svelte';
 	import { getMe } from '$lib/api/endpoints/home';
 	import { setUnauthorizedHandler } from '$lib/api/client';
@@ -74,12 +74,14 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 </svelte:head>
 
-<IconSprite />
+<DesignSystem class="application">
+	<div class="app-shell">
+		{#if $session.status !== 'unknown'}
+			{@render children()}
+		{:else}
+			<div class="body"><LoadingState label="Cargando Mawta…" /></div>
+		{/if}
+	</div>
 
-<div class="app-shell">
-	{#if $session.status !== 'unknown'}
-		{@render children()}
-	{/if}
-</div>
-
-<Toast />
+	<Toast />
+</DesignSystem>

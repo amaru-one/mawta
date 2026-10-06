@@ -59,8 +59,8 @@
 	];
 </script>
 
-<button class="btn-dark" data-testid="legacy-button">Legacy action</button>
-<input data-testid="legacy-input" aria-label="Legacy field" />
+<button style="border-radius: 3px" data-testid="outside-button">Outside action</button>
+<input style="font-size: 14px" data-testid="outside-input" aria-label="Outside field" />
 <div style="width: 320px; max-width: 100%;">
 	<DesignSystem>
 		{#if scenario === 'actions'}

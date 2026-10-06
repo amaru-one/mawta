@@ -1,78 +1,114 @@
 <script lang="ts">
-	// The literal value of one piece of evidencia: AD · A · B · C as four large
-	// letters, the chosen one underlined.
-	//
-	// It borrows the competency index's grammar on purpose. Both are LINE
-	// controls; the boxed four-cell block is reserved for the competency level,
-	// and that difference is what keeps "I valued this piece of work" from
-	// reading as "I decided the official record". A letter on an evidence is not
-	// a nivel de logro — two AD and one B are not an A.
 	import type { Tier } from '$lib/grades';
 	import { hapticTap } from '$lib/haptics';
-
-	interface Props {
-		/** null = not valued yet. Nothing is underlined; never render it as C. */
-		level: Tier | null;
-		disabled?: boolean;
-		onselect: (level: Tier) => void;
-	}
-
-	let { level, disabled = false, onselect }: Props = $props();
-
-	// CNEB descending-quality order, as the norm itself lists them.
-	const TIERS: Tier[] = ['AD', 'A', 'B', 'C'];
-
-	function pick(t: Tier): void {
-		if (disabled) return;
-		hapticTap();
-		onselect(t);
+	let {
+		level,
+		disabled = false,
+		onselect,
+	}: { level: Tier | null; disabled?: boolean; onselect: (level: Tier) => void } = $props();
+	const uid = $props.id();
+	const tiers: { value: Tier; label: string }[] = [
+		{ value: 'AD', label: 'Destacado' },
+		{ value: 'A', label: 'Esperado' },
+		{ value: 'B', label: 'En proceso' },
+		{ value: 'C', label: 'En inicio' },
+	];
+	function pick(value: Tier) {
+		if (!disabled) {
+			hapticTap();
+			onselect(value);
+		}
 	}
 </script>
 
-<div class="scale" class:off={disabled} role="radiogroup" aria-label="Valoración de la evidencia">
-	{#each TIERS as t (t)}
-		<button
-			type="button"
-			class="opt pressable"
-			class:on={level === t}
-			role="radio"
-			aria-checked={level === t}
-			aria-label="Nivel {t}"
-			{disabled}
-			onclick={() => pick(t)}
-		>
-			{t}
-		</button>
-	{/each}
-</div>
+<fieldset class="levels evidence" {disabled}>
+	<legend>Valoración de la evidencia</legend>
+	<div class="options">
+		{#each tiers as tier (tier.value)}<label class:chosen={level === tier.value}>
+				<input
+					type="radio"
+					name={uid}
+					aria-label="{tier.value} · {tier.label}"
+					value={tier.value}
+					checked={level === tier.value}
+					onchange={() => pick(tier.value)}
+				/>
+				<span class="code">{tier.value}</span><span class="name">{tier.label}</span>
+			</label>{/each}
+	</div>
+	{#if level === null}<p class="unset">Sin valorar</p>{/if}
+</fieldset>
 
 <style>
-	.scale {
-		display: flex;
-		align-items: flex-end;
-		border-bottom: 0.5px solid var(--border);
+	.levels {
+		border: 0;
+		padding: 0;
+		margin: 0;
+		min-width: 0;
 	}
-
-	.scale.off {
-		opacity: 0.3;
-	}
-
-	.opt {
-		display: block;
-		padding: 10px 14px 8px;
-		border-bottom: 2px solid transparent;
-		font-size: 24px;
+	legend {
+		padding: 0;
+		margin-bottom: var(--mw-space-2);
+		font-size: var(--mw-type-small-size);
 		font-weight: 600;
-		line-height: 1;
-		color: var(--text-faint);
+	}
+	.options {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: var(--mw-space-1);
+	}
+	label {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: var(--mw-space-1);
+		padding: var(--mw-space-2) var(--mw-space-1);
+		min-height: 64px;
+		cursor: pointer;
+		border: 1px solid var(--mw-line-control);
+		border-radius: var(--mw-radius-md);
+	}
+	input {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		opacity: 0;
+	}
+	label:has(input:focus-visible) {
+		outline: 2px solid var(--mw-focus-ring);
+		outline-offset: 2px;
+	}
+	.code {
+		font-size: var(--mw-type-heading-size);
+		font-weight: 700;
+	}
+	.name {
+		font-size: var(--mw-type-label-size);
+		line-height: var(--mw-type-label-line);
+		text-align: center;
 	}
 
-	.opt.on {
-		border-bottom-color: var(--aurora-deep);
-		color: var(--aurora-deep);
+	.evidence label {
+		border: 0;
+		border-bottom: 2px solid var(--mw-line-control);
+		border-radius: 0;
 	}
-
-	.opt:disabled {
-		cursor: default;
+	.evidence .chosen {
+		border-color: var(--mw-accent);
+		color: var(--mw-accent);
+		background: var(--mw-surface-tint);
+	}
+	.unset {
+		margin: var(--mw-space-2) 0 0;
+		font-size: var(--mw-type-caption-size);
+		color: var(--mw-ink-muted);
+	}
+	fieldset:disabled {
+		opacity: 0.55;
+	}
+	fieldset:disabled label {
+		cursor: not-allowed;
 	}
 </style>

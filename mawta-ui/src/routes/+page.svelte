@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Button, EmptyState, LoadingState } from '$lib/design-system';
 	import { onMount, untrack } from 'svelte';
 	import { list } from '$lib/api/client';
 	import type { HomeDto, HomeTodayDto, HomeWeekSessionDto, SessionStatus } from '$lib/api/dto';
@@ -15,7 +16,7 @@
 	const HOUR_PX = 64;
 
 	let d = $state<HomeDto | null>(null);
-	/** The day being looked at, ISO. Not necessarily the payload's own date. */
+
 	let selected = $state('');
 	let ready = $state(false);
 	let loadError = $state(false);
@@ -63,7 +64,6 @@
 		return isoOf(dt);
 	};
 
-	/** Monday of the ISO week containing `iso` — the week the server answers with. */
 	const mondayOf = (iso: string): string => {
 		const dt = parseDateOnly(iso);
 		dt.setDate(dt.getDate() - ((dt.getDay() + 6) % 7));
@@ -252,96 +252,95 @@
 <svelte:head>
 	<title>Mawta — Inicio</title>
 </svelte:head>
+<div class="view">
+	<div class="screen">
+		<TopBar variant="home" />
 
-<div class="screen">
-	<TopBar variant="home" />
-
-	{#if ready && selected !== ''}
-		<div class="head">
-			<div class="titlerow">
-				<h1 class="date">{longDate(selected)}</h1>
-			</div>
-			<p class="sum">{summary}</p>
-
-			<!-- The strip is the whole of the day navigation: five days, the week on
-			     screen is the only week there is. -->
-			<div class="strip">
-				{#each strip as day (day.iso)}
-					<button
-						type="button"
-						class="day pressable"
-						aria-label={longDate(day.iso)}
-						aria-current={day.selected ? 'date' : undefined}
-						onclick={() => pick(day.iso)}
-					>
-						<span class="dow" class:on={day.selected}>{day.letter}</span>
-						<span class="num" class:on={day.selected} class:ring={day.today && !day.selected}
-							>{day.num}</span
-						>
-						<span class="dot" class:has={day.has} class:on={day.selected}></span>
-					</button>
-				{/each}
-			</div>
-		</div>
-
-		<!-- No classes, no grid: ten empty hours state the same thing as one line
-		     and take the whole screen to do it. -->
-		{#if blocks.length === 0}
+		{#if ready && selected !== ''}
 			<div class="head">
-				<p class="none">Este día no tienes clases.</p>
-			</div>
-		{:else}
-			<div class="grid" bind:this={gridEl}>
-				<div class="canvas" style="height: {gridHeight}px">
-					{#each hours as hour (hour.h)}
-						<div class="hline" style="top: {hour.y}px"></div>
-						<span class="hlabel" style="top: {hour.y - 1}px">{hour.label}</span>
-					{/each}
+				<div class="titlerow">
+					<h1 class="date">{longDate(selected)}</h1>
+				</div>
+				<p class="sum">{summary}</p>
 
-					{#each blocks as b (b.sessionId)}
-						{#if b.off}
-							<span class="box off" style="top: {b.top}px; height: {b.height}px">
-								<span class="btime">{b.time} · cancelada</span>
-								<span class="bname">{b.name}</span>
-							</span>
-						{:else}
-							<a
-								class="box pressable"
-								class:live={b.live}
-								class:done={b.done}
-								style="top: {b.top}px; height: {b.height}px"
-								href="/class/{b.classId}/lesson/{b.sessionId}"
-								onclick={hapticTap}
+				<!-- The strip is the whole of the day navigation: five days, the week on
+			     screen is the only week there is. -->
+				<div class="strip">
+					{#each strip as day (day.iso)}
+						<button
+							type="button"
+							class="day pressable"
+							aria-label={longDate(day.iso)}
+							aria-current={day.selected ? 'date' : undefined}
+							onclick={() => pick(day.iso)}
+						>
+							<span class="dow" class:on={day.selected}>{day.letter}</span>
+							<span class="num" class:on={day.selected} class:ring={day.today && !day.selected}
+								>{day.num}</span
 							>
-								<span class="btime">{b.time}</span>
-								<span class="bname">{b.name}</span>
-							</a>
-						{/if}
+							<span class="dot" class:has={day.has} class:on={day.selected}></span>
+						</button>
 					{/each}
-
-					{#if nowTop !== null}
-						<div class="nowline" style="top: {nowTop}px" aria-hidden="true">
-							<span class="nowrule"></span>
-							<span class="nowdot"></span>
-							<span class="nowlabel">{nowLabel}</span>
-						</div>
-					{/if}
 				</div>
 			</div>
-		{/if}
-	{:else if loadError}
-		<div class="head">
-			<p class="none">
-				No se pudieron cargar las clases.
-				<button class="pill-light pressable" onclick={() => load()}>Reintentar</button>
-			</p>
-		</div>
-	{/if}
+
+			<!-- No classes, no grid: ten empty hours state the same thing as one line
+		     and take the whole screen to do it. -->
+			{#if blocks.length === 0}
+				<div class="head">
+					<EmptyState title="Este día no tienes clases." />
+				</div>
+			{:else}
+				<div class="grid" bind:this={gridEl}>
+					<div class="canvas" style="height: {gridHeight}px">
+						{#each hours as hour (hour.h)}
+							<div class="hline" style="top: {hour.y}px"></div>
+							<span class="hlabel" style="top: {hour.y - 1}px">{hour.label}</span>
+						{/each}
+
+						{#each blocks as b (b.sessionId)}
+							{#if b.off}
+								<span class="box off" style="top: {b.top}px; height: {b.height}px">
+									<span class="btime">{b.time} · cancelada</span>
+									<span class="bname">{b.name}</span>
+								</span>
+							{:else}
+								<a
+									class="box pressable"
+									class:live={b.live}
+									class:done={b.done}
+									style="top: {b.top}px; height: {b.height}px"
+									href="/class/{b.classId}/lesson/{b.sessionId}"
+									onclick={hapticTap}
+								>
+									<span class="btime">{b.time}</span>
+									<span class="bname">{b.name}</span>
+								</a>
+							{/if}
+						{/each}
+
+						{#if nowTop !== null}
+							<div class="nowline" style="top: {nowTop}px" aria-hidden="true">
+								<span class="nowrule"></span>
+								<span class="nowdot"></span>
+								<span class="nowlabel">{nowLabel}</span>
+							</div>
+						{/if}
+					</div>
+				</div>
+			{/if}
+		{:else if loadError}
+			<div class="head">
+				<p class="none">
+					No se pudieron cargar las clases.
+					<Button variant="secondary" onclick={() => load()}>Reintentar</Button>
+				</p>
+			</div>
+		{:else}<LoadingState label="Cargando…" />{/if}
+	</div>
 </div>
 
 <style>
-	/* Header and strip are fixed; only the grid scrolls, so the day picker never
-	   leaves the screen when the teacher scrolls down to the afternoon. */
 	.screen {
 		display: flex;
 		flex-direction: column;
@@ -360,12 +359,11 @@
 		justify-content: space-between;
 		gap: 12px;
 		padding-bottom: 14px;
-		border-bottom: 1.5px solid var(--text-primary);
 	}
 
 	.date {
 		margin: 0;
-		font-size: 34px;
+		font-size: var(--mw-type-title-size);
 		font-weight: 700;
 		letter-spacing: -0.02em;
 		line-height: 1.1;
@@ -373,13 +371,11 @@
 
 	.sum {
 		margin: 10px 0 16px;
-		font-size: 11px;
-		font-family: var(--font-mono);
+		font-size: var(--mw-type-label-size);
+		font-family: var(--mw-font-sans);
 		letter-spacing: 0.04em;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
-
-	/* ---- the week strip ---- */
 
 	.strip {
 		display: flex;
@@ -387,7 +383,7 @@
 		justify-content: space-between;
 		gap: 4px;
 		padding: 2px 0 12px;
-		border-bottom: 0.5px solid var(--border);
+		border-bottom: 1px solid var(--mw-line);
 	}
 
 	.day {
@@ -400,14 +396,14 @@
 	}
 
 	.dow {
-		font-family: var(--font-mono);
-		font-size: 11px;
+		font-family: var(--mw-font-sans);
+		font-size: var(--mw-type-label-size);
 		letter-spacing: 0.06em;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
 
 	.dow.on {
-		color: var(--text-primary);
+		color: var(--mw-ink);
 	}
 
 	.num {
@@ -416,24 +412,23 @@
 		justify-content: center;
 		width: 36px;
 		height: 36px;
-		border-radius: 50%;
-		font-size: 17px;
+		border-radius: var(--mw-radius-md);
+		font-size: var(--mw-type-heading-size);
 		font-weight: 600;
 		line-height: 1;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
 
 	.num.on {
-		background: var(--gradient-action);
-		color: var(--on-primary);
+		background: var(--mw-accent);
+		color: var(--mw-on-accent);
 		font-weight: 700;
-		box-shadow: 0 6px 14px rgba(74, 95, 214, 0.28);
+		box-shadow: var(--mw-shadow-card);
 	}
 
-	/* Where "today" sits while another day is being looked at. */
 	.num.ring {
-		border: 1px solid var(--aurora-deep);
-		color: var(--text-primary);
+		border: 1px solid var(--mw-accent);
+		color: var(--mw-ink);
 	}
 
 	.dot {
@@ -444,14 +439,12 @@
 	}
 
 	.dot.has {
-		background: var(--text-faint);
+		background: var(--mw-ink-muted);
 	}
 
 	.dot.has.on {
-		background: var(--aurora-deep);
+		background: var(--mw-accent);
 	}
-
-	/* ---- the hour grid ---- */
 
 	.grid {
 		flex: 1;
@@ -468,14 +461,12 @@
 		position: relative;
 	}
 
-	/* 1px, not the app's 0.5px hairline: at half a pixel the scale fades out and
-	   the grid stops reading as time. */
 	.hline {
 		position: absolute;
 		left: 50px;
 		right: 0;
 		height: 0;
-		border-top: 1px solid var(--border);
+		border-top: 1px solid var(--mw-line);
 	}
 
 	.hlabel {
@@ -483,16 +474,12 @@
 		left: 0;
 		width: 34px;
 		text-align: right;
-		font-size: 11px;
+		font-size: var(--mw-type-label-size);
 		line-height: 1.4;
-		font-family: var(--font-mono);
-		color: var(--text-secondary);
+		font-family: var(--mw-font-sans);
+		color: var(--mw-ink-secondary);
 	}
 
-	/* Filled AND outlined, and both are load-bearing: the fill separates busy
-	   from free, the outline separates two classes that touch — without it the
-	   2px seam between a 10:00–11:30 and a 11:30–12:15 reads as a scratch inside
-	   one long box rather than as the end of one and the start of another. */
 	.box {
 		position: absolute;
 		left: 50px;
@@ -503,50 +490,47 @@
 		justify-content: center;
 		padding: 6px 12px;
 		border-radius: 12px;
-		background: var(--aurora-tint);
-		border: 1px solid var(--hair);
+		background: var(--mw-surface-tint);
+		border: 1px solid var(--mw-line);
 		overflow: hidden;
 		color: inherit;
 	}
 
-	/* The one loud element on the screen: the class happening right now takes
-	   the action gradient, so the day reads at a glance without a legend. */
 	.box.live {
-		background: var(--gradient-action);
+		background: var(--mw-accent);
 		border-color: transparent;
-		box-shadow: 0 10px 22px rgba(74, 95, 214, 0.28);
+		box-shadow: var(--mw-shadow-card);
 	}
 
 	.box.live .bname {
-		color: var(--on-primary);
+		color: var(--mw-on-accent);
 	}
 
 	.box.live .btime {
-		color: rgba(255, 255, 255, 0.75);
+		color: var(--mw-on-accent);
 	}
 
-	/* A finished class steps back to the page's own white. */
 	.box.done,
 	.box.off {
-		background: var(--surface-2);
-		border-color: var(--border);
+		background: var(--mw-surface-card);
+		border-color: var(--mw-line);
 	}
 
 	.btime {
 		display: block;
-		font-size: 11px;
+		font-size: var(--mw-type-label-size);
 		line-height: 1.2;
-		font-family: var(--font-mono);
+		font-family: var(--mw-font-sans);
 		letter-spacing: 0.02em;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
-		color: var(--aurora-deep);
+		color: var(--mw-accent);
 	}
 
 	.bname {
 		display: block;
-		font-size: 15px;
+		font-size: var(--mw-type-body-size);
 		font-weight: 700;
 		letter-spacing: -0.01em;
 		line-height: 1.15;
@@ -557,16 +541,14 @@
 
 	.box.done .bname,
 	.box.off .bname {
-		color: var(--text-secondary);
+		color: var(--mw-ink-secondary);
 		font-weight: 600;
 	}
 
 	.box.done .btime,
 	.box.off .btime {
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
-
-	/* ---- the now marker ---- */
 
 	.nowline {
 		position: absolute;
@@ -576,14 +558,13 @@
 		z-index: 2;
 	}
 
-	/* Solid, not the 35% of the old rail: this one crosses filled boxes. */
 	.nowrule {
 		position: absolute;
 		left: 50px;
 		right: 0;
 		top: 0;
 		height: 1px;
-		background: var(--fill-primary);
+		background: var(--mw-accent);
 	}
 
 	.nowdot {
@@ -593,7 +574,7 @@
 		width: 6px;
 		height: 6px;
 		border-radius: 50%;
-		background: var(--fill-primary);
+		background: var(--mw-accent);
 	}
 
 	.nowlabel {
@@ -602,18 +583,16 @@
 		top: -7px;
 		width: 34px;
 		text-align: right;
-		font-size: 10px;
+		font-size: var(--mw-type-label-size);
 		line-height: 1.4;
-		font-family: var(--font-mono);
-		color: var(--text-primary);
-		background: var(--surface-2);
+		font-family: var(--mw-font-sans);
+		color: var(--mw-ink);
+		background: var(--mw-surface-card);
 	}
-
-	/* ---- empty and error ---- */
 
 	.none {
 		margin: 8px 0 0;
-		font-size: 17px;
-		color: var(--text-secondary);
+		font-size: var(--mw-type-heading-size);
+		color: var(--mw-ink-secondary);
 	}
 </style>

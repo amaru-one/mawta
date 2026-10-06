@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Button, Card, Icon, ListRow, LoadingState } from '$lib/design-system';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { list } from '$lib/api/client';
@@ -7,7 +8,6 @@
 	import { getProfile } from '$lib/api/endpoints/profile';
 	import { parseDateOnly } from '$lib/api/mappers';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
-	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import type { IconName } from '$lib/icons';
 	import { hapticTap } from '$lib/haptics';
@@ -103,130 +103,116 @@
 <svelte:head>
 	<title>Mi perfil</title>
 </svelte:head>
+<div class="view">
+	<TopBar back="/" title="Mi perfil" showBell={false} />
 
-<TopBar back="/" title="Mi perfil" showBell={false} />
-
-<div class="body top">
-	{#if ready && profile}
-		<div class="identity">
-			<span class="avatar big">{initials}</span>
-			<p class="name">{profile.display_name}</p>
-			{#if profile.title}<p class="line">{profile.title}</p>{/if}
-			<p class="line">{school}</p>
-			{#if since}<p class="meta since">{since}</p>{/if}
-		</div>
-
-		<div class="grid3 stats">
-			{#each stats as stat (stat.label)}
-				<div class="stat centered">
-					<p class="stat-value">{stat.value}</p>
-					<p class="stat-label">{stat.label}</p>
-				</div>
-			{/each}
-		</div>
-
-		<p class="eyebrow">ACTIVIDAD</p>
-		<div class="card activity">
-			{#each activity as item, i (item.label)}
-				{#if i > 0}<div class="divider"></div>{/if}
-				<div class="row activity-row">
-					<span class="activity-icon"><Icon name={item.icon} size={17} /></span>
-					<span class="activity-label">{item.label}</span>
-					<span class="activity-value" class:danger={item.danger}>{item.value}</span>
-				</div>
-			{/each}
-		</div>
-
-		<p class="eyebrow classes-head">MIS CLASES · {totalClasses}</p>
-
-		{#each classGroups as group (group.grade_label)}
-			<div class="row group-head">
-				<p class="meta group-label">{group.grade_label}</p>
-				<div class="rule"></div>
-				<span class="group-count">{group.classes.length}</span>
+	<div class="body top">
+		{#if ready && profile}
+			<div class="identity">
+				<span class="mw-avatar big">{initials}</span>
+				<p class="name">{profile.display_name}</p>
+				{#if profile.title}<p class="line">{profile.title}</p>{/if}
+				<p class="line">{school}</p>
+				{#if since}<p class="meta since">{since}</p>{/if}
 			</div>
-			<div class="card group">
-				{#each group.classes as klass, i (klass.class_id)}
-					{#if i > 0}<div class="divider"></div>{/if}
-					<!-- The only date-independent way into an área: Home is bounded to the
-					     current ISO week, so a class whose sessions are all past is
-					     unreachable from there. See this screen's SPEC. -->
-					<a class="row class-row pressable" href="/class/{klass.class_id}" onclick={hapticTap}>
-						<span class="class-name grow">{klass.name}</span>
-						<span class="class-meta">{klass.roster_count} · {klass.slots_per_week}/sem</span>
-						<span class="chevron"><Icon name="chevron-right" size={18} /></span>
-					</a>
+
+			<div class="grid3 stats">
+				{#each stats as stat (stat.label)}
+					<div class="stat centered">
+						<p class="stat-value">{stat.value}</p>
+						<p class="stat-label">{stat.label}</p>
+					</div>
 				{/each}
 			</div>
-		{/each}
 
-		<button class="btn-block logout pressable" onclick={() => (showLogoutConfirm = true)}>
-			<Icon name="logout" size={16} />Cerrar sesión
-		</button>
+			<p class="eyebrow">ACTIVIDAD</p>
+			<Card>
+				{#each activity as item, i (item.label)}
+					{#if i > 0}<div class="divider"></div>{/if}
+					<div class="row activity-row">
+						<span class="activity-icon"><Icon name={item.icon} size={17} /></span>
+						<span class="activity-label">{item.label}</span>
+						<span class="activity-value" class:danger={item.danger}>{item.value}</span>
+					</div>
+				{/each}
+			</Card>
 
-		<p class="meta version">{APP_VERSION}</p>
-	{:else if loadError}
-		<p class="line">
-			No se pudo cargar el perfil.
-			<button class="pill-light pressable" onclick={load}>Reintentar</button>
-		</p>
+			<p class="eyebrow classes-head">MIS CLASES · {totalClasses}</p>
+
+			{#each classGroups as group (group.grade_label)}
+				<div class="row group-head">
+					<p class="meta group-label">{group.grade_label}</p>
+					<div class="rule"></div>
+					<span class="group-count">{group.classes.length}</span>
+				</div>
+				<Card>
+					{#each group.classes as klass, i (klass.class_id)}
+						{#if i > 0}<div class="divider"></div>{/if}
+						<!-- The only date-independent way into an área: Home is bounded to the
+					     current ISO week, so a class whose sessions are all past is
+					     unreachable from there. See this screen's SPEC. -->
+						<ListRow href="/class/{klass.class_id}" onclick={hapticTap}>
+							<span class="class-name grow">{klass.name}</span>
+							<span class="class-meta">{klass.roster_count} · {klass.slots_per_week}/sem</span>
+						</ListRow>
+					{/each}
+				</Card>
+			{/each}
+
+			<Button variant="secondary" block class="logout" onclick={() => (showLogoutConfirm = true)}>
+				<Icon name="logout" size={16} />Cerrar sesión
+			</Button>
+
+			<p class="meta version">{APP_VERSION}</p>
+		{:else if loadError}
+			<p class="line">
+				No se pudo cargar el perfil.
+				<Button variant="secondary" onclick={load}>Reintentar</Button>
+			</p>
+		{:else}<LoadingState label="Cargando…" />{/if}
+	</div>
+
+	{#if showLogoutConfirm}
+		<ConfirmDialog
+			title="¿Cerrar sesión?"
+			text="Tendrás que iniciar sesión de nuevo para acceder a tus clases."
+			confirmLabel="Cerrar sesión"
+			onconfirm={confirmLogout}
+			oncancel={() => {
+				hapticTap();
+				showLogoutConfirm = false;
+			}}
+		/>
 	{/if}
 </div>
-
-{#if showLogoutConfirm}
-	<ConfirmDialog
-		title="¿Cerrar sesión?"
-		text="Tendrás que iniciar sesión de nuevo para acceder a tus clases."
-		confirmLabel="Cerrar sesión"
-		onconfirm={confirmLogout}
-		oncancel={() => {
-			hapticTap();
-			showLogoutConfirm = false;
-		}}
-	/>
-{/if}
 
 <style>
 	.top {
 		padding-top: 20px;
 	}
 
-	/* The identity block IS this screen's title, so it carries the same 34px and
-	   the same rule under it as every other screen's h1. */
 	.identity {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		padding-bottom: 22px;
-		border-bottom: 1.5px solid var(--text-primary);
-		margin-bottom: 20px;
-	}
 
-	.avatar.big {
-		width: 76px;
-		height: 76px;
-		font-size: 26px;
-		font-weight: 800;
-		margin-bottom: 8px;
-		background: var(--gradient-tile);
-		border: none;
-		color: var(--on-primary);
-		box-shadow: 0 12px 26px rgba(74, 95, 214, 0.26);
+		margin-bottom: 20px;
 	}
 
 	.name {
 		margin: 0;
 		font-weight: 700;
-		font-size: 34px;
+		font-size: var(--mw-type-title-size);
 		letter-spacing: -0.02em;
 		line-height: 1.1;
 		text-align: center;
 	}
 
 	.line {
-		margin: var(--space-xs) 0 0;
-		font-size: 13px;
-		color: var(--text-secondary);
+		margin: var(--mw-space-1) 0 0;
+		font-size: var(--mw-type-small-size);
+		color: var(--mw-ink-secondary);
 	}
 
 	.line + .line {
@@ -234,7 +220,7 @@
 	}
 
 	.since {
-		margin: var(--space-sm) 0 0;
+		margin: var(--mw-space-2) 0 0;
 	}
 
 	.stats {
@@ -247,32 +233,25 @@
 
 	.stat-value {
 		margin: 0;
-		font-size: 24px;
+		font-size: var(--mw-type-title-size);
 		font-weight: 800;
 		letter-spacing: -0.02em;
-		color: var(--aurora-deep);
+		color: var(--mw-accent);
 	}
 
 	.stat-label {
 		margin: 2px 0 0;
-		font-family: var(--font-mono);
-		font-size: 10px;
-		letter-spacing: 0.08em;
+		font-family: var(--mw-font-sans);
+		font-size: var(--mw-type-label-size);
+		letter-spacing: 0.04em;
 		text-transform: uppercase;
-		color: var(--text-muted);
-	}
-
-	.activity {
-		overflow: hidden;
-		margin-bottom: var(--space-xl);
+		color: var(--mw-ink-muted);
 	}
 
 	.activity-row {
-		padding: 13px var(--space-lg);
+		padding: 13px var(--mw-space-4);
 	}
 
-	/* A tinted tile, so the four activity rows read as one group rather than as
-	   four loose glyphs. */
 	.activity-icon {
 		display: flex;
 		align-items: center;
@@ -280,42 +259,36 @@
 		width: 30px;
 		height: 30px;
 		border-radius: 9px;
-		background: var(--aurora-tint);
-		color: var(--aurora-deep);
+		background: var(--mw-surface-tint);
+		color: var(--mw-accent);
 		flex-shrink: 0;
 	}
 
 	.activity-label {
 		flex: 1;
-		font-size: 14px;
+		font-size: var(--mw-type-body-size);
 	}
 
 	.activity-value {
-		font-size: 14px;
+		font-size: var(--mw-type-body-size);
 		font-weight: 500;
 	}
 
 	.activity-value.danger {
-		color: var(--text-danger);
+		color: var(--mw-danger);
 	}
-
-	/* Not the primary action of the screen, and deliberately not tinted with the
-	   aurora either: it is the one thing here you should not reach for by
-	   accident. */
-	.logout {
-		background: var(--surface-1);
-		color: var(--text-secondary);
-		margin-top: var(--space-xl);
-		margin-bottom: var(--space-xl);
+	.view :global(.logout) {
+		margin-top: var(--mw-space-6);
+		margin-bottom: var(--mw-space-6);
 	}
 
 	.classes-head {
-		margin-bottom: var(--space-md);
+		margin-bottom: var(--mw-space-3);
 	}
 
 	.group-head {
-		gap: var(--space-sm);
-		margin-bottom: var(--space-sm);
+		gap: var(--mw-space-2);
+		margin-bottom: var(--mw-space-2);
 	}
 
 	.group-label {
@@ -325,45 +298,26 @@
 	.rule {
 		flex: 1;
 		height: 0.5px;
-		background: var(--border);
+		background: var(--mw-line);
 	}
 
 	.group-count {
-		font-size: 11px;
-		color: var(--text-muted);
-	}
-
-	.group {
-		border-radius: var(--radius);
-		overflow: hidden;
-		margin-bottom: 14px;
-	}
-
-	.class-row {
-		padding: 10px 14px;
-		gap: var(--space-sm);
-		color: inherit;
-		text-decoration: none;
+		font-size: var(--mw-type-label-size);
+		color: var(--mw-ink-muted);
 	}
 
 	.class-name {
-		font-size: 13px;
+		font-size: var(--mw-type-small-size);
 	}
 
 	.class-meta {
-		font-size: 11px;
-		color: var(--text-muted);
+		font-size: var(--mw-type-label-size);
+		color: var(--mw-ink-muted);
 		flex-shrink: 0;
-	}
-
-	.chevron {
-		display: flex;
-		flex-shrink: 0;
-		color: var(--text-muted);
 	}
 
 	.version {
-		margin: var(--space-lg) 0 0;
+		margin: var(--mw-space-4) 0 0;
 		text-align: center;
 	}
 </style>

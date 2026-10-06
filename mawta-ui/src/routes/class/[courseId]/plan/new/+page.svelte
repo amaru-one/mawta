@@ -1,4 +1,15 @@
 <script lang="ts">
+	import {
+		Action,
+		Button,
+		Card,
+		Checkbox,
+		Context,
+		Field,
+		Icon,
+		LoadingState,
+		Notice,
+	} from '$lib/design-system';
 	import { onDestroy, onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
@@ -19,7 +30,6 @@
 	} from '$lib/api/endpoints/planning';
 	import { agentUnavailable, GenerationAborted, waitForGeneration } from '$lib/api/generation';
 	import { isAgentUnavailable, planningErrorText } from '$lib/api/planningErrors';
-	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
 	import { showToast } from '$lib/toast';
@@ -302,171 +312,182 @@
 <svelte:head>
 	<title>Nueva experiencia</title>
 </svelte:head>
+<div class="view">
+	<TopBar back={`/class/${courseId}/plan`} useHistory />
 
-<TopBar back={`/class/${courseId}/plan`} useHistory />
-
-<div class="body">
-	{#if ready && plan}
-		{#if step === 'idea'}
-			<p class="eyebrow">Nueva experiencia de aprendizaje</p>
-			<h1 class="screen-title">¿Qué tienes en mente?</h1>
-			<p class="helper">
-				{#if $agentUnavailable}
-					Cuéntalo en una o dos frases; luego escribes la experiencia.
-				{:else}
-					Cuéntalo en una o dos frases. Mawta detecta las competencias y arma la propuesta; luego tú
-					la revisas.
-				{/if}
-			</p>
-
-			{#if generating}
-				<div class="context-card waiting">
-					<Icon name="sparkles" size={16} />
-					<p class="grow waiting-text">Mawta está armando tu experiencia…</p>
-				</div>
-			{:else}
-				<textarea
-					class="field"
-					rows="4"
-					bind:value={ideaText}
-					placeholder="Ej.: que armen y atiendan una tiendita en la feria del aula"></textarea>
-			{/if}
-
-			{#if genError !== null}
-				<div class="notice">
-					<Icon name="alert" size={16} />
-					<p class="grow notice-text">{genError}</p>
-				</div>
-				{#if !$agentUnavailable}
-					<button class="btn-light pressable retry" onclick={() => void generate()}>
-						Reintentar
-					</button>
-				{/if}
-			{/if}
-
-			<div class="section">
-				<p class="eyebrow">Competencias · opcional</p>
-				<p class="meta help">
-					Si las eliges, Mawta arma la experiencia con ellas; si no, las detecta de tu idea.
-				</p>
-				<div class="card comp-list">
-					{#each competencies as competency (competency.id)}
-						<label class="comp-option">
-							<input
-								type="checkbox"
-								bind:group={selected}
-								value={competency.id}
-								onchange={hapticTap}
-							/>
-							<span class="grow comp-name">{competency.name}</span>
-						</label>
-					{/each}
-				</div>
-			</div>
-
-			{#if !generating}
-				{#if $agentUnavailable}
-					<button
-						class="btn-block btn-primary pressable primary"
-						onclick={writeByHand}
-						disabled={ideaText.trim() === ''}
-					>
-						Escribir la experiencia
-					</button>
-				{:else}
-					<button
-						class="btn-block btn-primary pressable primary"
-						onclick={() => void generate()}
-						disabled={ideaText.trim() === ''}
-					>
-						✦ Generar con Mawta
-					</button>
-					<button
-						class="btn-block btn-light pressable secondary"
-						onclick={writeByHand}
-						disabled={ideaText.trim() === ''}
-					>
-						Escribirlo yo
-					</button>
-				{/if}
-			{/if}
-		{:else if step === 'review'}
-			<p class="origin">
-				{#if origin === 'mawta'}
-					<span class="ai-star">✦</span>
-					Mawta la armó a partir de tu idea: “{ideaText}”. Aún no está guardada.
-				{:else}
-					Tu idea: “{ideaText}”. Aún no está guardada.
-				{/if}
-			</p>
-			<h1 class="screen-title">Revisa la experiencia</h1>
-
-			<div class="section">
-				<label class="f-label" for="f-title">Nombre</label>
-				<input
-					id="f-title"
-					class="field"
-					bind:value={title}
-					placeholder="Ej.: La tiendita escolar"
-				/>
-			</div>
-
-			<div class="section">
-				<div class="row label-row">
-					<label class="f-label grow" for="f-situation">Situación · opcional</label>
-					{#if !$agentUnavailable}
-						<button class="link pressable" onclick={() => void generate()} disabled={generating}>
-							✦ {origin === 'mawta' ? 'Sugerir otra' : 'Sugerir con Mawta'}
-						</button>
+	<div class="body">
+		{#if ready && plan}
+			{#if step === 'idea'}
+				<p class="eyebrow">Nueva experiencia de aprendizaje</p>
+				<h1 class="screen-title">¿Qué tienes en mente?</h1>
+				<p class="helper">
+					{#if $agentUnavailable}
+						Cuéntalo en una o dos frases; luego escribes la experiencia.
+					{:else}
+						Cuéntalo en una o dos frases. Mawta detecta las competencias y arma la propuesta; luego
+						tú la revisas.
 					{/if}
-				</div>
+				</p>
+
 				{#if generating}
-					<div class="context-card waiting">
+					<Context>
 						<Icon name="sparkles" size={16} />
-						<p class="grow waiting-text">Mawta está armando otra propuesta…</p>
-					</div>
+						<p class="grow waiting-text">Mawta está armando tu experiencia…</p>
+					</Context>
 				{:else}
-					<textarea id="f-situation" class="field" rows="5" bind:value={situation}></textarea>
+					<Field
+						kind="textarea"
+						label="Tu idea"
+						rows={4}
+						bind:value={ideaText}
+						placeholder="Ej.: que armen y atiendan una tiendita en la feria del aula"
+					/>
 				{/if}
-				<p class="f-help">El reto real que enfrentarán tus estudiantes. Puedes editarlo.</p>
+
 				{#if genError !== null}
-					<div class="notice">
-						<Icon name="alert" size={16} />
+					<Notice variant="attention">
 						<p class="grow notice-text">{genError}</p>
-					</div>
+					</Notice>
 					{#if !$agentUnavailable}
-						<button class="btn-light pressable retry" onclick={() => void generate()}>
+						<Button variant="secondary" class="retry" onclick={() => void generate()}>
 							Reintentar
-						</button>
+						</Button>
 					{/if}
 				{/if}
-			</div>
 
-			<div class="section">
-				<div class="row label-row">
-					<p class="f-label grow">Competencias</p>
-					<button class="link pressable" onclick={() => (step = 'change')}>Cambiar</button>
+				<div class="section">
+					<p class="eyebrow">Competencias · opcional</p>
+					<p class="meta help">
+						Si las eliges, Mawta arma la experiencia con ellas; si no, las detecta de tu idea.
+					</p>
+					<Card>
+						{#each competencies as competency (competency.id)}
+							<Checkbox
+								checked={selected.includes(competency.id)}
+								onchange={(event) => {
+									selected = event.currentTarget.checked
+										? [...selected, competency.id]
+										: selected.filter((id) => id !== competency.id);
+									hapticTap();
+								}}
+							>
+								<span class="grow comp-name">{competency.name}</span>
+							</Checkbox>
+						{/each}
+					</Card>
 				</div>
-				<p class="comp-sentence">
-					{selectedNames.length > 0 ? `${joinY(selectedNames)}.` : 'Elige al menos una.'}
-				</p>
-			</div>
 
-			<div class="section">
-				<p class="f-label">¿Cuándo?</p>
-				{#if startOptions.length === 0}
-					<div class="notice">
-						<Icon name="alert" size={16} />
-						<p class="grow notice-text">
-							No quedan días de clase libres en este periodo para una experiencia nueva.
-						</p>
+				{#if !generating}
+					{#if $agentUnavailable}
+						<Button
+							variant="primary"
+							block
+							class="primary"
+							onclick={writeByHand}
+							disabled={ideaText.trim() === ''}
+						>
+							Escribir la experiencia
+						</Button>
+					{:else}
+						<Button
+							variant="primary"
+							block
+							class="primary"
+							onclick={() => void generate()}
+							disabled={ideaText.trim() === ''}
+						>
+							✦ Generar con Mawta
+						</Button>
+						<Button
+							variant="secondary"
+							block
+							class="secondary"
+							onclick={writeByHand}
+							disabled={ideaText.trim() === ''}
+						>
+							Escribirlo yo
+						</Button>
+					{/if}
+				{/if}
+			{:else if step === 'review'}
+				<p class="origin">
+					{#if origin === 'mawta'}
+						<span class="ai-star">✦</span>
+						Mawta la armó a partir de tu idea: “{ideaText}”. Aún no está guardada.
+					{:else}
+						Tu idea: “{ideaText}”. Aún no está guardada.
+					{/if}
+				</p>
+				<h1 class="screen-title">Revisa la experiencia</h1>
+
+				<div class="section">
+					<Field
+						label="Nombre"
+						id="f-title"
+						bind:value={title}
+						placeholder="Ej.: La tiendita escolar"
+					/>
+				</div>
+
+				<div class="section">
+					{#if generating}
+						<Context>
+							<Icon name="sparkles" size={16} />
+							<p class="grow waiting-text">Mawta está armando otra propuesta…</p>
+						</Context>
+					{:else}
+						<Field
+							kind="textarea"
+							label="Situación · opcional"
+							id="f-situation"
+							rows={5}
+							bind:value={situation}
+							help="El reto real que enfrentarán tus estudiantes. Puedes editarlo."
+						>
+							{#snippet labelAction()}{#if !$agentUnavailable}<Action
+										variant="link"
+										onclick={() => void generate()}
+										disabled={generating}
+										>✦ {origin === 'mawta' ? 'Sugerir otra' : 'Sugerir con Mawta'}</Action
+									>{/if}{/snippet}
+						</Field>
+					{/if}
+
+					{#if genError !== null}
+						<Notice variant="attention">
+							<p class="grow notice-text">{genError}</p>
+						</Notice>
+						{#if !$agentUnavailable}
+							<Button variant="secondary" class="retry" onclick={() => void generate()}>
+								Reintentar
+							</Button>
+						{/if}
+					{/if}
+				</div>
+
+				<div class="section">
+					<div class="row label-row">
+						<p class="f-label grow">Competencias</p>
+						<Action variant="link" onclick={() => (step = 'change')}>Cambiar</Action>
 					</div>
-				{:else}
-					<div class="row when-row">
-						<label class="grow">
-							<span class="f-help">Empieza</span>
-							<select
-								class="field"
+					<p class="comp-sentence">
+						{selectedNames.length > 0 ? `${joinY(selectedNames)}.` : 'Elige al menos una.'}
+					</p>
+				</div>
+
+				<div class="section">
+					<p class="f-label">¿Cuándo?</p>
+					{#if startOptions.length === 0}
+						<Notice variant="attention">
+							<p class="grow notice-text">
+								No quedan días de clase libres en este periodo para una experiencia nueva.
+							</p>
+						</Notice>
+					{:else}
+						<div class="row when-row">
+							<Field
+								kind="select"
+								label="Empieza"
 								value={startsOn}
 								onchange={(event) => setStart(event.currentTarget.value)}
 							>
@@ -476,12 +497,10 @@
 								{#each startOptions as date (date)}
 									<option value={date}>{fmtDay(date)}</option>
 								{/each}
-							</select>
-						</label>
-						<label class="grow">
-							<span class="f-help">Termina</span>
-							<select
-								class="field"
+							</Field>
+							<Field
+								kind="select"
+								label="Termina"
 								value={endsOn}
 								onchange={(event) => (endsOn = event.currentTarget.value)}
 							>
@@ -491,109 +510,94 @@
 								{#each endOptions as date (date)}
 									<option value={date}>{fmtDay(date)}</option>
 								{/each}
-							</select>
-						</label>
-					</div>
-					<p class="f-help">
-						<Icon name="calendar" size={12} />
-						{rangeClassDates.length} clases{classDaysText ? ` (${classDaysText})` : ''} · los días de
-						otras experiencias no aparecen
-					</p>
-				{/if}
-				{#if saveErrorText !== null}
-					<div class="notice">
-						<Icon name="alert" size={16} />
-						<p class="grow notice-text">{saveErrorText}</p>
-					</div>
-				{/if}
-			</div>
+							</Field>
+						</div>
+						<p class="f-help">
+							<Icon name="calendar" size={12} />
+							{rangeClassDates.length} clases{classDaysText ? ` (${classDaysText})` : ''} · los días de
+							otras experiencias no aparecen
+						</p>
+					{/if}
+					{#if saveErrorText !== null}
+						<Notice variant="attention">
+							<p class="grow notice-text">{saveErrorText}</p>
+						</Notice>
+					{/if}
+				</div>
 
-			<button
-				class="btn-block btn-primary pressable primary"
-				onclick={() => void save()}
-				disabled={saving ||
-					selected.length === 0 ||
-					title.trim() === '' ||
-					startsOn === '' ||
-					endsOn === ''}
-			>
-				Guardar borrador
-			</button>
-		{:else if step === 'change'}
-			<p class="eyebrow">Nueva experiencia de aprendizaje</p>
-			<h1 class="screen-title">Competencias</h1>
-			<p class="helper">Elige con qué competencias se arma la experiencia.</p>
+				<Button
+					variant="primary"
+					block
+					class="primary"
+					onclick={() => void save()}
+					disabled={saving ||
+						selected.length === 0 ||
+						title.trim() === '' ||
+						startsOn === '' ||
+						endsOn === ''}
+				>
+					Guardar borrador
+				</Button>
+			{:else if step === 'change'}
+				<p class="eyebrow">Nueva experiencia de aprendizaje</p>
+				<h1 class="screen-title">Competencias</h1>
+				<p class="helper">Elige con qué competencias se arma la experiencia.</p>
 
-			<div class="card comp-list">
-				{#each competencies as competency (competency.id)}
-					<label class="comp-option">
-						<input
-							type="checkbox"
-							bind:group={selected}
-							value={competency.id}
-							onchange={hapticTap}
-						/>
-						<span class="grow comp-name">{competency.name}</span>
-					</label>
-				{/each}
-			</div>
+				<Card>
+					{#each competencies as competency (competency.id)}
+						<Checkbox
+							checked={selected.includes(competency.id)}
+							onchange={(event) => {
+								selected = event.currentTarget.checked
+									? [...selected, competency.id]
+									: selected.filter((id) => id !== competency.id);
+								hapticTap();
+							}}
+						>
+							<span class="grow comp-name">{competency.name}</span>
+						</Checkbox>
+					{/each}
+				</Card>
 
-			<button
-				class="btn-block btn-primary pressable primary"
-				onclick={() => (step = 'review')}
-				disabled={selected.length === 0}
-			>
-				Continuar
-			</button>
-		{/if}
-	{:else if loadError}
-		<p class="empty">
-			No se pudo cargar…
-			<button class="pill-light pressable" onclick={load}>Reintentar</button>
-		</p>
-	{/if}
+				<Button
+					variant="primary"
+					block
+					class="primary"
+					onclick={() => (step = 'review')}
+					disabled={selected.length === 0}
+				>
+					Continuar
+				</Button>
+			{/if}
+		{:else if loadError}
+			<p class="empty">
+				No se pudo cargar…
+				<Button variant="secondary" onclick={load}>Reintentar</Button>
+			</p>
+		{:else}<LoadingState label="Cargando…" />{/if}
+	</div>
 </div>
 
 <style>
 	.helper {
 		margin: 14px 0 10px;
-		font-size: 14px;
+		font-size: var(--mw-type-body-size);
 		line-height: 1.45;
-		color: var(--text-secondary);
+		color: var(--mw-ink-secondary);
 	}
 
 	.section {
 		margin-top: 20px;
 	}
 
-	/* Editable things look like labelled form fields. */
 	.f-label {
 		margin: 0 0 6px;
-		font-size: 12px;
+		font-size: var(--mw-type-caption-size);
 		font-weight: 700;
-		color: var(--text-secondary);
+		color: var(--mw-ink-secondary);
 	}
-
-	.field {
+	.view :global(.field) {
 		width: 100%;
-		padding: 12px 14px;
-		border-radius: 12px;
-		border: 1px solid var(--border);
-		background: var(--surface-2);
-		font-family: inherit;
-		font-size: 14px;
-		color: var(--text-primary);
-		box-sizing: border-box;
-	}
-
-	.field:focus {
-		outline: none;
-		border-color: var(--aurora-deep);
-	}
-
-	textarea.field {
-		resize: vertical;
-		line-height: 1.45;
 	}
 
 	.f-help {
@@ -601,122 +605,62 @@
 		align-items: center;
 		gap: 6px;
 		margin: 6px 0 0;
-		font-size: 12px;
+		font-size: var(--mw-type-caption-size);
 		line-height: 1.4;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
 
-	/* The origin line: the only place the review says Mawta's name. */
 	.origin {
 		margin: 0 0 14px;
-		font-size: 12px;
+		font-size: var(--mw-type-caption-size);
 		line-height: 1.45;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
 
 	.ai-star {
-		color: var(--text-accent);
+		color: var(--mw-accent);
 	}
 
 	.label-row {
-		gap: var(--space-sm);
+		gap: var(--mw-space-2);
 		align-items: baseline;
 	}
 
-	.link {
-		border: none;
-		padding: 0;
-		font-family: inherit;
-		font-size: 13px;
-		font-weight: 600;
-		color: var(--aurora-deep);
-		text-decoration: underline;
-	}
-
-	.link:disabled {
-		opacity: 0.5;
-	}
-
-	.comp-list {
-		padding: 4px 14px;
-	}
-
-	.comp-option {
-		display: flex;
-		align-items: flex-start;
-		gap: 10px;
-		padding: 10px 0;
-		cursor: pointer;
-	}
-
-	.comp-option + .comp-option {
-		border-top: 0.5px solid var(--hair);
-	}
-
-	.comp-option input {
-		width: 18px;
-		height: 18px;
-		margin: 1px 0 0;
-		flex-shrink: 0;
-		accent-color: var(--aurora-deep);
-	}
-
 	.comp-name {
-		font-size: 13px;
+		font-size: var(--mw-type-small-size);
 		line-height: 1.4;
 	}
 
 	.comp-sentence {
 		margin: 0;
-		font-size: 14px;
+		font-size: var(--mw-type-body-size);
 		line-height: 1.45;
-		color: var(--text-primary);
+		color: var(--mw-ink);
 	}
 
 	.when-row {
 		gap: 10px;
 	}
 
-	.waiting {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-		color: var(--text-accent);
-	}
-
 	.waiting-text {
 		margin: 0;
-		font-size: 13px;
-		color: var(--text-secondary);
-	}
-
-	.notice {
-		display: flex;
-		align-items: flex-start;
-		gap: var(--space-sm);
-		background: var(--bg-danger);
-		border-radius: var(--radius);
-		padding: var(--space-sm) var(--space-md);
-		margin-top: var(--space-md);
-		color: var(--text-danger);
+		font-size: var(--mw-type-small-size);
+		color: var(--mw-ink-secondary);
 	}
 
 	.notice-text {
 		margin: 0;
-		font-size: 13px;
-		color: var(--text-primary);
+		font-size: var(--mw-type-small-size);
+		color: var(--mw-ink);
 	}
-
-	.retry {
-		margin-top: var(--space-sm);
+	.view :global(.retry) {
+		margin-top: var(--mw-space-2);
 	}
-
-	.secondary {
+	.view :global(.secondary) {
 		margin-top: 8px;
 	}
-
-	.primary {
-		margin-top: var(--space-xl);
+	.view :global(.primary) {
+		margin-top: var(--mw-space-6);
 	}
 
 	.help {
@@ -724,8 +668,8 @@
 	}
 
 	.empty {
-		margin: var(--space-lg) 0 0;
-		font-size: 13px;
-		color: var(--text-muted);
+		margin: var(--mw-space-4) 0 0;
+		font-size: var(--mw-type-small-size);
+		color: var(--mw-ink-muted);
 	}
 </style>

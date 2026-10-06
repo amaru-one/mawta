@@ -1,108 +1,109 @@
 <script lang="ts">
-	// The nivel de logro of a competencia — the official record, and the only
-	// control on the student's screen enclosed in a 1px stroke.
-	//
-	// That enclosure is the whole argument of the layout: everything above it
-	// (the marks, the letters on each evidence) is a line control that INFORMS
-	// this decision, and this is the decision. It carries the MINEDU label of each
-	// level because the letter alone does not say what it means.
-	//
-	// Nothing computes it. There is no suggested level anywhere in the app.
 	import type { Tier } from '$lib/grades';
 	import { hapticTap } from '$lib/haptics';
-
-	interface Props {
-		/** null = not evaluated this period (RVM 048-2024, 5.1.2.2) — a real
-		 *  state, rendered as no selection and never as C. */
-		level: Tier | null;
-		disabled?: boolean;
-		onselect: (level: Tier) => void;
-	}
-
-	let { level, disabled = false, onselect }: Props = $props();
-
-	const TIERS: { tier: Tier; label: string }[] = [
-		{ tier: 'AD', label: 'Destacado' },
-		{ tier: 'A', label: 'Esperado' },
-		{ tier: 'B', label: 'En proceso' },
-		{ tier: 'C', label: 'En inicio' },
+	let {
+		level,
+		disabled = false,
+		onselect,
+	}: { level: Tier | null; disabled?: boolean; onselect: (level: Tier) => void } = $props();
+	const uid = $props.id();
+	const tiers: { value: Tier; label: string }[] = [
+		{ value: 'AD', label: 'Destacado' },
+		{ value: 'A', label: 'Esperado' },
+		{ value: 'B', label: 'En proceso' },
+		{ value: 'C', label: 'En inicio' },
 	];
-
-	function pick(t: Tier): void {
-		if (disabled) return;
-		hapticTap();
-		onselect(t);
+	function pick(value: Tier) {
+		if (!disabled) {
+			hapticTap();
+			onselect(value);
+		}
 	}
 </script>
 
-<div class="sel" role="radiogroup" aria-label="Nivel de logro">
-	{#each TIERS as t (t.tier)}
-		<button
-			type="button"
-			class="cell pressable"
-			class:on={level === t.tier}
-			role="radio"
-			aria-checked={level === t.tier}
-			aria-label="{t.tier} · {t.label}"
-			{disabled}
-			onclick={() => pick(t.tier)}
-		>
-			<span class="code">{t.tier}</span>
-			<span class="name">{t.label}</span>
-		</button>
-	{/each}
-</div>
+<fieldset class="levels official" {disabled}>
+	<legend>Nivel de logro</legend>
+	<div class="options">
+		{#each tiers as tier (tier.value)}<label class:chosen={level === tier.value}>
+				<input
+					type="radio"
+					name={uid}
+					aria-label="{tier.value} · {tier.label}"
+					value={tier.value}
+					checked={level === tier.value}
+					onchange={() => pick(tier.value)}
+				/>
+				<span class="code">{tier.value}</span><span class="name">{tier.label}</span>
+			</label>{/each}
+	</div>
+	{#if level === null}<p class="unset">Sin valorar</p>{/if}
+</fieldset>
 
 <style>
-	.sel {
-		display: flex;
-		border: 1px solid var(--border-strong);
-		border-radius: var(--radius-lg);
-		overflow: hidden;
-	}
-
-	.cell {
-		flex: 1;
+	.levels {
+		border: 0;
+		padding: 0;
+		margin: 0;
 		min-width: 0;
+	}
+	legend {
+		padding: 0;
+		margin-bottom: var(--mw-space-2);
+		font-size: var(--mw-type-small-size);
+		font-weight: 600;
+	}
+	.options {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: var(--mw-space-1);
+	}
+	label {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: 3px;
-		height: 62px;
-		border-right: 1px solid var(--border-strong);
+		gap: var(--mw-space-1);
+		padding: var(--mw-space-2) var(--mw-space-1);
+		min-height: 64px;
+		cursor: pointer;
+		border: 1px solid var(--mw-line-control);
+		border-radius: var(--mw-radius-md);
 	}
-
-	.cell:last-child {
-		border-right: none;
+	input {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		opacity: 0;
 	}
-
-	/* The chosen cell takes the action gradient: this is the one control on the
-	   screen that decides the record, and it should read as the thing you
-	   pressed. */
-	.cell.on {
-		background: var(--gradient-action);
-		color: var(--on-primary);
+	label:has(input:focus-visible) {
+		outline: 2px solid var(--mw-focus-ring);
+		outline-offset: 2px;
 	}
-
-	.cell:disabled {
-		opacity: 0.5;
-		cursor: default;
-	}
-
 	.code {
-		font-size: 16px;
-		font-weight: 600;
-		line-height: 1;
+		font-size: var(--mw-type-heading-size);
+		font-weight: 700;
 	}
-
 	.name {
-		font-size: 10px;
-		line-height: 1.2;
-		color: var(--text-muted);
+		font-size: var(--mw-type-label-size);
+		line-height: var(--mw-type-label-line);
+		text-align: center;
+	}
+	.official .chosen {
+		background: var(--mw-accent);
+		border-color: var(--mw-accent);
+		color: var(--mw-on-accent);
 	}
 
-	.cell.on .name {
-		color: rgba(255, 255, 255, 0.7);
+	.unset {
+		margin: var(--mw-space-2) 0 0;
+		font-size: var(--mw-type-caption-size);
+		color: var(--mw-ink-muted);
+	}
+	fieldset:disabled {
+		opacity: 0.55;
+	}
+	fieldset:disabled label {
+		cursor: not-allowed;
 	}
 </style>

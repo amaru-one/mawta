@@ -1,0 +1,140 @@
+/* Application geometry and domain layout. Shared controls live in the design system. */
+.mw-root.application {
+	--mw-shell-width: 480px;
+	--mw-space-12: 48px;
+	min-height: 100dvh;
+	background: var(--mw-surface-page);
+}
+.application .app-shell {
+	max-width: var(--mw-shell-width);
+	min-height: 100dvh;
+	margin: 0 auto;
+	background: var(--mw-surface-card);
+}
+.application :where(button) {
+	border: 0;
+	padding: 0;
+	background: transparent;
+	color: inherit;
+}
+.application :where(a) {
+	color: inherit;
+	text-decoration: none;
+}
+.application :where(button, a, input, textarea, select) {
+	touch-action: manipulation;
+}
+.application :where(button, a)[aria-disabled='true'] {
+	opacity: 0.55;
+}
+.application :where(input, textarea, select) {
+	max-width: 100%;
+}
+.application :where(h1, h2, h3, p, span) {
+	overflow-wrap: anywhere;
+}
+.application .body {
+	padding: var(--mw-space-5) var(--mw-space-5) var(--mw-space-8);
+}
+.application .eyebrow {
+	margin: 0 0 var(--mw-space-3);
+	color: var(--mw-ink-muted);
+	font-size: var(--mw-type-label-size);
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	line-height: var(--mw-type-label-line);
+}
+.application .screen-title {
+	margin: 0;
+	font-size: var(--mw-type-title-size);
+	line-height: var(--mw-type-title-line);
+	font-weight: 800;
+	letter-spacing: -0.03em;
+}
+.application .screen-sub {
+	margin: var(--mw-space-2) 0 0;
+	color: var(--mw-ink-muted);
+	font-size: var(--mw-type-small-size);
+	line-height: var(--mw-type-small-line);
+}
+.application .card {
+	background: var(--mw-surface-card);
+	border: 1px solid var(--mw-line);
+	border-radius: var(--mw-radius-xl);
+}
+.application .stat {
+	background: var(--mw-surface-tint);
+	border-radius: var(--mw-radius-xl);
+	padding: var(--mw-space-4);
+}
+.application .grid3 {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: var(--mw-space-2);
+}
+.application .icon-tile {
+	width: 40px;
+	height: 40px;
+	border-radius: var(--mw-radius-md);
+	background: var(--mw-surface-tint);
+	color: var(--mw-accent);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+.application .context-card {
+	background: var(--mw-surface-tint);
+	border-radius: var(--mw-radius-xl);
+	padding: var(--mw-space-4);
+}
+.application .dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+}
+.application .divider {
+	border-top: 1px solid var(--mw-line);
+}
+.application .row {
+	display: flex;
+	align-items: center;
+	gap: var(--mw-space-3);
+}
+.application .grow {
+	flex: 1;
+	min-width: 0;
+}
+.application .meta {
+	font-size: var(--mw-type-caption-size);
+	line-height: var(--mw-type-caption-line);
+	color: var(--mw-ink-muted);
+}
+.application .pressable {
+	touch-action: manipulation;
+	transition: background-color 120ms ease;
+}
+.application .pressable:active {
+	opacity: 0.85;
+}
+@media (prefers-reduced-motion: reduce) {
+	.application *,
+	.application *::before,
+	.application *::after {
+		animation-duration: 0.01ms !important;
+		transition-duration: 0.01ms !important;
+	}
+}
+
+.application .mw-card + .eyebrow,
+.application .mw-card + .mw-card {
+	margin-top: var(--mw-space-6);
+}
+.application .mw-check + .mw-field,
+.application .mw-field + .mw-field {
+	margin-top: var(--mw-space-3);
+}
+.application .mw-btn-row {
+	align-items: stretch;
+}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Action, Button, Context, Icon, LoadingState, Notice } from '$lib/design-system';
 	// "Revisar y guardar": a compact summary of the experience and its notes.
 	// Notes never block: a capacidad without a criterio or proposals still to
 	// review are said, each linking to its step, and the teacher can save
@@ -17,7 +18,6 @@
 		getExperience,
 	} from '$lib/api/endpoints/planning';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
-	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
 	import { showToast } from '$lib/toast';
@@ -167,189 +167,161 @@
 <svelte:head>
 	<title>Revisar y guardar</title>
 </svelte:head>
+<div class="view">
+	<TopBar back={`/class/${courseId}/plan`} useHistory />
 
-<TopBar back={`/class/${courseId}/plan`} useHistory />
+	<div class="body">
+		{#if ready && experience}
+			<p class="eyebrow">{planned ? 'Experiencia planificada' : 'Revisar y guardar'}</p>
+			<h1 class="screen-title title">{experience.title}</h1>
+			<p class="screen-sub">
+				{fmtDate(experience.starts_on)} – {fmtDate(experience.ends_on)} · {dates.length} clases
+			</p>
 
-<div class="body">
-	{#if ready && experience}
-		<p class="eyebrow">{planned ? 'Experiencia planificada' : 'Revisar y guardar'}</p>
-		<h1 class="screen-title title">{experience.title}</h1>
-		<p class="screen-sub">
-			{fmtDate(experience.starts_on)} – {fmtDate(experience.ends_on)} · {dates.length} clases
-		</p>
+			{#if experience.situation_text}
+				<p class="situation">{experience.situation_text}</p>
+			{:else}
+				<p class="situation muted">Todavía sin situación significativa.</p>
+			{/if}
 
-		{#if experience.situation_text}
-			<p class="situation">{experience.situation_text}</p>
-		{:else}
-			<p class="situation muted">Todavía sin situación significativa.</p>
-		{/if}
-
-		<div class="context-card summary">
-			{#each comps as competency (competency.id)}
+			<Context>
+				{#each comps as competency (competency.id)}
+					<a class="sum-row row pressable" href={`${base}/criteria`} onclick={hapticTap}>
+						<span class="grow">{competency.name}</span>
+						<span class="sum-value">
+							{coveredOf(competency.id)} de {capabilitiesOf(competency.id).length} capacidades con criterio{#if pendingOf(competency.id) > 0}
+								· {pendingOf(competency.id)} por revisar{/if}
+						</span>
+					</a>
+				{/each}
 				<a class="sum-row row pressable" href={`${base}/criteria`} onclick={hapticTap}>
-					<span class="grow">{competency.name}</span>
-					<span class="sum-value">
-						{coveredOf(competency.id)} de {capabilitiesOf(competency.id).length} capacidades con criterio{#if pendingOf(competency.id) > 0}
-							· {pendingOf(competency.id)} por revisar{/if}
-					</span>
+					<span class="grow">Criterios</span>
+					<span class="sum-value">{criteria.length}</span>
 				</a>
-			{/each}
-			<a class="sum-row row pressable" href={`${base}/criteria`} onclick={hapticTap}>
-				<span class="grow">Criterios</span>
-				<span class="sum-value">{criteria.length}</span>
-			</a>
-			<a class="sum-row row pressable" href={`${base}/evidences`} onclick={hapticTap}>
-				<span class="grow">Evidencias</span>
-				<span class="sum-value">{evidences.length} · {placed} ubicadas en sesiones</span>
-			</a>
-			<a class="sum-row row pressable" href={`${base}/sessions`} onclick={hapticTap}>
-				<span class="grow">Sesiones</span>
-				<span class="sum-value">{sessions.length} de {dates.length} fechas</span>
-			</a>
-		</div>
+				<a class="sum-row row pressable" href={`${base}/evidences`} onclick={hapticTap}>
+					<span class="grow">Evidencias</span>
+					<span class="sum-value">{evidences.length} · {placed} ubicadas en sesiones</span>
+				</a>
+				<a class="sum-row row pressable" href={`${base}/sessions`} onclick={hapticTap}>
+					<span class="grow">Sesiones</span>
+					<span class="sum-value">{sessions.length} de {dates.length} fechas</span>
+				</a>
+			</Context>
 
-		{#if missingCapabilities.length > 0}
-			<a class="notice pressable" href={`${base}/criteria`} onclick={hapticTap}>
-				<Icon name="alert" size={16} />
-				<span class="grow notice-text">
-					{missingCapabilities.length === 1
-						? '1 capacidad sin criterio'
-						: `${missingCapabilities.length} capacidades sin criterio`}: {missingCapabilities.join(
-						', '
-					)}. Puedes guardar igual: es un aviso, no un bloqueo.
-				</span>
-			</a>
-		{/if}
-		{#if pendingCount > 0}
-			<a class="notice pressable" href={`${base}/criteria`} onclick={hapticTap}>
-				<Icon name="sparkles" size={16} />
-				<span class="grow notice-text">
-					{pendingCount === 1
-						? '1 propuesta sin revisar'
-						: `${pendingCount} propuestas sin revisar`}
-					de Mawta. Puedes guardar igual.
-				</span>
-			</a>
-		{/if}
+			{#if missingCapabilities.length > 0}
+				<Notice variant="attention"
+					><a href={`${base}/criteria`} onclick={hapticTap}>
+						<span class="grow notice-text">
+							{missingCapabilities.length === 1
+								? '1 capacidad sin criterio'
+								: `${missingCapabilities.length} capacidades sin criterio`}: {missingCapabilities.join(
+								', '
+							)}. Puedes guardar igual: es un aviso, no un bloqueo.
+						</span>
+					</a></Notice
+				>
+			{/if}
+			{#if pendingCount > 0}
+				<Notice variant="attention"
+					><a href={`${base}/criteria`} onclick={hapticTap}>
+						<span class="grow notice-text">
+							{pendingCount === 1
+								? '1 propuesta sin revisar'
+								: `${pendingCount} propuestas sin revisar`}
+							de Mawta. Puedes guardar igual.
+						</span>
+					</a></Notice
+				>
+			{/if}
 
-		<div class="footer-action">
-			<button class="btn-block btn-primary pressable" disabled={saving} onclick={() => void save()}>
-				{planned ? 'Volver a Tu trimestre' : 'Guardar experiencia'}
-			</button>
-			<button
-				class="delete pressable"
-				onclick={() => {
-					hapticTap();
-					confirmingDelete = true;
-				}}
-			>
-				<Icon name="trash" size={14} /> Eliminar experiencia
-			</button>
-		</div>
-	{:else if loadError}
-		<p class="empty">
-			No se pudo cargar la experiencia.
-			<button class="pill-light pressable" onclick={load}>Reintentar</button>
-		</p>
+			<div class="footer-action">
+				<Button variant="primary" block disabled={saving} onclick={() => void save()}>
+					{planned ? 'Volver a Tu trimestre' : 'Guardar experiencia'}
+				</Button>
+				<Action
+					variant="remove"
+					onclick={() => {
+						hapticTap();
+						confirmingDelete = true;
+					}}
+				>
+					<Icon name="trash" size={14} /> Eliminar experiencia
+				</Action>
+			</div>
+		{:else if loadError}
+			<p class="empty">
+				No se pudo cargar la experiencia.
+				<Button variant="secondary" onclick={load}>Reintentar</Button>
+			</p>
+		{:else}<LoadingState label="Cargando…" />{/if}
+	</div>
+
+	{#if confirmingDelete}
+		<ConfirmDialog
+			title="¿Eliminar esta experiencia?"
+			text="Se eliminan también sus criterios, evidencias y sesiones."
+			confirmLabel="Eliminar"
+			onconfirm={() => void remove()}
+			oncancel={() => (confirmingDelete = false)}
+		/>
 	{/if}
 </div>
 
-{#if confirmingDelete}
-	<ConfirmDialog
-		title="¿Eliminar esta experiencia?"
-		text="Se eliminan también sus criterios, evidencias y sesiones."
-		confirmLabel="Eliminar"
-		onconfirm={() => void remove()}
-		oncancel={() => (confirmingDelete = false)}
-	/>
-{/if}
-
 <style>
 	.title {
-		font-size: 28px;
+		font-size: var(--mw-type-title-size);
 		line-height: 1.15;
 	}
 
 	.situation {
-		margin: var(--space-md) 0 0;
-		font-size: 14px;
+		margin: var(--mw-space-3) 0 0;
+		font-size: var(--mw-type-body-size);
 		line-height: 1.5;
-		color: var(--text-primary);
+		color: var(--mw-ink);
 	}
 
 	.situation.muted {
-		color: var(--text-muted);
-	}
-
-	.summary {
-		margin-top: var(--space-md);
+		color: var(--mw-ink-muted);
 	}
 
 	.sum-row {
 		align-items: baseline;
-		gap: var(--space-sm);
+		gap: var(--mw-space-2);
 		padding: 8px 0;
-		font-size: 13px;
+		font-size: var(--mw-type-small-size);
 		line-height: 1.4;
-		color: var(--text-primary);
+		color: var(--mw-ink);
 		text-decoration: none;
 	}
 
 	.sum-row + .sum-row {
-		border-top: 0.5px solid var(--hair);
+		border-top: 1px solid var(--mw-line);
 	}
 
 	.sum-value {
 		flex-shrink: 0;
 		max-width: 55%;
 		text-align: right;
-		font-size: 12px;
-		color: var(--text-secondary);
-	}
-
-	.notice {
-		display: flex;
-		align-items: flex-start;
-		gap: var(--space-sm);
-		background: var(--bg-danger);
-		border-radius: var(--radius);
-		padding: var(--space-sm) var(--space-md);
-		margin-top: var(--space-md);
-		color: var(--text-primary);
-		text-decoration: none;
+		font-size: var(--mw-type-caption-size);
+		color: var(--mw-ink-secondary);
 	}
 
 	.notice-text {
-		font-size: 13px;
+		font-size: var(--mw-type-small-size);
 		line-height: 1.4;
 	}
 
 	.footer-action {
-		margin-top: var(--space-xl);
+		margin-top: var(--mw-space-6);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: var(--space-md);
-	}
-
-	.footer-action .btn-primary:disabled {
-		opacity: 0.6;
-	}
-
-	.delete {
-		display: inline-flex;
-		align-items: center;
-		gap: 6px;
-		padding: 8px 12px;
-		background: none;
-		font-size: 13px;
-		font-weight: 600;
-		color: var(--text-muted);
+		gap: var(--mw-space-3);
 	}
 
 	.empty {
-		margin: var(--space-lg) 0 0;
-		font-size: 13px;
-		color: var(--text-muted);
+		margin: var(--mw-space-4) 0 0;
+		font-size: var(--mw-type-small-size);
+		color: var(--mw-ink-muted);
 	}
 </style>

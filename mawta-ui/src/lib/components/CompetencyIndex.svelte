@@ -40,6 +40,7 @@
 			class:short={item.kind === 'transversal'}
 			class:has={item.hasLevel}
 			class:on={item.id === selectedId}
+			aria-label={`Competencia ${item.label}${item.hasLevel ? ', con nivel' : ''}`}
 			aria-current={item.id === selectedId ? 'true' : undefined}
 			onclick={() => pick(item.id)}
 		>
@@ -50,43 +51,45 @@
 
 <style>
 	.index {
+		overflow-x: auto;
 		display: flex;
 		align-items: flex-end;
-		border-bottom: 0.5px solid var(--border);
+		border-bottom: 1px solid var(--mw-line);
 	}
 
-	/* The numeral is 20px but the target is not: this padding is what puts the
-	   row at 44px and spaces the numerals 20px apart without a `gap`. */
 	.item {
+		min-width: 40px;
+		min-height: 48px;
+		flex-shrink: 0;
 		display: block;
 		padding: 13px 10px 9px;
 		border-bottom: 2px solid transparent;
-		font-size: 20px;
+		font-size: var(--mw-type-title-size);
 		font-weight: 600;
 		line-height: 1;
-		color: var(--text-faint);
+		color: var(--mw-ink-muted);
 	}
 
 	.item.short {
 		padding-bottom: 10px;
-		font-size: 13px;
+		font-size: var(--mw-type-small-size);
 		letter-spacing: 0.04em;
-		font-family: var(--font-mono);
+		font-family: var(--mw-font-sans);
 	}
 
 	.item.has {
-		color: var(--text-secondary);
+		color: var(--mw-ink-secondary);
 	}
 
 	.item.on {
-		border-bottom-color: var(--aurora-deep);
-		color: var(--aurora-deep);
+		border-bottom-color: var(--mw-accent);
+		color: var(--mw-accent);
 	}
 
 	.split {
 		width: 0.5px;
 		height: 18px;
 		margin: 0 10px 12px;
-		background: var(--border);
+		background: var(--mw-line);
 	}
 </style>

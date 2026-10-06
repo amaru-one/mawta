@@ -28,3 +28,6 @@ vite.config.ts.timestamp-*
 
 # Browser component test artifacts
 .vitest/
+
+/test-results/
+/playwright-report/

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Button, Field, Icon, IconButton, ListRow, LoadingState } from '$lib/design-system';
 	// The class list. It navigates and it reports — it does NOT evaluate.
 	//
 	// Everything on screen is scoped to one competencia, chosen in the index at
@@ -18,7 +19,6 @@
 	import { getClassCriteria } from '$lib/api/endpoints/criteria';
 	import { getClassStudents } from '$lib/api/endpoints/students';
 	import CompetencyIndex from '$lib/components/CompetencyIndex.svelte';
-	import Icon from '$lib/components/Icon.svelte';
 	import LevelBadge from '$lib/components/LevelBadge.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
@@ -76,9 +76,7 @@
 				.then((res) => {
 					rows = list(res.students);
 				})
-				.catch(() => {
-					/* the list on screen stays; the next switch or a reload retries */
-				})
+				.catch(() => {})
 				.finally(() => {
 					switching = false;
 				});
@@ -137,7 +135,7 @@
 
 	// The field is inserted on tap, and `autofocus` is ignored on an element added
 	// after load — opening the search has to land the caret.
-	function focusHere(node: HTMLInputElement): void {
+	function focusHere(node: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement): void {
 		node.focus();
 	}
 
@@ -156,85 +154,80 @@
 <svelte:head>
 	<title>Alumnos — {className || 'Clase'}</title>
 </svelte:head>
+<div class="view">
+	<TopBar back="/class/{courseId}" useHistory />
 
-<TopBar back="/class/{courseId}" useHistory />
-
-<div class="body">
-	{#if ready}
-		<div class="titlerow">
-			<h1 class="title">Alumnos</h1>
-			<button
-				type="button"
-				class="find pressable"
-				aria-label={searching ? 'Cerrar búsqueda' : 'Buscar por apellido'}
-				aria-expanded={searching}
-				onclick={toggleSearch}
-			>
-				<Icon name="search" size={18} />
-			</button>
-		</div>
-		<span class="sub">{className} · {rows.length} alumnos</span>
-
-		{#if searching}
-			<div class="search-wrap">
-				<span class="search-icon"><Icon name="search" size={16} /></span>
-				<input
-					class="search"
-					type="text"
-					placeholder="Buscar por apellido"
-					bind:value={query}
-					{@attach focusHere}
+	<div class="body">
+		{#if ready}
+			<div class="titlerow">
+				<h1 class="title">Alumnos</h1>
+				<IconButton
+					icon="search"
+					label={searching ? 'Cerrar búsqueda' : 'Buscar por apellido'}
+					aria-expanded={searching}
+					onclick={toggleSearch}
 				/>
 			</div>
-		{/if}
+			<span class="sub">{className} · {rows.length} alumnos</span>
 
-		{#if indexItems.length > 0}
-			<div class="idx">
-				<CompetencyIndex items={indexItems} selectedId={selected} onselect={selectCompetency} />
-			</div>
-			<p class="comp">{currentName}</p>
-			<p class="count">{withLevel} DE {rows.length} CON NIVEL</p>
-		{/if}
+			{#if searching}
+				<div class="search-wrap">
+					<Field
+						label="Buscar por apellido"
+						type="text"
+						placeholder="Buscar por apellido"
+						bind:value={query}
+						{@attach focusHere}
+					/>
+				</div>
+			{/if}
 
-		{#if shown.length === 0}
+			{#if indexItems.length > 0}
+				<div class="idx">
+					<CompetencyIndex items={indexItems} selectedId={selected} onselect={selectCompetency} />
+				</div>
+				<p class="comp">{currentName}</p>
+				<p class="count">{withLevel} DE {rows.length} CON NIVEL</p>
+			{/if}
+
+			{#if shown.length === 0}
+				<p class="empty">
+					{query.trim() === '' ? 'Esta clase no tiene alumnos.' : 'Ningún alumno coincide.'}
+				</p>
+			{:else}
+				<div class="list" class:switching>
+					{#each shown as r (r.student_id)}
+						<ListRow href={href(r)} onclick={hapticTap}>
+							{#if r.level !== null}
+								<LevelBadge tier={r.level} size={26} />
+							{:else}
+								<span class="nolevel">Sin nivel</span>
+							{/if}
+							<span class="grow">
+								<span class="name">{r.full_name}</span>
+								<span class="ev">{evidenceLabel(r.evidence_count)}</span>
+							</span>
+						</ListRow>
+					{/each}
+				</div>
+
+				<p class="foot">
+					El nivel de logro lo pones tú, leyendo las evidencias del periodo. Ninguna evidencia lo
+					calcula.
+				</p>
+			{/if}
+		{:else if loadError}
 			<p class="empty">
-				{query.trim() === '' ? 'Esta clase no tiene alumnos.' : 'Ningún alumno coincide.'}
+				No se pudo cargar la lista.
+				<Button variant="secondary" onclick={load}>Reintentar</Button>
 			</p>
-		{:else}
-			<div class="list" class:switching>
-				{#each shown as r (r.student_id)}
-					<a class="row pressable" href={href(r)} onclick={hapticTap}>
-						{#if r.level !== null}
-							<LevelBadge tier={r.level} size={26} />
-						{:else}
-							<span class="nolevel" title="Sin nivel">–</span>
-						{/if}
-						<span class="grow">
-							<span class="name">{r.full_name}</span>
-							<span class="ev">{evidenceLabel(r.evidence_count)}</span>
-						</span>
-						<span class="chevron"><Icon name="chevron-right" size={18} /></span>
-					</a>
-				{/each}
-			</div>
-
-			<p class="foot">
-				El nivel de logro lo pones tú, leyendo las evidencias del periodo. Ninguna evidencia lo
-				calcula.
-			</p>
-		{/if}
-	{:else if loadError}
-		<p class="empty">
-			No se pudo cargar la lista.
-			<button class="pill-light pressable" onclick={load}>Reintentar</button>
-		</p>
-	{/if}
+		{:else}<LoadingState label="Cargando…" />{/if}
+	</div>
 </div>
 
 <style>
-	/* Same gutter as the área — this screen is read as its continuation. */
 	.body {
-		padding: 22px 18px 30px;
+		padding: 20px 20px 32px;
 	}
 
 	.titlerow {
@@ -242,35 +235,22 @@
 		align-items: flex-start;
 		justify-content: space-between;
 		padding-bottom: 14px;
-		border-bottom: 1.5px solid var(--text-primary);
 	}
 
 	.title {
 		margin: 0;
-		font-size: 34px;
-		font-weight: 700;
-		letter-spacing: -0.02em;
+		font-size: var(--mw-type-title-size);
+		font-weight: 800;
+		letter-spacing: -0.03em;
 		line-height: 1.12;
-	}
-
-	.find {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 34px;
-		height: 34px;
-		flex-shrink: 0;
-		border-radius: 50%;
-		background: var(--aurora-tint);
-		color: var(--aurora-deep);
 	}
 
 	.sub {
 		display: block;
 		margin-top: 8px;
-		font-size: 13px;
-		color: var(--text-muted);
-		font-family: var(--font-mono);
+		font-size: var(--mw-type-small-size);
+		color: var(--mw-ink-muted);
+		font-family: var(--mw-font-sans);
 	}
 
 	.search-wrap {
@@ -292,9 +272,9 @@
 
 	.count {
 		margin: 6px 0 0;
-		font-size: 11px;
-		color: var(--text-muted);
-		font-family: var(--font-mono);
+		font-size: var(--mw-type-label-size);
+		color: var(--mw-ink-muted);
+		font-family: var(--mw-font-sans);
 	}
 
 	.list {
@@ -303,30 +283,13 @@
 		margin-top: 24px;
 	}
 
-	/* The level leads the row: it is what the teacher scans down, and putting it
-	   left means the eye never has to cross a ragged name column to find it. */
-	.row {
-		display: flex;
-		align-items: center;
-		gap: 14px;
-		padding: 14px 4px;
-		border-top: 0.5px solid var(--border);
-		color: inherit;
-	}
-
-	.row:last-child {
-		border-bottom: 0.5px solid var(--border);
-	}
-
-	/* Switching competencia refetches levels and counts; the names are the same
-	   either way, so the list dims rather than disappearing. */
 	.list.switching {
 		opacity: 0.5;
 	}
 
 	.name {
 		display: block;
-		font-size: 16px;
+		font-size: var(--mw-type-heading-size);
 		font-weight: 600;
 		letter-spacing: -0.01em;
 		line-height: 1.25;
@@ -335,44 +298,28 @@
 	.ev {
 		display: block;
 		margin-top: 2px;
-		font-size: 12px;
+		font-size: var(--mw-type-caption-size);
 		line-height: 1.3;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
 
-	/* Not evaluated is its own state — a dash, never a C. */
 	.nolevel {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 26px;
-		height: 26px;
-		flex-shrink: 0;
-		border: 1px dashed var(--border-strong);
-		border-radius: 50%;
-		font-size: 15px;
-		font-weight: 600;
-		color: var(--text-muted);
-	}
-
-	.chevron {
-		display: flex;
-		flex-shrink: 0;
-		color: var(--text-muted);
+		font-size: var(--mw-type-caption-size);
+		color: var(--mw-ink-muted);
 	}
 
 	.foot {
 		margin: 16px 4px 0;
-		font-size: 12px;
+		font-size: var(--mw-type-caption-size);
 		line-height: 1.45;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 		text-wrap: pretty;
 	}
 
 	.empty {
 		margin: 24px 0 0;
-		font-size: 15px;
+		font-size: var(--mw-type-body-size);
 		line-height: 1.45;
-		color: var(--text-secondary);
+		color: var(--mw-ink-secondary);
 	}
 </style>

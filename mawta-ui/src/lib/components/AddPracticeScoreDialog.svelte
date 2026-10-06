@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { scale } from 'svelte/transition';
+	import { Button, ButtonRow, Dialog, Field } from '$lib/design-system';
 	import type { AssessmentKind, PracticeScoreCreateDto } from '$lib/api/dto';
 
 	interface Props {
@@ -23,14 +23,17 @@
 
 	let title = $state('');
 	let kind = $state<AssessmentKind>('otro');
-	let rawValue = $state('');
-	let maxValue = $state('10');
+	let rawValue = $state<number | undefined>();
+	let maxValue = $state<number | undefined>(10);
 	let note = $state('');
 
-	const titleId = `add-practice-score-${Math.random().toString(36).slice(2, 8)}`;
+	let open = $state(true);
 
 	const canSubmit = $derived(
-		title.trim() !== '' && Number.isFinite(Number(rawValue)) && Number(maxValue) > 0
+		title.trim() !== '' &&
+			rawValue !== undefined &&
+			Number.isFinite(rawValue) &&
+			Number(maxValue) > 0
 	);
 
 	function handleSubmit(e: Event): void {
@@ -46,176 +49,50 @@
 	}
 </script>
 
-<svelte:window onkeydown={(e) => e.key === 'Escape' && oncancel()} />
-
-<div
-	class="dialog"
-	in:scale={{ start: 0.95, duration: 150 }}
-	out:scale={{ start: 0.95, duration: 150 }}
-	role="dialog"
-	aria-modal="true"
-	aria-labelledby={titleId}
+<Dialog
+	bind:open
+	title="Añadir evaluación"
+	description="Se guarda como nota personal; no afecta el promedio oficial."
+	onclose={oncancel}
 >
-	<button class="backdrop" onclick={oncancel} aria-label="Cerrar diálogo" tabindex="-1"></button>
-	<form class="content" onsubmit={handleSubmit}>
-		<p class="title" id={titleId}>Añadir evaluación</p>
-		<p class="hint">Se guarda como nota personal — no afecta el promedio oficial.</p>
-
-		<label class="field">
-			<span>Título</span>
-			<input type="text" bind:value={title} placeholder="Quiz práctica 3" required />
-		</label>
-
-		<label class="field">
-			<span>Tipo</span>
-			<select bind:value={kind}>
-				{#each kindOptions as opt (opt.value)}
-					<option value={opt.value}>{opt.label}</option>
-				{/each}
-			</select>
-		</label>
-
-		<div class="row-fields">
-			<label class="field score">
-				<span>Nota</span>
-				<input type="number" bind:value={rawValue} step="0.01" required />
-			</label>
-			<span class="slash">/</span>
-			<label class="field score">
-				<span>Sobre</span>
-				<input type="number" bind:value={maxValue} step="0.01" min="0.01" required />
-			</label>
+	<form onsubmit={handleSubmit}>
+		<Field label="Título" bind:value={title} placeholder="Quiz práctica 3" required />
+		<Field label="Tipo" kind="select" bind:value={kind} options={kindOptions} />
+		<div class="scores">
+			<Field label="Nota" type="number" bind:value={rawValue} step="0.01" required /><Field
+				label="Sobre"
+				type="number"
+				bind:value={maxValue}
+				step="0.01"
+				min="0.01"
+				required
+			/>
 		</div>
-
-		<label class="field">
-			<span>Nota interna (opcional)</span>
-			<textarea bind:value={note} rows="2" placeholder="Comentario para ti mismo"></textarea>
-		</label>
-
-		<div class="actions">
-			<button type="button" class="cancel pressable" onclick={oncancel}>Cancelar</button>
-			<button type="submit" class="confirm pressable" disabled={!canSubmit}>Guardar</button>
-		</div>
+		<Field
+			label="Nota interna (opcional)"
+			kind="textarea"
+			bind:value={note}
+			rows={2}
+			placeholder="Comentario para ti mismo"
+		/>
+		<ButtonRow
+			><Button onclick={() => (open = false)}>Cancelar</Button><Button
+				type="submit"
+				variant="primary"
+				disabled={!canSubmit}>Guardar</Button
+			></ButtonRow
+		>
 	</form>
-</div>
+</Dialog>
 
 <style>
-	.dialog {
-		position: fixed;
-		inset: 0;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		z-index: 2000;
-		padding: var(--space-lg);
+	form {
+		display: grid;
+		gap: var(--mw-space-4);
 	}
-
-	.backdrop {
-		position: absolute;
-		inset: 0;
-		background: rgba(22, 24, 58, 0.55);
-		border: none;
-		cursor: pointer;
-	}
-
-	.content {
-		position: relative;
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-md);
-		background: var(--surface-2);
-		border-radius: var(--radius-lg);
-		padding: var(--space-xl);
-		width: 100%;
-		max-width: 360px;
-		max-height: 85vh;
-		overflow-y: auto;
-		box-shadow: var(--shadow-lg);
-	}
-
-	.title {
-		margin: 0;
-		font-size: 16px;
-		font-weight: 500;
-	}
-
-	.hint {
-		margin: -6px 0 0;
-		font-size: 12px;
-		color: var(--text-secondary);
-	}
-
-	.field {
-		display: flex;
-		flex-direction: column;
-		gap: 6px;
-		font-size: 12px;
-		color: var(--text-secondary);
-	}
-
-	.field input,
-	.field select,
-	.field textarea {
-		font-size: 14px;
-		color: var(--text-primary);
-		background: var(--surface-1);
-		border: 0.5px solid var(--border);
-		border-radius: var(--radius-sm);
-		padding: var(--space-sm) 10px;
-		font-family: inherit;
-		resize: vertical;
-	}
-
-	.field input:focus,
-	.field select:focus,
-	.field textarea:focus {
-		outline: none;
-		border-color: var(--border-strong);
-	}
-
-	.row-fields {
-		display: flex;
-		align-items: flex-end;
-		gap: var(--space-sm);
-	}
-
-	.score {
-		flex: 1;
-	}
-
-	.slash {
-		padding-bottom: 10px;
-		color: var(--text-muted);
-	}
-
-	.actions {
-		display: flex;
-		gap: var(--space-md);
-		justify-content: flex-end;
-		margin-top: var(--space-sm);
-	}
-
-	.cancel,
-	.confirm {
-		padding: 10px var(--space-lg);
-		min-height: 36px;
-		border-radius: var(--radius-md);
-		font-size: 14px;
-		font-weight: 500;
-	}
-
-	.cancel {
-		background: var(--surface-1);
-		color: var(--text-primary);
-	}
-
-	.confirm {
-		background: var(--fill-accent);
-		color: var(--on-accent);
-	}
-
-	.confirm:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
+	.scores {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--mw-space-3);
 	}
 </style>

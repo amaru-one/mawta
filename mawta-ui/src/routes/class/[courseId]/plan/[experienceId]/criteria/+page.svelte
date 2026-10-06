@@ -1,4 +1,16 @@
 <script lang="ts">
+	import {
+		Action,
+		Button,
+		Card,
+		Checkbox,
+		CoverageMeter,
+		EmptyState,
+		Field,
+		Icon,
+		LoadingState,
+		StepNav,
+	} from '$lib/design-system';
 	// The criteria step of a saved experience. One competencia at a time, with
 	// ‹ › between them: its capacidades say in words which ones a criterio
 	// already looks at, and the criterios are the protagonists. A criterio is a
@@ -27,7 +39,6 @@
 		updateCriterion,
 	} from '$lib/api/endpoints/planning';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
-	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
 	import { showToast } from '$lib/toast';
@@ -278,324 +289,241 @@
 <svelte:head>
 	<title>Criterios</title>
 </svelte:head>
+<div class="view">
+	<TopBar back={`/class/${courseId}/plan`} useHistory />
 
-<TopBar back={`/class/${courseId}/plan`} useHistory />
-
-<div class="body">
-	{#if ready && experience && current}
-		<p class="eyebrow">{experience.title} · Criterios</p>
-		{#if experience.status === 'planificada'}
-			<a class="to-summary pressable" href={`/class/${courseId}/plan/${experienceId}/summary`}>
-				‹ Volver al resumen
-			</a>
-		{/if}
-
-		<div class="comp-nav row">
-			<button
-				class="nav pressable"
-				aria-label="Competencia anterior"
-				disabled={compIdx === 0}
-				onclick={() => go(-1)}>‹</button
-			>
-			<span class="grow nav-label">{compIdx + 1} de {comps.length} competencias</span>
-			<button
-				class="nav pressable"
-				aria-label="Competencia siguiente"
-				disabled={compIdx === comps.length - 1}
-				onclick={() => go(1)}>›</button
-			>
-		</div>
-
-		<h1 class="screen-title comp-title">{current.name}</h1>
-
-		<div class="context-card caps">
-			<p class="eyebrow caps-title">Capacidades que miran tus criterios</p>
-			{#each capabilities as capability (capability.id)}
-				<div class="cap-row row">
-					<span class="grow cap-name">{capability.name}</span>
-					<span class="cap-state" class:none={!covered.has(capability.id)}>
-						{covered.has(capability.id) ? 'Con criterio' : 'Sin criterio'}
-					</span>
-				</div>
-			{/each}
-		</div>
-
-		<div class="section">
-			<p class="eyebrow">Criterios · {criteria.length}</p>
-			{#if pending}
-				<p class="meta help">Mawta propuso estos criterios: acéptalos o edítalos.</p>
+	<div class="body">
+		{#if ready && experience && current}
+			<p class="eyebrow">{experience.title} · Criterios</p>
+			{#if experience.status === 'planificada'}
+				<Action variant="link" href={`/class/${courseId}/plan/${experienceId}/summary`}>
+					‹ Volver al resumen
+				</Action>
 			{/if}
 
-			{#if criteria.length === 0}
-				<div class="card empty-card">
-					<p class="empty-title">Aún no hay criterios para esta competencia.</p>
-					<p class="meta">
-						Mawta puede proponerlos a partir de los desempeños del grado, o puedes crearlos tú.
-					</p>
-				</div>
-			{/if}
+			<StepNav
+				title="Revisar competencias"
+				index={compIdx}
+				total={comps.length}
+				onprevious={() => go(-1)}
+				onnext={() => go(1)}
+			/>
+			<h1 class="screen-title comp-title">{current.name}</h1>
 
-			<div class="stack">
-				{#each criteria as criterion (criterion.id)}
-					{#if form && form.id === criterion.id}
-						{@render editor()}
-					{:else}
-						<div class="card crit">
-							<p class="crit-text">{criterion.description}</p>
-							<p class="crit-line">
-								{list(criterion.capability_ids).length > 1
-									? 'Mira las capacidades'
-									: 'Mira la capacidad'}
-								{joinY(list(criterion.capability_ids).map(capabilityName))}.
-							</p>
-							{#if performanceText(criterion.performance_id)}
-								<p class="crit-from">
-									↳ desde: {shortText(performanceText(criterion.performance_id))}
-								</p>
-							{/if}
-							<div class="crit-actions row">
-								{#if isProposal(criterion)}
-									<button class="mini go pressable" onclick={() => void accept(criterion)}>
-										<Icon name="check" size={13} /> Aceptar
-									</button>
-								{/if}
-								<button class="mini pressable" onclick={() => openEdit(criterion)}>Editar</button>
-								<button
-									class="mini quiet pressable"
-									onclick={() => {
-										hapticTap();
-										deletingId = criterion.id;
-									}}
-								>
-									<Icon name="trash" size={13} /> Quitar
-								</button>
-							</div>
-						</div>
-					{/if}
-				{/each}
-			</div>
+			<CoverageMeter
+				capabilities={capabilities.map((capability) => ({
+					id: capability.id,
+					label: capability.name,
+					covered: covered.has(capability.id),
+				}))}
+			/>
 
-			<div class="row actions">
-				{#if missing.length > 0 && !$agentUnavailable}
-					<button
-						class="btn-block pressable half"
-						disabled={generating}
-						onclick={() => void generate()}
-					>
-						<Icon name="sparkles" size={15} />
-						{criteria.length === 0 ? 'Generar con Mawta' : 'Generar los que faltan'}
-					</button>
+			<div class="section">
+				<p class="eyebrow">Criterios · {criteria.length}</p>
+				{#if pending}
+					<p class="meta help">Mawta propuso estos criterios: acéptalos o edítalos.</p>
 				{/if}
-				<button class="btn-block pressable half" onclick={openCreate}>
-					<Icon name={form && form.id === null ? 'x' : 'plus'} size={15} />
-					{form && form.id === null ? 'Cerrar' : 'Agregar criterio'}
-				</button>
+
+				{#if criteria.length === 0}
+					<Card>
+						<p class="empty-title">Aún no hay criterios para esta competencia.</p>
+						<p class="meta">
+							Mawta puede proponerlos a partir de los desempeños del grado, o puedes crearlos tú.
+						</p>
+					</Card>
+				{/if}
+
+				<div class="stack">
+					{#each criteria as criterion (criterion.id)}
+						{#if form && form.id === criterion.id}
+							{@render editor()}
+						{:else}
+							<Card>
+								<p class="crit-text">{criterion.description}</p>
+								<p class="crit-line">
+									{list(criterion.capability_ids).length > 1
+										? 'Mira las capacidades'
+										: 'Mira la capacidad'}
+									{joinY(list(criterion.capability_ids).map(capabilityName))}.
+								</p>
+								{#if performanceText(criterion.performance_id)}
+									<p class="crit-from">
+										↳ desde: {shortText(performanceText(criterion.performance_id))}
+									</p>
+								{/if}
+								<div class="crit-actions row">
+									{#if isProposal(criterion)}
+										<Action variant="main" onclick={() => void accept(criterion)}>
+											<Icon name="check" size={13} /> Aceptar
+										</Action>
+									{/if}
+									<Action variant="link" onclick={() => openEdit(criterion)}>Editar</Action>
+									<Action
+										variant="remove"
+										onclick={() => {
+											hapticTap();
+											deletingId = criterion.id;
+										}}
+									>
+										<Icon name="trash" size={13} /> Quitar
+									</Action>
+								</div>
+							</Card>
+						{/if}
+					{/each}
+				</div>
+
+				<div class="row actions">
+					{#if missing.length > 0 && !$agentUnavailable}
+						<Button
+							variant="secondary"
+							block
+							class="half"
+							disabled={generating}
+							onclick={() => void generate()}
+						>
+							<Icon name="sparkles" size={15} />
+							{criteria.length === 0 ? 'Generar con Mawta' : 'Generar los que faltan'}
+						</Button>
+					{/if}
+					<Button variant="secondary" block class="half" onclick={openCreate}>
+						<Icon name={form && form.id === null ? 'x' : 'plus'} size={15} />
+						{form && form.id === null ? 'Cerrar' : 'Agregar criterio'}
+					</Button>
+				</div>
+				{#if generating}
+					<p class="meta waiting">
+						Mawta está proponiendo criterios para las capacidades sin criterio…
+					</p>
+				{/if}
+
+				{#if form && form.id === null}
+					{@render editor()}
+				{/if}
 			</div>
-			{#if generating}
-				<p class="meta waiting">
-					Mawta está proponiendo criterios para las capacidades sin criterio…
-				</p>
-			{/if}
 
-			{#if form && form.id === null}
-				{@render editor()}
-			{/if}
-		</div>
+			<div class="footer-action">
+				<Button variant="primary" block disabled={unseen > 0} onclick={next}>
+					Continuar con las evidencias <Icon name="chevron-right" size={16} />
+				</Button>
+				{#if unseen > 0}
+					<p class="meta footer-help">
+						Revisa {unseen === 1
+							? 'la competencia que falta'
+							: `las ${unseen} competencias que faltan`}
+						con las flechas ‹ ›.
+					</p>
+				{/if}
+			</div>
+		{:else if ready && experience}
+			<EmptyState title="Esta experiencia no tiene competencias." />
+		{:else if loadError}
+			<p class="empty">
+				No se pudo cargar la experiencia.
+				<Button variant="secondary" onclick={load}>Reintentar</Button>
+			</p>
+		{:else}<LoadingState label="Cargando…" />{/if}
+	</div>
 
-		<div class="footer-action">
-			<button class="btn-block btn-primary pressable" disabled={unseen > 0} onclick={next}>
-				Continuar con las evidencias <Icon name="chevron-right" size={16} />
-			</button>
-			{#if unseen > 0}
-				<p class="meta footer-help">
-					Revisa {unseen === 1
-						? 'la competencia que falta'
-						: `las ${unseen} competencias que faltan`}
-					con las flechas ‹ ›.
-				</p>
-			{/if}
-		</div>
-	{:else if ready && experience}
-		<p class="empty">Esta experiencia no tiene competencias.</p>
-	{:else if loadError}
-		<p class="empty">
-			No se pudo cargar la experiencia.
-			<button class="pill-light pressable" onclick={load}>Reintentar</button>
-		</p>
+	{#snippet editor()}
+		{#if form}
+			<Card>
+				<Field
+					kind="select"
+					label="Desempeño del grado"
+					value={form.performanceId}
+					onchange={(event) => choosePerformance(event.currentTarget.value)}
+				>
+					<option value="" disabled>Elige un desempeño</option>
+					{#each performances as performance (performance.id)}
+						<option value={performance.id}>{shortText(performance.text, 110)}</option>
+					{/each}
+				</Field>
+
+				<p class="f-label spaced">Capacidades que mira</p>
+				<div class="cap-options">
+					{#each capabilities as capability (capability.id)}
+						<Checkbox
+							checked={form.capabilityIds.includes(capability.id)}
+							onchange={() => toggleCapability(capability.id)}
+						>
+							<span>{capability.name}</span>
+						</Checkbox>
+					{/each}
+				</div>
+
+				<Field
+					kind="textarea"
+					label="Criterio"
+					rows={3}
+					placeholder="Aterriza el desempeño a tu situación"
+					bind:value={form.description}
+				/>
+
+				{#if formError}
+					<p class="form-error"><Icon name="alert" size={14} /> {formError}</p>
+				{/if}
+
+				<div class="crit-actions row">
+					<Action variant="main" disabled={!canSave || saving} onclick={() => void save()}>
+						<Icon name="check" size={13} /> Guardar
+					</Action>
+					<Action variant="remove" onclick={() => (form = null)}>Cancelar</Action>
+				</div>
+			</Card>
+		{/if}
+	{/snippet}
+
+	{#if deletingId}
+		<ConfirmDialog
+			title="¿Quitar este criterio?"
+			text="Se quita también de las evidencias que lo usan."
+			confirmLabel="Quitar"
+			onconfirm={() => void remove(deletingId ?? '')}
+			oncancel={() => (deletingId = null)}
+		/>
 	{/if}
 </div>
 
-{#snippet editor()}
-	{#if form}
-		<div class="card crit editing">
-			<p class="f-label">Desempeño del grado</p>
-			<select
-				class="field"
-				value={form.performanceId}
-				onchange={(event) => choosePerformance(event.currentTarget.value)}
-			>
-				<option value="" disabled>Elige un desempeño</option>
-				{#each performances as performance (performance.id)}
-					<option value={performance.id}>{shortText(performance.text, 110)}</option>
-				{/each}
-			</select>
-
-			<p class="f-label spaced">Capacidades que mira</p>
-			<div class="cap-options">
-				{#each capabilities as capability (capability.id)}
-					<label class="cap-option">
-						<input
-							type="checkbox"
-							checked={form.capabilityIds.includes(capability.id)}
-							onchange={() => toggleCapability(capability.id)}
-						/>
-						<span>{capability.name}</span>
-					</label>
-				{/each}
-			</div>
-
-			<p class="f-label spaced">Criterio</p>
-			<textarea
-				class="field"
-				rows="3"
-				placeholder="Aterriza el desempeño a tu situación"
-				bind:value={form.description}></textarea>
-
-			{#if formError}
-				<p class="form-error"><Icon name="alert" size={14} /> {formError}</p>
-			{/if}
-
-			<div class="crit-actions row">
-				<button class="mini go pressable" disabled={!canSave || saving} onclick={() => void save()}>
-					<Icon name="check" size={13} /> Guardar
-				</button>
-				<button class="mini quiet pressable" onclick={() => (form = null)}>Cancelar</button>
-			</div>
-		</div>
-	{/if}
-{/snippet}
-
-{#if deletingId}
-	<ConfirmDialog
-		title="¿Quitar este criterio?"
-		text="Se quita también de las evidencias que lo usan."
-		confirmLabel="Quitar"
-		onconfirm={() => void remove(deletingId ?? '')}
-		oncancel={() => (deletingId = null)}
-	/>
-{/if}
-
 <style>
-	/* A competencia's name is long; the screen title shrinks to fit it. */
 	.comp-title {
-		font-size: 24px;
+		font-size: var(--mw-type-title-size);
 		line-height: 1.2;
 	}
 
-	.comp-nav {
-		align-items: center;
-		gap: var(--space-sm);
-		margin: var(--space-sm) 0 var(--space-md);
-	}
-
-	.nav {
-		width: 36px;
-		height: 36px;
-		border-radius: 50%;
-		background: var(--aurora-tint);
-		color: var(--aurora-deep);
-		font-size: 20px;
-		font-weight: 700;
-		line-height: 1;
-	}
-
-	.nav:disabled {
-		opacity: 0.35;
-	}
-
-	.nav-label {
-		text-align: center;
-		font-size: 12px;
-		color: var(--text-muted);
-	}
-
-	.caps {
-		margin-top: 14px;
-	}
-
-	.caps-title {
-		margin: 0 0 6px;
-	}
-
-	.cap-row {
-		align-items: baseline;
-		gap: var(--space-sm);
-		padding: 6px 0;
-	}
-
-	.cap-row + .cap-row {
-		border-top: 0.5px solid var(--hair);
-	}
-
-	.cap-name {
-		font-size: 13px;
-		line-height: 1.4;
-		color: var(--text-primary);
-	}
-
-	/* Status in words, never a chip. */
-	.cap-state {
-		flex-shrink: 0;
-		font-size: 12px;
-		color: var(--text-secondary);
-	}
-
-	.cap-state.none {
-		color: var(--text-muted);
-	}
-
 	.section {
-		margin-top: var(--space-xl);
+		margin-top: var(--mw-space-6);
 	}
 
 	.help {
 		margin: -4px 0 6px;
 	}
 
-	.empty-card {
-		padding: var(--space-md);
-		margin-bottom: var(--space-sm);
-	}
-
 	.empty-title {
 		margin: 0 0 4px;
-		font-size: 14px;
+		font-size: var(--mw-type-body-size);
 		font-weight: 700;
-	}
-
-	.crit {
-		padding: var(--space-md);
 	}
 
 	.crit-text {
 		margin: 0;
-		font-size: 14px;
+		font-size: var(--mw-type-body-size);
 		line-height: 1.45;
-		color: var(--text-primary);
+		color: var(--mw-ink);
 	}
 
 	.crit-line {
 		margin: 8px 0 0;
-		font-size: 12px;
+		font-size: var(--mw-type-caption-size);
 		line-height: 1.4;
-		color: var(--text-secondary);
+		color: var(--mw-ink-secondary);
 	}
 
 	.crit-from {
 		margin: 6px 0 0;
-		font-size: 12px;
+		font-size: var(--mw-type-caption-size);
 		line-height: 1.4;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
 
 	.crit-actions {
@@ -604,86 +532,30 @@
 		flex-wrap: wrap;
 	}
 
-	.mini {
-		display: inline-flex;
-		align-items: center;
-		gap: 4px;
-		padding: 7px 12px;
-		border-radius: 999px;
-		background: var(--aurora-tint);
-		color: var(--aurora-deep);
-		font-size: 12px;
-		font-weight: 600;
-	}
-
-	.mini.go {
-		background: var(--gradient-action);
-		color: var(--on-primary);
-	}
-
-	.mini.quiet {
-		background: none;
-		color: var(--text-muted);
-	}
-
-	.mini:disabled {
-		opacity: 0.5;
-	}
-
 	.actions {
 		gap: 8px;
 		margin-top: 12px;
 	}
-
-	.half {
+	.view :global(.half) {
 		flex: 1;
-		padding: 12px;
-		font-size: 13px;
-	}
-
-	.half:disabled {
-		opacity: 0.6;
 	}
 
 	.waiting {
 		margin: 8px 0 0;
 	}
 
-	.editing {
-		margin-top: 12px;
-	}
-
 	.f-label {
 		margin: 0 0 6px;
-		font-size: 12px;
+		font-size: var(--mw-type-caption-size);
 		font-weight: 700;
-		color: var(--text-secondary);
+		color: var(--mw-ink-secondary);
 	}
 
 	.f-label.spaced {
 		margin-top: 14px;
 	}
-
-	.field {
+	.view :global(.field) {
 		width: 100%;
-		padding: 12px 14px;
-		border-radius: 12px;
-		border: 1px solid var(--border);
-		background: var(--surface-2);
-		font-family: inherit;
-		font-size: 14px;
-		color: var(--text-primary);
-		box-sizing: border-box;
-	}
-
-	.field:focus {
-		outline: none;
-		border-color: var(--aurora-deep);
-	}
-
-	textarea.field {
-		resize: vertical;
-		line-height: 1.45;
 	}
 
 	.cap-options {
@@ -691,43 +563,17 @@
 		flex-direction: column;
 	}
 
-	.cap-option {
-		display: flex;
-		align-items: flex-start;
-		gap: 10px;
-		padding: 8px 0;
-		font-size: 13px;
-		line-height: 1.4;
-		cursor: pointer;
-	}
-
-	.cap-option + .cap-option {
-		border-top: 0.5px solid var(--hair);
-	}
-
-	.cap-option input {
-		width: 18px;
-		height: 18px;
-		margin: 1px 0 0;
-		flex-shrink: 0;
-		accent-color: var(--aurora-deep);
-	}
-
 	.form-error {
 		display: flex;
 		align-items: center;
 		gap: 6px;
 		margin: 10px 0 0;
-		font-size: 12px;
-		color: var(--text-primary);
+		font-size: var(--mw-type-caption-size);
+		color: var(--mw-ink);
 	}
 
 	.footer-action {
-		margin-top: var(--space-xl);
-	}
-
-	.footer-action .btn-primary:disabled {
-		opacity: 0.5;
+		margin-top: var(--mw-space-6);
 	}
 
 	.footer-help {
@@ -736,18 +582,11 @@
 	}
 
 	.empty {
-		margin: var(--space-lg) 0 0;
-		font-size: 13px;
-		color: var(--text-muted);
+		margin: var(--mw-space-4) 0 0;
+		font-size: var(--mw-type-small-size);
+		color: var(--mw-ink-muted);
 	}
-
-	/* A planned experience keeps a way back to its summary. */
-	.to-summary {
-		display: inline-block;
+	.view :global(.to-summary) {
 		margin: 2px 0 6px;
-		font-size: 12px;
-		font-weight: 600;
-		color: var(--aurora-deep);
-		text-decoration: none;
 	}
 </style>

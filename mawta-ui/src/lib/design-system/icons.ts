@@ -1,4 +1,6 @@
 export const glyphs = {
+	'chevron-up': '<path d="M6 15l6-6 6 6" />',
+	'chevron-down': '<path d="M6 9l6 6 6-6" />',
 	home: '<path d="M4 11l8-7 8 7" />\n\t\t<path d="M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9" />',
 	bell: '<path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3H4a4 4 0 0 0 2-3v-3a7 7 0 0 1 4-6" />\n\t\t<path d="M9 17v1a3 3 0 0 0 6 0v-1" />',
 	logout:

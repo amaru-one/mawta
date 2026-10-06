@@ -1,4 +1,14 @@
 <script lang="ts">
+	import {
+		Action,
+		Button,
+		Card,
+		Checkbox,
+		Field,
+		Icon,
+		LoadingState,
+		Notice,
+	} from '$lib/design-system';
 	// The evidences step of a saved experience: where the teacher will observe
 	// the criteria. An evidencia is a producción, an actuación or a prueba
 	// escrita, and it can gather criteria of several competencias at once.
@@ -24,7 +34,6 @@
 		getExperience,
 		updateEvidence,
 	} from '$lib/api/endpoints/planning';
-	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
 	import { showToast } from '$lib/toast';
@@ -218,7 +227,7 @@
 			showToast('Evidencia quitada', {
 				onUndo: () => void restore(target),
 				undoLabel: 'Deshacer',
-				durationMs: 4000,
+				durationMs: 7000,
 			});
 		} catch {
 			showToast('No se pudo quitar la evidencia');
@@ -281,185 +290,182 @@
 <svelte:head>
 	<title>Evidencias</title>
 </svelte:head>
+<div class="view">
+	<TopBar back={`/class/${courseId}/plan/${experienceId}/criteria`} useHistory />
 
-<TopBar back={`/class/${courseId}/plan/${experienceId}/criteria`} useHistory />
-
-<div class="body">
-	{#if ready && experience}
-		<p class="eyebrow">{experience.title} · Evidencias</p>
-		{#if experience.status === 'planificada'}
-			<a class="to-summary pressable" href={`/class/${courseId}/plan/${experienceId}/summary`}>
-				‹ Volver al resumen
-			</a>
-		{/if}
-		<h1 class="screen-title sm">¿Dónde observarás tus criterios?</h1>
-		<p class="meta intro">
-			Producciones o actuaciones de tus estudiantes. Una evidencia puede reunir criterios de varias
-			competencias.
-		</p>
-
-		{#if unobservedText !== null}
-			<div class="notice">
-				<Icon name="alert" size={16} />
-				<p class="grow notice-text">
-					Sin evidencia: {unobservedText}. Agrégalos a una evidencia para poder observarlos.
-				</p>
-			</div>
-		{/if}
-
-		<div class="section">
-			<p class="eyebrow">Evidencias · {evidences.length}</p>
-			{#if pending}
-				<p class="meta help">Mawta propuso estas evidencias: acéptalas o edítalas.</p>
+	<div class="body">
+		{#if ready && experience}
+			<p class="eyebrow">{experience.title} · Evidencias</p>
+			{#if experience.status === 'planificada'}
+				<Action variant="link" href={`/class/${courseId}/plan/${experienceId}/summary`}>
+					‹ Volver al resumen
+				</Action>
 			{/if}
+			<h1 class="screen-title sm">¿Dónde observarás tus criterios?</h1>
+			<p class="meta intro">
+				Producciones o actuaciones de tus estudiantes. Una evidencia puede reunir criterios de
+				varias competencias.
+			</p>
 
-			{#if evidences.length === 0}
-				<div class="card empty-card">
-					<p class="empty-title">Aún no hay evidencias.</p>
-					<p class="meta">
-						Mawta puede proponerlas a partir de tus criterios, o puedes agregarlas tú.
+			{#if unobservedText !== null}
+				<Notice variant="attention">
+					<p class="grow notice-text">
+						Sin evidencia: {unobservedText}. Agrégalos a una evidencia para poder observarlos.
 					</p>
-				</div>
+				</Notice>
 			{/if}
 
-			<div class="stack">
-				{#each evidences as evidence (evidence.id)}
-					{#if form && form.id === evidence.id}
-						{@render editor()}
-					{:else}
-						<div class="card ev">
-							<p class="ev-name">{evidence.name}</p>
-							<p class="meta ev-kind">{KIND_WORDS[evidence.kind]}</p>
-							{#if groupsOf(evidence).length > 0}
-								<ul class="ev-crit">
-									{#each groupsOf(evidence) as group (group.competency.id)}
-										{#if comps.length > 1}
-											<li class="grp">{group.competency.name}</li>
-										{/if}
-										{#each group.criteria as criterion (criterion.id)}
-											<li class="crit-row">
-												<span class="grow">{criterion.description}</span>
-											</li>
-										{/each}
-									{/each}
-								</ul>
-							{:else}
-								<p class="meta ev-none">Sin criterios: elige cuáles observarás.</p>
-							{/if}
-							<div class="ev-actions row">
-								{#if isProposal(evidence)}
-									<button class="mini go pressable" onclick={() => void accept(evidence)}>
-										<Icon name="check" size={13} /> Aceptar
-									</button>
-								{/if}
-								<button class="mini pressable" onclick={() => openEdit(evidence)}>Editar</button>
-								<button class="mini quiet pressable" onclick={() => void remove(evidence.id)}>
-									<Icon name="trash" size={13} /> Quitar
-								</button>
-							</div>
-						</div>
-					{/if}
-				{/each}
-			</div>
-
-			<div class="row actions">
-				<!-- Evidences are proposed from the criteria: none, nothing to propose. -->
-				{#if criteria.length > 0 && !$agentUnavailable}
-					<button
-						class="btn-block pressable half"
-						disabled={generating}
-						onclick={() => void generate()}
-					>
-						<Icon name="sparkles" size={15} />
-						{evidences.length === 0 ? 'Generar con Mawta' : 'Generar más'}
-					</button>
+			<div class="section">
+				<p class="eyebrow">Evidencias · {evidences.length}</p>
+				{#if pending}
+					<p class="meta help">Mawta propuso estas evidencias: acéptalas o edítalas.</p>
 				{/if}
-				<button class="btn-block pressable half" onclick={openCreate}>
-					<Icon name={form && form.id === null ? 'x' : 'plus'} size={15} />
-					{form && form.id === null ? 'Cerrar' : 'Agregar evidencia'}
-				</button>
+
+				{#if evidences.length === 0}
+					<Card>
+						<p class="empty-title">Aún no hay evidencias.</p>
+						<p class="meta">
+							Mawta puede proponerlas a partir de tus criterios, o puedes agregarlas tú.
+						</p>
+					</Card>
+				{/if}
+
+				<div class="stack">
+					{#each evidences as evidence (evidence.id)}
+						{#if form && form.id === evidence.id}
+							{@render editor()}
+						{:else}
+							<Card>
+								<p class="ev-name">{evidence.name}</p>
+								<p class="meta ev-kind">{KIND_WORDS[evidence.kind]}</p>
+								{#if groupsOf(evidence).length > 0}
+									<ul class="ev-crit">
+										{#each groupsOf(evidence) as group (group.competency.id)}
+											{#if comps.length > 1}
+												<li class="grp">{group.competency.name}</li>
+											{/if}
+											{#each group.criteria as criterion (criterion.id)}
+												<li class="crit-row">
+													<span class="grow">{criterion.description}</span>
+												</li>
+											{/each}
+										{/each}
+									</ul>
+								{:else}
+									<p class="meta ev-none">Sin criterios: elige cuáles observarás.</p>
+								{/if}
+								<div class="ev-actions row">
+									{#if isProposal(evidence)}
+										<Action variant="main" onclick={() => void accept(evidence)}>
+											<Icon name="check" size={13} /> Aceptar
+										</Action>
+									{/if}
+									<Action variant="link" onclick={() => openEdit(evidence)}>Editar</Action>
+									<Action variant="remove" onclick={() => void remove(evidence.id)}>
+										<Icon name="trash" size={13} /> Quitar
+									</Action>
+								</div>
+							</Card>
+						{/if}
+					{/each}
+				</div>
+
+				<div class="row actions">
+					<!-- Evidences are proposed from the criteria: none, nothing to propose. -->
+					{#if criteria.length > 0 && !$agentUnavailable}
+						<Button
+							variant="secondary"
+							block
+							class="half"
+							disabled={generating}
+							onclick={() => void generate()}
+						>
+							<Icon name="sparkles" size={15} />
+							{evidences.length === 0 ? 'Generar con Mawta' : 'Generar más'}
+						</Button>
+					{/if}
+					<Button variant="secondary" block class="half" onclick={openCreate}>
+						<Icon name={form && form.id === null ? 'x' : 'plus'} size={15} />
+						{form && form.id === null ? 'Cerrar' : 'Agregar evidencia'}
+					</Button>
+				</div>
+				{#if generating}
+					<p class="meta waiting">Mawta está proponiendo evidencias para tus criterios…</p>
+				{/if}
+
+				{#if form && form.id === null}
+					{@render editor()}
+				{/if}
 			</div>
-			{#if generating}
-				<p class="meta waiting">Mawta está proponiendo evidencias para tus criterios…</p>
-			{/if}
 
-			{#if form && form.id === null}
-				{@render editor()}
-			{/if}
-		</div>
+			<div class="footer-action">
+				<Button variant="primary" block onclick={next}>
+					Continuar con las sesiones <Icon name="chevron-right" size={16} />
+				</Button>
+			</div>
+		{:else if loadError}
+			<p class="empty">
+				No se pudo cargar la experiencia.
+				<Button variant="secondary" onclick={load}>Reintentar</Button>
+			</p>
+		{:else}<LoadingState label="Cargando…" />{/if}
+	</div>
 
-		<div class="footer-action">
-			<button class="btn-block btn-primary pressable" onclick={next}>
-				Continuar con las sesiones <Icon name="chevron-right" size={16} />
-			</button>
-		</div>
-	{:else if loadError}
-		<p class="empty">
-			No se pudo cargar la experiencia.
-			<button class="pill-light pressable" onclick={load}>Reintentar</button>
-		</p>
-	{/if}
-</div>
+	{#snippet editor()}
+		{#if form}
+			<Card>
+				<Field
+					label="Nombre"
+					type="text"
+					placeholder="Ej.: Hoja de cuentas de la tiendita"
+					bind:value={form.name}
+				/>
 
-{#snippet editor()}
-	{#if form}
-		<div class="card ev editing">
-			<p class="f-label">Nombre</p>
-			<input
-				class="field"
-				type="text"
-				placeholder="Ej.: Hoja de cuentas de la tiendita"
-				bind:value={form.name}
-			/>
+				<Field kind="select" label="Tipo" bind:value={form.kind}>
+					<option value="produccion">Producción</option>
+					<option value="actuacion">Actuación</option>
+					<option value="prueba_escrita">Prueba escrita</option>
+				</Field>
 
-			<p class="f-label spaced">Tipo</p>
-			<select class="field" bind:value={form.kind}>
-				<option value="produccion">Producción</option>
-				<option value="actuacion">Actuación</option>
-				<option value="prueba_escrita">Prueba escrita</option>
-			</select>
-
-			<p class="f-label spaced">Criterios que observarás en ella</p>
-			{#if criteria.length === 0}
-				<p class="meta no-criteria">
-					Esta experiencia todavía no tiene criterios: vuelve al paso anterior para crearlos.
-				</p>
-			{:else}
-				{#each comps as competency (competency.id)}
-					{#if criteriaOf(competency.id).length > 0}
-						<p class="meta grp-label">{competency.name}</p>
-						{#each criteriaOf(competency.id) as criterion (criterion.id)}
-							<label class="crit-option">
-								<input
-									type="checkbox"
+				<p class="f-label spaced">Criterios que observarás en ella</p>
+				{#if criteria.length === 0}
+					<p class="meta no-criteria">
+						Esta experiencia todavía no tiene criterios: vuelve al paso anterior para crearlos.
+					</p>
+				{:else}
+					{#each comps as competency (competency.id)}
+						{#if criteriaOf(competency.id).length > 0}
+							<p class="meta grp-label">{competency.name}</p>
+							{#each criteriaOf(competency.id) as criterion (criterion.id)}
+								<Checkbox
 									checked={form.criterionIds.includes(criterion.id)}
 									onchange={() => toggleCriterion(criterion.id)}
-								/>
-								<span>{shortText(criterion.description, 90)}</span>
-							</label>
-						{/each}
-					{/if}
-				{/each}
-			{/if}
+								>
+									<span>{shortText(criterion.description, 90)}</span>
+								</Checkbox>
+							{/each}
+						{/if}
+					{/each}
+				{/if}
 
-			{#if formError}
-				<p class="form-error"><Icon name="alert" size={14} /> {formError}</p>
-			{/if}
+				{#if formError}
+					<p class="form-error"><Icon name="alert" size={14} /> {formError}</p>
+				{/if}
 
-			<div class="ev-actions row">
-				<button class="mini go pressable" disabled={!canSave || saving} onclick={() => void save()}>
-					<Icon name="check" size={13} /> Guardar
-				</button>
-				<button class="mini quiet pressable" onclick={() => (form = null)}>Cancelar</button>
-			</div>
-		</div>
-	{/if}
-{/snippet}
+				<div class="ev-actions row">
+					<Action variant="main" disabled={!canSave || saving} onclick={() => void save()}>
+						<Icon name="check" size={13} /> Guardar
+					</Action>
+					<Action variant="remove" onclick={() => (form = null)}>Cancelar</Action>
+				</div>
+			</Card>
+		{/if}
+	{/snippet}
+</div>
 
 <style>
-	/* The question is long; the title shrinks as the criteria screen's does. */
 	.screen-title.sm {
-		font-size: 24px;
+		font-size: var(--mw-type-title-size);
 	}
 
 	.intro {
@@ -467,25 +473,15 @@
 		line-height: 1.45;
 	}
 
-	.notice {
-		display: flex;
-		align-items: flex-start;
-		gap: var(--space-sm);
-		background: var(--bg-danger);
-		border-radius: var(--radius);
-		padding: var(--space-sm) var(--space-md);
-		margin-top: var(--space-md);
-	}
-
 	.notice-text {
 		margin: 0;
-		font-size: 13px;
+		font-size: var(--mw-type-small-size);
 		line-height: 1.45;
-		color: var(--text-primary);
+		color: var(--mw-ink);
 	}
 
 	.section {
-		margin-top: var(--space-xl);
+		margin-top: var(--mw-space-6);
 	}
 
 	.help {
@@ -495,30 +491,21 @@
 	.stack {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-sm);
-	}
-
-	.empty-card {
-		padding: var(--space-md);
-		margin-bottom: var(--space-sm);
+		gap: var(--mw-space-2);
 	}
 
 	.empty-title {
 		margin: 0 0 4px;
-		font-size: 14px;
+		font-size: var(--mw-type-body-size);
 		font-weight: 700;
-	}
-
-	.ev {
-		padding: var(--space-md);
 	}
 
 	.ev-name {
 		margin: 0;
-		font-size: 14px;
+		font-size: var(--mw-type-body-size);
 		font-weight: 700;
 		line-height: 1.35;
-		color: var(--text-primary);
+		color: var(--mw-ink);
 	}
 
 	.ev-kind {
@@ -529,7 +516,6 @@
 		margin: 8px 0 0;
 	}
 
-	/* The criteria an evidencia gathers, as text rows grouped by competencia. */
 	.ev-crit {
 		margin: 10px 0 0;
 		padding: 0;
@@ -538,20 +524,20 @@
 
 	.ev-crit .grp {
 		margin: 8px 0 2px;
-		font-family: var(--font-mono);
-		font-size: 10px;
-		letter-spacing: 0.08em;
+		font-family: var(--mw-font-sans);
+		font-size: var(--mw-type-label-size);
+		letter-spacing: 0.04em;
 		text-transform: uppercase;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
 
 	.ev-crit .crit-row {
 		display: flex;
 		padding: 5px 0;
-		border-top: 0.5px solid var(--hair);
+		border-top: 1px solid var(--mw-line);
 		font-size: 12.5px;
 		line-height: 1.4;
-		color: var(--text-secondary);
+		color: var(--mw-ink-secondary);
 	}
 
 	.ev-actions {
@@ -560,81 +546,30 @@
 		flex-wrap: wrap;
 	}
 
-	.mini {
-		display: inline-flex;
-		align-items: center;
-		gap: 4px;
-		padding: 7px 12px;
-		border-radius: 999px;
-		background: var(--aurora-tint);
-		color: var(--aurora-deep);
-		font-size: 12px;
-		font-weight: 600;
-	}
-
-	.mini.go {
-		background: var(--gradient-action);
-		color: var(--on-primary);
-	}
-
-	.mini.quiet {
-		background: none;
-		color: var(--text-muted);
-	}
-
-	.mini:disabled {
-		opacity: 0.5;
-	}
-
 	.actions {
 		gap: 8px;
 		margin-top: 12px;
 	}
-
-	.half {
+	.view :global(.half) {
 		flex: 1;
-		padding: 12px;
-		font-size: 13px;
-	}
-
-	.half:disabled {
-		opacity: 0.6;
 	}
 
 	.waiting {
 		margin: 8px 0 0;
 	}
 
-	.editing {
-		margin-top: 12px;
-	}
-
 	.f-label {
 		margin: 0 0 6px;
-		font-size: 12px;
+		font-size: var(--mw-type-caption-size);
 		font-weight: 700;
-		color: var(--text-secondary);
+		color: var(--mw-ink-secondary);
 	}
 
 	.f-label.spaced {
 		margin-top: 14px;
 	}
-
-	.field {
+	.view :global(.field) {
 		width: 100%;
-		padding: 12px 14px;
-		border-radius: 12px;
-		border: 1px solid var(--border);
-		background: var(--surface-2);
-		font-family: inherit;
-		font-size: 14px;
-		color: var(--text-primary);
-		box-sizing: border-box;
-	}
-
-	.field:focus {
-		outline: none;
-		border-color: var(--aurora-deep);
 	}
 
 	.grp-label {
@@ -646,54 +581,25 @@
 		line-height: 1.45;
 	}
 
-	.crit-option {
-		display: flex;
-		align-items: flex-start;
-		gap: 10px;
-		padding: 8px 0;
-		font-size: 13px;
-		line-height: 1.4;
-		cursor: pointer;
-	}
-
-	.crit-option + .crit-option {
-		border-top: 0.5px solid var(--hair);
-	}
-
-	.crit-option input {
-		width: 18px;
-		height: 18px;
-		margin: 1px 0 0;
-		flex-shrink: 0;
-		accent-color: var(--aurora-deep);
-	}
-
 	.form-error {
 		display: flex;
 		align-items: center;
 		gap: 6px;
 		margin: 10px 0 0;
-		font-size: 12px;
-		color: var(--text-primary);
+		font-size: var(--mw-type-caption-size);
+		color: var(--mw-ink);
 	}
 
 	.footer-action {
-		margin-top: var(--space-xl);
+		margin-top: var(--mw-space-6);
 	}
 
 	.empty {
-		margin: var(--space-lg) 0 0;
-		font-size: 13px;
-		color: var(--text-muted);
+		margin: var(--mw-space-4) 0 0;
+		font-size: var(--mw-type-small-size);
+		color: var(--mw-ink-muted);
 	}
-
-	/* A planned experience keeps a way back to its summary. */
-	.to-summary {
-		display: inline-block;
+	.view :global(.to-summary) {
 		margin: 2px 0 6px;
-		font-size: 12px;
-		font-weight: 600;
-		color: var(--aurora-deep);
-		text-decoration: none;
 	}
 </style>

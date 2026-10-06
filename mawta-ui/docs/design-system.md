@@ -1,87 +1,62 @@
 # Mawta Nítido — component library
 
-This library implements the Índigo palette from _mawta-nitido-design-system.pdf_, version 1, October 2026. It is the foundation for a subsequent screen migration. Production routes do not import it yet. There is no gallery, preview route, or Storybook.
+Mawta uses the Índigo palette from `mawta-nitido-design-system.pdf` (October 2026). All production screens share this library. The application remains a responsive, centered column with a maximum width of 480px; there is no gallery route or Storybook.
 
-## Start using the library
+## Theme and ownership
 
-Import components from `$lib/design-system`. Mount one `DesignSystem` wrapper around the new UI. It loads Plus Jakarta Sans (400–800) from the PDF’s Google Fonts URL and supplies scoped typography, resets, and `--mw-*` tokens. The wrapper uses a white content surface. Apply `--mw-surface-page` only to fixed bands or the surrounding page when migrating the shell.
+Import components from `$lib/design-system`. The root layout mounts one `DesignSystem` around the application, including loading states, dialogs, and toasts. The wrapper supplies Plus Jakarta Sans (400–800), scoped resets, and `--mw-*` tokens. The surrounding page uses `--mw-surface-page`; the application column uses `--mw-surface-card`.
 
-```svelte
-<script lang="ts">
-	import { DesignSystem, Field, Button } from '$lib/design-system';
-	let name = $state('');
-</script>
+Native dialog and popover top-layer rendering preserves theme ancestry. Do not move overlays into `document.body`. Global `app.css` contains document resets; `lib/styles/application.css` owns application geometry and domain layout. Production code has no Aurora token aliases.
 
-<DesignSystem>
-	<form
-		onsubmit={(event) => {
-			event.preventDefault(); /* Save in the caller. */
-		}}
-	>
-		<Field label="Nombre" name="name" bind:value={name} required />
-		<Button type="submit" variant="primary">Guardar experiencia</Button>
-	</form>
-</DesignSystem>
-```
-
-Every component must remain a descendant of `DesignSystem`. Native dialog and popover top-layer rendering preserves this ancestry and its theme; do not move their nodes into `document.body`. Importing the module does not alter document-wide tokens. Existing Aurora classes and components remain separate.
+Use solid surfaces, visible field labels and borders, text actions within cards, and status words alongside markers. Minimum text size is 11px. Buttons and fields have 48px targets; compact actions have at least 40px targets. Use a single primary action per screen. Follow the PDF's reduced-motion and focus-ring rules.
 
 ## Component contracts
 
-All components use Svelte 5. Values bind through `bind:value`, checkboxes through `bind:checked`, and dialogs through `bind:open`. Data and callbacks come from the caller. Components do not import application stores, API DTOs, routing, authentication, or business rules. Exported shared types describe options, capabilities, statuses, toast messages, and variants; use Svelte’s `ComponentProps<typeof Component>` for complete prop types.
+Components use Svelte 5. Values bind through `bind:value`, checkboxes through `bind:checked`, and dialogs/disclosures through `bind:open`. Shared components accept data and callbacks; they do not import API DTOs, application stores, authentication, or routing. Use `ComponentProps<typeof Component>` for full prop types.
 
-| Component                     | Contract                                                                                                                                                                                                                                                                                                                      |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Button`                      | Required content snippet; `variant="primary"                                                                                                                                                                                                                                                                                  | "secondary"`(secondary default),`block`, optional `icon`/`iconPosition`, `loading`, and native button attributes/events. Defaults to `type="button"`. Loading disables activation and sets `aria-busy`. |
-| `ButtonRow`                   | Content snippet; shares available width between buttons and wraps on small screens.                                                                                                                                                                                                                                           |
-| `Action`                      | Content snippet, optional icon, `variant="neutral"                                                                                                                                                                                                                                                                            | "main"                                                                                                                                                                                                  | "remove"                                                                                                                                                                                                                                                                                                                                                                                                                              | "link"`. Supply `href`for an anchor or`onclick` for a button. Disabled/loading links lose their destination; removal actions move to the trailing edge. |
-| `IconButton` / `Icon`         | Typed icon name. IconButton requires an accessible `label`, supports native button props, and optionally `outlined`. Icons are decorative; meaningful icons require surrounding text or a labeled control.                                                                                                                    |
-| `Text`                        | Content snippet, `variant` from the PDF typography table, optional semantic `as` (`p` by default). Choosing a visual title does not automatically choose a heading level.                                                                                                                                                     |
-| `Card`                        | Content and optional `actions` snippets. One decision per card. Actions are separated from the body by a rule.                                                                                                                                                                                                                |
-| `Context`                     | Content snippet on the context surface.                                                                                                                                                                                                                                                                                       |
-| `Field`                       | Required visible `label`; `kind="input"                                                                                                                                                                                                                                                                                       | "textarea"                                                                                                                                                                                              | "select"`, bindable `value`, select `options`, `help`, `error`, `large`, optional `labelAction`snippet. Supports form attributes, native events, generated or explicit IDs, and description/error associations.`type`applies only to inputs;`rows`only to textareas. Options have string values. Numeric inputs bind numbers; clearing them yields`null`, matching the installed Svelte runtime. An omitted initial value is allowed. |
-| `Checkbox`                    | Label, optional description, bindable checked state, native checkbox attributes. The whole row is a native checkbox label.                                                                                                                                                                                                    |
-| `CheckboxGroup`               | Label, options (`value`, full `label`, optional `description`/`disabled`), bindable string-array value, optional `name`, help/error, and `onchange(nextValues)`. Native checkboxes preserve keyboard and form semantics rather than imitating them with pressed buttons.                                                      |
-| `Segmented`                   | Accessible group label, two to four short options, bindable string value, optional `name`, disabled state, and `onchange(nextValue)`. Uses pressed buttons: Tab moves between options, Space/Enter selects. Use Field/select for longer lists or labels.                                                                      |
-| `CoverageMeter`               | Capabilities (`id`, short `label`, `covered`) and optional heading. Missing capabilities are written out; each segment has a screen-reader state. Empty arrays display “Sin capacidades”.                                                                                                                                     |
-| `StatusList`                  | Items with `id`, `name`, `status="done"                                                                                                                                                                                                                                                                                       | "due"                                                                                                                                                                                                   | "waiting"`, explicit status `label`, and optional detail. Labels remain caller-controlled.                                                                                                                                                                                                                                                                                                                                            |
-| `Notice`                      | Content, `variant="info"                                                                                                                                                                                                                                                                                                      | "attention"                                                                                                                                                                                             | "danger"`, optional icon. `live` opts into status/alert announcements for newly appearing messages. Static notices do not repeatedly announce.                                                                                                                                                                                                                                                                                        |
-| `Toast`                       | Nullable `message` with unique `id`, message text, optional action and label, optional duration override; required `ondismiss(id)`. Caller clears only the matching message. Defaults: 2 seconds, or 7 seconds with an action. Replacement/unmount cleans up timers. Uses a manual popover so fixed ancestors cannot clip it. |
-| `TopBar`                      | Name, school, initials; optional back, identity, and notifications callbacks, unread count, and extra actions snippet. No dependency on teacher stores or navigation history.                                                                                                                                                 |
-| `StepNav`                     | Current title, **zero-based** index, total, optional noun and previous/next callbacks. Boundary buttons are disabled.                                                                                                                                                                                                         |
-| `SessionRow`                  | Valid calendar date `YYYY-MM-DD`, title, optional topics, evidence (`name`, optional `href`), and action snippet. `off` displays the crossed-out date/title and non-teaching-day detail. Date labels use `es-PE` without shifting across host time zones.                                                                     |
-| `Dialog`                      | Bindable open state, title, optional description/body/actions and close callback. Uses native modal focus isolation and Escape dismissal; restores focus to the opener.                                                                                                                                                       |
-| `ConfirmDialog`               | Bindable open state, title, description, confirm label, confirmation and optional cancellation callbacks. Closes before invoking the selected action. Business operations stay in the caller.                                                                                                                                 |
-| `EmptyState` / `LoadingState` | Empty-state title plus optional description/icon/actions; loading-state accessible label (defaults to “Cargando…”).                                                                                                                                                                                                           |
+| Component                              | Contract                                                                                                                                                                                                                                                               |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Button`                               | Content snippet, primary/secondary variant, block layout, optional icon, loading state, native button attributes. Defaults to `type="button"`. `href`, `target`, and `rel` render native links. Disabled/loading links have no destination and cannot activate.        |
+| `Action`                               | Text action with neutral/main/remove/link variants, optional icon, native destination or callback.                                                                                                                                                                     |
+| `IconButton`                           | Required accessible `label` and icon. Supports native link destinations and disabled state.                                                                                                                                                                            |
+| `Field`                                | Required label; input, textarea, or select; bindable value; help/error text; optional label action. Select choices come from `options` or a child snippet. `bind:control` exposes the native input/textarea/select for focus and blur. Attachments reach that control. |
+| `Checkbox`, `CheckboxGroup`            | Native checkbox behavior, visible label or content, descriptions, and bindable selection.                                                                                                                                                                              |
+| `Segmented`                            | Named option group with pressed state, optional disabled choices, bindable value, and change callback.                                                                                                                                                                 |
+| `Card`, `Context`                      | Content surfaces. Cards provide separate body/actions snippets. Domain layouts belong inside the content.                                                                                                                                                              |
+| `ListRow`                              | Native link with content, optional trailing snippet, and chevron. Do not place other interactive controls inside it.                                                                                                                                                   |
+| `Disclosure`                           | Summary/content snippets, bindable open state, optional toggle callback. Native button activation with `aria-expanded` and `aria-controls`; hidden content preserves editing state.                                                                                    |
+| `TopBar`                               | Teacher identity or title, optional native back/profile/notification destinations, callbacks, notification count, actions and status snippets. The application adapter owns history fallback, stores, and haptics.                                                     |
+| `StepNav`                              | Title, zero-based index, total, previous/next callbacks, disabled end states.                                                                                                                                                                                          |
+| `CoverageMeter`, `StatusList`          | Coverage/status data rendered with labels; color is supplementary. Callers determine business meaning and accepted-criterion coverage.                                                                                                                                 |
+| `SessionRow`                           | ISO calendar date, title, topics, evidence reference, off-day state, actions. Optional editor snippet replaces the read view without changing date placement.                                                                                                          |
+| `Notice`, `LoadingState`, `EmptyState` | Shared feedback states. Use danger notices for errors and attention notices for nonblocking warnings.                                                                                                                                                                  |
+| `Dialog`, `ConfirmDialog`              | Native modal dialogs, keyboard focus containment/restoration, accessible title, and cancellation callbacks.                                                                                                                                                            |
+| `Toast`                                | Message identity, text, optional action and duration; dismiss callback receives the message ID. Owns the only expiry timer. Defaults: 2 seconds normally, 7 seconds with an action.                                                                                    |
+| `Text`, `Icon`, `ButtonRow`            | Typography hierarchy, trusted inline glyphs, and wrapping action layout.                                                                                                                                                                                               |
 
-## Visual rules and source decisions
+```svelte
+<script lang="ts">
+	import { Button, Field } from '$lib/design-system';
+	let name = $state('');
+	let control = $state<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null>(null);
+</script>
 
-Use one primary button per screen. Buttons and fields have minimum 48px targets; text/icon actions have minimum 40px targets. Put the reason for a disabled button in nearby help text and connect it with `aria-describedby`.
+<Field label="Nombre" bind:value={name} bind:control required />
+<Button onclick={() => control?.focus()}>Editar nombre</Button>
+<Button href="/profile">Mi perfil</Button>
+```
 
-Use rectangular buttons, solid accent fills, full competency names in selection rows, and written statuses. Do not reintroduce chips, gradients, monospace metadata, or colored card sidebars. Copy is in Peruvian Spanish; library documentation is in English.
+## Application adapters and specialized controls
 
-The PDF’s typography table is authoritative (in particular, heading uses weight 700). The PDF names but does not numerically define shadows: card/action/raised shadow values come from the accompanying Nítido planning HTML prototype. Circular step navigation follows the explicit TopBar/StepNav example. Native checkboxes are the intentional semantic equivalent of the PDF’s visual selection rows.
+`components/TopBar` preserves cold-load back destinations and modifier-click behavior. `components/Toast` maps the existing `showToast` API to `Toast`; ID-guarded dismissal prevents an old message from clearing a replacement. `components/ConfirmDialog` preserves existing conditional-mount callers.
 
-The `--mw-` prefix maps one-to-one to the PDF token names. Colors, typography sizes/line heights, spacing, radii, and shadows live in `styles.css`. Focus is a 2px ring with 2px offset. Loading motion respects `prefers-reduced-motion`.
+Official levels use labeled native radio inputs in `LevelSelector`; evidence ratings use the distinct underlined `LevelScale`. Null remains unset. `LevelBadge` is plain readable text. `ScoreRuler` retains pointer preview with commit on release and keyboard increments. No UI component computes an official level from evidence or internal grades.
 
-## Migration handoff
-
-| Current implementation                             | Future replacement                                                         |
-| -------------------------------------------------- | -------------------------------------------------------------------------- |
-| `app.css` palette and global primitives            | Opt-in DesignSystem tokens; migrate the shell in the screen-refactor phase |
-| `.btn-block`, `.btn-dark`, `.btn-light`, `.pill-*` | Button / ButtonRow                                                         |
-| `.mini`, per-card action buttons                   | Action in Card’s actions snippet                                           |
-| `.field`, title inputs, situation editors          | Field with label, help, and error props                                    |
-| Checkbox rows and bespoke segmented selectors      | CheckboxGroup / Segmented                                                  |
-| Coverage bars and status markers                   | CoverageMeter / StatusList                                                 |
-| Inline notices and empty/loading paragraphs        | Notice / EmptyState / LoadingState                                         |
-| Existing store-driven TopBar and Toast             | New components supplied by app-owned adapters                              |
-| Competency navigation and session rows             | StepNav / SessionRow                                                       |
-| Existing confirmation and score dialogs            | Dialog / ConfirmDialog with domain-specific form snippets                  |
-
-Do not alias old Aurora variables to the new tokens: several colors have changed roles. Adapt route data into the library’s small view types during the second phase. Existing grading and recording components need their own migration decisions; this library does not change their behavior.
+`RecordingControl` preserves immediate microphone capture, a 400ms commitment threshold, pointer/keyboard holds, and the 60-second cap. It uses a solid Índigo control and linear progress. Short taps discard; microphone failures reset the UI; unmount cancels capture and releases microphone tracks. The voice player uses shared controls and reports playback failures.
 
 ## Verification
+
+Run from `mawta-ui`:
 
 ```sh
 bun install --frozen-lockfile
@@ -89,7 +64,10 @@ bunx playwright install chromium webkit
 bun run check
 bun eslint .
 bun run test:components
+bun run test:ui
 bun run build
 ```
 
-Component tests use isolated Svelte fixtures in Chromium and WebKit, including legacy CSS to check coexistence. Fixtures are not application routes and do not call the backend. CI installs both browser engines and runs the same suite.
+Component tests run in Chromium and WebKit. Route tests start isolated local Vite servers, intercept API requests, and cover all 17 screens plus the error page. They exercise planning with its flag both enabled and disabled, authentication, navigation, assessment contracts, recording, and undo. Screen tests capture 320px, 390px, 480px, and desktop screenshots under ignored `test-results/` artifacts.
+
+Media tests use deterministic microphone and audio stubs. They verify interaction and lifecycle contracts; they do not establish physical microphone quality or live backend availability. No production credentials or database are needed.

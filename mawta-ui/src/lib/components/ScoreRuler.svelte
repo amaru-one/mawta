@@ -12,11 +12,10 @@
 	import { hapticTap } from '$lib/haptics';
 
 	interface Props {
-		/** null = not valued yet. Rendered as a dash, never as a zero. */
 		value: number | null;
 		max?: number;
 		disabled?: boolean;
-		/** Fires once per commit (pointer release / key), never mid-drag. */
+
 		onselect: (value: number) => void;
 	}
 
@@ -79,7 +78,7 @@
 
 <div class="ruler" class:off={disabled}>
 	<span class="readout" class:empty={shown === null}>
-		{shown ?? '–'}<span class="denom">/{max}</span>
+		{shown ?? '—'}<span class="denom">/{max}</span>
 	</span>
 
 	<div
@@ -90,7 +89,8 @@
 		aria-label="Nota sobre {max}"
 		aria-valuemin={0}
 		aria-valuemax={max}
-		aria-valuenow={shown ?? undefined}
+		aria-valuenow={shown ?? 0}
+		aria-valuetext={shown === null ? 'Sin valorar' : `${shown} sobre ${max}`}
 		aria-disabled={disabled}
 		onpointerdown={down}
 		onpointermove={move}
@@ -135,28 +135,28 @@
 		pointer-events: none;
 	}
 
-	/* Fixed width so a 1- and a 2-digit mark leave the ruler in the same place. */
 	.readout {
 		flex-shrink: 0;
 		width: 66px;
-		font-size: 44px;
+		font-size: var(--mw-type-title-size);
 		font-weight: 600;
 		line-height: 0.9;
 		letter-spacing: -0.03em;
 	}
 
 	.readout.empty {
-		color: var(--text-faint);
+		color: var(--mw-ink-muted);
 	}
 
 	.denom {
-		font-size: 13px;
+		font-size: var(--mw-type-small-size);
 		font-weight: 500;
 		letter-spacing: 0;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
 
 	.track {
+		min-height: 48px;
 		flex: 1;
 		min-width: 0;
 		touch-action: none;
@@ -164,9 +164,9 @@
 	}
 
 	.track:focus-visible {
-		outline: 2px solid var(--aurora-deep);
+		outline: 2px solid var(--mw-accent);
 		outline-offset: 4px;
-		border-radius: var(--radius-sm);
+		border-radius: var(--mw-radius-sm);
 	}
 
 	.ticks {
@@ -187,28 +187,26 @@
 	.bar {
 		width: 1px;
 		height: 7px;
-		background: var(--text-faint);
+		background: var(--mw-ink-muted);
 	}
 
-	/* Every fifth mark is longer and carries a figure — the scale needs anchors
-	   or it reads as texture. */
 	.bar.five {
 		height: 12px;
-		background: var(--text-secondary);
+		background: var(--mw-ink-secondary);
 	}
 
 	.bar.on {
 		width: 3px;
 		height: 24px;
 		border-radius: 2px;
-		background: var(--aurora-deep);
+		background: var(--mw-accent);
 	}
 
 	.dot {
 		width: 8px;
 		height: 8px;
 		border-radius: 50%;
-		background: var(--aurora-deep);
+		background: var(--mw-accent);
 	}
 
 	.labels {
@@ -217,10 +215,13 @@
 	}
 
 	.lbl {
-		flex: 1;
+		flex: 1 1 0;
+		min-width: 0;
+		white-space: nowrap;
+		overflow-wrap: normal;
 		text-align: center;
-		font-size: 10px;
-		color: var(--text-muted);
-		font-family: var(--font-mono);
+		font-size: var(--mw-type-label-size);
+		color: var(--mw-ink-muted);
+		font-family: var(--mw-font-sans);
 	}
 </style>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Button, Field } from '$lib/design-system';
 	import { goto } from '$app/navigation';
 	import { ApiError } from '$lib/api/client';
 	import { login } from '$lib/api/endpoints/auth';
@@ -61,42 +62,39 @@
 <svelte:head>
 	<title>Iniciar sesión</title>
 </svelte:head>
+<div class="view">
+	<div class="body screen">
+		<h1 class="screen-title">Iniciar sesión</h1>
+		<p class="screen-sub">Ingresa con tu usuario del colegio</p>
 
-<div class="body screen">
-	<h1 class="screen-title">Iniciar sesión</h1>
-	<p class="screen-sub">Ingresa con tu usuario del colegio</p>
-
-	<form onsubmit={handleSubmit}>
-		<label class="field">
-			<span>Usuario</span>
-			<input
+		<form onsubmit={handleSubmit}>
+			<Field
+				label="Usuario"
 				type="text"
 				name="username"
 				autocomplete="username"
 				bind:value={username}
 				disabled={submitting}
 			/>
-		</label>
 
-		<label class="field">
-			<span>Contraseña</span>
-			<input
+			<Field
+				label="Contraseña"
 				type="password"
 				name="password"
 				autocomplete="current-password"
 				bind:value={password}
 				disabled={submitting}
 			/>
-		</label>
 
-		{#if error}
-			<p class="error" role="alert">{error}</p>
-		{/if}
+			{#if error}
+				<p class="error" role="alert">{error}</p>
+			{/if}
 
-		<button type="submit" class="btn-block btn-primary pressable" disabled={!canSubmit}>
-			{submitting ? 'Ingresando…' : 'Ingresar'}
-		</button>
-	</form>
+			<Button variant="primary" block type="submit" disabled={!canSubmit}>
+				{submitting ? 'Ingresando…' : 'Ingresar'}
+			</Button>
+		</form>
+	</div>
 </div>
 
 <style>
@@ -105,48 +103,20 @@
 		flex-direction: column;
 		justify-content: center;
 		min-height: 100vh;
-		max-width: var(--shell-width);
+		max-width: var(--mw-shell-width);
 		margin: 0 auto;
 	}
 
 	form {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-lg);
-		margin-top: var(--space-xl);
-	}
-
-	.field {
-		display: flex;
-		flex-direction: column;
-		gap: 6px;
-		font-size: 12px;
-		color: var(--text-secondary);
-	}
-
-	.field input {
-		font-size: 16px;
-		color: var(--text-primary);
-		background: var(--surface-1);
-		border: 0.5px solid var(--border);
-		border-radius: var(--radius-sm);
-		padding: 12px 14px;
-		font-family: inherit;
-	}
-
-	.field input:focus {
-		outline: none;
-		border-color: var(--border-strong);
+		gap: var(--mw-space-4);
+		margin-top: var(--mw-space-6);
 	}
 
 	.error {
 		margin: 0;
-		font-size: 13px;
-		color: var(--text-danger);
-	}
-
-	.btn-block:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
+		font-size: var(--mw-type-small-size);
+		color: var(--mw-danger);
 	}
 </style>

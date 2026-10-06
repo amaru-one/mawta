@@ -1,11 +1,11 @@
 <script lang="ts">
+	import { Button, Icon, ListRow, LoadingState } from '$lib/design-system';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { list } from '$lib/api/client';
 	import type { ClassDashboardDto, SessionSummaryDto } from '$lib/api/dto';
 	import { getClassDashboard } from '$lib/api/endpoints/classes';
 	import { formatTimeHHMM, parseDateOnly } from '$lib/api/mappers';
-	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
 
@@ -80,158 +80,149 @@
 <svelte:head>
 	<title>{d?.name ?? 'Clase'} — Panel</title>
 </svelte:head>
-
-<!-- Reached from the lesson screen as well as from Home now, so the arrow has
+<div class="view">
+	<!-- Reached from the lesson screen as well as from Home now, so the arrow has
      to follow history rather than always landing on Home. -->
-<TopBar back="/" useHistory />
+	<TopBar back="/" useHistory />
 
-<div class="body">
-	{#if ready && d}
-		<h1 class="clsname">{d.name}</h1>
-		<span class="clscount">{d.roster_count} alumnos · {d.sessions_per_week} sesiones/semana</span>
+	<div class="body">
+		{#if ready && d}
+			<h1 class="clsname">{d.name}</h1>
+			<span class="clscount">{d.roster_count} alumnos · {d.sessions_per_week} sesiones/semana</span>
 
-		{#if d.next_session}
-			{@const ns = d.next_session}
-			{@const phase = sessionPhase(ns, now)}
-			<!-- Today's session is in neither rail, so the block itself has to be the
+			{#if d.next_session}
+				{@const ns = d.next_session}
+				{@const phase = sessionPhase(ns, now)}
+				<!-- Today's session is in neither rail, so the block itself has to be the
 			     way into it: this is the rails' card, just larger. -->
-			<a
-				class="hero pressable"
-				href="/class/{courseId}/lesson/{ns.session_id}?from=area"
-				onclick={hapticTap}
-			>
-				<p class="hero-lbl">Hoy · {PHASE_LABEL[phase]}</p>
-				<p class="hero-time">{formatTimeHHMM(ns.scheduled_start_at)}</p>
-				<span class="hero-row">
-					<span class="hero-topic">
-						{ns.topic ?? 'Sin tema asignado'} · termina {formatTimeHHMM(ns.scheduled_end_at)}
-					</span>
-					<span class="chevron"><Icon name="chevron-right" size={18} /></span>
-				</span>
-			</a>
-		{/if}
-
-		<nav class="quiet">
-			<!-- First, because it is the row a teacher reaches for between classes;
-			     the other two are set-up work. -->
-			<a class="quiet-row pressable" href="/class/{courseId}/students" onclick={hapticTap}>
-				<span class="quiet-t">
-					Alumnos
-					<span class="quiet-d">Niveles de logro por competencia</span>
-				</span>
-				<span class="chevron"><Icon name="chevron-right" size={18} /></span>
-			</a>
-			<!-- With the planning flow on, criteria are written inside each
-			     experience, so the old school-wide criteria row is hidden. -->
-			{#if !PLANNING_ENABLED}
 				<a
-					class="quiet-row pressable"
-					href="/class/{courseId}/criteria?course={encodeURIComponent(d.name)}"
+					class="hero pressable"
+					href="/class/{courseId}/lesson/{ns.session_id}?from=area"
 					onclick={hapticTap}
 				>
-					<span class="quiet-t">
-						Criterios de evaluación
-						<span class="quiet-d">Lo que valoras en cada competencia</span>
+					<p class="hero-lbl">Hoy · {PHASE_LABEL[phase]}</p>
+					<p class="hero-time">{formatTimeHHMM(ns.scheduled_start_at)}</p>
+					<span class="hero-row">
+						<span class="hero-topic">
+							{ns.topic ?? 'Sin tema asignado'} · termina {formatTimeHHMM(ns.scheduled_end_at)}
+						</span>
+						<span class="chevron"><Icon name="chevron-right" size={18} /></span>
 					</span>
-					<span class="chevron"><Icon name="chevron-right" size={18} /></span>
 				</a>
 			{/if}
-			<!-- The term-planning flow's only entry, hidden until it exists:
+
+			<nav class="quiet">
+				<!-- First, because it is the row a teacher reaches for between classes;
+			     the other two are set-up work. -->
+				<ListRow href="/class/{courseId}/students" onclick={hapticTap}>
+					<span class="quiet-t">
+						Alumnos
+						<span class="quiet-d">Niveles de logro por competencia</span>
+					</span>
+				</ListRow>
+				<!-- With the planning flow on, criteria are written inside each
+			     experience, so the old school-wide criteria row is hidden. -->
+				{#if !PLANNING_ENABLED}
+					<ListRow
+						href="/class/{courseId}/criteria?course={encodeURIComponent(d.name)}"
+						onclick={hapticTap}
+					>
+						<span class="quiet-t">
+							Criterios de evaluación
+							<span class="quiet-d">Lo que valoras en cada competencia</span>
+						</span>
+					</ListRow>
+				{/if}
+				<!-- The term-planning flow's only entry, hidden until it exists:
 			     PUBLIC_PLANNING_ENABLED shows the row, and the plan screen it
 			     opens is the flow's home ("Tu trimestre"). -->
-			{#if PLANNING_ENABLED}
-				<a class="quiet-row pressable" href="/class/{courseId}/plan" onclick={hapticTap}>
-					<span class="quiet-t">
-						Plan del trimestre
-						<span class="quiet-d">Experiencias, criterios y sesiones</span>
-					</span>
-					<span class="chevron"><Icon name="chevron-right" size={18} /></span>
-				</a>
-			{/if}
-			<!-- A screen now, not a dialog: choosing the competencia and its criterios
+				{#if PLANNING_ENABLED}
+					<ListRow href="/class/{courseId}/plan" onclick={hapticTap}>
+						<span class="quiet-t">
+							Plan del trimestre
+							<span class="quiet-d">Experiencias, criterios y sesiones</span>
+						</span>
+					</ListRow>
+				{/if}
+				<!-- A screen now, not a dialog: choosing the competencia and its criterios
 			     is the decision that makes the evidence usable later, and in a 360px
 			     modal it sat under the fold behind a scroll box. The trailing plus
 			     stays — the row still creates something rather than going somewhere
 			     to read. -->
-			<a
-				class="quiet-row pressable"
-				href="/class/{courseId}/evidence/new?course={encodeURIComponent(d.name)}"
-				onclick={hapticTap}
-			>
-				<span class="quiet-t">
-					Añadir evidencia
-					<span class="quiet-d">Una evaluación para toda la clase</span>
-				</span>
-				<span class="chevron"><Icon name="plus" size={18} /></span>
-			</a>
-		</nav>
+				<ListRow
+					href="/class/{courseId}/evidence/new?course={encodeURIComponent(d.name)}"
+					onclick={hapticTap}
+				>
+					<span class="quiet-t">
+						Añadir evidencia
+						<span class="quiet-d">Una evaluación para toda la clase</span>
+					</span>
+				</ListRow>
+			</nav>
 
-		{#if list(d.upcoming).length > 0}
-			<p class="eyebrow">Próximas clases</p>
-			<div class="hscroll">
-				{#each list(d.upcoming) as s (s.session_id)}
-					{@const dp = dateParts(s)}
-					<a
-						class="lcard pressable"
-						href="/class/{courseId}/lesson/{s.session_id}?from=area"
-						onclick={hapticTap}
-					>
-						<span class="lcard-date">
-							<span class="lcard-day">{dp.day}</span>
-							<span class="lcard-mon">{dp.month}</span>
-						</span>
-						<span class="lcard-info">
-							<span class="lcard-topic">{s.topic ?? 'Clase'}</span>
-							<span class="lcard-sub">{timeRange(s)}</span>
-						</span>
-					</a>
-				{/each}
-			</div>
-		{/if}
-
-		{#if list(d.past).length > 0}
-			<p class="eyebrow tight">Clases anteriores</p>
-			<p class="railhint">Toca una clase para dejarle una nota de voz.</p>
-			<div class="hscroll">
-				{#each list(d.past) as s (s.session_id)}
-					{@const dp = dateParts(s)}
-					<a
-						class="lcard pressable"
-						href="/class/{courseId}/lesson/{s.session_id}?from=area"
-						onclick={hapticTap}
-					>
-						<span class="lcard-date">
-							<span class="lcard-day">{dp.day}</span>
-							<span class="lcard-mon">{dp.month}</span>
-						</span>
-						<span class="lcard-info">
-							<span class="lcard-topic">{s.topic ?? 'Clase'}</span>
-							<span class="lcard-sub">
-								{timeRange(s)}
-								<Icon name="mic" size={14} />
+			{#if list(d.upcoming).length > 0}
+				<p class="eyebrow">Próximas clases</p>
+				<div class="hscroll">
+					{#each list(d.upcoming) as s (s.session_id)}
+						{@const dp = dateParts(s)}
+						<a
+							class="lcard pressable"
+							href="/class/{courseId}/lesson/{s.session_id}?from=area"
+							onclick={hapticTap}
+						>
+							<span class="lcard-date">
+								<span class="lcard-day">{dp.day}</span>
+								<span class="lcard-mon">{dp.month}</span>
 							</span>
-						</span>
-					</a>
-				{/each}
-			</div>
-		{/if}
-	{:else if loadError}
-		<p class="clscount">
-			No se pudo cargar el panel.
-			<button class="pill-light pressable" onclick={load}>Reintentar</button>
-		</p>
-	{/if}
+							<span class="lcard-info">
+								<span class="lcard-topic">{s.topic ?? 'Clase'}</span>
+								<span class="lcard-sub">{timeRange(s)}</span>
+							</span>
+						</a>
+					{/each}
+				</div>
+			{/if}
+
+			{#if list(d.past).length > 0}
+				<p class="eyebrow tight">Clases anteriores</p>
+				<p class="railhint">Toca una clase para dejarle una nota de voz.</p>
+				<div class="hscroll">
+					{#each list(d.past) as s (s.session_id)}
+						{@const dp = dateParts(s)}
+						<a
+							class="lcard pressable"
+							href="/class/{courseId}/lesson/{s.session_id}?from=area"
+							onclick={hapticTap}
+						>
+							<span class="lcard-date">
+								<span class="lcard-day">{dp.day}</span>
+								<span class="lcard-mon">{dp.month}</span>
+							</span>
+							<span class="lcard-info">
+								<span class="lcard-topic">{s.topic ?? 'Clase'}</span>
+								<span class="lcard-sub">
+									{timeRange(s)}
+									<Icon name="mic" size={14} />
+								</span>
+							</span>
+						</a>
+					{/each}
+				</div>
+			{/if}
+		{:else if loadError}
+			<p class="clscount">
+				No se pudo cargar el panel.
+				<Button variant="secondary" onclick={load}>Reintentar</Button>
+			</p>
+		{:else}<LoadingState label="Cargando…" />{/if}
+	</div>
 </div>
 
 <style>
-	/* This screen still sets its own gutter, but now at the app's number: the
-	   session rails bleed to the phone edge by cancelling it with a negative
-	   margin, so the value has to be known here rather than inherited. */
 	.body {
 		padding: 18px 20px 30px;
 	}
 
-	/* Only the bottom margin is local now; the type is the app-wide .eyebrow. */
 	.eyebrow {
 		margin: 0 0 12px;
 	}
@@ -239,8 +230,8 @@
 	.clsname {
 		margin: 0;
 		padding-bottom: 14px;
-		border-bottom: 1.5px solid var(--text-primary);
-		font-size: 34px;
+
+		font-size: var(--mw-type-title-size);
 		font-weight: 700;
 		letter-spacing: -0.02em;
 		line-height: 1.1;
@@ -249,34 +240,30 @@
 	.clscount {
 		display: block;
 		margin-top: 10px;
-		font-size: 11px;
-		color: var(--text-muted);
-		font-family: var(--font-mono);
+		font-size: var(--mw-type-label-size);
+		color: var(--mw-ink-muted);
+		font-family: var(--mw-font-sans);
 		text-transform: uppercase;
 	}
 
-	/* Section labels sit tight above a hint line where one follows. */
 	.eyebrow.tight {
 		margin-bottom: 4px;
 	}
 
 	.railhint {
 		margin: 0 0 12px;
-		font-size: 13px;
-		color: var(--text-muted);
+		font-size: var(--mw-type-small-size);
+		color: var(--mw-ink-muted);
 	}
 
-	/* Hero — today's session, and a link into it. It carries the action gradient:
-	   it is the one block on the screen that leads into the work, and the rails
-	   below it are reference. */
 	.hero {
 		display: block;
 		margin: 18px 0 8px;
 		padding: 18px 20px;
-		border-radius: 20px;
-		background: var(--gradient-action);
-		color: var(--on-primary);
-		box-shadow: var(--shadow-action);
+		border-radius: var(--mw-radius-xl);
+		background: var(--mw-accent);
+		color: var(--mw-on-accent);
+		box-shadow: var(--mw-shadow-card);
 	}
 
 	.hero-row {
@@ -288,16 +275,16 @@
 
 	.hero-lbl {
 		margin: 0;
-		font-size: 11px;
-		letter-spacing: 0.08em;
-		color: rgba(255, 255, 255, 0.72);
-		font-family: var(--font-mono);
+		font-size: var(--mw-type-label-size);
+		letter-spacing: 0.04em;
+		color: var(--mw-on-accent);
+		font-family: var(--mw-font-sans);
 		text-transform: uppercase;
 	}
 
 	.hero-time {
 		margin: 2px 0 0;
-		font-size: 34px;
+		font-size: var(--mw-type-title-size);
 		font-weight: 800;
 		letter-spacing: -0.02em;
 		line-height: 1.05;
@@ -306,16 +293,15 @@
 	.hero-topic {
 		flex: 1;
 		min-width: 0;
-		font-size: 13px;
+		font-size: var(--mw-type-small-size);
 		font-weight: 600;
-		color: rgba(255, 255, 255, 0.9);
+		color: var(--mw-on-accent);
 	}
 
 	.hero .chevron {
-		color: var(--on-primary);
+		color: var(--mw-on-accent);
 	}
 
-	/* Quiet nav list — hairline-ruled rows, top and bottom. */
 	.quiet {
 		margin-top: 16px;
 		margin-bottom: 34px;
@@ -323,24 +309,9 @@
 		flex-direction: column;
 	}
 
-	.quiet-row {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-		padding: 15px 2px;
-		color: inherit;
-		border-bottom: 0.5px solid var(--border);
-		width: 100%;
-		text-align: left;
-	}
-
-	.quiet-row:first-child {
-		border-top: 0.5px solid var(--border);
-	}
-
 	.quiet-t {
 		flex: 1;
-		font-size: 16px;
+		font-size: var(--mw-type-heading-size);
 		font-weight: 700;
 		letter-spacing: -0.01em;
 	}
@@ -348,19 +319,17 @@
 	.quiet-d {
 		display: block;
 		margin-top: 2px;
-		font-size: 12px;
+		font-size: var(--mw-type-caption-size);
 		font-weight: 400;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
 
 	.chevron {
 		display: flex;
 		flex-shrink: 0;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
 
-	/* Session rails — bleed past the body gutter so a card can sit half-cut at the
-	   edge, which is what tells you the row scrolls. */
 	.hscroll {
 		display: flex;
 		gap: 12px;
@@ -374,9 +343,6 @@
 		height: 0;
 	}
 
-	/* The card follows its topic rather than holding one width: a one-word topic
-	   takes little room and a long one gets to 300px before it clips, which is
-	   about twice what a fixed 210px card could show. */
 	.lcard {
 		display: flex;
 		gap: 16px;
@@ -386,7 +352,7 @@
 		flex: 0 0 auto;
 		scroll-snap-align: start;
 		padding: 14px 16px;
-		background: var(--aurora-tint);
+		background: var(--mw-surface-tint);
 		border-radius: 14px;
 		color: inherit;
 	}
@@ -399,17 +365,17 @@
 
 	.lcard-day {
 		display: block;
-		font-size: 22px;
+		font-size: var(--mw-type-title-size);
 		font-weight: 800;
 		letter-spacing: -0.02em;
 		line-height: 1.1;
-		color: var(--aurora-deep);
+		color: var(--mw-accent);
 	}
 
 	.lcard-mon {
-		font-size: 11px;
-		color: var(--text-muted);
-		font-family: var(--font-mono);
+		font-size: var(--mw-type-label-size);
+		color: var(--mw-ink-muted);
+		font-family: var(--mw-font-sans);
 	}
 
 	.lcard-info {
@@ -423,7 +389,7 @@
 		line-clamp: 2;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
-		font-size: 14px;
+		font-size: var(--mw-type-body-size);
 		font-weight: 700;
 		letter-spacing: -0.01em;
 		line-height: 1.25;
@@ -434,14 +400,12 @@
 		align-items: center;
 		gap: 6px;
 		margin-top: 4px;
-		font-family: var(--font-mono);
-		font-size: 11px;
-		color: var(--text-muted);
+		font-family: var(--mw-font-sans);
+		font-size: var(--mw-type-label-size);
+		color: var(--mw-ink-muted);
 	}
 
-	/* Only past cards carry it: it says the card leads somewhere you can record,
-	   which is not yet true of a session that has not happened. */
 	.lcard-sub :global(.ic) {
-		color: var(--aurora-deep);
+		color: var(--mw-accent);
 	}
 </style>

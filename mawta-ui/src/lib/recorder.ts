@@ -17,10 +17,14 @@ async function getStream(): Promise<MediaStream | null> {
 	try {
 		stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 		return stream;
-	} catch (err) {
-		if (import.meta.env.DEV) console.warn('[recorder] mic unavailable', err);
+	} catch {
 		return null;
 	}
+}
+
+export function releaseMicrophone(): void {
+	stream?.getTracks().forEach((track) => track.stop());
+	stream = null;
 }
 
 function pickMimeType(): string | undefined {

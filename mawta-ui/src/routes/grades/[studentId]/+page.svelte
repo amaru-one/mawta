@@ -1,4 +1,15 @@
 <script lang="ts">
+	import {
+		Action,
+		Button,
+		Card,
+		Disclosure,
+		EmptyState,
+		Field,
+		Icon,
+		IconButton,
+		LoadingState,
+	} from '$lib/design-system';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { ApiError, list } from '$lib/api/client';
@@ -30,7 +41,6 @@
 	import CompetencyCard from '$lib/components/CompetencyCard.svelte';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import LevelBadge from '$lib/components/LevelBadge.svelte';
-	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import type { Tier } from '$lib/grades';
 	import { hapticTap } from '$lib/haptics';
@@ -317,264 +327,251 @@
 <svelte:head>
 	<title>{studentName}</title>
 </svelte:head>
-
-<!-- Reached from both the class roster and the lesson screen, so the back arrow
+<div class="view">
+	<!-- Reached from both the class roster and the lesson screen, so the back arrow
      returns to whichever it was. The class page is the fallback for a deep link
      or a refresh, where there is no in-app history to pop. -->
-<TopBar back={classId ? `/class/${classId}` : '/'} useHistory />
+	<TopBar back={classId ? `/class/${classId}` : '/'} useHistory />
 
-<div class="body">
-	{#if ready && data}
-		<p class="title">{studentName}</p>
-		<p class="subtitle">{courseName}</p>
+	<div class="body">
+		{#if ready && data}
+			<p class="title">{studentName}</p>
+			<p class="subtitle">{courseName}</p>
 
-		{#if competencies.length > 0}
-			<p class="eyebrow">NIVELES DE LOGRO POR COMPETENCIA</p>
-			<div class="stack">
-				{#each competencies as comp (comp.competencyId)}
-					<CompetencyCard
-						competency={comp}
-						criteria={criteriaByCompetency.get(comp.competencyId) ?? []}
-						onLevelChange={handleLevelChange}
-						onSaveConclusion={handleSaveConclusion}
-					/>
-				{/each}
-			</div>
-		{/if}
-
-		<p class="eyebrow">EVIDENCIA</p>
-		<p class="evidence-note">
-			{#if $usesInternalGrading}
-				Cada evidencia se registra una vez y se lee dos veces: la nota alimenta el sistema interno
-				del colegio, el nivel por criterio alimenta el registro oficial. Las notas no determinan el
-				nivel de logro ni se promedian para obtenerlo.
-			{:else}
-				Valora cada evidencia contra los criterios que declara. El nivel de logro de la competencia
-				sigue siendo tu juicio sobre todo el periodo.
+			{#if competencies.length > 0}
+				<p class="eyebrow">NIVELES DE LOGRO POR COMPETENCIA</p>
+				<div class="stack">
+					{#each competencies as comp (comp.competencyId)}
+						<CompetencyCard
+							competency={comp}
+							criteria={criteriaByCompetency.get(comp.competencyId) ?? []}
+							onLevelChange={handleLevelChange}
+							onSaveConclusion={handleSaveConclusion}
+						/>
+					{/each}
+				</div>
 			{/if}
-		</p>
 
-		<div class="stack">
-			{#each evaluationModules as mod (mod.code)}
-				{@const expanded = expandedModules.has(mod.code)}
-				<div class="card module" class:expanded>
-					<button
-						class="module-header pressable"
-						onclick={() => toggleModule(mod.code)}
-						aria-expanded={expanded}
-					>
-						<div class="grow">
-							<p class="component-name">{mod.label}</p>
-							<p class="component-weight">
-								{scoredCount(mod)}/{mod.evaluations.length} evaluadas
-							</p>
-						</div>
-						<span class="chevron" class:open={expanded}>
-							<Icon name="chevron-right" size={16} />
-						</span>
-					</button>
+			<p class="eyebrow">EVIDENCIA</p>
+			<p class="evidence-note">
+				{#if $usesInternalGrading}
+					Cada evidencia se registra una vez y se lee dos veces: la nota alimenta el sistema interno
+					del colegio, el nivel por criterio alimenta el registro oficial. Las notas no determinan
+					el nivel de logro ni se promedian para obtenerlo.
+				{:else}
+					Valora cada evidencia contra los criterios que declara. El nivel de logro de la
+					competencia sigue siendo tu juicio sobre todo el periodo.
+				{/if}
+			</p>
 
-					{#if expanded}
-						<div class="module-body">
-							{#each mod.evaluations as ev (ev.assessment_id)}
-								{@const attempt = latestAttempt(ev)}
-								{@const numeric = ev.value_scale === 'numeric' && ev.max_score !== null}
-								{@const scored = attempt?.raw_value != null || attempt?.level != null}
-								{@const crits = list(ev.criteria)}
-								<div class="subgrade" class:unscored={!scored && numeric && $usesInternalGrading}>
-									<div class="row">
-										<p class="subgrade-name grow">{ev.title}</p>
-										{#if numeric && $usesInternalGrading}
-											<span class="input-wrap">
-												<input
-													type="number"
-													class="score-input"
-													min="0"
-													max={ev.max_score}
-													value={attempt?.raw_value ?? ''}
-													onchange={(e) => void handleScoreChange(ev, e)}
-													aria-label={`Nota de ${ev.title}, sobre ${ev.max_score}`}
-												/>
-												<span class="max">/ {ev.max_score}</span>
-											</span>
-										{:else if ev.value_scale === 'ordinal'}
-											<!-- Read-only here. This screen is the inventory of everything filed;
+			<div class="stack">
+				{#each evaluationModules as mod (mod.code)}
+					{@const expanded = expandedModules.has(mod.code)}
+					<Disclosure open={expanded} ontoggle={() => toggleModule(mod.code)}>
+						{#snippet summary()}<div class="grow">
+								<p class="component-name">{mod.label}</p>
+								<p class="component-weight">
+									{scoredCount(mod)}/{mod.evaluations.length} evaluadas
+								</p>
+							</div>
+						{/snippet}
+						{#if expanded}
+							<div class="module-body">
+								{#each mod.evaluations as ev (ev.assessment_id)}
+									{@const attempt = latestAttempt(ev)}
+									{@const numeric = ev.value_scale === 'numeric' && ev.max_score !== null}
+									{@const scored = attempt?.raw_value != null || attempt?.level != null}
+									{@const crits = list(ev.criteria)}
+									<div class="subgrade" class:unscored={!scored && numeric && $usesInternalGrading}>
+										<div class="row">
+											<p class="subgrade-name grow">{ev.title}</p>
+											{#if numeric && $usesInternalGrading}
+												<span class="input-wrap">
+													<Field
+														label={`Nota de ${ev.title}, sobre ${ev.max_score}`}
+														type="number"
+														min="0"
+														max={ev.max_score ?? undefined}
+														value={attempt?.raw_value ?? ''}
+														onchange={(e) => void handleScoreChange(ev, e)}
+													/>
+													<span class="max">/ {ev.max_score}</span>
+												</span>
+											{:else if ev.value_scale === 'ordinal'}
+												<!-- Read-only here. This screen is the inventory of everything filed;
 											     valuing a piece of work happens on the evaluating screen, beside
 											     the criterios it was read against. -->
-											{#if attempt?.level != null}
-												<LevelBadge tier={attempt.level} size={24} />
-											{:else}
-												<span class="unvalued">Sin valorar</span>
+												{#if attempt?.level != null}
+													<LevelBadge tier={attempt.level} size={24} />
+												{:else}
+													<span class="unvalued">Sin valorar</span>
+												{/if}
 											{/if}
-										{/if}
-										<button
-											class="action delete pressable"
-											onclick={() => (deletingEvidence = ev)}
-											aria-label={`Eliminar ${ev.title}`}
-											title="Eliminar"
-										>
-											<Icon name="trash" size={15} />
-										</button>
-									</div>
-									<p class="tags">
-										<span class="kind">{kindLabels[ev.kind] ?? ev.kind}</span>
-										{#if ev.is_personal}
-											<span class="personal">Solo este alumno</span>
-										{/if}
-										{#if $usesInternalGrading && !ev.counts_toward_internal}
-											<span class="excluded">Fuera del promedio interno</span>
-										{/if}
-									</p>
+											<IconButton
+												icon="trash"
+												label={`Eliminar ${ev.title}`}
+												onclick={() => (deletingEvidence = ev)}
+												title="Eliminar"
+											/>
+										</div>
+										<p class="tags">
+											<span class="kind">{kindLabels[ev.kind] ?? ev.kind}</span>
+											{#if ev.is_personal}
+												<span class="personal">Solo este alumno</span>
+											{/if}
+											{#if $usesInternalGrading && !ev.counts_toward_internal}
+												<span class="excluded">Fuera del promedio interno</span>
+											{/if}
+										</p>
 
-									<!-- Read-only. A criterio says what to look at in this piece of
+										<!-- Read-only. A criterio says what to look at in this piece of
 									     work; it is not itself graded. The judgement that gets recorded
 									     is the nivel de logro of the competencia, on the student's
 									     screen. -->
-									{#if crits.length > 0}
-										<p class="evidences">
-											{crits.map((c) => c.code ?? 'CRIT').join(' ')} · {crits
-												.map((c) => c.description)
-												.join(' ')}
-										</p>
-									{:else}
-										<p class="evidences">Sin criterios declarados: no dice contra qué leerla.</p>
-									{/if}
-								</div>
-							{/each}
-						</div>
-					{/if}
-				</div>
-			{/each}
-		</div>
-
-		{#if evaluationModules.length === 0}
-			<p class="empty">Aún no hay evidencias para este curso.</p>
-		{/if}
-
-		<a class="btn-block add-evidence pressable" href={addEvidenceHref} onclick={hapticTap}>
-			<Icon name="plus" size={16} />
-			Añadir evidencia
-		</a>
-
-		{#if internalGrade && $usesInternalGrading}
-			<div class="card internal">
-				<button
-					type="button"
-					class="internal-header pressable"
-					onclick={() => (showInternal = !showInternal)}
-					aria-expanded={showInternal}
-				>
-					<p class="grow internal-title">Sistema interno de la IE</p>
-					<span class="chevron" class:open={showInternal}>
-						<Icon name="chevron-right" size={16} />
-					</span>
-				</button>
-				{#if showInternal}
-					<div class="internal-body">
-						<p class="internal-value">{internalGrade.display}</p>
-						<p class="internal-foot">{internalGrade.evaluatedPct}% del curso evaluado</p>
-						<p class="internal-note">
-							Promedio ponderado propio del colegio. No es el registro oficial: el MINEDU evalúa por
-							competencias y el nivel de logro lo asignas tú.
-						</p>
-					</div>
-				{/if}
-			</div>
-		{/if}
-
-		<p class="eyebrow">NOTAS PERSONALES</p>
-
-		<div class="stack">
-			{#each practiceScores as ps (ps.id)}
-				<div class="card row practice-score">
-					<div class="grow">
-						<p class="component-name">{ps.title}</p>
-						<p class="component-weight">
-							{kindLabels[ps.kind] ?? ps.kind} · {formatNoteDate(ps.recorded_at)}
-						</p>
-						{#if ps.note}
-							<p class="practice-note">{ps.note}</p>
+										{#if crits.length > 0}
+											<p class="evidences">
+												{crits.map((c) => c.code ?? 'CRIT').join(' ')} · {crits
+													.map((c) => c.description)
+													.join(' ')}
+											</p>
+										{:else}
+											<p class="evidences">Sin criterios declarados: no dice contra qué leerla.</p>
+										{/if}
+									</div>
+								{/each}
+							</div>
 						{/if}
-					</div>
-					<span class="score">{ps.raw_value}/{ps.max_value}</span>
-					<button
-						class="action delete pressable"
-						onclick={() => (deletingPracticeScoreId = ps.id)}
-						aria-label="Eliminar nota personal"
-						title="Eliminar"
+					</Disclosure>
+				{/each}
+			</div>
+
+			{#if evaluationModules.length === 0}
+				<EmptyState title="Aún no hay evidencias para este curso." />
+			{/if}
+
+			<Button
+				variant="secondary"
+				block
+				class="add-evidence"
+				href={addEvidenceHref}
+				onclick={hapticTap}
+			>
+				<Icon name="plus" size={16} />
+				Añadir evidencia
+			</Button>
+
+			{#if internalGrade && $usesInternalGrading}
+				<Card>
+					<Disclosure bind:open={showInternal}>
+						{#snippet summary()}Sistema interno de la IE{/snippet}
+						{#if showInternal}
+							<div class="internal-body">
+								<p class="internal-value">{internalGrade.display}</p>
+								<p class="internal-foot">{internalGrade.evaluatedPct}% del curso evaluado</p>
+								<p class="internal-note">
+									Promedio ponderado propio del colegio. No es el registro oficial: el MINEDU evalúa
+									por competencias y el nivel de logro lo asignas tú.
+								</p>
+							</div>
+						{/if}
+					</Disclosure>
+				</Card>
+			{/if}
+
+			<p class="eyebrow">NOTAS PERSONALES</p>
+
+			<div class="stack">
+				{#each practiceScores as ps (ps.id)}
+					<Card
+						><div class="row">
+							<div class="grow">
+								<p class="component-name">{ps.title}</p>
+								<p class="component-weight">
+									{kindLabels[ps.kind] ?? ps.kind} · {formatNoteDate(ps.recorded_at)}
+								</p>
+								{#if ps.note}
+									<p class="practice-note">{ps.note}</p>
+								{/if}
+							</div>
+							<span class="score">{ps.raw_value}/{ps.max_value}</span>
+							<IconButton
+								icon="trash"
+								label="Eliminar nota personal"
+								onclick={() => (deletingPracticeScoreId = ps.id)}
+								title="Eliminar"
+							/>
+						</div></Card
 					>
-						<Icon name="trash" size={15} />
-					</button>
-				</div>
-			{/each}
-		</div>
+				{/each}
+			</div>
 
-		{#if practiceScores.length === 0}
-			<p class="empty">Aún no hay notas personales.</p>
-		{/if}
+			{#if practiceScores.length === 0}
+				<EmptyState title="Aún no hay notas personales." />
+			{/if}
 
-		<button class="btn-block pressable" onclick={() => (showAddPracticeScore = true)}>
-			<Icon name="plus" size={16} />
-			Añadir nota personal
-		</button>
-	{:else if loadError}
-		<p class="empty">
-			No se pudieron cargar las notas.
-			<button class="pill-light pressable" onclick={load}>Reintentar</button>
-		</p>
+			<Button variant="secondary" block onclick={() => (showAddPracticeScore = true)}>
+				<Icon name="plus" size={16} />
+				Añadir nota personal
+			</Button>
+		{:else if loadError}
+			<p class="empty">
+				No se pudieron cargar las notas.
+				<Button variant="secondary" onclick={load}>Reintentar</Button>
+			</p>
+		{:else}<LoadingState label="Cargando…" />{/if}
+	</div>
+
+	{#if deletingEvidence}
+		<ConfirmDialog
+			title="¿Eliminar «{deletingEvidence.title}»?"
+			text="Las notas ya registradas quedan en el historial, pero dejan de verse aquí y de contar en el sistema interno."
+			confirmLabel="Eliminar"
+			onconfirm={() => void handleDeleteEvidence(deletingEvidence!)}
+			oncancel={() => (deletingEvidence = null)}
+		/>
+	{/if}
+
+	{#if showAddPracticeScore}
+		<AddPracticeScoreDialog
+			onsubmit={handleAddPracticeScore}
+			oncancel={() => (showAddPracticeScore = false)}
+		/>
+	{/if}
+
+	{#if deletingPracticeScoreId}
+		<ConfirmDialog
+			title="¿Eliminar esta nota personal?"
+			text="Esta acción no se puede deshacer."
+			confirmLabel="Eliminar"
+			onconfirm={() => void handleDeletePracticeScore(deletingPracticeScoreId!)}
+			oncancel={() => (deletingPracticeScoreId = null)}
+		/>
 	{/if}
 </div>
-
-{#if deletingEvidence}
-	<ConfirmDialog
-		title="¿Eliminar «{deletingEvidence.title}»?"
-		text="Las notas ya registradas quedan en el historial, pero dejan de verse aquí y de contar en el sistema interno."
-		confirmLabel="Eliminar"
-		onconfirm={() => void handleDeleteEvidence(deletingEvidence!)}
-		oncancel={() => (deletingEvidence = null)}
-	/>
-{/if}
-
-{#if showAddPracticeScore}
-	<AddPracticeScoreDialog
-		onsubmit={handleAddPracticeScore}
-		oncancel={() => (showAddPracticeScore = false)}
-	/>
-{/if}
-
-{#if deletingPracticeScoreId}
-	<ConfirmDialog
-		title="¿Eliminar esta nota personal?"
-		text="Esta acción no se puede deshacer."
-		confirmLabel="Eliminar"
-		onconfirm={() => void handleDeletePracticeScore(deletingPracticeScoreId!)}
-		oncancel={() => (deletingPracticeScoreId = null)}
-	/>
-{/if}
 
 <style>
 	.title {
 		margin: 0;
 		padding-bottom: 14px;
-		border-bottom: 1.5px solid var(--text-primary);
-		font-size: 34px;
-		font-weight: 700;
-		letter-spacing: -0.02em;
-		line-height: 1.1;
+
+		font-size: var(--mw-type-title-size);
+		font-weight: 800;
+		letter-spacing: -0.03em;
+		line-height: var(--mw-type-title-line);
 	}
 
 	.subtitle {
-		margin: 10px 0 var(--space-lg);
-		font-family: var(--font-mono);
-		font-size: 11px;
+		margin: 10px 0 var(--mw-space-4);
+		font-family: var(--mw-font-sans);
+		font-size: var(--mw-type-label-size);
 		text-transform: uppercase;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
 
 	.stack {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-sm);
+		gap: var(--mw-space-2);
 		margin-bottom: 20px;
 	}
 
@@ -585,62 +582,31 @@
 
 	.component-name {
 		margin: 0;
-		font-size: 14px;
+		font-size: var(--mw-type-body-size);
 	}
 
 	.component-weight {
 		margin: 0;
-		font-size: 11px;
-		color: var(--text-muted);
+		font-size: var(--mw-type-label-size);
+		color: var(--mw-ink-muted);
 	}
 
-	/* An ordinal piece nobody has valued yet. Not a zero, and not a C. */
 	.unvalued {
 		flex-shrink: 0;
-		font-size: 12px;
-		color: var(--text-muted);
+		font-size: var(--mw-type-caption-size);
+		color: var(--mw-ink-muted);
 	}
 
 	.excluded {
-		color: var(--text-muted);
-	}
-
-	.module {
-		padding: 0;
-		overflow: hidden;
-	}
-
-	.module-header {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-		width: 100%;
-		padding: var(--space-md) 14px;
-		background: transparent;
-		border: none;
-		text-align: left;
-		color: inherit;
-		font: inherit;
-		cursor: pointer;
-	}
-
-	.chevron {
-		display: inline-flex;
-		flex-shrink: 0;
-		color: var(--text-muted);
-		transition: transform 150ms;
-	}
-
-	.chevron.open {
-		transform: rotate(90deg);
+		color: var(--mw-ink-muted);
 	}
 
 	.module-body {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-sm);
-		padding: var(--space-sm) 14px var(--space-md);
-		border-top: 0.5px solid var(--border);
+		gap: var(--mw-space-2);
+		padding: var(--mw-space-2) 14px var(--mw-space-3);
+		border-top: 1px solid var(--mw-line);
 	}
 
 	.subgrade {
@@ -649,157 +615,93 @@
 
 	.subgrade-name {
 		margin: 0;
-		font-size: 13px;
-		color: var(--text-secondary);
+		font-size: var(--mw-type-small-size);
+		color: var(--mw-ink-secondary);
 	}
 
 	.subgrade.unscored .subgrade-name {
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
 
 	.input-wrap {
 		display: flex;
 		align-items: center;
-		gap: var(--space-xs);
+		gap: var(--mw-space-1);
 	}
-
-	.score-input {
+	.view :global(.score-input) {
 		width: 52px;
-		font-size: 13px;
-		font-weight: 500;
-		color: var(--text-primary);
-		background: var(--surface-1);
-		border: 0.5px solid var(--border);
-		border-radius: var(--radius-sm);
-		padding: var(--space-xs) 6px;
-		text-align: right;
-	}
-
-	.score-input:focus {
-		outline: none;
-		border-color: var(--border-strong);
 	}
 
 	.max {
-		font-size: 13px;
-		color: var(--text-secondary);
+		font-size: var(--mw-type-small-size);
+		color: var(--mw-ink-secondary);
 	}
 
 	.evidence-note {
-		margin: 0 0 var(--space-sm);
-		font-size: 11px;
+		margin: 0 0 var(--mw-space-2);
+		font-size: var(--mw-type-label-size);
 		line-height: 1.4;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
 
 	.evidences {
 		margin: 4px 0 0;
-		font-size: 11px;
+		font-size: var(--mw-type-label-size);
 		line-height: 1.35;
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
 
-	/* The kind (quiz, tarea, proyecto...) rides as a label on the row: the
-	   accordion groups by grading component, not by kind, so the row is where
-	   the kind has to be legible. */
 	.tags {
 		display: flex;
 		flex-wrap: wrap;
-		gap: var(--space-xs);
+		gap: var(--mw-space-1);
 		margin: 4px 0 0;
-		font-size: 11px;
+		font-size: var(--mw-type-label-size);
 	}
 
 	.kind,
 	.personal {
-		border-radius: var(--radius-sm);
-		padding: 1px 6px;
-		background: var(--surface-1);
-		color: var(--text-muted);
+		color: var(--mw-ink-muted);
 	}
 
 	.personal {
-		color: var(--text-secondary);
-		border: 0.5px solid var(--border);
-	}
-
-	.internal {
-		padding: 0;
-		margin-top: var(--space-lg);
-	}
-
-	.internal-header {
-		display: flex;
-		align-items: center;
-		gap: var(--space-sm);
-		width: 100%;
-		padding: var(--space-md);
-		background: none;
-		border: none;
-		font-family: inherit;
-		text-align: left;
-		cursor: pointer;
-	}
-
-	.internal-title {
-		margin: 0;
-		font-size: 13px;
-		color: var(--text-secondary);
+		color: var(--mw-ink-secondary);
 	}
 
 	.internal-body {
-		padding: 0 var(--space-md) var(--space-md);
+		padding: 0 var(--mw-space-3) var(--mw-space-3);
 	}
 
 	.internal-value {
 		margin: 0;
-		font-size: 22px;
+		font-size: var(--mw-type-title-size);
 		font-weight: 600;
 	}
 
 	.internal-foot {
 		margin: 2px 0 0;
-		font-size: 12px;
-		color: var(--text-secondary);
+		font-size: var(--mw-type-caption-size);
+		color: var(--mw-ink-secondary);
 	}
 
 	.internal-note {
-		margin: var(--space-sm) 0 0;
-		font-size: 11px;
+		margin: var(--mw-space-2) 0 0;
+		font-size: var(--mw-type-label-size);
 		line-height: 1.4;
-		color: var(--text-muted);
-	}
-
-	.practice-score {
-		align-items: flex-start;
+		color: var(--mw-ink-muted);
 	}
 
 	.practice-note {
 		margin: 4px 0 0;
-		font-size: 12px;
-		color: var(--text-secondary);
+		font-size: var(--mw-type-caption-size);
+		color: var(--mw-ink-secondary);
 	}
-
-	.action {
-		position: relative;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		color: var(--text-muted);
-	}
-
-	.action.delete {
-		color: var(--text-danger);
-	}
-
-	/* Closes the EVIDENCIA section, so it needs the same gap the eyebrows use
-	   before NOTAS PERSONALES starts. */
-	.add-evidence {
-		margin-bottom: var(--space-lg);
+	.view :global(.add-evidence) {
+		margin-bottom: var(--mw-space-4);
 	}
 
 	.empty {
-		font-size: 14px;
-		color: var(--text-secondary);
+		font-size: var(--mw-type-body-size);
+		color: var(--mw-ink-secondary);
 	}
 </style>

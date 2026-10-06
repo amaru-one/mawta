@@ -24,3 +24,6 @@ export { default as Toast } from './Toast.svelte';
 export { default as TopBar } from './TopBar.svelte';
 export type * from './types';
 export type { IconName } from './icons';
+
+export { default as ListRow } from './ListRow.svelte';
+export { default as Disclosure } from './Disclosure.svelte';

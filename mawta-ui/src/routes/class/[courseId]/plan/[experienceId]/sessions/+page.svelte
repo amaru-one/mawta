@@ -1,4 +1,14 @@
 <script lang="ts">
+	import {
+		Action,
+		Button,
+		EmptyState,
+		Field,
+		Icon,
+		LoadingState,
+		Notice,
+		SessionRow,
+	} from '$lib/design-system';
 	// The sessions step: a light outline, one row per class date of the
 	// experience. Every date starts without a session; the teacher creates,
 	// edits, removes or accepts them, and places an evidencia in a date.
@@ -17,7 +27,6 @@
 		getExperience,
 		updateSession,
 	} from '$lib/api/endpoints/planning';
-	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
 	import { showToast } from '$lib/toast';
@@ -90,11 +99,6 @@
 		return new Date(y ?? 1970, (m ?? 1) - 1, d ?? 1);
 	}
 
-	function fmtDate(date: string): string {
-		const day = fromISO(date);
-		return `${WEEKDAYS[day.getDay()]} ${day.getDate()} ${MONTHS[day.getMonth()]}`;
-	}
-
 	// ---- create and edit one date's session ----
 
 	type SessionForm = { date: string; title: string; topics: string; evidenceId: string };
@@ -159,7 +163,7 @@
 			showToast('Sesión quitada', {
 				onUndo: () => void restore(copy),
 				undoLabel: 'Deshacer',
-				durationMs: 4000,
+				durationMs: 7000,
 			});
 		} catch {
 			showToast('No se pudo quitar la sesión');
@@ -218,149 +222,144 @@
 <svelte:head>
 	<title>Sesiones</title>
 </svelte:head>
+<div class="view">
+	<TopBar back={`/class/${courseId}/plan/${experienceId}/evidences`} useHistory />
 
-<TopBar back={`/class/${courseId}/plan/${experienceId}/evidences`} useHistory />
-
-<div class="body">
-	{#if ready && experience}
-		<p class="eyebrow">{experience.title} · Sesiones</p>
-		{#if experience.status === 'planificada'}
-			<a class="to-summary pressable" href={`/class/${courseId}/plan/${experienceId}/summary`}>
-				‹ Volver al resumen
-			</a>
-		{/if}
-		<h1 class="screen-title title">{dates.length} clases</h1>
-		<p class="screen-sub">
-			{filled} de {dates.length} con sesión · contadas por fecha según tu horario
-		</p>
-
-		{#if loose.length > 0 && filled > 0}
-			<div class="notice">
-				<Icon name="alert" size={16} />
-				<p class="notice-text">
-					Evidencias sin sesión: {loose.map((evidence) => evidence.name).join(', ')}. Edita una
-					sesión para ubicarlas.
-				</p>
-			</div>
-		{/if}
-
-		{#if empty > 0 && !$agentUnavailable}
-			<button class="btn-block pressable gen" disabled={generating} onclick={() => void generate()}>
-				<Icon name="sparkles" size={15} />
-				{filled > 0 ? 'Generar las sesiones que faltan' : 'Generar esquema con Mawta'}
-			</button>
-			<p class="meta gen-help">
-				{generating
-					? 'Mawta está armando las sesiones de las fechas vacías…'
-					: 'Mawta solo completa las fechas que aún no tienen sesión.'}
-			</p>
-		{/if}
-
-		<div class="section">
-			{#if pending}
-				<p class="meta help">Mawta propuso estas sesiones: acéptalas o edítalas.</p>
+	<div class="body">
+		{#if ready && experience}
+			<p class="eyebrow">{experience.title} · Sesiones</p>
+			{#if experience.status === 'planificada'}
+				<Action variant="link" href={`/class/${courseId}/plan/${experienceId}/summary`}>
+					‹ Volver al resumen
+				</Action>
 			{/if}
-			<div class="sessions">
-				{#each dates as date (date)}
-					{@const session = byDate.get(date)}
-					<div class="sess row">
-						<span class="sess-date">{fmtDate(date)}</span>
-						<div class="grow">
-							{#if form && form.date === date}
-								<input class="field" placeholder="Título de la sesión" bind:value={form.title} />
-								<input
-									class="field spaced"
+			<h1 class="screen-title title">{dates.length} clases</h1>
+			<p class="screen-sub">
+				{filled} de {dates.length} con sesión · contadas por fecha según tu horario
+			</p>
+
+			{#if loose.length > 0 && filled > 0}
+				<Notice variant="attention">
+					<p class="notice-text">
+						Evidencias sin sesión: {loose.map((evidence) => evidence.name).join(', ')}. Edita una
+						sesión para ubicarlas.
+					</p>
+				</Notice>
+			{/if}
+
+			{#if empty > 0 && !$agentUnavailable}
+				<Button
+					variant="secondary"
+					block
+					class="gen"
+					disabled={generating}
+					onclick={() => void generate()}
+				>
+					<Icon name="sparkles" size={15} />
+					{filled > 0 ? 'Generar las sesiones que faltan' : 'Generar esquema con Mawta'}
+				</Button>
+				<p class="meta gen-help">
+					{generating
+						? 'Mawta está armando las sesiones de las fechas vacías…'
+						: 'Mawta solo completa las fechas que aún no tienen sesión.'}
+				</p>
+			{/if}
+
+			<div class="section">
+				{#if pending}
+					<p class="meta help">Mawta propuso estas sesiones: acéptalas o edítalas.</p>
+				{/if}
+				<div class="sessions">
+					{#each dates as date (date)}
+						{@const session = byDate.get(date)}
+						{#snippet sessionEditor()}{#if form}<Field
+									label="Título de la sesión"
+									placeholder="Título de la sesión"
+									bind:value={form.title}
+								/>
+								<Field
+									label="Temas"
 									placeholder="Temas (p. ej., resta con canjes)"
 									bind:value={form.topics}
+									class="spaced"
 								/>
-								<select class="field spaced" bind:value={form.evidenceId}>
+								<Field
+									kind="select"
+									label="Evidencia de la sesión"
+									bind:value={form.evidenceId}
+									class="spaced"
+								>
 									<option value="">Sin evidencia en esta sesión</option>
 									{#each evidences as evidence (evidence.id)}
 										<option value={evidence.id}>Evidencia: {evidence.name}</option>
 									{/each}
-								</select>
+								</Field>
 								{#if formError}
 									<p class="form-error"><Icon name="alert" size={14} /> {formError}</p>
 								{/if}
 								<div class="actions row">
-									<button
-										class="mini go pressable"
+									<Action
+										variant="main"
 										disabled={form.title.trim() === '' || saving}
 										onclick={() => void save()}
 									>
 										<Icon name="check" size={13} /> Guardar
-									</button>
-									<button class="mini quiet pressable" onclick={() => (form = null)}
-										>Cancelar</button
+									</Action>
+									<Action variant="remove" onclick={() => (form = null)}>Cancelar</Action>
+								</div>
+							{/if}{/snippet}
+						<SessionRow
+							{date}
+							title={session?.title ?? 'Sin sesión'}
+							topics={session?.topics ?? undefined}
+							evidence={session && evidenceName(session.planned_evidence_id)
+								? { name: evidenceName(session.planned_evidence_id) }
+								: undefined}
+							editor={form?.date === date ? sessionEditor : undefined}
+						>
+							{#snippet actions()}{#if session}
+									{#if isProposal(session)}<Action
+											variant="main"
+											icon="check"
+											onclick={() => void accept(date)}>Aceptar</Action
+										>{/if}
+									<Action variant="link" onclick={() => openForm(date)}>Editar</Action>
+									<Action variant="remove" icon="trash" onclick={() => void remove(session)}
+										>Quitar</Action
 									>
-								</div>
-							{:else if session}
-								<p class="sess-title">{session.title}</p>
-								{#if session.topics}
-									<p class="meta sess-line">Temas: {session.topics}</p>
-								{/if}
-								{#if evidenceName(session.planned_evidence_id)}
-									<p class="sess-ev">
-										<Icon name="clipboard-check" size={14} />
-										{evidenceName(session.planned_evidence_id)}
-									</p>
-								{/if}
-								<div class="actions row">
-									{#if isProposal(session)}
-										<button class="mini go pressable" onclick={() => void accept(date)}>
-											<Icon name="check" size={13} /> Aceptar
-										</button>
-									{/if}
-									<button class="mini pressable" onclick={() => openForm(date)}>Editar</button>
-									<button class="mini quiet pressable" onclick={() => void remove(session)}>
-										<Icon name="trash" size={13} /> Quitar
-									</button>
-								</div>
-							{:else}
-								<div class="row empty-slot">
-									<span class="meta grow">Sin sesión</span>
-									<button class="mini pressable" onclick={() => openForm(date)}>
-										<Icon name="plus" size={13} /> Crear
-									</button>
-								</div>
-							{/if}
-						</div>
-					</div>
-				{/each}
+								{:else}<Action variant="link" icon="plus" onclick={() => openForm(date)}
+										>Crear</Action
+									>{/if}{/snippet}
+						</SessionRow>
+					{/each}
+				</div>
+				{#if dates.length === 0}
+					<EmptyState title="Esta experiencia no tiene fechas de clase." />
+				{/if}
 			</div>
-			{#if dates.length === 0}
-				<p class="empty">Esta experiencia no tiene fechas de clase.</p>
-			{/if}
-		</div>
 
-		<p class="meta later">Antes de cada clase, Mawta podrá preparar el detalle de la sesión.</p>
+			<p class="meta later">Antes de cada clase, Mawta podrá preparar el detalle de la sesión.</p>
 
-		<div class="footer-action">
-			<button class="btn-block btn-primary pressable" onclick={next}>
-				Continuar <Icon name="chevron-right" size={16} />
-			</button>
-		</div>
-	{:else if loadError}
-		<p class="empty">
-			No se pudo cargar la experiencia.
-			<button class="pill-light pressable" onclick={load}>Reintentar</button>
-		</p>
-	{/if}
+			<div class="footer-action">
+				<Button variant="primary" block onclick={next}>
+					Continuar <Icon name="chevron-right" size={16} />
+				</Button>
+			</div>
+		{:else if loadError}
+			<p class="empty">
+				No se pudo cargar la experiencia.
+				<Button variant="secondary" onclick={load}>Reintentar</Button>
+			</p>
+		{:else}<LoadingState label="Cargando…" />{/if}
+	</div>
 </div>
 
 <style>
 	.title {
-		font-size: 28px;
+		font-size: var(--mw-type-title-size);
 	}
-
-	.gen {
-		margin-top: var(--space-md);
-		padding: 12px;
-		font-size: 13px;
-	}
-
-	.gen:disabled {
-		opacity: 0.6;
+	.view :global(.gen) {
+		margin-top: var(--mw-space-3);
 	}
 
 	.gen-help {
@@ -369,7 +368,7 @@
 	}
 
 	.section {
-		margin-top: var(--space-lg);
+		margin-top: var(--mw-space-4);
 	}
 
 	.help {
@@ -377,49 +376,7 @@
 	}
 
 	.sessions {
-		border-top: 0.5px solid var(--hair);
-	}
-
-	.sess {
-		align-items: flex-start;
-		gap: var(--space-md);
-		padding: 12px 0;
-		border-bottom: 0.5px solid var(--hair);
-	}
-
-	.sess-date {
-		flex-shrink: 0;
-		width: 72px;
-		padding-top: 2px;
-		font-family: var(--font-mono);
-		font-size: 11px;
-		color: var(--text-muted);
-	}
-
-	.sess-title {
-		margin: 0;
-		font-size: 14px;
-		font-weight: 600;
-		line-height: 1.4;
-		color: var(--text-primary);
-	}
-
-	.sess-line {
-		margin: 2px 0 0;
-	}
-
-	.sess-ev {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		margin: 6px 0 0;
-		font-size: 12px;
-		color: var(--text-secondary);
-	}
-
-	.empty-slot {
-		align-items: center;
-		gap: var(--space-sm);
+		border-top: 1px solid var(--mw-line);
 	}
 
 	.actions {
@@ -427,51 +384,10 @@
 		margin-top: 8px;
 		flex-wrap: wrap;
 	}
-
-	.mini {
-		display: inline-flex;
-		align-items: center;
-		gap: 4px;
-		padding: 7px 12px;
-		border-radius: 999px;
-		background: var(--aurora-tint);
-		color: var(--aurora-deep);
-		font-size: 12px;
-		font-weight: 600;
-	}
-
-	.mini.go {
-		background: var(--gradient-action);
-		color: var(--on-primary);
-	}
-
-	.mini.quiet {
-		background: none;
-		color: var(--text-muted);
-	}
-
-	.mini:disabled {
-		opacity: 0.5;
-	}
-
-	.field {
+	.view :global(.field) {
 		width: 100%;
-		padding: 10px 12px;
-		border-radius: 12px;
-		border: 1px solid var(--border);
-		background: var(--surface-2);
-		font-family: inherit;
-		font-size: 14px;
-		color: var(--text-primary);
-		box-sizing: border-box;
 	}
-
-	.field:focus {
-		outline: none;
-		border-color: var(--aurora-deep);
-	}
-
-	.field.spaced {
+	.view :global(.field):global(.spaced) {
 		margin-top: 6px;
 	}
 
@@ -480,48 +396,30 @@
 		align-items: center;
 		gap: 6px;
 		margin: 8px 0 0;
-		font-size: 12px;
-		color: var(--text-primary);
-	}
-
-	.notice {
-		display: flex;
-		align-items: flex-start;
-		gap: var(--space-sm);
-		background: var(--bg-danger);
-		border-radius: var(--radius);
-		padding: var(--space-sm) var(--space-md);
-		margin-top: var(--space-md);
-		color: var(--text-primary);
+		font-size: var(--mw-type-caption-size);
+		color: var(--mw-ink);
 	}
 
 	.notice-text {
 		margin: 0;
-		font-size: 13px;
+		font-size: var(--mw-type-small-size);
 		line-height: 1.4;
 	}
 
 	.later {
-		margin-top: var(--space-md);
+		margin-top: var(--mw-space-3);
 	}
 
 	.footer-action {
-		margin-top: var(--space-xl);
+		margin-top: var(--mw-space-6);
 	}
 
 	.empty {
-		margin: var(--space-lg) 0 0;
-		font-size: 13px;
-		color: var(--text-muted);
+		margin: var(--mw-space-4) 0 0;
+		font-size: var(--mw-type-small-size);
+		color: var(--mw-ink-muted);
 	}
-
-	/* A planned experience keeps a way back to its summary. */
-	.to-summary {
-		display: inline-block;
+	.view :global(.to-summary) {
 		margin: 2px 0 6px;
-		font-size: 12px;
-		font-weight: 600;
-		color: var(--aurora-deep);
-		text-decoration: none;
 	}
 </style>
