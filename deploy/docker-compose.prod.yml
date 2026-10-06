@@ -51,6 +51,11 @@ services:
       # Voice-note transcription (OpenRouter Whisper). Left optional so a
       # missing key doesn't block deploys; transcribe jobs fail until it's set.
       TRANSCRIBE_OPENROUTER_API_KEY: ${TRANSCRIBE_OPENROUTER_API_KEY:-}
+      # Mawta's agents ("✦ Generar con Mawta", Claude via the Anthropic API).
+      # Optional: without it the generation routes answer agent_unavailable
+      # and teachers plan by hand.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      PLANNING_AGENT_MODEL: ${PLANNING_AGENT_MODEL:-claude-sonnet-5-5}
       # Lets `docker compose run --rm --entrypoint goose api up` migrate with
       # zero CLI args — no shell needed to expand a $DATABASE_URL argument
       # over SSH, and the distroless image has no shell to do it anyway.

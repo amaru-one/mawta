@@ -26,6 +26,13 @@ const dispatchKind = "test.dispatch"
 // the single outcome event and the job's final status.
 func runOne(t *testing.T, env *dbtest.Env, key string, maxAttempts int, ctx context.Context, handler HandlerFunc) (map[string]any, string) {
 	t.Helper()
+	return runOneWith(t, env, key, maxAttempts, ctx, Registry{InTx: map[string]HandlerFunc{dispatchKind: handler}})
+}
+
+// runOneWith is runOne over a whole registry, so a test can register the
+// dispatch kind as an own-transaction handler.
+func runOneWith(t *testing.T, env *dbtest.Env, key string, maxAttempts int, ctx context.Context, registry Registry) (map[string]any, string) {
+	t.Helper()
 	setup := context.Background()
 	tx, err := env.App.Pool.Begin(setup)
 	if err != nil {
@@ -58,7 +65,7 @@ func runOne(t *testing.T, env *dbtest.Env, key string, maxAttempts int, ctx cont
 
 	var buf bytes.Buffer
 	logger := slog.New(slog.NewJSONHandler(&buf, nil))
-	dispatch(ctx, env.App, map[string]HandlerFunc{dispatchKind: handler}, *job, "test-worker", logger)
+	dispatch(ctx, env.App, registry, *job, "test-worker", logger)
 
 	var outcomes []map[string]any
 	for _, line := range strings.Split(strings.TrimSpace(buf.String()), "\n") {
@@ -142,5 +149,36 @@ func TestDispatchNeverLogsSuccessWhenPersistenceFails(t *testing.T) {
 	}
 	if status != "running" {
 		t.Errorf("status = %q, want running (nothing could be recorded)", status)
+	}
+}
+
+// An own-transaction handler (agent.generate) is dispatched without an
+// enclosing transaction and its result reaches the queue like any other:
+// success completes the job, an error is retried, a reported skip is a skip.
+func TestDispatchRunsOwnTransactionHandlers(t *testing.T) {
+	env := dbtest.Setup(t)
+	own := func(h OwnTxHandlerFunc) Registry {
+		return Registry{OwnTx: map[string]OwnTxHandlerFunc{dispatchKind: h}}
+	}
+
+	event, status := runOneWith(t, env, "dispatch:own-success", 3, context.Background(),
+		own(func(ctx context.Context, job Job) error { return nil }))
+	if event["outcome"] != logging.OutcomeSuccess || status != "completed" {
+		t.Errorf("success: outcome = %v status = %q, want success/completed", event["outcome"], status)
+	}
+
+	event, status = runOneWith(t, env, "dispatch:own-error", 3, context.Background(),
+		own(func(ctx context.Context, job Job) error { return errors.New("model overloaded") }))
+	if event["outcome"] != logging.OutcomeRetryableFailure || status != "retryable" {
+		t.Errorf("error: outcome = %v status = %q, want retryable_failure/retryable", event["outcome"], status)
+	}
+
+	event, status = runOneWith(t, env, "dispatch:own-skip", 3, context.Background(),
+		own(func(ctx context.Context, job Job) error {
+			logging.ReportOutcome(ctx, logging.OutcomeSkipped, "generation_not_runnable")
+			return nil
+		}))
+	if event["outcome"] != logging.OutcomeSkipped || status != "completed" {
+		t.Errorf("skip: outcome = %v status = %q, want skipped/completed", event["outcome"], status)
 	}
 }

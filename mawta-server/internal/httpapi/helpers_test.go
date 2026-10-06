@@ -28,7 +28,7 @@ const cookieName = "mawta_session"
 // through it rather than called directly, so middleware, routing and error
 // mapping are all in the path — which is where several of the behaviours under
 // test actually live.
-func newAPI(t *testing.T, env *dbtest.Env) http.Handler {
+func newAPI(t *testing.T, env *dbtest.Env, options ...func(*config.Config)) http.Handler {
 	t.Helper()
 	cfg := config.Config{
 		SessionCookieName:   cookieName,
@@ -42,6 +42,9 @@ func newAPI(t *testing.T, env *dbtest.Env) http.Handler {
 		LoginLockout:       15 * time.Minute,
 		BcryptCost:         4, // the minimum; the default 12 is deliberately slow
 		StorageDir:         t.TempDir(),
+	}
+	for _, option := range options {
+		option(&cfg)
 	}
 	return httpapi.New(env.App, cfg, slog.New(slog.NewTextHandler(io.Discard, nil))).Router()
 }

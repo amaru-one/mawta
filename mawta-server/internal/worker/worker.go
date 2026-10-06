@@ -44,6 +44,19 @@ type Job struct {
 // HandlerFunc processes one claimed job inside its tenant transaction.
 type HandlerFunc func(ctx context.Context, tx pgx.Tx, job Job) error
 
+// OwnTxHandlerFunc processes one claimed job that manages its own
+// transactions. It exists for work that waits on something slow outside the
+// database — a language-model call can take a minute — which must not hold a
+// transaction (and its row locks) open while it waits. The handler opens the
+// short transactions it needs itself.
+type OwnTxHandlerFunc func(ctx context.Context, job Job) error
+
+// Registry maps job kinds to their handlers.
+type Registry struct {
+	InTx  map[string]HandlerFunc
+	OwnTx map[string]OwnTxHandlerFunc
+}
+
 const pollInterval = 2 * time.Second
 
 func Run(ctx context.Context, database *db.DB, cfg config.Config, logger *slog.Logger) {
@@ -51,7 +64,7 @@ func Run(ctx context.Context, database *db.DB, cfg config.Config, logger *slog.L
 	// client resolves its usage-event logger from slog.Default() — which
 	// cmd/api has already pointed at the configured JSON logger — so no
 	// logger needs to be threaded through the registry here.
-	registry := defaultRegistry(cfg)
+	registry := defaultRegistry(cfg, database, logger)
 	workerName, _ := os.Hostname()
 	if workerName == "" {
 		workerName = "worker"
@@ -74,7 +87,7 @@ func Run(ctx context.Context, database *db.DB, cfg config.Config, logger *slog.L
 	wg.Wait()
 }
 
-func pollLoop(ctx context.Context, database *db.DB, queue, workerName string, registry map[string]HandlerFunc, logger *slog.Logger) {
+func pollLoop(ctx context.Context, database *db.DB, queue, workerName string, registry Registry, logger *slog.Logger) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -137,7 +150,7 @@ func claim(ctx context.Context, database *db.DB, queue, workerName string) (*Job
 // event, runs the handler inside the job's transaction, persists the
 // outcome, and only then emits the terminal outcome event — so the event
 // never claims a completion the database has not recorded.
-func dispatch(ctx context.Context, database *db.DB, registry map[string]HandlerFunc, job Job, workerName string, logger *slog.Logger) {
+func dispatch(ctx context.Context, database *db.DB, registry Registry, job Job, workerName string, logger *slog.Logger) {
 	start := time.Now()
 	logging.LogJobStart(logger, logging.JobStartEvent{
 		TaskID:      job.ID,
@@ -178,8 +191,9 @@ func dispatch(ctx context.Context, database *db.DB, registry map[string]HandlerF
 		emit(outcome, reason, errText)
 	}
 
-	handler, ok := registry[job.Kind]
-	if !ok {
+	handler, inTx := registry.InTx[job.Kind]
+	ownTx, isOwnTx := registry.OwnTx[job.Kind]
+	if !inTx && !isOwnTx {
 		fail("unknown_kind", errors.New("unknown job kind: "+job.Kind))
 		return
 	}
@@ -190,7 +204,9 @@ func dispatch(ctx context.Context, database *db.DB, registry map[string]HandlerF
 	taskCtx, report := logging.WithOutcomeReport(logging.WithSTTTask(ctx, logging.STTTask{TaskID: job.ID, Attempt: job.Attempts}))
 
 	var handlerErr error
-	if job.TenantID != uuid.Nil {
+	if isOwnTx {
+		handlerErr = ownTx(taskCtx, job)
+	} else if job.TenantID != uuid.Nil {
 		tc := db.TenantCtx{TenantID: job.TenantID, RequestID: "job:" + job.Kind}
 		handlerErr = database.WithTenantTx(taskCtx, tc, func(tx pgx.Tx) error {
 			return handler(taskCtx, tx, job)
