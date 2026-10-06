@@ -32,9 +32,9 @@ func TestMigrationProducedTheWholeSchema(t *testing.T) {
 	// 43 schema tables (events counted once, as the partitioned parent) plus
 	// goose_db_version. Partitions are excluded by relispartition, so the 175
 	// monthly events_* children do not inflate this. 00002 adds 10 planning
-	// tables, so the count is 54.
-	if tables != 54 {
-		t.Errorf("top-level tables = %d, want 54", tables)
+	// tables and 00005 adds agent_generations, so the count is 55.
+	if tables != 55 {
+		t.Errorf("top-level tables = %d, want 55", tables)
 	}
 
 	var forced int
@@ -45,9 +45,10 @@ func TestMigrationProducedTheWholeSchema(t *testing.T) {
 		   and not c.relispartition and c.relrowsecurity and c.relforcerowsecurity`).Scan(&forced); err != nil {
 		t.Fatalf("count forced-RLS tables: %v", err)
 	}
-	// 41 from 00001 plus the 10 tenant-scoped planning tables of 00002.
-	if forced != 51 {
-		t.Errorf("tables with FORCE ROW LEVEL SECURITY = %d, want 51", forced)
+	// 41 from 00001, the 10 tenant-scoped planning tables of 00002 and
+	// agent_generations of 00005.
+	if forced != 52 {
+		t.Errorf("tables with FORCE ROW LEVEL SECURITY = %d, want 52", forced)
 	}
 }
 

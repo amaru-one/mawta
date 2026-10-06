@@ -38,6 +38,20 @@ type Config struct {
 	TranscribeAPIKey string
 	TranscribeModel  string
 
+	// AnthropicAPIKey enables Mawta's agents (Claude through the Anthropic
+	// API). Empty is valid: the server boots, and the generation routes
+	// answer agent_unavailable so the app offers manual creation only.
+	AnthropicAPIKey    string
+	PlanningAgentModel string
+	AgentTimeout       time.Duration
+	// Model prices in US dollars per million tokens, used to estimate the
+	// cost recorded with each generation. Unset means unknown: tokens are
+	// still recorded, cost stays zero. Never guessed in code.
+	AgentPriceInputPerMTok      float64
+	AgentPriceOutputPerMTok     float64
+	AgentPriceCacheReadPerMTok  float64
+	AgentPriceCacheWritePerMTok float64
+
 	SessionCookieName   string
 	SessionCookieSecure bool
 	SessionTTL          time.Duration
@@ -69,6 +83,14 @@ func Load() (Config, error) {
 		// configured. See internal/stt/SPEC.md for what happens then.
 		TranscribeAPIKey: getenv("TRANSCRIBE_OPENROUTER_API_KEY", ""),
 		TranscribeModel:  getenv("TRANSCRIBE_MODEL", "openai/whisper-large-v3"),
+
+		AnthropicAPIKey:             getenv("ANTHROPIC_API_KEY", ""),
+		PlanningAgentModel:          getenv("PLANNING_AGENT_MODEL", "claude-sonnet-5-5"),
+		AgentTimeout:                getdur("AGENT_TIMEOUT", 90*time.Second),
+		AgentPriceInputPerMTok:      getfloat("AGENT_PRICE_INPUT_PER_MTOK", 0),
+		AgentPriceOutputPerMTok:     getfloat("AGENT_PRICE_OUTPUT_PER_MTOK", 0),
+		AgentPriceCacheReadPerMTok:  getfloat("AGENT_PRICE_CACHE_READ_PER_MTOK", 0),
+		AgentPriceCacheWritePerMTok: getfloat("AGENT_PRICE_CACHE_WRITE_PER_MTOK", 0),
 
 		SessionCookieName: getenv("SESSION_COOKIE_NAME", "mawta_session"),
 		// Fails closed: a production deploy that forgets to set this still
@@ -126,6 +148,18 @@ func getbool(key string, def bool) bool {
 		return def
 	}
 	return b
+}
+
+func getfloat(key string, def float64) float64 {
+	v, ok := os.LookupEnv(key)
+	if !ok || v == "" {
+		return def
+	}
+	f, err := strconv.ParseFloat(v, 64)
+	if err != nil || f < 0 {
+		return def
+	}
+	return f
 }
 
 func getint(key string, def int) int {
