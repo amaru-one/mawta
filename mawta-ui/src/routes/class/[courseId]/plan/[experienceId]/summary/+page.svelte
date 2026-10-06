@@ -8,6 +8,7 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { list } from '$lib/api/client';
+	import { planningErrorText } from '$lib/api/planningErrors';
 	import type { CurriculumDto, ExperienceDto, WarningDto } from '$lib/api/dto';
 	import {
 		confirmExperience,
@@ -61,13 +62,24 @@
 		return list(competency?.capabilities);
 	}
 
+	// Counted like the server counts coverage (and the warnings below): only
+	// accepted criteria. A pending proposal is not yet the teacher's, so it is
+	// shown apart instead of filling the count.
 	function coveredOf(competencyId: string): number {
 		const covered = new Set(
 			criteria
-				.filter((criterion) => criterion.competency_id === competencyId)
+				.filter(
+					(criterion) => criterion.competency_id === competencyId && criterion.accepted_at !== null
+				)
 				.flatMap((criterion) => list(criterion.capability_ids))
 		);
 		return capabilitiesOf(competencyId).filter((capability) => covered.has(capability.id)).length;
+	}
+
+	function pendingOf(competencyId: string): number {
+		return criteria.filter(
+			(criterion) => criterion.competency_id === competencyId && criterion.accepted_at === null
+		).length;
 	}
 
 	const missingCapabilities = $derived(
@@ -129,8 +141,8 @@
 			await confirmExperience(experienceId);
 			showToast('Experiencia guardada');
 			void goto(`/class/${courseId}/plan`);
-		} catch {
-			showToast('No se pudo guardar la experiencia');
+		} catch (error) {
+			showToast(planningErrorText(error, 'No se pudo guardar la experiencia'));
 		} finally {
 			saving = false;
 		}
@@ -146,8 +158,8 @@
 			await deleteExperience(experienceId);
 			showToast('Experiencia eliminada');
 			void goto(`/class/${courseId}/plan`);
-		} catch {
-			showToast('No se pudo eliminar la experiencia');
+		} catch (error) {
+			showToast(planningErrorText(error, 'No se pudo eliminar la experiencia'));
 		}
 	}
 </script>
@@ -166,14 +178,19 @@
 			{fmtDate(experience.starts_on)} – {fmtDate(experience.ends_on)} · {dates.length} clases
 		</p>
 
-		<p class="situation">{experience.situation_text}</p>
+		{#if experience.situation_text}
+			<p class="situation">{experience.situation_text}</p>
+		{:else}
+			<p class="situation muted">Todavía sin situación significativa.</p>
+		{/if}
 
 		<div class="context-card summary">
 			{#each comps as competency (competency.id)}
 				<a class="sum-row row pressable" href={`${base}/criteria`} onclick={hapticTap}>
 					<span class="grow">{competency.name}</span>
 					<span class="sum-value">
-						{coveredOf(competency.id)} de {capabilitiesOf(competency.id).length} capacidades con criterio
+						{coveredOf(competency.id)} de {capabilitiesOf(competency.id).length} capacidades con criterio{#if pendingOf(competency.id) > 0}
+							· {pendingOf(competency.id)} por revisar{/if}
 					</span>
 				</a>
 			{/each}
@@ -258,6 +275,10 @@
 		font-size: 14px;
 		line-height: 1.5;
 		color: var(--text-primary);
+	}
+
+	.situation.muted {
+		color: var(--text-muted);
 	}
 
 	.summary {

@@ -5,16 +5,17 @@
 	// grade desempeño landed on the situation; it can look at several
 	// capacidades of its competencia and is listed once. Mawta only fills gaps
 	// when asked, and "Continuar" waits until every competencia was seen.
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { ApiError, list } from '$lib/api/client';
+	import { list } from '$lib/api/client';
+	import { agentUnavailable, GenerationAborted, waitForGeneration } from '$lib/api/generation';
+	import { isAgentUnavailable, planningErrorText } from '$lib/api/planningErrors';
 	import type {
 		CurriculumCompetencyDto,
 		CurriculumDto,
 		ExperienceCriterionDto,
 		ExperienceDto,
-		GenerationDto,
 	} from '$lib/api/dto';
 	import {
 		acceptCriterion,
@@ -23,7 +24,6 @@
 		generateCriteria,
 		getClassCurriculum,
 		getExperience,
-		getGeneration,
 		updateCriterion,
 	} from '$lib/api/endpoints/planning';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
@@ -109,7 +109,8 @@
 		return capabilities.find((capability) => capability.id === id)?.name ?? '';
 	}
 
-	function performanceText(id: string): string {
+	function performanceText(id: string | null): string {
+		if (!id) return '';
 		return performances.find((performance) => performance.id === id)?.text ?? '';
 	}
 
@@ -137,16 +138,8 @@
 	let saving = $state(false);
 	let formError = $state<string | null>(null);
 
-	// The contract's codes, in the screen's own words.
-	const ERROR_TEXT: Record<string, string> = {
-		capability_not_in_competency: 'Una de las capacidades no es de esta competencia.',
-		criterion_needs_capability: 'Elige al menos una capacidad que mire el criterio.',
-		performance_not_in_grade: 'Ese desempeño no es de esta competencia para el grado de la clase.',
-	};
-
 	function errorText(error: unknown): string {
-		if (error instanceof ApiError && ERROR_TEXT[error.code]) return ERROR_TEXT[error.code];
-		return 'No se pudo guardar el criterio. Inténtalo de nuevo.';
+		return planningErrorText(error, 'No se pudo guardar el criterio. Inténtalo de nuevo.');
 	}
 
 	function openCreate(): void {
@@ -168,7 +161,7 @@
 		formError = null;
 		form = {
 			id: criterion.id,
-			performanceId: criterion.performance_id,
+			performanceId: criterion.performance_id ?? '',
 			capabilityIds: [...list(criterion.capability_ids)],
 			description: criterion.description,
 		};
@@ -249,15 +242,9 @@
 
 	let generating = $state(false);
 
-	const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
-
-	async function poll(generationId: string): Promise<GenerationDto> {
-		for (;;) {
-			await sleep(1000);
-			const generation = await getGeneration(generationId);
-			if (generation.status === 'completed' || generation.status === 'failed') return generation;
-		}
-	}
+	// Stops waiting for a generation when the screen is left.
+	const leaving = new AbortController();
+	onDestroy(() => leaving.abort());
 
 	async function generate(): Promise<void> {
 		if (!current || generating) return;
@@ -266,14 +253,16 @@
 		form = null;
 		try {
 			const started = await generateCriteria(experienceId, current.id);
-			const done = await poll(started.id);
+			const done = await waitForGeneration(started, leaving.signal);
 			if (done.status === 'failed') {
 				showToast(done.error ?? 'Mawta no pudo proponer criterios esta vez');
 			} else {
 				await reload();
 			}
-		} catch {
-			showToast('No se pudo generar con Mawta');
+		} catch (error) {
+			if (error instanceof GenerationAborted) return;
+			if (isAgentUnavailable(error)) agentUnavailable.set(true);
+			showToast(planningErrorText(error, 'No se pudo generar con Mawta'));
 		} finally {
 			generating = false;
 		}
@@ -387,7 +376,7 @@
 			</div>
 
 			<div class="row actions">
-				{#if missing.length > 0}
+				{#if missing.length > 0 && !$agentUnavailable}
 					<button
 						class="btn-block pressable half"
 						disabled={generating}

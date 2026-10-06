@@ -3,16 +3,17 @@
 	// the criteria. An evidencia is a producción, an actuación or a prueba
 	// escrita, and it can gather criteria of several competencias at once.
 	// Mawta only fills gaps when asked; every proposal waits for the teacher.
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { ApiError, list } from '$lib/api/client';
+	import { list } from '$lib/api/client';
+	import { agentUnavailable, GenerationAborted, waitForGeneration } from '$lib/api/generation';
+	import { isAgentUnavailable, planningErrorText } from '$lib/api/planningErrors';
 	import type {
 		EvidenceKind,
 		ExperienceCompetencyRefDto,
 		ExperienceCriterionDto,
 		ExperienceDto,
-		GenerationDto,
 		PlannedEvidenceDto,
 	} from '$lib/api/dto';
 	import {
@@ -21,7 +22,6 @@
 		deleteEvidence,
 		generateEvidences,
 		getExperience,
-		getGeneration,
 		updateEvidence,
 	} from '$lib/api/endpoints/planning';
 	import Icon from '$lib/components/Icon.svelte';
@@ -137,14 +137,8 @@
 	let saving = $state(false);
 	let formError = $state<string | null>(null);
 
-	// The contract's codes, in the screen's own words.
-	const ERROR_TEXT: Record<string, string> = {
-		criterion_other_experience: 'Uno de los criterios no es de esta experiencia.',
-	};
-
 	function errorText(error: unknown): string {
-		if (error instanceof ApiError && ERROR_TEXT[error.code]) return ERROR_TEXT[error.code];
-		return 'No se pudo guardar la evidencia. Inténtalo de nuevo.';
+		return planningErrorText(error, 'No se pudo guardar la evidencia. Inténtalo de nuevo.');
 	}
 
 	function openCreate(): void {
@@ -251,15 +245,9 @@
 
 	let generating = $state(false);
 
-	const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
-
-	async function poll(generationId: string): Promise<GenerationDto> {
-		for (;;) {
-			await sleep(1000);
-			const generation = await getGeneration(generationId);
-			if (generation.status === 'completed' || generation.status === 'failed') return generation;
-		}
-	}
+	// Stops waiting for a generation when the screen is left.
+	const leaving = new AbortController();
+	onDestroy(() => leaving.abort());
 
 	async function generate(): Promise<void> {
 		if (generating) return;
@@ -268,15 +256,17 @@
 		form = null;
 		try {
 			const started = await generateEvidences(experienceId);
-			const done = await poll(started.id);
+			const done = await waitForGeneration(started, leaving.signal);
 			if (done.status === 'failed') {
 				showToast(done.error ?? 'Mawta no pudo proponer evidencias esta vez');
 			} else {
 				await reload();
 				showToast('Mawta propuso evidencias');
 			}
-		} catch {
-			showToast('No se pudo generar con Mawta');
+		} catch (error) {
+			if (error instanceof GenerationAborted) return;
+			if (isAgentUnavailable(error)) agentUnavailable.set(true);
+			showToast(planningErrorText(error, 'No se pudo generar con Mawta'));
 		} finally {
 			generating = false;
 		}
@@ -373,14 +363,17 @@
 			</div>
 
 			<div class="row actions">
-				<button
-					class="btn-block pressable half"
-					disabled={generating}
-					onclick={() => void generate()}
-				>
-					<Icon name="sparkles" size={15} />
-					{evidences.length === 0 ? 'Generar con Mawta' : 'Generar más'}
-				</button>
+				<!-- Evidences are proposed from the criteria: none, nothing to propose. -->
+				{#if criteria.length > 0 && !$agentUnavailable}
+					<button
+						class="btn-block pressable half"
+						disabled={generating}
+						onclick={() => void generate()}
+					>
+						<Icon name="sparkles" size={15} />
+						{evidences.length === 0 ? 'Generar con Mawta' : 'Generar más'}
+					</button>
+				{/if}
 				<button class="btn-block pressable half" onclick={openCreate}>
 					<Icon name={form && form.id === null ? 'x' : 'plus'} size={15} />
 					{form && form.id === null ? 'Cerrar' : 'Agregar evidencia'}

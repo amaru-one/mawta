@@ -451,20 +451,30 @@ export type GenerationStatus = 'pending' | 'running' | 'completed' | 'failed';
 // Warnings never block; they are what the experience's summary screen shows.
 export type WarningCode = 'capability_without_criterion' | 'pending_proposals';
 
-// The contract's stable domain codes, so the UI can show its own text for each
-// instead of the server's message.
+// The contract's stable error codes (docs/api-planificacion.md, "Domain
+// errors"), so each screen shows its own text instead of the server's
+// message. planningErrorText (src/lib/api/planningErrors.ts) translates them.
 export type DomainErrorCode =
 	| 'experience_overlap'
 	| 'outside_term'
 	| 'competency_not_in_subject'
+	| 'competency_not_in_experience'
 	| 'competency_has_criteria'
 	| 'capability_not_in_competency'
 	| 'criterion_needs_capability'
 	| 'performance_not_in_grade'
 	| 'criterion_other_experience'
 	| 'date_not_in_experience'
+	| 'evidence_not_in_experience'
+	| 'session_date_taken'
 	| 'experience_not_draft'
-	| 'generation_failed';
+	| 'missing_title'
+	| 'missing_idea'
+	| 'missing_competencies'
+	| 'missing_description'
+	| 'missing_name'
+	| 'missing_criteria'
+	| 'agent_unavailable';
 
 // How the school's file lists a day without class. Ranges (vacaciones,
 // gestion) arrive as from/to; the plan keeps the range and the calendar
@@ -527,15 +537,16 @@ export type ClassPlanDto = {
 	/** Class dates in the whole term, non-teaching days excluded. */
 	class_dates_total: number;
 	experiences: PlanExperienceDto[] | null;
-	/** The class's area competencies first, then the assigned transversal ones. */
+	/** The competencies of the class's area. */
 	competencies: PlanCompetencyDto[] | null;
 };
 
 export type CurriculumGradeDto = {
 	code: string;
-	cycle: string;
-	/** The CNEB learning-standard level the cycle ends on (1–8). */
-	expected_level: number;
+	/** Null when the school did not give the grade its CNEB cycle. */
+	cycle: string | null;
+	/** The CNEB learning-standard level the cycle ends on (1–8); null without a cycle. */
+	expected_level: number | null;
 };
 
 export type CurriculumCapabilityDto = {
@@ -593,10 +604,12 @@ export type ExperienceCompetencyRefDto = {
 // school-wide criterio of the criteria screen.
 export type ExperienceCriterionDto = {
 	id: string;
+	experience_id: string;
 	competency_id: string;
 	description: string;
 	capability_ids: string[] | null;
-	performance_id: string;
+	/** Always set for criteria written in the planning flow; nullable in the schema. */
+	performance_id: string | null;
 	/** 'mawta' while it is only a proposal the teacher has not accepted or edited yet. */
 	proposed_by: string;
 	accepted_at: string | null;
@@ -604,6 +617,7 @@ export type ExperienceCriterionDto = {
 
 export type PlannedEvidenceDto = {
 	id: string;
+	experience_id: string;
 	name: string;
 	kind: EvidenceKind;
 	/** Criterios of this experience the evidencia speaks to, of any of its competencies. */
@@ -635,7 +649,8 @@ export type ExperienceDto = {
 	status: ExperienceStatus;
 	title: string;
 	idea_text: string;
-	situation_text: string;
+	/** Null until a situation is written; it is optional. */
+	situation_text: string | null;
 	starts_on: string;
 	ends_on: string;
 	competencies: ExperienceCompetencyRefDto[] | null;
@@ -651,15 +666,17 @@ export type CreateExperienceBody = {
 	term_id: string;
 	title: string;
 	idea_text: string;
-	situation_text: string;
+	/** Optional: an experience can be saved before its situation is written. */
+	situation_text?: string | null;
 	starts_on: string;
 	ends_on: string;
-	/** At least one, of the class's area (or an assigned transversal one). */
+	/** At least one, of the class's area. */
 	competency_ids: string[];
 };
 
 export type UpdateExperienceBody = {
 	title?: string;
+	/** "" clears the situation; leaving it out keeps it. */
 	situation_text?: string;
 	starts_on?: string;
 	ends_on?: string;
@@ -733,11 +750,6 @@ export type GenerationDto = {
 	status: GenerationStatus;
 	/** Present once the generation is completed. */
 	result?: GenerationResultDto | null;
-	/** Present when status is 'failed' (generation_failed). */
+	/** Present when status is 'failed': a Spanish message written for the teacher. */
 	error?: string | null;
-};
-
-export type ExperienceConfirmDto = {
-	/** The same warnings the experience detail carries; confirming does not clear them. */
-	warnings: WarningDto[] | null;
 };

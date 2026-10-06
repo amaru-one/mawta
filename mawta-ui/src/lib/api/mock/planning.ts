@@ -23,10 +23,9 @@ import type {
 	CreateCriterionBody,
 	CreateEvidenceBody,
 	CreateExperienceBody,
-	CriterionDto,
+	ExperienceCriterionDto,
 	CurriculumDto,
 	EvidenceKind,
-	ExperienceConfirmDto,
 	ExperienceDto,
 	ExperienceProposalBody,
 	ExperienceStatus,
@@ -141,7 +140,7 @@ interface Experience {
 	status: ExperienceStatus;
 	title: string;
 	idea_text: string;
-	situation_text: string;
+	situation_text: string | null;
 	starts_on: string;
 	ends_on: string;
 	competency_ids: string[];
@@ -711,10 +710,18 @@ function pendingCount(experienceId: string): number {
 }
 
 // Capabilities of the competencia with at least one criterio in the experience.
-function coveredCapabilities(experienceId: string, competencyId: string): Set<string> {
+// Coverage and warnings count accepted criteria only, as the server does: a
+// pending proposal is not yet the teacher's. Generation fills gaps counting
+// pending ones too (acceptedOnly false), so it never proposes twice.
+function coveredCapabilities(
+	experienceId: string,
+	competencyId: string,
+	acceptedOnly = true
+): Set<string> {
 	const covered = new Set<string>();
 	for (const criterion of liveCriteriaOf(experienceId)) {
 		if (criterion.competency_id !== competencyId) continue;
+		if (acceptedOnly && criterion.accepted_at === null) continue;
 		for (const capabilityId of criterion.capability_ids) covered.add(capabilityId);
 	}
 	return covered;
@@ -778,7 +785,7 @@ function fail(status: number, code: string, message: string): never {
 // A competency is valid for this class when it is one of the area's four.
 function requireCompetencies(ids: string[]): void {
 	if (ids.length === 0) {
-		fail(400, 'invalid_request', 'Elige al menos una competencia del área.');
+		fail(400, 'missing_competencies', 'Elige al menos una competencia del área.');
 	}
 	for (const id of ids) {
 		if (!competencyById(id)) {
@@ -853,7 +860,7 @@ function requireCriterionBody(experience: Experience, body: CreateCriterionBody)
 
 function requireEvidenceCriteria(experience: Experience, criterionIds: string[]): void {
 	if (criterionIds.length === 0) {
-		fail(400, 'invalid_request', 'La evidencia debe observar al menos un criterio.');
+		fail(400, 'missing_criteria', 'La evidencia debe observar al menos un criterio.');
 	}
 	const own = new Set(liveCriteriaOf(experience.id).map((criterion) => criterion.id));
 	for (const criterionId of criterionIds) {
@@ -867,7 +874,7 @@ const EVIDENCE_KINDS: EvidenceKind[] = ['produccion', 'actuacion', 'prueba_escri
 
 function requireEvidenceKind(kind: string): void {
 	if (!EVIDENCE_KINDS.includes(kind as EvidenceKind)) {
-		fail(400, 'invalid_request', 'El tipo de evidencia no es válido.');
+		fail(400, 'bad_request', 'El tipo de evidencia no es válido.');
 	}
 }
 
@@ -1217,6 +1224,7 @@ function toExperienceDto(experience: Experience): ExperienceDto {
 		competencies: competencyRefs,
 		criteria: liveCriteriaOf(experience.id).map((criterion) => ({
 			id: criterion.id,
+			experience_id: criterion.experience_id,
 			competency_id: criterion.competency_id,
 			description: criterion.description,
 			capability_ids: criterion.capability_ids,
@@ -1226,6 +1234,7 @@ function toExperienceDto(experience: Experience): ExperienceDto {
 		})),
 		evidences: liveEvidencesOf(experience.id).map((evidence) => ({
 			id: evidence.id,
+			experience_id: evidence.experience_id,
 			name: evidence.name,
 			kind: evidence.kind,
 			criterion_ids: evidence.criterion_ids,
@@ -1270,7 +1279,7 @@ export async function createExperience(
 		status: 'borrador',
 		title: body.title,
 		idea_text: body.idea_text,
-		situation_text: body.situation_text,
+		situation_text: body.situation_text?.trim() ? body.situation_text.trim() : null,
 		starts_on: body.starts_on,
 		ends_on: body.ends_on,
 		competency_ids: [...body.competency_ids],
@@ -1334,13 +1343,15 @@ export async function updateExperience(
 	}
 
 	if (body.title !== undefined) experience.title = body.title;
-	if (body.situation_text !== undefined) experience.situation_text = body.situation_text;
+	if (body.situation_text !== undefined) {
+		experience.situation_text = body.situation_text.trim() === '' ? null : body.situation_text;
+	}
 	experience.starts_on = startsOn;
 	experience.ends_on = endsOn;
 	return toExperienceDto(experience);
 }
 
-export async function confirmExperience(experienceId: string): Promise<ExperienceConfirmDto> {
+export async function confirmExperience(experienceId: string): Promise<ExperienceDto> {
 	await delay();
 	const experience = experienceById(experienceId);
 	if (!experience) fail(404, 'not_found', 'La experiencia no existe.');
@@ -1348,7 +1359,7 @@ export async function confirmExperience(experienceId: string): Promise<Experienc
 		fail(409, 'experience_not_draft', 'La experiencia ya está planificada.');
 	}
 	experience.status = 'planificada';
-	return clone({ warnings: experienceWarnings(experience) });
+	return toExperienceDto(experience);
 }
 
 export async function deleteExperience(experienceId: string): Promise<void> {
@@ -1368,14 +1379,23 @@ export async function deleteExperience(experienceId: string): Promise<void> {
 	}
 }
 
-function toCriterionDto(criterion: Criterion): CriterionDto {
-	return { criterion_id: criterion.id, code: null, description: criterion.description };
+function toCriterionDto(criterion: Criterion): ExperienceCriterionDto {
+	return clone({
+		id: criterion.id,
+		experience_id: criterion.experience_id,
+		competency_id: criterion.competency_id,
+		description: criterion.description,
+		capability_ids: criterion.capability_ids,
+		performance_id: criterion.performance_id,
+		proposed_by: criterion.proposed_by,
+		accepted_at: criterion.accepted_at,
+	});
 }
 
 export async function createCriterion(
 	experienceId: string,
 	body: CreateCriterionBody
-): Promise<CriterionDto> {
+): Promise<ExperienceCriterionDto> {
 	await delay();
 	const experience = experienceById(experienceId);
 	if (!experience) fail(404, 'not_found', 'La experiencia no existe.');
@@ -1398,7 +1418,7 @@ export async function createCriterion(
 export async function updateCriterion(
 	criterionId: string,
 	body: UpdateCriterionBody
-): Promise<CriterionDto> {
+): Promise<ExperienceCriterionDto> {
 	await delay();
 	const criterion = criterionById(criterionId);
 	if (!criterion) fail(404, 'not_found', 'El criterio no existe.');
@@ -1438,11 +1458,12 @@ export async function updateCriterion(
 	return toCriterionDto(criterion);
 }
 
-export async function acceptCriterion(criterionId: string): Promise<void> {
+export async function acceptCriterion(criterionId: string): Promise<ExperienceCriterionDto> {
 	await delay();
 	const criterion = criterionById(criterionId);
 	if (!criterion) fail(404, 'not_found', 'El criterio no existe.');
 	if (criterion.accepted_at === null) criterion.accepted_at = nowISO();
+	return toCriterionDto(criterion);
 }
 
 export async function deleteCriterion(criterionId: string): Promise<void> {
@@ -1459,6 +1480,7 @@ export async function deleteCriterion(criterionId: string): Promise<void> {
 function toEvidenceDto(evidence: Evidence): PlannedEvidenceDto {
 	return clone({
 		id: evidence.id,
+		experience_id: evidence.experience_id,
 		name: evidence.name,
 		kind: evidence.kind,
 		criterion_ids: evidence.criterion_ids,
@@ -1476,7 +1498,7 @@ export async function createEvidence(
 	const experience = experienceById(experienceId);
 	if (!experience) fail(404, 'not_found', 'La experiencia no existe.');
 	if (body.name.trim() === '') {
-		fail(400, 'invalid_request', 'La evidencia necesita un nombre.');
+		fail(400, 'missing_name', 'La evidencia necesita un nombre.');
 	}
 	requireEvidenceKind(body.kind);
 	requireEvidenceCriteria(experience, body.criterion_ids);
@@ -1516,7 +1538,7 @@ export async function updateEvidence(
 	if (!experience) fail(404, 'not_found', 'La experiencia no existe.');
 
 	if (body.name !== undefined) {
-		if (body.name.trim() === '') fail(400, 'invalid_request', 'La evidencia necesita un nombre.');
+		if (body.name.trim() === '') fail(400, 'missing_name', 'La evidencia necesita un nombre.');
 		evidence.name = body.name;
 	}
 	if (body.kind !== undefined) {
@@ -1541,11 +1563,12 @@ export async function updateEvidence(
 	return toEvidenceDto(evidence);
 }
 
-export async function acceptEvidence(evidenceId: string): Promise<void> {
+export async function acceptEvidence(evidenceId: string): Promise<PlannedEvidenceDto> {
 	await delay();
 	const evidence = evidenceById(evidenceId);
 	if (!evidence) fail(404, 'not_found', 'La evidencia no existe.');
 	if (evidence.accepted_at === null) evidence.accepted_at = nowISO();
+	return toEvidenceDto(evidence);
 }
 
 export async function deleteEvidence(evidenceId: string): Promise<void> {
@@ -1580,7 +1603,7 @@ export async function updateSession(
 	if (!experience) fail(404, 'not_found', 'La experiencia no existe.');
 	requireClassDateIn(experience, date);
 	if (body.title.trim() === '') {
-		fail(400, 'invalid_request', 'La sesión necesita un título.');
+		fail(400, 'missing_title', 'La sesión necesita un título.');
 	}
 	if (body.planned_evidence_id !== undefined && body.planned_evidence_id !== null) {
 		const evidence = evidenceById(body.planned_evidence_id);
@@ -1619,11 +1642,15 @@ export async function updateSession(
 	return toSessionDto(entry);
 }
 
-export async function acceptSession(experienceId: string, date: string): Promise<void> {
+export async function acceptSession(
+	experienceId: string,
+	date: string
+): Promise<SessionOutlineDto> {
 	await delay();
 	const entry = sessionOf(experienceId, date);
 	if (!entry) fail(404, 'not_found', 'Esa fecha no tiene sesión.');
 	if (entry.accepted_at === null) entry.accepted_at = nowISO();
+	return toSessionDto(entry);
 }
 
 export async function deleteSession(experienceId: string, date: string): Promise<void> {
@@ -1647,7 +1674,7 @@ export async function proposeExperience(
 	await delay();
 	if (body.term_id !== TERM.id) fail(404, 'not_found', 'El periodo no existe.');
 	if (body.idea_text.trim() === '') {
-		fail(400, 'invalid_request', 'Cuéntale a Mawta tu idea.');
+		fail(400, 'missing_idea', 'Cuéntale a Mawta tu idea.');
 	}
 	let competencyIds = body.competency_ids ?? [];
 	if (competencyIds.length > 0) {
@@ -1697,7 +1724,7 @@ export async function generateCriteria(
 
 	const generation = startGeneration('criteria', experienceId, competencyId, () => {
 		// Only the capabilities without a criterio get one.
-		const covered = coveredCapabilities(experienceId, competencyId);
+		const covered = coveredCapabilities(experienceId, competencyId, false);
 		const inserted: string[] = [];
 		for (const capability of competency.capabilities) {
 			if (covered.has(capability.id)) continue;
