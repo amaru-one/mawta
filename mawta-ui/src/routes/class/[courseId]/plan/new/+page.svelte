@@ -1,24 +1,24 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { ApiError, list } from '$lib/api/client';
+	import { list } from '$lib/api/client';
 	import type {
 		CalendarDto,
 		ClassPlanDto,
 		CurriculumDto,
 		ExperienceProposalBody,
 		ExperienceProposalDto,
-		GenerationDto,
 	} from '$lib/api/dto';
 	import {
 		createExperience,
 		getCalendar,
 		getClassCurriculum,
 		getClassPlan,
-		getGeneration,
 		proposeExperience,
 	} from '$lib/api/endpoints/planning';
+	import { agentUnavailable, GenerationAborted, waitForGeneration } from '$lib/api/generation';
+	import { isAgentUnavailable, planningErrorText } from '$lib/api/planningErrors';
 	import Icon from '$lib/components/Icon.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
@@ -46,6 +46,7 @@
 			selected = list(plan.competencies)
 				.filter((competency) => competency.status === 'toca')
 				.map((competency) => competency.id);
+			setStart(startOptions[0] ?? '');
 			ready = true;
 		} catch {
 			loadError = true;
@@ -119,54 +120,78 @@
 		return `${day.getDate()} ${MONTHS[day.getMonth()]}`;
 	}
 
-	// Weeks are counted from the term's first day, as in "Tu trimestre".
-	const weekCount = $derived.by(() => {
-		if (!plan) return 1;
-		const days = Math.round(
-			(fromISO(plan.term.ends_on).getTime() - fromISO(plan.term.starts_on).getTime()) / DAY_MS
-		);
-		return Math.floor(days / 7) + 1;
-	});
-
-	function weekOf(date: string): number {
-		if (!plan) return 1;
-		const days = Math.round(
-			(fromISO(date).getTime() - fromISO(plan.term.starts_on).getTime()) / DAY_MS
-		);
-		return Math.min(Math.max(Math.floor(days / 7) + 1, 1), weekCount);
+	// "lun 15 jun"
+	function fmtDay(date: string): string {
+		return `${WEEKDAY_SHORT[fromISO(date).getDay()]} ${fmtDate(date)}`;
 	}
 
-	const weekOptions = $derived.by(() => {
-		const weeks: number[] = [];
-		for (let week = 1; week <= weekCount; week++) weeks.push(week);
-		return weeks;
-	});
+	// The review's editable dates, by day: the agent fits its proposal to the
+	// free days of the term, so the dates are kept exactly as proposed. A day
+	// another experience of the class already covers (drafts included) cannot
+	// be chosen: the server would reject the overlap.
+	let startsOn = $state('');
+	let endsOn = $state('');
 
-	function weekStartISO(week: number): string {
-		if (!plan) return '';
-		return addDays(plan.term.starts_on, (week - 1) * 7);
+	const busy = $derived(
+		list(plan?.experiences).map((experience) => ({
+			from: experience.starts_on,
+			to: experience.ends_on,
+		}))
+	);
+
+	function isBusy(date: string): boolean {
+		return busy.some((range) => date >= range.from && date <= range.to);
 	}
 
-	// The review's editable dates: a start week and a length in weeks. The end
-	// never passes the term's end.
-	let startWeek = $state(1);
-	let lengthWeeks = $state(3);
+	const classDates = $derived(list(calendar?.class_dates));
 
-	const maxLength = $derived(Math.min(6, weekCount - startWeek + 1));
-	const startsOn = $derived(weekStartISO(startWeek));
-	const endsOn = $derived.by(() => {
-		if (!plan) return '';
-		const end = addDays(weekStartISO(startWeek), lengthWeeks * 7 - 1);
-		return end > plan.term.ends_on ? plan.term.ends_on : end;
-	});
+	// Class days on which an experience can start.
+	const startOptions = $derived(classDates.filter((date) => !isBusy(date)));
 
-	function setStartWeek(week: number): void {
-		startWeek = week;
-		lengthWeeks = Math.min(lengthWeeks, maxLength);
+	// The last day an experience starting on `start` can reach: the day before
+	// the next experience, or the term's end.
+	function limitFrom(start: string): string {
+		let limit = plan?.term.ends_on ?? start;
+		for (const range of busy) {
+			if (range.from > start) {
+				const before = addDays(range.from, -1);
+				if (before < limit) limit = before;
+			}
+		}
+		return limit;
 	}
 
-	function setLength(next: number): void {
-		lengthWeeks = Math.min(Math.max(next, 1), maxLength);
+	// The end choices: class days from the start up to that limit.
+	const endOptions = $derived.by(() => {
+		if (startsOn === '') return [];
+		const limit = limitFrom(startsOn);
+		return classDates.filter((date) => date >= startsOn && date <= limit);
+	});
+
+	// About three weeks of classes, as far as the free stretch allows.
+	function defaultEnd(start: string): string {
+		const limit = limitFrom(start);
+		const target = addDays(start, 18);
+		const fits = classDates.filter((date) => date >= start && date <= limit);
+		const upToTarget = fits.filter((date) => date <= target);
+		return upToTarget[upToTarget.length - 1] ?? fits[0] ?? start;
+	}
+
+	function setStart(start: string): void {
+		startsOn = start;
+		if (start === '') {
+			endsOn = '';
+			return;
+		}
+		if (endsOn < start || endsOn > limitFrom(start)) endsOn = defaultEnd(start);
+	}
+
+	// A proposal keeps its own dates (a proposed end may not be a class day; the
+	// selects show it anyway). If another tab took the days meanwhile, the
+	// server's overlap error explains it on save.
+	function setProposalDates(from: string, to: string): void {
+		startsOn = from;
+		endsOn = to;
 	}
 
 	const rangeClassDates = $derived(
@@ -184,24 +209,31 @@
 	let generating = $state(false);
 	let genError = $state<string | null>(null);
 
-	const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+	// Stops waiting for a generation when the screen is left.
+	const leaving = new AbortController();
+	onDestroy(() => leaving.abort());
 
-	// The generation runs in the background: poll about every second until it
-	// completes or fails.
-	async function poll(generationId: string): Promise<GenerationDto> {
-		for (;;) {
-			await sleep(1000);
-			const generation = await getGeneration(generationId);
-			if (generation.status === 'completed' || generation.status === 'failed') return generation;
-		}
-	}
+	// Where the review's content came from: Mawta's proposal or the teacher.
+	let origin = $state<'mawta' | 'teacher'>('mawta');
 
 	function applyProposal(proposal: ExperienceProposalDto): void {
 		title = proposal.title;
 		situation = proposal.situation_text;
 		selected = [...proposal.competency_ids];
-		startWeek = weekOf(proposal.starts_on);
-		lengthWeeks = Math.max(1, weekOf(proposal.ends_on) - startWeek + 1);
+		setProposalDates(proposal.starts_on, proposal.ends_on);
+		origin = 'mawta';
+		step = 'review';
+	}
+
+	// "Escribirlo yo": the same review, empty, for the teacher to fill — the way
+	// to plan when Mawta is not available or its proposal is not wanted.
+	function writeByHand(): void {
+		hapticTap();
+		genError = null;
+		title = '';
+		situation = '';
+		if (startsOn === '') setStart(startOptions[0] ?? '');
+		origin = 'teacher';
 		step = 'review';
 	}
 
@@ -215,7 +247,7 @@
 			const body: ExperienceProposalBody = { term_id: plan.term.id, idea_text: ideaText.trim() };
 			if (selected.length > 0) body.competency_ids = [...selected];
 			const started = await proposeExperience(courseId, body);
-			const done = await poll(started.id);
+			const done = await waitForGeneration(started, leaving.signal);
 			if (done.status === 'failed') {
 				genError = done.error ?? 'No se pudo armar la propuesta.';
 				return;
@@ -227,7 +259,9 @@
 				genError = 'No se pudo armar la propuesta.';
 			}
 		} catch (err) {
-			genError = err instanceof ApiError ? err.message : 'No se pudo armar la propuesta.';
+			if (err instanceof GenerationAborted) return;
+			if (isAgentUnavailable(err)) agentUnavailable.set(true);
+			genError = planningErrorText(err, 'No se pudo armar la propuesta.');
 		} finally {
 			generating = false;
 		}
@@ -238,29 +272,19 @@
 	let title = $state('');
 	let situation = $state('');
 	let saving = $state(false);
-	let saveError = $state<{ code: string; message: string } | null>(null);
-
-	// The contract's date problems, with this screen's own Spanish text —
-	// shown next to the dates, never as a raw code.
-	const DATE_ERRORS: Record<string, string> = {
-		experience_overlap: 'Las fechas se cruzan con otra experiencia.',
-		outside_term: 'La experiencia debe empezar y terminar dentro del periodo.',
-	};
-
-	const saveErrorText = $derived(
-		saveError === null ? null : (DATE_ERRORS[saveError.code] ?? saveError.message)
-	);
+	// Shown next to the dates (overlap, outside the term, ...), never a raw code.
+	let saveErrorText = $state<string | null>(null);
 
 	async function save(): Promise<void> {
 		if (saving || !plan) return;
 		saving = true;
-		saveError = null;
+		saveErrorText = null;
 		try {
 			const experience = await createExperience(courseId, {
 				term_id: plan.term.id,
 				title: title.trim(),
 				idea_text: ideaText.trim(),
-				situation_text: situation.trim(),
+				situation_text: situation.trim() || null,
 				starts_on: startsOn,
 				ends_on: endsOn,
 				competency_ids: [...selected],
@@ -268,10 +292,7 @@
 			showToast('Borrador guardado');
 			goto(`/class/${courseId}/plan/${experience.id}/criteria`);
 		} catch (err) {
-			saveError =
-				err instanceof ApiError
-					? { code: err.code, message: err.message }
-					: { code: 'unknown', message: 'No se pudo guardar el borrador.' };
+			saveErrorText = planningErrorText(err, 'No se pudo guardar el borrador.');
 		} finally {
 			saving = false;
 		}
@@ -290,8 +311,12 @@
 			<p class="eyebrow">Nueva experiencia de aprendizaje</p>
 			<h1 class="screen-title">¿Qué tienes en mente?</h1>
 			<p class="helper">
-				Cuéntalo en una o dos frases. Mawta detecta las competencias y arma la propuesta; luego tú
-				la revisas.
+				{#if $agentUnavailable}
+					Cuéntalo en una o dos frases; luego escribes la experiencia.
+				{:else}
+					Cuéntalo en una o dos frases. Mawta detecta las competencias y arma la propuesta; luego tú
+					la revisas.
+				{/if}
 			</p>
 
 			{#if generating}
@@ -312,9 +337,11 @@
 					<Icon name="alert" size={16} />
 					<p class="grow notice-text">{genError}</p>
 				</div>
-				<button class="btn-light pressable retry" onclick={() => void generate()}>
-					Reintentar
-				</button>
+				{#if !$agentUnavailable}
+					<button class="btn-light pressable retry" onclick={() => void generate()}>
+						Reintentar
+					</button>
+				{/if}
 			{/if}
 
 			<div class="section">
@@ -338,18 +365,39 @@
 			</div>
 
 			{#if !generating}
-				<button
-					class="btn-block btn-primary pressable primary"
-					onclick={() => void generate()}
-					disabled={ideaText.trim() === ''}
-				>
-					✦ Generar con Mawta
-				</button>
+				{#if $agentUnavailable}
+					<button
+						class="btn-block btn-primary pressable primary"
+						onclick={writeByHand}
+						disabled={ideaText.trim() === ''}
+					>
+						Escribir la experiencia
+					</button>
+				{:else}
+					<button
+						class="btn-block btn-primary pressable primary"
+						onclick={() => void generate()}
+						disabled={ideaText.trim() === ''}
+					>
+						✦ Generar con Mawta
+					</button>
+					<button
+						class="btn-block btn-light pressable secondary"
+						onclick={writeByHand}
+						disabled={ideaText.trim() === ''}
+					>
+						Escribirlo yo
+					</button>
+				{/if}
 			{/if}
 		{:else if step === 'review'}
 			<p class="origin">
-				<span class="ai-star">✦</span>
-				Mawta la armó a partir de tu idea: “{ideaText}”. Aún no está guardada.
+				{#if origin === 'mawta'}
+					<span class="ai-star">✦</span>
+					Mawta la armó a partir de tu idea: “{ideaText}”. Aún no está guardada.
+				{:else}
+					Tu idea: “{ideaText}”. Aún no está guardada.
+				{/if}
 			</p>
 			<h1 class="screen-title">Revisa la experiencia</h1>
 
@@ -365,10 +413,12 @@
 
 			<div class="section">
 				<div class="row label-row">
-					<label class="f-label grow" for="f-situation">Situación</label>
-					<button class="link pressable" onclick={() => void generate()} disabled={generating}>
-						✦ Sugerir otra
-					</button>
+					<label class="f-label grow" for="f-situation">Situación · opcional</label>
+					{#if !$agentUnavailable}
+						<button class="link pressable" onclick={() => void generate()} disabled={generating}>
+							✦ {origin === 'mawta' ? 'Sugerir otra' : 'Sugerir con Mawta'}
+						</button>
+					{/if}
 				</div>
 				{#if generating}
 					<div class="context-card waiting">
@@ -384,9 +434,11 @@
 						<Icon name="alert" size={16} />
 						<p class="grow notice-text">{genError}</p>
 					</div>
-					<button class="btn-light pressable retry" onclick={() => void generate()}>
-						Reintentar
-					</button>
+					{#if !$agentUnavailable}
+						<button class="btn-light pressable retry" onclick={() => void generate()}>
+							Reintentar
+						</button>
+					{/if}
 				{/if}
 			</div>
 
@@ -395,45 +447,59 @@
 					<p class="f-label grow">Competencias</p>
 					<button class="link pressable" onclick={() => (step = 'change')}>Cambiar</button>
 				</div>
-				<p class="comp-sentence">{joinY(selectedNames)}.</p>
+				<p class="comp-sentence">
+					{selectedNames.length > 0 ? `${joinY(selectedNames)}.` : 'Elige al menos una.'}
+				</p>
 			</div>
 
 			<div class="section">
 				<p class="f-label">¿Cuándo?</p>
-				<div class="row when-row">
-					<select
-						class="field grow"
-						value={startWeek}
-						onchange={(event) => setStartWeek(Number(event.currentTarget.value))}
-					>
-						{#each weekOptions as week (week)}
-							<option value={week}>Semana {week} · {fmtDate(weekStartISO(week))}</option>
-						{/each}
-					</select>
-					<div class="stepper">
-						<button
-							class="pressable"
-							onclick={() => setLength(lengthWeeks - 1)}
-							disabled={lengthWeeks <= 1}
-							aria-label="Menos semanas"
-						>
-							−
-						</button>
-						<span><b>{lengthWeeks}</b> sem.</span>
-						<button
-							class="pressable"
-							onclick={() => setLength(lengthWeeks + 1)}
-							disabled={lengthWeeks >= maxLength}
-							aria-label="Más semanas"
-						>
-							+
-						</button>
+				{#if startOptions.length === 0}
+					<div class="notice">
+						<Icon name="alert" size={16} />
+						<p class="grow notice-text">
+							No quedan días de clase libres en este periodo para una experiencia nueva.
+						</p>
 					</div>
-				</div>
-				<p class="f-help">
-					<Icon name="calendar" size={12} />
-					Semanas {startWeek}–{weekOf(endsOn)} · {rangeClassDates.length} clases ({classDaysText})
-				</p>
+				{:else}
+					<div class="row when-row">
+						<label class="grow">
+							<span class="f-help">Empieza</span>
+							<select
+								class="field"
+								value={startsOn}
+								onchange={(event) => setStart(event.currentTarget.value)}
+							>
+								{#if startsOn !== '' && !startOptions.includes(startsOn)}
+									<option value={startsOn}>{fmtDay(startsOn)}</option>
+								{/if}
+								{#each startOptions as date (date)}
+									<option value={date}>{fmtDay(date)}</option>
+								{/each}
+							</select>
+						</label>
+						<label class="grow">
+							<span class="f-help">Termina</span>
+							<select
+								class="field"
+								value={endsOn}
+								onchange={(event) => (endsOn = event.currentTarget.value)}
+							>
+								{#if endsOn !== '' && !endOptions.includes(endsOn)}
+									<option value={endsOn}>{fmtDay(endsOn)}</option>
+								{/if}
+								{#each endOptions as date (date)}
+									<option value={date}>{fmtDay(date)}</option>
+								{/each}
+							</select>
+						</label>
+					</div>
+					<p class="f-help">
+						<Icon name="calendar" size={12} />
+						{rangeClassDates.length} clases{classDaysText ? ` (${classDaysText})` : ''} · los días de
+						otras experiencias no aparecen
+					</p>
+				{/if}
 				{#if saveErrorText !== null}
 					<div class="notice">
 						<Icon name="alert" size={16} />
@@ -445,7 +511,11 @@
 			<button
 				class="btn-block btn-primary pressable primary"
 				onclick={() => void save()}
-				disabled={saving || selected.length === 0 || title.trim() === '' || situation.trim() === ''}
+				disabled={saving ||
+					selected.length === 0 ||
+					title.trim() === '' ||
+					startsOn === '' ||
+					endsOn === ''}
 			>
 				Guardar borrador
 			</button>
@@ -607,29 +677,6 @@
 		gap: 10px;
 	}
 
-	.stepper {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-		flex-shrink: 0;
-		font-size: 13px;
-		color: var(--text-secondary);
-	}
-
-	.stepper button {
-		width: 36px;
-		height: 36px;
-		border-radius: 50%;
-		background: var(--aurora-tint);
-		color: var(--aurora-deep);
-		font-size: 16px;
-		font-weight: 700;
-	}
-
-	.stepper button:disabled {
-		opacity: 0.4;
-	}
-
 	.waiting {
 		display: flex;
 		align-items: center;
@@ -662,6 +709,10 @@
 
 	.retry {
 		margin-top: var(--space-sm);
+	}
+
+	.secondary {
+		margin-top: 8px;
 	}
 
 	.primary {
