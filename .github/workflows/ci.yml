@@ -56,4 +56,6 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run check
       - run: bun eslint .
+      - run: bunx playwright install --with-deps chromium webkit
+      - run: bun run test:components
       - run: bun run build
