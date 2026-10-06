@@ -5,9 +5,8 @@ import type {
 	CreateCriterionBody,
 	CreateEvidenceBody,
 	CreateExperienceBody,
-	CriterionDto,
 	CurriculumDto,
-	ExperienceConfirmDto,
+	ExperienceCriterionDto,
 	ExperienceDto,
 	ExperienceProposalBody,
 	GenerationDto,
@@ -36,7 +35,7 @@ export function getClassPlan(classId: string, termId?: string): Promise<ClassPla
 	return apiGet<ClassPlanDto>(`/classes/${classId}/plan${qs}`);
 }
 
-// The class's area competencies (and the assigned transversal ones) with their
+// The class's area competencies with their
 // capabilities and the grade's desempeños — what criteria are grounded in.
 // No standards: they only serve the descriptive conclusion at term close.
 export function getClassCurriculum(classId: string): Promise<CurriculumDto> {
@@ -82,9 +81,9 @@ export function updateExperience(
 
 // "Revisar y guardar": the draft becomes planificada. Only a draft can be
 // confirmed; the warnings it still carries come back with it.
-export function confirmExperience(experienceId: string): Promise<ExperienceConfirmDto> {
+export function confirmExperience(experienceId: string): Promise<ExperienceDto> {
 	if (USE_MOCK) return mock.confirmExperience(experienceId);
-	return apiSend<ExperienceConfirmDto>('POST', `/experiences/${experienceId}/confirm`);
+	return apiSend<ExperienceDto>('POST', `/experiences/${experienceId}/confirm`);
 }
 
 // Soft-deletes the experience; its criteria, evidences and sessions go with it.
@@ -99,24 +98,24 @@ export function deleteExperience(experienceId: string): Promise<void> {
 export function createCriterion(
 	experienceId: string,
 	body: CreateCriterionBody
-): Promise<CriterionDto> {
+): Promise<ExperienceCriterionDto> {
 	if (USE_MOCK) return mock.createCriterion(experienceId, body);
-	return apiSend<CriterionDto>('POST', `/experiences/${experienceId}/criteria`, body);
+	return apiSend<ExperienceCriterionDto>('POST', `/experiences/${experienceId}/criteria`, body);
 }
 
 // Edits a criterio; editing a proposal also accepts it.
 export function updateCriterion(
 	criterionId: string,
 	body: UpdateCriterionBody
-): Promise<CriterionDto> {
+): Promise<ExperienceCriterionDto> {
 	if (USE_MOCK) return mock.updateCriterion(criterionId, body);
-	return apiSend<CriterionDto>('PUT', `/criteria/${criterionId}`, body);
+	return apiSend<ExperienceCriterionDto>('PUT', `/criteria/${criterionId}`, body);
 }
 
 // Accepts a proposal unchanged — the teacher decides, Mawta only proposes.
-export function acceptCriterion(criterionId: string): Promise<void> {
+export function acceptCriterion(criterionId: string): Promise<ExperienceCriterionDto> {
 	if (USE_MOCK) return mock.acceptCriterion(criterionId);
-	return apiSend<void>('POST', `/criteria/${criterionId}/accept`);
+	return apiSend<ExperienceCriterionDto>('POST', `/criteria/${criterionId}/accept`);
 }
 
 // Soft-deletes a criterio; evidences tagged with it lose the tag.
@@ -147,9 +146,9 @@ export function updateEvidence(
 }
 
 // Accepts a proposed evidencia unchanged.
-export function acceptEvidence(evidenceId: string): Promise<void> {
+export function acceptEvidence(evidenceId: string): Promise<PlannedEvidenceDto> {
 	if (USE_MOCK) return mock.acceptEvidence(evidenceId);
-	return apiSend<void>('POST', `/evidences/${evidenceId}/accept`);
+	return apiSend<PlannedEvidenceDto>('POST', `/evidences/${evidenceId}/accept`);
 }
 
 // Soft-deletes a planned evidencia; its session entry keeps existing without it.
@@ -170,9 +169,9 @@ export function updateSession(
 }
 
 // Accepts a proposed session entry unchanged.
-export function acceptSession(experienceId: string, date: string): Promise<void> {
+export function acceptSession(experienceId: string, date: string): Promise<SessionOutlineDto> {
 	if (USE_MOCK) return mock.acceptSession(experienceId, date);
-	return apiSend<void>('POST', `/experiences/${experienceId}/sessions/${date}/accept`);
+	return apiSend<SessionOutlineDto>('POST', `/experiences/${experienceId}/sessions/${date}/accept`);
 }
 
 // Deletes that date's session entry; a placed evidencia stays, unplaced.

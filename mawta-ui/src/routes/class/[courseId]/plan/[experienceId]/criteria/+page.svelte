@@ -109,7 +109,8 @@
 		return capabilities.find((capability) => capability.id === id)?.name ?? '';
 	}
 
-	function performanceText(id: string): string {
+	function performanceText(id: string | null): string {
+		if (!id) return '';
 		return performances.find((performance) => performance.id === id)?.text ?? '';
 	}
 
@@ -168,7 +169,7 @@
 		formError = null;
 		form = {
 			id: criterion.id,
-			performanceId: criterion.performance_id,
+			performanceId: criterion.performance_id ?? '',
 			capabilityIds: [...list(criterion.capability_ids)],
 			description: criterion.description,
 		};
