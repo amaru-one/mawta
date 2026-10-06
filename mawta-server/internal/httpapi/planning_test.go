@@ -148,6 +148,9 @@ func planClass(t *testing.T, env *dbtest.Env) uuid.UUID {
 	t.Cleanup(func() {
 		exp := fmt.Sprintf(`(select id from learning_experiences where class_id = '%s')`, classID)
 		_, err := env.Admin.Pool.Exec(ctx, fmt.Sprintf(`
+			delete from jobs where kind = 'agent.generate' and payload->>'generation_id' in
+			  (select id::text from agent_generations where class_id = '%[2]s');
+			delete from agent_generations where class_id = '%[2]s';
 			update planned_evidences set session_entry_id = null where experience_id in %[1]s;
 			update session_outline_entries set planned_evidence_id = null where experience_id in %[1]s;
 			delete from planned_evidence_criteria

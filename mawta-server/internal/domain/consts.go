@@ -115,6 +115,9 @@ const (
 const (
 	JobKindGradeRecompute      = "grade.recompute"
 	JobKindVoiceNoteTranscribe = "voice_note.transcribe"
+	// JobKindAgentGenerate runs one "✦ Generar con Mawta" generation
+	// (agent_generations); its payload carries only the generation id.
+	JobKindAgentGenerate = "agent.generate"
 )
 
 // memberships.role and user_sessions.role. Re-added 2026-09-11 for real

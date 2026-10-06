@@ -237,33 +237,64 @@ The `PUT` body is the entry's whole state: leaving `planned_evidence_id` out
 empties the session. `PUT` and `accept` answer `200` with the entry; `delete`
 answers `204`.
 
-## Generate with Mawta (implemented with the planning agent, ticket 6)
+## Generate with Mawta (the planning agent, ticket 6)
 
-Ticket 4 does not implement these routes; they arrive with the planning agent
-in ticket 6, together with the table they need:
+These routes are served by the **planning agent**, the first agent of Mawta's
+multi-agent system (`internal/agent/planning`, over the shared base
+`internal/agent`). Each generation is one bounded call to Claude through the
+Anthropic API: the server chooses the context (the experience, the loaded
+curriculum, the class dates), the model must answer by filling a fixed JSON
+schema, and the server validates the answer against the database before
+storing anything.
 
-- `planning_generations` (tenant-scoped, RLS like every school table): id,
-  class, experience (null for an experience proposal), kind
-  (`experience`, `criteria`, `evidences`, `sessions`), requested by, status
-  (`pending`, `running`, `completed`, `failed`), input, result, error,
-  timestamps. The queued job only carries the generation id: the `jobs` table
-  has no RLS and no result column, so it is never exposed.
+Generations live in **`agent_generations`** (migration `00005`), a table
+shared by every agent: `agent` says which one serves the request (`planning`
+now; the session and conclusion agents later), `kind` what it generates. It is
+tenant-scoped with RLS. The queued job (`agent.generate`) only carries the
+generation id: the `jobs` table has no RLS and no result column, so it is
+never exposed.
 
 Each route creates a generation and returns `202` with it at once:
-`{"id": "…", "kind": "criteria", "status": "pending"}`.
+`{"id": "…", "kind": "criteria", "status": "pending"}`. A second request for
+the same target while one is pending or running returns that one (one per
+experience proposal per class, per competency for criteria, per experience
+for evidences and sessions).
 
-| Route | Body | What a completed generation did |
+| Route | Body | What a completed generation did (`result`) |
 |---|---|---|
-| `POST /classes/{classID}/experience-proposals` | `term_id`, `idea_text`, optional `competency_ids` | `result` holds a proposal (`title`, `situation_text`, `competency_ids`, `starts_on`, `ends_on`). **Not saved**: the app shows it for review, then calls `POST …/experiences` |
-| `POST /experiences/{experienceID}/criteria/generate` | `competency_id` | Inserted pending criteria for that competency's capabilities without one |
-| `POST /experiences/{experienceID}/evidences/generate` | — | Inserted pending evidences over the experience's criteria |
-| `POST /experiences/{experienceID}/sessions/generate` | — | Inserted pending entries on class dates without one |
-| `GET /generations/{generationID}` | — | `status`, `result` (ids of what was inserted, or the proposal), `error` |
+| `POST /classes/{classID}/experience-proposals` | `term_id`, `idea_text`, optional `competency_ids` | `{"proposal": {"title", "situation_text", "competency_ids", "starts_on", "ends_on"}}`. **Not saved**: the app shows it for review, then calls `POST …/experiences`. The teacher's chosen competencies are kept as chosen. The dates always lie inside a free stretch of the term (no overlap, inside the term): if the model's do not, the server moves them to the nearest free stretch, keeping the length as far as it fits |
+| `POST /experiences/{experienceID}/criteria/generate` | `competency_id` (one of the experience's) | `{"criteria_ids": [...]}`: pending criteria for that competency's capabilities without one. Each cites a performance of the class grade. With no gaps the model is not called and the list is empty |
+| `POST /experiences/{experienceID}/evidences/generate` | — | `{"evidence_ids": [...]}`: pending evidences, each observing at least one criterion no evidence observed yet. Needs criteria first (`no_criteria`) |
+| `POST /experiences/{experienceID}/sessions/generate` | — | `{"session_dates": [...]}`: pending entries on class dates without one, never replacing an existing entry; unplaced evidences may be placed in them |
+| `GET /generations/{generationID}` | — | `{"id", "kind", "status", "result"?, "error"?}`; `result` only when completed, `error` (Spanish, for the teacher) only when failed |
 
-The agent only uses the loaded curriculum (a criterion citing a capability or
-performance that does not exist is discarded), respects the class dates and the
-term end, and never suggests achievement levels. A second generation of the same
-kind for the same experience while one is pending returns the pending one.
+Rules of the agent (`internal/agent/planning/prompts/`, versioned with each
+generation):
+
+- It only uses the loaded curriculum and the ids it was given; an item that
+  cites a capability, performance, criterion, evidence or date that does not
+  exist, or that fills no gap, is discarded.
+- Everything it stores is pending (`proposed_by = "mawta"`,
+  `accepted_at = null`) until the teacher accepts or edits it.
+- It never suggests achievement levels and receives no student data. The
+  teacher's idea is treated as content, not as instructions.
+- An answer that cannot be used at all gets one repair attempt (the model is
+  told what was wrong); after that the generation fails.
+
+Lifecycle: `pending` → `running` → `completed` or `failed`. Transient model
+failures (rate limits, overload, network) are retried by the queue, up to 3
+attempts. A generation not finished **5 minutes** after it was requested reads
+as `failed` ("tardó demasiado") and is never run late.
+
+Without `ANTHROPIC_API_KEY` the four generation routes answer
+`503 agent_unavailable`, so the app can offer manual creation only.
+Configuration: `ANTHROPIC_API_KEY`, `PLANNING_AGENT_MODEL` (default
+`claude-sonnet-5-5`), `AGENT_TIMEOUT` (default 90 s) and optional prices
+(`AGENT_PRICE_INPUT_PER_MTOK`, `AGENT_PRICE_OUTPUT_PER_MTOK`,
+`AGENT_PRICE_CACHE_READ_PER_MTOK`, `AGENT_PRICE_CACHE_WRITE_PER_MTOK`) to
+estimate the cost recorded with each generation; without prices the tokens are
+still recorded. Every model call also logs an `agent.usage` event with tokens
+and cost, never with prompts or answers.
 
 ## Domain errors
 
@@ -282,7 +313,10 @@ kind for the same experience while one is pending returns the pending one.
 | `evidence_not_in_experience` | 422 | A session's `planned_evidence_id` is not an evidence of the experience |
 | `session_date_taken` | 409 | Two requests created the same date's session entry at once |
 | `experience_not_draft` | 409 | Confirming an experience that is already planned |
-| `generation_failed` | 200 (in the generation) | The agent could not produce a valid result; `error` says why |
+| `agent_unavailable` | 503 | No model is configured (`ANTHROPIC_API_KEY` unset); the app offers manual creation only |
+| `competency_not_in_experience` | 422 | Generating criteria for a competency the experience does not work |
+| `no_free_weeks`, `no_criteria`, `no_performances` | 200 (in the generation) | The agent cannot generate: no free stretch left in the term, no criteria to build evidences on, no performances loaded for the grade; the failed generation's `error` says so |
+| `generation_failed` | 200 (in the generation) | Any generation that ends `failed`; `error` says why, in Spanish |
 
 Malformed or missing input is `400`: `bad_request` (an id or date that does
 not parse, an unknown evidence `kind`, `ends_on` before `starts_on`) or a

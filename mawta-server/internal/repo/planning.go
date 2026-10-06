@@ -225,6 +225,71 @@ func GetPlan(ctx context.Context, tx pgx.Tx, classID uuid.UUID, term PlanTerm) (
 	return p, err
 }
 
+// Range returns the term's first and last day.
+func (t PlanTerm) Range() (from, to time.Time) { return t.from, t.to }
+
+// FreeWindow is a stretch of a term no experience of the class occupies,
+// with how many class dates it holds. The planning agent picks experience
+// dates inside one.
+type FreeWindow struct {
+	StartsOn   string `json:"starts_on"`
+	EndsOn     string `json:"ends_on"`
+	ClassDates int    `json:"class_dates"`
+}
+
+// FreeWindows returns the stretches of the term not covered by any
+// non-deleted experience of the class (drafts included, as
+// learning_experiences_no_overlap counts them), in order.
+func FreeWindows(ctx context.Context, tx pgx.Tx, classID uuid.UUID, term PlanTerm) ([]FreeWindow, error) {
+	rows, err := tx.Query(ctx, `
+		select starts_on, ends_on from learning_experiences
+		 where class_id = $1 and deleted_at is null
+		   and daterange(starts_on, ends_on, '[]') && daterange($2::date, $3::date, '[]')
+		 order by starts_on
+	`, classID, term.from, term.to)
+	if err != nil {
+		return nil, err
+	}
+	type span struct{ from, to time.Time }
+	var busy []span
+	for rows.Next() {
+		var b span
+		if err := rows.Scan(&b.from, &b.to); err != nil {
+			rows.Close()
+			return nil, err
+		}
+		busy = append(busy, b)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	var gaps []span
+	cursor := term.from
+	for _, b := range busy {
+		if b.from.After(cursor) {
+			gaps = append(gaps, span{cursor, b.from.AddDate(0, 0, -1)})
+		}
+		if next := b.to.AddDate(0, 0, 1); next.After(cursor) {
+			cursor = next
+		}
+	}
+	if !cursor.After(term.to) {
+		gaps = append(gaps, span{cursor, term.to})
+	}
+
+	out := []FreeWindow{}
+	for _, g := range gaps {
+		n, err := countClassDates(ctx, tx, classID, g.from, g.to)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, FreeWindow{StartsOn: g.from.Format(dateLayout), EndsOn: g.to.Format(dateLayout), ClassDates: n})
+	}
+	return out, nil
+}
+
 // nonTeachingRanges groups the non-teaching days in [from, to] into runs of
 // consecutive days with the same kind and label (gaps and islands: day minus
 // its row number is constant inside a run).
@@ -1282,10 +1347,29 @@ func checkCriterionPerformance(ctx context.Context, tx pgx.Tx, classID, competen
 	return nil
 }
 
+// Who wrote a planning row (proposed_by). A teacher's row is accepted when
+// written; Mawta's stays pending (accepted_at null) until the teacher accepts
+// or edits it.
+const (
+	byTeacher = "teacher"
+	byMawta   = "mawta"
+)
+
 // CreatePlannedCriterion writes a teacher's criterion for one of the
 // experience's competencies, with its capabilities, in the same transaction:
 // check_criterion_on_write fails the commit for a criterion without them.
 func CreatePlannedCriterion(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID, in CriterionInput) (uuid.UUID, error) {
+	return createPlannedCriterion(ctx, tx, experienceID, in, byTeacher)
+}
+
+// ProposeCriterion writes a criterion the planning agent proposes. It passes
+// the same checks as a teacher's and stays pending until the teacher accepts
+// or edits it.
+func ProposeCriterion(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID, in CriterionInput) (uuid.UUID, error) {
+	return createPlannedCriterion(ctx, tx, experienceID, in, byMawta)
+}
+
+func createPlannedCriterion(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID, in CriterionInput, by string) (uuid.UUID, error) {
 	h, err := lockExperience(ctx, tx, experienceID)
 	if err != nil {
 		return uuid.Nil, err
@@ -1311,10 +1395,11 @@ func CreatePlannedCriterion(ctx context.Context, tx pgx.Tx, experienceID uuid.UU
 		insert into evaluation_criteria
 		  (tenant_id, competency_id, description, sort_order, experience_id, performance_id,
 		   proposed_by, accepted_at)
-		select app.current_tenant_id(), $1, $2, coalesce(max(sort_order), 0) + 1, $3, $4, 'teacher', now()
+		select app.current_tenant_id(), $1, $2, coalesce(max(sort_order), 0) + 1, $3, $4,
+		       $5, case when $5 = 'teacher' then now() end
 		  from evaluation_criteria where experience_id = $3 and deleted_at is null
 		returning id
-	`, in.CompetencyID, description, h.ID, in.PerformanceID).Scan(&id); err != nil {
+	`, in.CompetencyID, description, h.ID, in.PerformanceID, by).Scan(&id); err != nil {
 		return uuid.Nil, err
 	}
 	return id, setCriterionCapabilities(ctx, tx, id, in.CompetencyID, capabilityIDs)
@@ -1551,6 +1636,16 @@ func setEvidenceCriteria(ctx context.Context, tx pgx.Tx, evidenceID uuid.UUID, i
 // CreatePlannedEvidence writes a teacher's planned evidence, optionally
 // placed in the session entry of SessionDate.
 func CreatePlannedEvidence(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID, in EvidenceInput) (uuid.UUID, error) {
+	return createPlannedEvidence(ctx, tx, experienceID, in, byTeacher)
+}
+
+// ProposeEvidence writes a planned evidence the planning agent proposes,
+// pending until the teacher accepts or edits it.
+func ProposeEvidence(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID, in EvidenceInput) (uuid.UUID, error) {
+	return createPlannedEvidence(ctx, tx, experienceID, in, byMawta)
+}
+
+func createPlannedEvidence(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID, in EvidenceInput, by string) (uuid.UUID, error) {
 	h, err := lockExperience(ctx, tx, experienceID)
 	if err != nil {
 		return uuid.Nil, err
@@ -1578,9 +1673,9 @@ func CreatePlannedEvidence(ctx context.Context, tx pgx.Tx, experienceID uuid.UUI
 	var id uuid.UUID
 	if err := tx.QueryRow(ctx, `
 		insert into planned_evidences (tenant_id, experience_id, name, kind, proposed_by, accepted_at)
-		values (app.current_tenant_id(), $1, $2, $3, 'teacher', now())
+		values (app.current_tenant_id(), $1, $2, $3, $4, case when $4 = 'teacher' then now() end)
 		returning id
-	`, h.ID, name, in.Kind).Scan(&id); err != nil {
+	`, h.ID, name, in.Kind, by).Scan(&id); err != nil {
 		return uuid.Nil, err
 	}
 	if err := setEvidenceCriteria(ctx, tx, id, criterionIDs); err != nil {
@@ -1795,6 +1890,60 @@ func PutSessionEntry(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID, dat
 		return placeEvidence(ctx, tx, *in.PlannedEvidenceID, &entryID)
 	}
 	return unplaceEntry(ctx, tx, entryID)
+}
+
+// ProposeSessionEntry writes a session entry the planning agent proposes, on
+// a class date of the experience that has none yet. It never touches an
+// existing entry (PutSessionEntry would replace it): inserted is false when
+// the date already had one. A proposed evidence must be of the experience and
+// not yet placed anywhere.
+func ProposeSessionEntry(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID, date time.Time, in SessionInput) (inserted bool, err error) {
+	h, err := lockExperience(ctx, tx, experienceID)
+	if err != nil {
+		return false, err
+	}
+	title := strings.TrimSpace(in.Title)
+	if title == "" {
+		return false, badInput("missing_title", "la sesión necesita un título")
+	}
+	if err := checkSessionDate(ctx, tx, h, date); err != nil {
+		return false, err
+	}
+	if in.PlannedEvidenceID != nil {
+		var ok bool
+		if err := tx.QueryRow(ctx, `
+			select exists (
+			  select 1 from planned_evidences
+			   where id = $1 and experience_id = $2 and deleted_at is null and session_entry_id is null
+			)
+		`, *in.PlannedEvidenceID, h.ID).Scan(&ok); err != nil {
+			return false, err
+		}
+		if !ok {
+			return false, unprocessable("evidence_not_in_experience",
+				"esa evidencia no es de esta experiencia o ya está ubicada en otra sesión")
+		}
+	}
+	var entryID uuid.UUID
+	err = tx.QueryRow(ctx, `
+		insert into session_outline_entries
+		  (tenant_id, experience_id, class_date, title, topics, proposed_by, accepted_at)
+		values (app.current_tenant_id(), $1, $2, $3, $4, 'mawta', null)
+		on conflict (tenant_id, experience_id, class_date) where deleted_at is null do nothing
+		returning id
+	`, h.ID, date, title, trimmedOrNil(in.Topics)).Scan(&entryID)
+	if err == pgx.ErrNoRows {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	if in.PlannedEvidenceID != nil {
+		if err := placeEvidence(ctx, tx, *in.PlannedEvidenceID, &entryID); err != nil {
+			return false, err
+		}
+	}
+	return true, nil
 }
 
 func sessionEntryNotFound() error {

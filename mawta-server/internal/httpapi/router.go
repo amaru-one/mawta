@@ -101,6 +101,12 @@ func (a *API) Router() http.Handler {
 			r.Put("/experiences/{experienceID}/sessions/{date}", a.handlePutSessionEntry)
 			r.Post("/experiences/{experienceID}/sessions/{date}/accept", a.handleAcceptSessionEntry)
 			r.Post("/experiences/{experienceID}/sessions/{date}/delete", a.handleDeleteSessionEntry)
+			// "✦ Generar con Mawta": the planning agent (ticket 6).
+			r.Post("/classes/{classID}/experience-proposals", a.handleCreateExperienceProposal)
+			r.Post("/experiences/{experienceID}/criteria/generate", a.handleGenerateCriteria)
+			r.Post("/experiences/{experienceID}/evidences/generate", a.handleGenerateEvidences)
+			r.Post("/experiences/{experienceID}/sessions/generate", a.handleGenerateSessions)
+			r.Get("/generations/{generationID}", a.handleGetGeneration)
 
 			r.Post("/sessions/{sessionID}/start", a.handleSessionStart)
 			r.Get("/sessions/{sessionID}", a.handleSessionRoster)

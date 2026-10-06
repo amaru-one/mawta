@@ -524,6 +524,62 @@ type STTUsageEvent struct {
 	Tokens *int64
 }
 
+// AgentUsageEvent is one language-model call made by a Mawta agent. Like
+// STTUsageEvent it is emitted per call, retries included, and never carries
+// the prompt, the answer, or any school content — only identifiers, sizes
+// and cost.
+type AgentUsageEvent struct {
+	GenerationID     string
+	Agent            string
+	Kind             string
+	Model            string
+	Attempt          int16
+	DurationMs       int64
+	Outcome          string // "success" or "error"
+	ErrorClass       string // "permanent", "transient", "invalid_output" or ""
+	InputTokens      int64
+	OutputTokens     int64
+	CacheReadTokens  int64
+	CacheWriteTokens int64
+	// CostUSD is the estimate from the configured prices; nil when no prices
+	// are configured. Never invented.
+	CostUSD *float64
+}
+
+// LogAgentUsage emits the usage event of one agent model call.
+func LogAgentUsage(logger *slog.Logger, e AgentUsageEvent) {
+	if logger == nil {
+		return
+	}
+	attrs := []any{
+		"event", "agent.usage",
+		"generation_id", e.GenerationID,
+		"agent", e.Agent,
+		"kind", e.Kind,
+		"model", e.Model,
+		"attempt", e.Attempt,
+		"duration_ms", e.DurationMs,
+		"outcome", e.Outcome,
+		"input_tokens", e.InputTokens,
+		"output_tokens", e.OutputTokens,
+		"cache_read_tokens", e.CacheReadTokens,
+		"cache_write_tokens", e.CacheWriteTokens,
+	}
+	if e.ErrorClass != "" {
+		attrs = append(attrs, "error_class", e.ErrorClass)
+	}
+	if e.CostUSD != nil {
+		attrs = append(attrs, "cost_usd", *e.CostUSD, "cost_source", "configured_prices")
+	} else {
+		attrs = append(attrs, "cost_usd", nil, "cost_source", CostSourceUnknown)
+	}
+	if e.Outcome == "success" {
+		logger.Info("agent usage", attrs...)
+		return
+	}
+	logger.Warn("agent usage", attrs...)
+}
+
 // LogSTTUsage emits the one usage event for a provider attempt. It never
 // receives the audio, the base64 payload, the transcript text, or the raw
 // provider response, so none of them can reach stdout through it.
