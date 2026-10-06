@@ -41,6 +41,10 @@ jobs:
         working-directory: mawta-ui
         env:
           PUBLIC_API_BASE_URL: ''
+          # Shows the term-planning flow ("Plan del trimestre"). Read at build
+          # time, so changing it takes a UI redeploy. "✦ Generar con Mawta"
+          # additionally needs ANTHROPIC_API_KEY in the server's .env.
+          PUBLIC_PLANNING_ENABLED: 'true'
         run: bun run build
       - uses: actions/upload-artifact@v4
         with:
