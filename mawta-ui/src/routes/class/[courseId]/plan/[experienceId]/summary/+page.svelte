@@ -8,6 +8,7 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { list } from '$lib/api/client';
+	import { planningErrorText } from '$lib/api/planningErrors';
 	import type { CurriculumDto, ExperienceDto, WarningDto } from '$lib/api/dto';
 	import {
 		confirmExperience,
@@ -140,8 +141,8 @@
 			await confirmExperience(experienceId);
 			showToast('Experiencia guardada');
 			void goto(`/class/${courseId}/plan`);
-		} catch {
-			showToast('No se pudo guardar la experiencia');
+		} catch (error) {
+			showToast(planningErrorText(error, 'No se pudo guardar la experiencia'));
 		} finally {
 			saving = false;
 		}
@@ -157,8 +158,8 @@
 			await deleteExperience(experienceId);
 			showToast('Experiencia eliminada');
 			void goto(`/class/${courseId}/plan`);
-		} catch {
-			showToast('No se pudo eliminar la experiencia');
+		} catch (error) {
+			showToast(planningErrorText(error, 'No se pudo eliminar la experiencia'));
 		}
 	}
 </script>

@@ -3,17 +3,18 @@
 	// experience. Every date starts without a session; the teacher creates,
 	// edits, removes or accepts them, and places an evidencia in a date.
 	// "✦ Generar esquema con Mawta" only fills the dates still empty.
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { ApiError, list } from '$lib/api/client';
+	import { list } from '$lib/api/client';
+	import { agentUnavailable, GenerationAborted, waitForGeneration } from '$lib/api/generation';
+	import { isAgentUnavailable, planningErrorText } from '$lib/api/planningErrors';
 	import type { ExperienceDto, GenerationDto, SessionOutlineDto } from '$lib/api/dto';
 	import {
 		acceptSession,
 		deleteSession,
 		generateSessions,
 		getExperience,
-		getGeneration,
 		updateSession,
 	} from '$lib/api/endpoints/planning';
 	import Icon from '$lib/components/Icon.svelte';
@@ -115,10 +116,7 @@
 	}
 
 	function errorText(error: unknown): string {
-		if (error instanceof ApiError && error.code === 'date_not_in_experience') {
-			return 'Esa fecha no es un día de clase de esta experiencia.';
-		}
-		return 'No se pudo guardar la sesión. Inténtalo de nuevo.';
+		return planningErrorText(error, 'No se pudo guardar la sesión. Inténtalo de nuevo.');
 	}
 
 	async function save(): Promise<void> {
@@ -185,15 +183,9 @@
 
 	let generating = $state(false);
 
-	const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
-
-	async function poll(generationId: string): Promise<GenerationDto> {
-		for (;;) {
-			await sleep(1000);
-			const generation = await getGeneration(generationId);
-			if (generation.status === 'completed' || generation.status === 'failed') return generation;
-		}
-	}
+	// Stops waiting for a generation when the screen is left.
+	const leaving = new AbortController();
+	onDestroy(() => leaving.abort());
 
 	async function generate(): Promise<void> {
 		if (generating) return;
@@ -202,14 +194,16 @@
 		form = null;
 		try {
 			const started = await generateSessions(experienceId);
-			const done = await poll(started.id);
+			const done = await waitForGeneration(started, leaving.signal);
 			if (done.status === 'failed') {
 				showToast(done.error ?? 'Mawta no pudo proponer sesiones esta vez');
 			} else {
 				await reload();
 			}
-		} catch {
-			showToast('No se pudo generar con Mawta');
+		} catch (error) {
+			if (error instanceof GenerationAborted) return;
+			if (isAgentUnavailable(error)) agentUnavailable.set(true);
+			showToast(planningErrorText(error, 'No se pudo generar con Mawta'));
 		} finally {
 			generating = false;
 		}
@@ -250,7 +244,7 @@
 			</div>
 		{/if}
 
-		{#if empty > 0}
+		{#if empty > 0 && !$agentUnavailable}
 			<button class="btn-block pressable gen" disabled={generating} onclick={() => void generate()}>
 				<Icon name="sparkles" size={15} />
 				{filled > 0 ? 'Generar las sesiones que faltan' : 'Generar esquema con Mawta'}
