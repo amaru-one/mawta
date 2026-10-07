@@ -274,3 +274,54 @@ test('missing pages use the shared shell and offer a route home', async ({ page,
 	await expect(page).toHaveURL('/');
 	expect(api.unexpected).toEqual([]);
 });
+
+test('profile shows basic identity and teaching information, with class access and confirmed logout', async ({
+	page,
+	api,
+}) => {
+	await page.goto('/profile');
+	await expect(page.getByRole('heading', { name: 'María Santos', exact: true })).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'Mi colegio', exact: true })).toBeVisible();
+	await expect(page.getByText('Colegio San Felipe', { exact: true })).toBeVisible();
+	await expect(page.getByText('Lima', { exact: true })).toBeVisible();
+	await expect(page.getByText('Primero de secundaria', { exact: true })).toBeVisible();
+	await expect(
+		page.getByText(/Asistencias registradas|Notas de voz|Evaluaciones registradas|Semanales/)
+	).toHaveCount(0);
+	await page.getByRole('link', { name: 'Matemática · Primero de secundaria', exact: true }).click();
+	await expect(page).toHaveURL('/class/class-1');
+	await page.goBack();
+	await page.getByRole('button', { name: 'Cerrar sesión', exact: true }).click();
+	const dialog = page.getByRole('alertdialog', { name: '¿Cerrar sesión?' });
+	await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
+	await expect(dialog).not.toBeVisible();
+	expect(api.writes.some((write) => write.path === '/auth/logout')).toBe(false);
+	await page.getByRole('button', { name: 'Cerrar sesión', exact: true }).click();
+	await dialog.getByRole('button', { name: 'Cerrar sesión', exact: true }).click();
+	await expect(page).toHaveURL('/login');
+	expect(api.writes.some((write) => write.path === '/auth/logout')).toBe(true);
+});
+
+test('profile omits unavailable city and teaching details without example placeholders', async ({
+	page,
+	api,
+}) => {
+	await page.route('**/api/v1/profile', (route) =>
+		route.fulfill({
+			json: {
+				display_name: 'María Santos',
+				title: null,
+				tenant_name: 'Colegio San Felipe',
+				tenant_city: null,
+				classes_by_grade: null,
+			},
+		})
+	);
+	await page.goto('/profile');
+	await expect(page.getByRole('heading', { name: 'María Santos', exact: true })).toBeVisible();
+	await expect(page.getByText('Docente', { exact: true })).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'Mi enseñanza', exact: true })).toHaveCount(0);
+	await expect(page.getByText('Lima', { exact: true })).toHaveCount(0);
+	await expect(page.getByRole('button', { name: 'Cerrar sesión', exact: true })).toBeVisible();
+	expect(api.unexpected).toEqual([]);
+});
