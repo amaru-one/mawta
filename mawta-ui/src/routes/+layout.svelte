@@ -2,26 +2,16 @@
 	import { DesignSystem, LoadingState } from '$lib/design-system';
 	import '../app.css';
 	import { onMount } from 'svelte';
-	import { afterNavigate, goto } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import favicon from '$lib/assets/favicon.svg';
 	import Toast from '$lib/components/Toast.svelte';
 	import { getMe } from '$lib/api/endpoints/home';
 	import { setUnauthorizedHandler } from '$lib/api/client';
 	import { loadNotifications } from '$lib/notifications';
-	import { canGoBack, session, teacher, usesInternalGrading } from '$lib/stores';
+	import { session, teacher, usesInternalGrading } from '$lib/stores';
 
 	let { children } = $props();
-
-	// Any navigation other than the initial load leaves an entry behind us, so
-	// an in-app `history.back()` is safe from then on. Screens reachable from
-	// more than one place use this instead of a hardcoded back destination.
-	// The test is on `type`, not on `from`: SvelteKit passes a non-null `from`
-	// whose `url` is null for the `enter` navigation, so a truthiness check on
-	// `from` alone is true on a cold load and sends the back arrow out of the app.
-	afterNavigate((nav) => {
-		if (nav.type !== 'enter') canGoBack.set(true);
-	});
 
 	function goAnonymous(): void {
 		session.set({ status: 'anonymous' });

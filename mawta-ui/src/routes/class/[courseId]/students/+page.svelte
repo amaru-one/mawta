@@ -155,7 +155,7 @@
 	<title>Alumnos — {className || 'Clase'}</title>
 </svelte:head>
 <div class="view">
-	<TopBar back="/class/{courseId}" useHistory />
+	<TopBar back="/class/{courseId}" />
 
 	<div class="body">
 		{#if ready}

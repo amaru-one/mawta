@@ -54,6 +54,12 @@
 	const classId = $derived(page.url.searchParams.get('class') ?? '');
 	const studentName = $derived(page.url.searchParams.get('name') ?? 'Alumno');
 	const courseName = $derived(page.url.searchParams.get('course') ?? '');
+	// Parent in the navigation tree: the student's detail within the class.
+	const backHref = $derived(
+		classId
+			? `/class/${classId}/students/${studentId}?name=${encodeURIComponent(studentName)}&course=${encodeURIComponent(courseName)}`
+			: '/'
+	);
 
 	let ready = $state(false);
 	let loadError = $state(false);
@@ -331,7 +337,7 @@
 	<!-- Reached from both the class roster and the lesson screen, so the back arrow
      returns to whichever it was. The class page is the fallback for a deep link
      or a refresh, where there is no in-app history to pop. -->
-	<TopBar back={classId ? `/class/${classId}` : '/'} useHistory />
+	<TopBar back={backHref} />
 
 	<div class="body">
 		{#if ready && data}

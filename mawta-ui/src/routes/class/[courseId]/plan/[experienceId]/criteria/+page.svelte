@@ -49,6 +49,12 @@
 	let ready = $state(false);
 	let loadError = $state(false);
 	let experience = $state<ExperienceDto | null>(null);
+	// Opened from the summary (or already planned): the step is a leaf of the
+	// hub and "Listo" returns there, instead of walking on to the next step.
+	const editing = $derived(
+		page.url.searchParams.get('from') === 'summary' || experience?.status === 'planificada'
+	);
+	const summaryHref = $derived(`/class/${courseId}/plan/${experienceId}/summary`);
 	let curriculum = $state<CurriculumDto | null>(null);
 
 	async function load(): Promise<void> {
@@ -280,9 +286,11 @@
 	}
 
 	function next(): void {
-		if (unseen > 0) return;
+		if (!editing && unseen > 0) return;
 		hapticTap();
-		void goto(`/class/${courseId}/plan/${experienceId}/evidences`);
+		void goto(editing ? summaryHref : `/class/${courseId}/plan/${experienceId}/evidences`, {
+			replaceState: true,
+		});
 	}
 </script>
 
@@ -290,16 +298,11 @@
 	<title>Criterios</title>
 </svelte:head>
 <div class="view">
-	<TopBar back={`/class/${courseId}/plan`} useHistory />
+	<TopBar back={editing ? summaryHref : `/class/${courseId}/plan`} />
 
 	<div class="body">
 		{#if ready && experience && current}
 			<p class="eyebrow">{experience.title} · Criterios</p>
-			{#if experience.status === 'planificada'}
-				<Action variant="link" href={`/class/${courseId}/plan/${experienceId}/summary`}>
-					‹ Volver al resumen
-				</Action>
-			{/if}
 
 			<StepNav
 				title="Revisar competencias"
@@ -403,10 +406,13 @@
 			</div>
 
 			<div class="footer-action">
-				<Button variant="primary" block disabled={unseen > 0} onclick={next}>
-					Continuar con las evidencias <Icon name="chevron-right" size={16} />
+				<Button variant="primary" block disabled={!editing && unseen > 0} onclick={next}>
+					{#if editing}Listo{:else}Continuar con las evidencias <Icon
+							name="chevron-right"
+							size={16}
+						/>{/if}
 				</Button>
-				{#if unseen > 0}
+				{#if !editing && unseen > 0}
 					<p class="meta footer-help">
 						Revisa {unseen === 1
 							? 'la competencia que falta'

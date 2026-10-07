@@ -83,7 +83,7 @@
 <div class="view">
 	<!-- Reached from the lesson screen as well as from Home now, so the arrow has
      to follow history rather than always landing on Home. -->
-	<TopBar back="/" useHistory />
+	<TopBar back="/" />
 
 	<div class="body">
 		{#if ready && d}

@@ -17,12 +17,6 @@ export const currentSession: Writable<Session | null> = writable(null);
 export const students: Writable<Student[]> = writable([]);
 export const notifications: Writable<AppNotification[]> = writable([]);
 
-// True once the SPA has made at least one client-side navigation, so a
-// `history.back()` is guaranteed to land on another screen of this app rather
-// than leaving it. False on a cold load or a refresh — a deep link has no
-// in-app history behind it. Set by the root layout's afterNavigate.
-export const canGoBack: Writable<boolean> = writable(false);
-
 // Signed-in teacher identity from GET /me, loaded once by the layout.
 type TeacherIdentity = {
 	initials: string;

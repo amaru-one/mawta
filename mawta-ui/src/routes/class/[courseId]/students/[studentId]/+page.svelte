@@ -1,5 +1,6 @@
 <script lang="ts">
 	import {
+		Action,
 		Button,
 		Card,
 		Checkbox,
@@ -338,12 +339,21 @@
 	<title>{studentName} — {courseName || 'Clase'}</title>
 </svelte:head>
 <div class="view">
-	<TopBar back="/class/{courseId}/students" useHistory />
+	<TopBar back="/class/{courseId}/students" />
 
 	<div class="body">
 		{#if ready}
 			<h1 class="title">{studentName}</h1>
 			{#if courseName}<span class="sub">{courseName}</span>{/if}
+			<Action
+				variant="link"
+				href="/grades/{page.params.studentId}?class={courseId}&name={encodeURIComponent(
+					studentName
+				)}&course={encodeURIComponent(courseName)}"
+				onclick={hapticTap}
+			>
+				Ver notas
+			</Action>
 
 			{#if indexItems.length > 0}
 				<div class="idx">
