@@ -132,7 +132,7 @@
 	async function save(): Promise<void> {
 		hapticTap();
 		if (planned) {
-			void goto(`/class/${courseId}/plan`);
+			void goto(`/class/${courseId}/plan`, { replaceState: true });
 			return;
 		}
 		if (saving) return;
@@ -140,7 +140,7 @@
 		try {
 			await confirmExperience(experienceId);
 			showToast('Experiencia guardada');
-			void goto(`/class/${courseId}/plan`);
+			void goto(`/class/${courseId}/plan`, { replaceState: true });
 		} catch (error) {
 			showToast(planningErrorText(error, 'No se pudo guardar la experiencia'));
 		} finally {
@@ -157,7 +157,7 @@
 		try {
 			await deleteExperience(experienceId);
 			showToast('Experiencia eliminada');
-			void goto(`/class/${courseId}/plan`);
+			void goto(`/class/${courseId}/plan`, { replaceState: true });
 		} catch (error) {
 			showToast(planningErrorText(error, 'No se pudo eliminar la experiencia'));
 		}
@@ -168,7 +168,7 @@
 	<title>Revisar y guardar</title>
 </svelte:head>
 <div class="view">
-	<TopBar back={`/class/${courseId}/plan`} useHistory />
+	<TopBar back={`/class/${courseId}/plan`} />
 
 	<div class="body">
 		{#if ready && experience}
@@ -186,7 +186,12 @@
 
 			<Context>
 				{#each comps as competency (competency.id)}
-					<a class="sum-row row pressable" href={`${base}/criteria`} onclick={hapticTap}>
+					<a
+						class="sum-row row pressable"
+						href={`${base}/criteria?from=summary`}
+						data-sveltekit-replacestate
+						onclick={hapticTap}
+					>
 						<span class="grow">{competency.name}</span>
 						<span class="sum-value">
 							{coveredOf(competency.id)} de {capabilitiesOf(competency.id).length} capacidades con criterio{#if pendingOf(competency.id) > 0}
@@ -194,15 +199,30 @@
 						</span>
 					</a>
 				{/each}
-				<a class="sum-row row pressable" href={`${base}/criteria`} onclick={hapticTap}>
+				<a
+					class="sum-row row pressable"
+					href={`${base}/criteria?from=summary`}
+					data-sveltekit-replacestate
+					onclick={hapticTap}
+				>
 					<span class="grow">Criterios</span>
 					<span class="sum-value">{criteria.length}</span>
 				</a>
-				<a class="sum-row row pressable" href={`${base}/evidences`} onclick={hapticTap}>
+				<a
+					class="sum-row row pressable"
+					href={`${base}/evidences?from=summary`}
+					data-sveltekit-replacestate
+					onclick={hapticTap}
+				>
 					<span class="grow">Evidencias</span>
 					<span class="sum-value">{evidences.length} · {placed} ubicadas en sesiones</span>
 				</a>
-				<a class="sum-row row pressable" href={`${base}/sessions`} onclick={hapticTap}>
+				<a
+					class="sum-row row pressable"
+					href={`${base}/sessions?from=summary`}
+					data-sveltekit-replacestate
+					onclick={hapticTap}
+				>
 					<span class="grow">Sesiones</span>
 					<span class="sum-value">{sessions.length} de {dates.length} fechas</span>
 				</a>
@@ -210,7 +230,11 @@
 
 			{#if missingCapabilities.length > 0}
 				<Notice variant="attention"
-					><a href={`${base}/criteria`} onclick={hapticTap}>
+					><a
+						href={`${base}/criteria?from=summary`}
+						data-sveltekit-replacestate
+						onclick={hapticTap}
+					>
 						<span class="grow notice-text">
 							{missingCapabilities.length === 1
 								? '1 capacidad sin criterio'
@@ -223,7 +247,11 @@
 			{/if}
 			{#if pendingCount > 0}
 				<Notice variant="attention"
-					><a href={`${base}/criteria`} onclick={hapticTap}>
+					><a
+						href={`${base}/criteria?from=summary`}
+						data-sveltekit-replacestate
+						onclick={hapticTap}
+					>
 						<span class="grow notice-text">
 							{pendingCount === 1
 								? '1 propuesta sin revisar'

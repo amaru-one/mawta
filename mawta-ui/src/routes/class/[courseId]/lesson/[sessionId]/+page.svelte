@@ -14,10 +14,10 @@
 
 	const courseId = $derived(page.params.courseId ?? '');
 	const sessionId = $derived(page.params.sessionId ?? '');
-	// The área's hero/rails mark their own links so this screen knows a forward
-	// path back to área already sits one step behind in history — see the
-	// "Ir a {área}" button below.
-	const cameFromArea = $derived(page.url.searchParams.get('from') === 'area');
+	// Home marks its links `?from=home`; the área marks its own `?from=area`. The
+	// origin decides this screen's parent: Home, or the área. From Home the área
+	// is a forward step (the "Ir a {área}" button below), never a way back.
+	const fromHome = $derived(page.url.searchParams.get('from') === 'home');
 
 	let ready = $state(false);
 	let loadError = $state(false);
@@ -228,9 +228,7 @@
 </svelte:head>
 <div class="view">
 	<div class="screen" class:withnotes={showNotes}>
-		<!-- Reached from Home as often as from the área now, so a fixed back
-	     destination would send the teacher to a screen they never saw. -->
-		<TopBar back="/class/{courseId}" useHistory recording={phase === 'recording'} />
+		<TopBar back={fromHome ? '/' : `/class/${courseId}`} recording={phase === 'recording'} />
 
 		<div class="stage">
 			{#if !ready && !loadError}<LoadingState label="Cargando sesión…" />{/if}
@@ -310,12 +308,10 @@
 					</div>
 				{/if}
 
-				<!-- The only navigation on the stage — except when área is already one
-			     step behind in history (cameFromArea): then the back arrow is the
-			     sole way out, on purpose, so área↔burbuja can't push an ever-longer
-			     history chain. Last in the header, so hiding it moves nothing above
-			     it. -->
-				{#if stage !== 'recording' && !panelOpen && !cameFromArea}
+				<!-- Only offered when the lesson was opened from Home: that is the way
+			     down to the área. From the área, "Volver" already leads there. Last in
+			     the header, so hiding it moves nothing above it. -->
+				{#if stage !== 'recording' && !panelOpen && fromHome}
 					<a class="area pressable" href="/class/{courseId}" onclick={hapticTap}>
 						<span class="areatxt">Ir a {areaName}</span>
 						<Icon name="chevron-right" size={19} />

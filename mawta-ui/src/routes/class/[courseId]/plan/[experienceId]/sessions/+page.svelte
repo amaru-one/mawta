@@ -37,6 +37,12 @@
 	let ready = $state(false);
 	let loadError = $state(false);
 	let experience = $state<ExperienceDto | null>(null);
+	// Opened from the summary (or already planned): the step is a leaf of the
+	// hub and "Listo" returns there, instead of walking on to the next step.
+	const editing = $derived(
+		page.url.searchParams.get('from') === 'summary' || experience?.status === 'planificada'
+	);
+	const summaryHref = $derived(`/class/${courseId}/plan/${experienceId}/summary`);
 
 	async function load(): Promise<void> {
 		ready = false;
@@ -215,7 +221,9 @@
 
 	function next(): void {
 		hapticTap();
-		void goto(`/class/${courseId}/plan/${experienceId}/summary`);
+		void goto(editing ? summaryHref : `/class/${courseId}/plan/${experienceId}/summary`, {
+			replaceState: true,
+		});
 	}
 </script>
 
@@ -223,16 +231,11 @@
 	<title>Sesiones</title>
 </svelte:head>
 <div class="view">
-	<TopBar back={`/class/${courseId}/plan/${experienceId}/evidences`} useHistory />
+	<TopBar back={editing ? summaryHref : `/class/${courseId}/plan/${experienceId}/evidences`} />
 
 	<div class="body">
 		{#if ready && experience}
 			<p class="eyebrow">{experience.title} · Sesiones</p>
-			{#if experience.status === 'planificada'}
-				<Action variant="link" href={`/class/${courseId}/plan/${experienceId}/summary`}>
-					‹ Volver al resumen
-				</Action>
-			{/if}
 			<h1 class="screen-title title">{dates.length} clases</h1>
 			<p class="screen-sub">
 				{filled} de {dates.length} con sesión · contadas por fecha según tu horario
@@ -342,7 +345,7 @@
 
 			<div class="footer-action">
 				<Button variant="primary" block onclick={next}>
-					Continuar <Icon name="chevron-right" size={16} />
+					{#if editing}Listo{:else}Continuar <Icon name="chevron-right" size={16} />{/if}
 				</Button>
 			</div>
 		{:else if loadError}

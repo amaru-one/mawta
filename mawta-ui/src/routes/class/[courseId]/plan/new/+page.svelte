@@ -300,7 +300,7 @@
 				competency_ids: [...selected],
 			});
 			showToast('Borrador guardado');
-			goto(`/class/${courseId}/plan/${experience.id}/criteria`);
+			goto(`/class/${courseId}/plan/${experience.id}/criteria`, { replaceState: true });
 		} catch (err) {
 			saveErrorText = planningErrorText(err, 'No se pudo guardar el borrador.');
 		} finally {
@@ -313,7 +313,7 @@
 	<title>Nueva experiencia</title>
 </svelte:head>
 <div class="view">
-	<TopBar back={`/class/${courseId}/plan`} useHistory />
+	<TopBar back={`/class/${courseId}/plan`} />
 
 	<div class="body">
 		{#if ready && plan}

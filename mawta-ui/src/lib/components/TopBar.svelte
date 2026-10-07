@@ -1,12 +1,10 @@
 <script lang="ts">
 	import { IconButton, TopBar as NitidoTopBar } from '$lib/design-system';
 	import { hapticTap } from '$lib/haptics';
-	import { canGoBack, teacher, unreadNotificationCount } from '$lib/stores';
+	import { teacher, unreadNotificationCount } from '$lib/stores';
 
 	interface Props {
 		back?: string;
-
-		useHistory?: boolean;
 
 		title?: string;
 
@@ -16,23 +14,12 @@
 		recording?: boolean;
 	}
 
-	let {
-		back,
-		useHistory = false,
-		title,
-		variant = 'default',
-		showBell = true,
-		recording = false,
-	}: Props = $props();
+	let { back, title, variant = 'default', showBell = true, recording = false }: Props = $props();
 
-	function onBack(event: MouseEvent): void {
+	// "Volver" always climbs to the fixed parent in the navigation tree; the
+	// href does the navigation, so there is nothing to pop from history.
+	function onBack(): void {
 		hapticTap();
-		// Nothing to pop (cold load, refresh, deep link): let the href stand.
-		if (!useHistory || !$canGoBack) return;
-		// Modified clicks mean "open the fallback elsewhere" — don't hijack them.
-		if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-		event.preventDefault();
-		history.back();
 	}
 
 	const who = $derived($teacher ?? { initials: '', shortName: '', school: '' });
@@ -53,7 +40,7 @@
 	notificationCount={$unreadNotificationCount}
 	status={recording ? recordingStatus : undefined}
 >
-	{#snippet actions()}{#if !recording && variant !== 'home'}<IconButton
+	{#snippet actions()}{#if !recording && variant !== 'home' && back && back !== '/'}<IconButton
 				icon="home"
 				label="Ir al inicio"
 				href="/"

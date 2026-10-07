@@ -310,7 +310,7 @@
 									class:live={b.live}
 									class:done={b.done}
 									style="top: {b.top}px; height: {b.height}px"
-									href="/class/{b.classId}/lesson/{b.sessionId}"
+									href="/class/{b.classId}/lesson/{b.sessionId}?from=home"
 									onclick={hapticTap}
 								>
 									<span class="btime">{b.time}</span>

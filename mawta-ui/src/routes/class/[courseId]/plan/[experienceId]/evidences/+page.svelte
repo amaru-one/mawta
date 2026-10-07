@@ -44,6 +44,12 @@
 	let ready = $state(false);
 	let loadError = $state(false);
 	let experience = $state<ExperienceDto | null>(null);
+	// Opened from the summary (or already planned): the step is a leaf of the
+	// hub and "Listo" returns there, instead of walking on to the next step.
+	const editing = $derived(
+		page.url.searchParams.get('from') === 'summary' || experience?.status === 'planificada'
+	);
+	const summaryHref = $derived(`/class/${courseId}/plan/${experienceId}/summary`);
 
 	async function load(): Promise<void> {
 		ready = false;
@@ -283,7 +289,9 @@
 
 	function next(): void {
 		hapticTap();
-		void goto(`/class/${courseId}/plan/${experienceId}/sessions`);
+		void goto(editing ? summaryHref : `/class/${courseId}/plan/${experienceId}/sessions`, {
+			replaceState: true,
+		});
 	}
 </script>
 
@@ -291,16 +299,11 @@
 	<title>Evidencias</title>
 </svelte:head>
 <div class="view">
-	<TopBar back={`/class/${courseId}/plan/${experienceId}/criteria`} useHistory />
+	<TopBar back={editing ? summaryHref : `/class/${courseId}/plan/${experienceId}/criteria`} />
 
 	<div class="body">
 		{#if ready && experience}
 			<p class="eyebrow">{experience.title} · Evidencias</p>
-			{#if experience.status === 'planificada'}
-				<Action variant="link" href={`/class/${courseId}/plan/${experienceId}/summary`}>
-					‹ Volver al resumen
-				</Action>
-			{/if}
 			<h1 class="screen-title sm">¿Dónde observarás tus criterios?</h1>
 			<p class="meta intro">
 				Producciones o actuaciones de tus estudiantes. Una evidencia puede reunir criterios de
@@ -400,7 +403,10 @@
 
 			<div class="footer-action">
 				<Button variant="primary" block onclick={next}>
-					Continuar con las sesiones <Icon name="chevron-right" size={16} />
+					{#if editing}Listo{:else}Continuar con las sesiones <Icon
+							name="chevron-right"
+							size={16}
+						/>{/if}
 				</Button>
 			</div>
 		{:else if loadError}
