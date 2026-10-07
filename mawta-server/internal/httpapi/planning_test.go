@@ -1044,3 +1044,41 @@ func TestStudentsWithoutAnActiveTermReadTheLatestClosedOne(t *testing.T) {
 		t.Errorf("with no active term: evidence_count = %d, want 1 (the latest closed term)", n)
 	}
 }
+
+// An explicit term_id must be a term of the class: a period of another year is
+// a 404 on reads and on creating an assessment, never an empty screen.
+func TestExplicitTermOfAnotherYearIsNotFound(t *testing.T) {
+	env := dbtest.Setup(t)
+	h := newAPI(t, env)
+	classID := planClass(t, env)
+	token := login(t, env, env.Fx.UserQuispe, env.Fx.TenantA)
+	ctx := context.Background()
+	fx := env.Fx
+
+	year, term := uuid.New(), uuid.New()
+	adminScript(t, env, "a term of another year", `
+		insert into academic_years (id, tenant_id, year, name, starts_on, ends_on, term_structure, status)
+		values ({{year}}, {{tenant}}, 2031, '2031', '2031-03-01', '2031-12-18', 'bimestre', 'planned');
+		insert into terms (id, tenant_id, academic_year_id, sequence, name, starts_on, ends_on, status)
+		values ({{term}}, {{tenant}}, {{year}}, 1, 'Bimestre 2031', '2031-03-01', '2031-05-15', 'planned');
+	`, map[string]any{"year": year, "term": term, "tenant": fx.TenantA})
+	t.Cleanup(func() {
+		for _, q := range []string{`delete from terms where id = $1`, `delete from academic_years where id = $1`} {
+			id := term
+			if strings.Contains(q, "academic_years") {
+				id = year
+			}
+			if _, err := env.Admin.Pool.Exec(ctx, q, id); err != nil {
+				t.Errorf("clean up: %v", err)
+			}
+		}
+	})
+
+	base := "/api/v1/classes/" + classID.String()
+	wantError(t, do(t, h, token, "GET", base+"/students?term_id="+term.String(), ""), http.StatusNotFound, "not_found")
+	wantError(t, do(t, h, token, "GET", base+"/dashboard?term_id="+term.String(), ""), http.StatusNotFound, "not_found")
+	wantError(t, do(t, h, token, "POST", base+"/assessments", fmt.Sprintf(
+		`{"title":"x","component_code":"c","value_scale":"rubric","term_id":%q}`, term)), http.StatusNotFound, "not_found")
+	// A term of the class's own year still works.
+	mustDo(t, h, token, "GET", base+"/students?term_id="+fx.TermII.String(), "", http.StatusOK)
+}

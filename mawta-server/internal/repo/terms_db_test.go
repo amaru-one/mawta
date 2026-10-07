@@ -214,14 +214,46 @@ func TestResolveTermWithAnExplicitTerm(t *testing.T) {
 	env := dbtest.Setup(t)
 	fx := env.Fx
 
+	notFound := func(t *testing.T, err error, what string) {
+		t.Helper()
+		if e := appErr(t, err); e.Status != http.StatusNotFound {
+			t.Errorf("%s: status = %d, want 404", what, e.Status)
+		}
+	}
+
 	inTx(t, env, func(ctx context.Context, tx pgx.Tx) {
-		// A closed term is readable when asked for by id.
+		// A closed term of the class is readable when asked for by id.
 		if got := resolved(t, ctx, tx, fx.ClassMat5B, fx.TermI); got != fx.TermI {
 			t.Errorf("explicit term = %s, want Bimestre I", got)
 		}
 		_, err := repo.ResolveTerm(ctx, tx, fx.ClassMat5B, uuid.New())
-		if e := appErr(t, err); e.Status != http.StatusNotFound {
-			t.Errorf("unknown term: status = %d, want 404", e.Status)
+		notFound(t, err, "unknown term")
+
+		// A term of another academic year is not the class's.
+		otherYear := uuid.New()
+		if _, err := tx.Exec(ctx, `
+			insert into academic_years (id, tenant_id, year, name, starts_on, ends_on, term_structure, status)
+			values ($1, app.current_tenant_id(), 2031, '2031', '2031-03-01', '2031-12-18', 'bimestre', 'planned')
+		`, otherYear); err != nil {
+			t.Fatal(err)
+		}
+		foreign := mustInsertTerm(t, ctx, tx, otherYear, nil, 1, "2031-03-01", "2031-05-15", "planned")
+		_, err = repo.ResolveTerm(ctx, tx, fx.ClassMat5B, foreign)
+		notFound(t, err, "a term of another year")
+
+		// A term of another stage is not the class's either, while a term with
+		// no stage and one of its own stage are.
+		primaria := mustInsertTerm(t, ctx, tx, fx.YearA, str("primaria"), 1, "2026-03-01", "2026-05-15", "planned")
+		_, err = repo.ResolveTerm(ctx, tx, fx.ClassMat5B, primaria)
+		notFound(t, err, "a term of another stage")
+		own := mustInsertTerm(t, ctx, tx, fx.YearA, str("secundaria"), 1, "2026-03-01", "2026-05-15", "planned")
+		if got := resolved(t, ctx, tx, fx.ClassMat5B, own); got != own {
+			t.Errorf("a term of the class's own stage = %s, want %s", got, own)
+		}
+
+		// With no class (the profile) any term of the tenant is accepted.
+		if got := resolved(t, ctx, tx, uuid.Nil, foreign); got != foreign {
+			t.Errorf("explicit term without a class = %s, want %s", got, foreign)
 		}
 	})
 }
