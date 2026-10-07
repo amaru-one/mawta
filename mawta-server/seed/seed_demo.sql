@@ -704,4 +704,12 @@ update terms
  where tenant_id = md5('tenant:0723519:')::uuid
    and sequence in (1, 2);
 
+-- El onboarding deja activo solo el primer periodo, así que al cerrar I y II
+-- hay que activar T-III (terms_one_active_key: uno solo por nivel, y después
+-- de cerrar el anterior).
+update terms
+   set status = 'active'
+ where tenant_id = md5('tenant:0723519:')::uuid
+   and sequence = 3;
+
 commit;

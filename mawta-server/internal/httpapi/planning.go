@@ -45,6 +45,7 @@ func (a *API) handleClassPlan(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return err
 		}
+		repo.HealClassPlan(r.Context(), tx, classID)
 		plan, err = repo.GetPlan(r.Context(), tx, classID, term)
 		return err
 	})

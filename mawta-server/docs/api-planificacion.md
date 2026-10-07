@@ -40,6 +40,19 @@ Same as the rest of the API:
 5. **Standards are not used for criteria.** Criteria come from the grade's
    performances (`desempeños`); standards are only the reference for the
    descriptive conclusion at term close.
+6. **A planned experience reaches the classroom.** Once an experience is
+   `planificada`, every accepted session outline entry sets
+   `class_sessions.topic` of its date (what the class calendar shows), and every
+   accepted planned evidence becomes an assessment (`assessments.planned_evidence_id`):
+   `value_scale = "rubric"`, tagged with the evidence's criteria, linked to the
+   class session of its date (which is also its `due_at`) and filed under the
+   first component of the class's grading scheme. Kinds map `produccion` →
+   `proyecto`, `actuacion` → `exposicion`, `prueba_escrita` → `examen`. The sync
+   (`repo.SyncExperience`) is idempotent and runs on confirm, on every later edit
+   of sessions and evidences, and when the plan or the class dashboard is read,
+   which also catches up experiences planned before the bridge existed. Pending
+   proposals are not synced. Confirming fails with `no_grading_scheme` if the
+   class has no scheme for the term.
 
 ## Schema changes this contract needs (ticket 4)
 
@@ -313,6 +326,7 @@ and cost, never with prompts or answers.
 | `evidence_not_in_experience` | 422 | A session's `planned_evidence_id` is not an evidence of the experience |
 | `session_date_taken` | 409 | Two requests created the same date's session entry at once |
 | `experience_not_draft` | 409 | Confirming an experience that is already planned |
+| `no_grading_scheme` | 422 | The class has no grading scheme for the term, so planned evidences cannot become assessments |
 | `agent_unavailable` | 503 | No model is configured (`ANTHROPIC_API_KEY` unset); the app offers manual creation only |
 | `competency_not_in_experience` | 422 | Generating criteria for a competency the experience does not work |
 | `no_free_weeks`, `no_criteria`, `no_performances` | 200 (in the generation) | The agent cannot generate: no free stretch left in the term, no criteria to build evidences on, no performances loaded for the grade; the failed generation's `error` says so |

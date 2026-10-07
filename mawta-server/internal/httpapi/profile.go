@@ -3,6 +3,7 @@ package httpapi
 import (
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
 	"mawta-server/internal/repo"
@@ -18,7 +19,7 @@ func (a *API) handleProfile(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return err
 		}
-		term, err := repo.ResolveTerm(r.Context(), tx, termIDParam)
+		term, err := repo.ResolveTerm(r.Context(), tx, uuid.Nil, termIDParam)
 		if err != nil {
 			return err
 		}

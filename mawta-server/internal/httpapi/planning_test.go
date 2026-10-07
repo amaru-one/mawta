@@ -151,6 +151,17 @@ func planClass(t *testing.T, env *dbtest.Env) uuid.UUID {
 			delete from jobs where kind = 'agent.generate' and payload->>'generation_id' in
 			  (select id::text from agent_generations where class_id = '%[2]s');
 			delete from agent_generations where class_id = '%[2]s';
+			delete from criterion_scores where assessment_id in
+			  (select a.id from assessments a join planned_evidences pe on pe.id = a.planned_evidence_id
+			    where pe.experience_id in %[1]s);
+			delete from scores where assessment_id in
+			  (select a.id from assessments a join planned_evidences pe on pe.id = a.planned_evidence_id
+			    where pe.experience_id in %[1]s);
+			delete from assessment_criteria where assessment_id in
+			  (select a.id from assessments a join planned_evidences pe on pe.id = a.planned_evidence_id
+			    where pe.experience_id in %[1]s);
+			delete from assessments where planned_evidence_id in
+			  (select id from planned_evidences where experience_id in %[1]s);
 			update planned_evidences set session_entry_id = null where experience_id in %[1]s;
 			update session_outline_entries set planned_evidence_id = null where experience_id in %[1]s;
 			delete from planned_evidence_criteria
@@ -165,6 +176,7 @@ func planClass(t *testing.T, env *dbtest.Env) uuid.UUID {
 			delete from class_sessions where class_id = '%[2]s';
 			delete from class_teachers where class_id = '%[2]s';
 			delete from classes where id = '%[2]s';
+			delete from section_memberships where section_id = '%[3]s';
 			delete from sections where id = '%[3]s';
 		`, exp, classID, sectionID))
 		if err != nil {
@@ -811,5 +823,224 @@ func TestPlanningDomainErrors(t *testing.T) {
 	if got.StartsOn != "2026-06-01" || got.EndsOn != "2026-06-12" || len(got.Competencies) != 1 ||
 		len(got.Criteria) != 1 || len(got.Criteria[0].CapabilityIDs) != 1 || len(got.Sessions) != 1 {
 		t.Errorf("experience A after the rejections = %+v", got)
+	}
+}
+
+// TestConfirmedExperienceReachesCalendarAndStudents is the bridge between the
+// plan and the classroom: what the teacher planned names the class sessions of
+// the calendar, and each planned evidence is an assessment the roster can be
+// evaluated on.
+func TestConfirmedExperienceReachesCalendarAndStudents(t *testing.T) {
+	env := dbtest.Setup(t)
+	h := newAPI(t, env)
+	classID := planClass(t, env)
+	token := login(t, env, env.Fx.UserQuispe, env.Fx.TenantA)
+	ctx := context.Background()
+	fx := env.Fx
+
+	student := uuid.New()
+	adminScript(t, env, "enrol a student", `
+		insert into students (id, tenant_id, student_code, given_name, paternal_surname, status)
+		values ({{student}}, {{tenant}}, 'EST-' || left({{student}}::text, 8), 'Lola', 'Lopez', 'active');
+		insert into section_memberships (tenant_id, academic_year_id, section_id, student_id, joined_on)
+		select {{tenant}}, academic_year_id, section_id, {{student}}, '2026-03-01' from classes where id = {{class}};
+	`, map[string]any{"tenant": fx.TenantA, "student": student, "class": classID})
+
+	t.Cleanup(func() {
+		for _, q := range []string{
+			`delete from section_memberships where student_id = $1`,
+			`delete from students where id = $1`,
+		} {
+			if _, err := env.Admin.Pool.Exec(ctx, q, student); err != nil {
+				t.Errorf("clean up the student: %v", err)
+			}
+		}
+	})
+
+	exp := createExperience(t, h, token, env, classID, "2026-06-01", "2026-06-30", fx.CompetencyC1)
+	expPath := "/api/v1/experiences/" + exp.ID.String()
+	crit := createCriterion(t, h, token, exp.ID, fx.CompetencyC1, planPerfC1a, planCapC1a)
+	w := mustDo(t, h, token, "POST", expPath+"/evidences", fmt.Sprintf(
+		`{"name":"Lista de precios","kind":"produccion","criterion_ids":[%q]}`, crit.ID), http.StatusCreated)
+	var ev repo.ExperienceEvidence
+	decodeInto(t, w, &ev)
+	mustDo(t, h, token, "PUT", expPath+"/sessions/2026-06-03", fmt.Sprintf(
+		`{"title":"¿Qué vendemos?","planned_evidence_id":%q}`, ev.ID), http.StatusOK)
+
+	topic := func(date string) *string {
+		var s *string
+		if err := env.Admin.Pool.QueryRow(ctx, `
+			select topic from class_sessions where class_id = $1 and session_date = $2 and status <> 'cancelled'
+		`, classID, date).Scan(&s); err != nil {
+			t.Fatal(err)
+		}
+		return s
+	}
+	assessments := func() int {
+		var n int
+		if err := env.Admin.Pool.QueryRow(ctx, `
+			select count(*) from assessments a join planned_evidences pe on pe.id = a.planned_evidence_id
+			 where pe.experience_id = $1 and a.deleted_at is null
+		`, exp.ID).Scan(&n); err != nil {
+			t.Fatal(err)
+		}
+		return n
+	}
+
+	// A draft promises, it does not reach the classroom yet.
+	if got := topic("2026-06-03"); got != nil {
+		t.Errorf("draft topic = %q, want none", *got)
+	}
+	if n := assessments(); n != 0 {
+		t.Errorf("draft has %d assessments, want 0", n)
+	}
+
+	mustDo(t, h, token, "POST", expPath+"/confirm", "", http.StatusOK)
+	if got := topic("2026-06-03"); got == nil || *got != "¿Qué vendemos?" {
+		t.Errorf("confirmed topic = %v, want the session title", got)
+	}
+	if n := assessments(); n != 1 {
+		t.Fatalf("confirmed experience has %d assessments, want 1", n)
+	}
+	var title, kind, scale string
+	var sessionID *uuid.UUID
+	var criteria int
+	if err := env.Admin.Pool.QueryRow(ctx, `
+		select a.title, a.kind, a.value_scale, a.session_id,
+		       (select count(*) from assessment_criteria ac where ac.assessment_id = a.id
+		         and ac.criterion_id = $2 and ac.deleted_at is null)
+		  from assessments a where a.planned_evidence_id = $1 and a.deleted_at is null
+	`, ev.ID, crit.ID).Scan(&title, &kind, &scale, &sessionID, &criteria); err != nil {
+		t.Fatal(err)
+	}
+	if title != "Lista de precios" || kind != "proyecto" || scale != "rubric" || sessionID == nil || criteria != 1 {
+		t.Errorf("assessment = %q %q %q session=%v criteria=%d", title, kind, scale, sessionID, criteria)
+	}
+
+	// The student sees it, tagged with the criterion, ready to be evaluated.
+	w = mustDo(t, h, token, "GET", fmt.Sprintf("/api/v1/classes/%s/students/%s/evidence?term_id=%s",
+		classID, student, fx.TermII), "", http.StatusOK)
+	var got struct {
+		Evidence []repo.EvaluationEntry `json:"evidence"`
+	}
+	decodeInto(t, w, &got)
+	if len(got.Evidence) != 1 || got.Evidence[0].Title != "Lista de precios" || len(got.Evidence[0].Criteria) != 1 {
+		t.Fatalf("student evidence = %+v", got.Evidence)
+	}
+
+	// The screens do not send term_id: they read the class's current term, and
+	// the planned evidence must be in it. This is the call that came back empty
+	// when "the active term" was whichever of several the database returned.
+	for _, path := range []string{"students", "students/" + student.String() + "/evidence"} {
+		w = mustDo(t, h, token, "GET", fmt.Sprintf("/api/v1/classes/%s/%s", classID, path), "", http.StatusOK)
+		if body := w.Body.String(); !strings.Contains(body, "Lista de precios") && !strings.Contains(body, `"evidence_count":1`) {
+			t.Errorf("GET %s without term_id did not show the planned evidence: %s", path, body)
+		}
+	}
+
+	// Edits after confirming flow through, and syncing again changes nothing.
+	mustDo(t, h, token, "PUT", "/api/v1/evidences/"+ev.ID.String(), `{"name":"Lista de precios final","kind":"actuacion"}`, http.StatusOK)
+	mustDo(t, h, token, "PUT", expPath+"/sessions/2026-06-03", `{"title":"Precios y vueltos"}`, http.StatusOK)
+	getPlan(t, h, token, classID, fx.TermII)
+	if n := assessments(); n != 1 {
+		t.Errorf("after edits %d assessments, want 1", n)
+	}
+	if got := topic("2026-06-03"); got == nil || *got != "Precios y vueltos" {
+		t.Errorf("edited topic = %v", got)
+	}
+	if err := env.Admin.Pool.QueryRow(ctx, `
+		select title, kind, session_id from assessments where planned_evidence_id = $1 and deleted_at is null
+	`, ev.ID).Scan(&title, &kind, &sessionID); err != nil || title != "Lista de precios final" || kind != "exposicion" || sessionID != nil {
+		t.Errorf("edited assessment = %q %q session=%v (%v), want renamed, exposicion, unplaced", title, kind, sessionID, err)
+	}
+
+	// Deleting the evidence takes the assessment off the students' screens.
+	mustDo(t, h, token, "POST", "/api/v1/evidences/"+ev.ID.String()+"/delete", "", http.StatusNoContent)
+	if n := assessments(); n != 0 {
+		t.Errorf("after deleting the evidence %d assessments, want 0", n)
+	}
+	mustDo(t, h, token, "POST", expPath+"/sessions/2026-06-03/delete", "", http.StatusNoContent)
+	if got := topic("2026-06-03"); got != nil {
+		t.Errorf("topic after deleting the session = %q, want none", *got)
+	}
+}
+
+// With no active term (between two terms) the screens still show the class's
+// evidence: they fall back to the latest closed term, read-only.
+func TestStudentsWithoutAnActiveTermReadTheLatestClosedOne(t *testing.T) {
+	env := dbtest.Setup(t)
+	h := newAPI(t, env)
+	classID := planClass(t, env)
+	token := login(t, env, env.Fx.UserQuispe, env.Fx.TenantA)
+	ctx := context.Background()
+	fx := env.Fx
+
+	student := uuid.New()
+	adminScript(t, env, "enrol a student", `
+		insert into students (id, tenant_id, student_code, given_name, paternal_surname, status)
+		values ({{student}}, {{tenant}}, 'EST-' || left({{student}}::text, 8), 'Lola', 'Lopez', 'active');
+		insert into section_memberships (tenant_id, academic_year_id, section_id, student_id, joined_on)
+		select {{tenant}}, academic_year_id, section_id, {{student}}, '2026-03-01' from classes where id = {{class}};
+	`, map[string]any{"tenant": fx.TenantA, "student": student, "class": classID})
+	adminScript(t, env, "an assessment in Bimestre II", `
+		insert into assessments (tenant_id, class_id, term_id, scheme_id, component_id, title, kind, value_scale,
+		                         counts_toward_internal, status, published_at)
+		select {{tenant}}, {{class}}, {{term}}, ceg.scheme_id, gc.id, 'Evidencia del bimestre', 'tarea', 'rubric',
+		       false, 'published', now()
+		  from class_effective_grading_schemes ceg
+		  join grading_components gc on gc.scheme_id = ceg.scheme_id
+		 where ceg.class_id = {{class}} and ceg.term_id = {{term}}
+		 limit 1;
+	`, map[string]any{"tenant": fx.TenantA, "class": classID, "term": fx.TermII})
+	t.Cleanup(func() {
+		for _, c := range []struct {
+			q   string
+			arg uuid.UUID
+		}{
+			{`delete from assessments where class_id = $1 and title = 'Evidencia del bimestre'`, classID},
+			{`delete from section_memberships where student_id = $1`, student},
+			{`delete from students where id = $1`, student},
+		} {
+			if _, err := env.Admin.Pool.Exec(ctx, c.q, c.arg); err != nil {
+				t.Errorf("clean up: %v", err)
+			}
+		}
+	})
+
+	count := func() int {
+		w := mustDo(t, h, token, "GET", "/api/v1/classes/"+classID.String()+"/students", "", http.StatusOK)
+		var out struct {
+			Students []struct {
+				ID    uuid.UUID `json:"student_id"`
+				Count int       `json:"evidence_count"`
+			} `json:"students"`
+		}
+		decodeInto(t, w, &out)
+		for _, s := range out.Students {
+			if s.ID == student {
+				return s.Count
+			}
+		}
+		t.Fatalf("student missing from %s", w.Body.String())
+		return -1
+	}
+
+	if n := count(); n != 1 {
+		t.Fatalf("with Bimestre II active: evidence_count = %d, want 1", n)
+	}
+
+	// Close the term and leave nobody active; restore it afterwards.
+	if _, err := env.Admin.Pool.Exec(ctx,
+		`update terms set status = 'closed', closed_at = now() where id = $1`, fx.TermII); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if _, err := env.Admin.Pool.Exec(ctx,
+			`update terms set status = 'active', closed_at = null where id = $1`, fx.TermII); err != nil {
+			t.Errorf("restore Bimestre II: %v", err)
+		}
+	})
+	if n := count(); n != 1 {
+		t.Errorf("with no active term: evidence_count = %d, want 1 (the latest closed term)", n)
 	}
 }

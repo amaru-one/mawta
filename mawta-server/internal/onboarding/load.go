@@ -209,16 +209,28 @@ func (l *loader) colegio() error {
 		l.year, l.tenant, a.Anio, a.Nombre, a.Inicio, a.Fin, a.Estructura); err != nil {
 		return err
 	}
-	// Every periodo goes in 'active', including past ones: the
-	// sync_score_denormalised trigger rejects any score aimed at a closed
-	// term, so a periodo is only closed once its evidence is in.
+	// Only the first periodo of the year goes in 'active' (terms_one_active_key
+	// allows one per nivel); the rest are 'planned'. 'planned' still accepts
+	// scores — only 'closed' and 'archived' are rejected by the
+	// sync_score_denormalised trigger — so the historical evidence of a later
+	// periodo can be loaded. A periodo is closed by hand once its evidence is in.
+	first := a.Periodos[0].Numero
 	for _, p := range a.Periodos {
+		if p.Numero < first {
+			first = p.Numero
+		}
+	}
+	for _, p := range a.Periodos {
+		status := "planned"
+		if p.Numero == first {
+			status = "active"
+		}
 		if err := l.exec(`
 			insert into terms (id, tenant_id, academic_year_id, stage, sequence, name, short_name,
 			                   starts_on, ends_on, status, grades_due_on)
-			values ($1, $2, $3, null, $4, $5, $6, $7::text::date, $8::text::date, 'active', $9::text::date)`,
+			values ($1, $2, $3, null, $4, $5, $6, $7::text::date, $8::text::date, $9, $10::text::date)`,
 			l.termID(p), l.tenant, l.year, p.Numero, p.Nombre, nz(p.Abreviatura), p.Inicio, p.Fin,
-			nz(p.FechaEntregaNotas)); err != nil {
+			status, nz(p.FechaEntregaNotas)); err != nil {
 			return err
 		}
 		l.sum.Periodos++

@@ -38,11 +38,6 @@ const AdminURLEnv = "MAWTA_TEST_ADMIN_URL"
 // KeepEnv retains the database after the run instead of dropping it.
 const KeepEnv = "MAWTA_TEST_KEEP"
 
-// appPassword is set on mawta_app so the app pool can connect. The role is
-// created passwordless by 00001 and is cluster-wide, so this is once per
-// cluster rather than once per database.
-const appPassword = "mawta_app_test"
-
 // testDBName guards every drop. Nothing that does not match this shape is ever
 // passed to `drop database`.
 var testDBName = regexp.MustCompile(`^mawta_test_[0-9a-f]{12}$`)
@@ -175,20 +170,13 @@ func provision(adminURL string) error {
 		return fmt.Errorf("open admin pool: %w", err)
 	}
 
-	// 00001 creates mawta_app with login and no password. Without this the
-	// app pool below cannot connect at all.
-	if _, err := admin.Pool.Exec(ctx, `alter role mawta_app login password `+quoteLiteral(appPassword)); err != nil {
-		admin.Close()
-		return fmt.Errorf("set mawta_app password: %w", err)
-	}
-
 	fx, err := seed(ctx, admin)
 	if err != nil {
 		admin.Close()
 		return fmt.Errorf("seed fixtures: %w", err)
 	}
 
-	app, err := db.Open(ctx, appURL(adminOnNew, name))
+	app, err := db.Open(ctx, appURL(adminOnNew))
 	if err != nil {
 		admin.Close()
 		return fmt.Errorf("open mawta_app pool (check the GRANTs in 00001): %w", err)
@@ -279,11 +267,12 @@ func replaceDatabase(url, name string) string {
 	return renderURL(cfg.User, cfg.Password, cfg.Host, int(cfg.Port), name, sslMode(url))
 }
 
-// appURL is the same host and database as the admin connection, but as the
-// non-owner mawta_app role.
-func appURL(url, name string) string {
-	cfg := mustParseConfig(url)
-	return renderURL("mawta_app", appPassword, cfg.Host, int(cfg.Port), name, sslMode(url))
+// appURL is the same host and database as the admin connection, but every
+// session starts as the non-owner mawta_app role (the `role` startup
+// parameter). mawta_app is cluster-wide, so its password is never touched: a
+// test run must not break a developer's own API connecting as that role.
+func appURL(adminOnNew string) string {
+	return adminOnNew + "&options=-c%20role%3Dmawta_app"
 }
 
 func renderURL(user, password, host string, port int, database, ssl string) string {

@@ -34,7 +34,7 @@ func (a *API) handleStudentGrades(w http.ResponseWriter, r *http.Request) {
 		if err := a.requireStudentOnRoster(r.Context(), tx, tc, classID, studentID); err != nil {
 			return err
 		}
-		term, err := repo.ResolveTerm(r.Context(), tx, termIDParam)
+		term, err := repo.ResolveTerm(r.Context(), tx, classID, termIDParam)
 		if err != nil {
 			return err
 		}
@@ -68,7 +68,7 @@ func (a *API) handleGradingComponents(w http.ResponseWriter, r *http.Request) {
 		if err := a.requireClassAccess(r.Context(), tx, tc, classID); err != nil {
 			return err
 		}
-		term, err := repo.ResolveTerm(r.Context(), tx, termIDParam)
+		term, err := repo.ResolveTerm(r.Context(), tx, classID, termIDParam)
 		if err != nil {
 			return err
 		}
@@ -183,7 +183,7 @@ func (a *API) handleCreateAssessment(w http.ResponseWriter, r *http.Request) {
 		if err := a.requireClassAccess(r.Context(), tx, tc, classID); err != nil {
 			return err
 		}
-		term, err := repo.ResolveTerm(r.Context(), tx, termIDParam)
+		term, err := repo.ResolveTerm(r.Context(), tx, classID, termIDParam)
 		if err != nil {
 			return err
 		}

@@ -27,10 +27,11 @@ func (a *API) handleClassDashboard(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return err
 		}
-		term, err := repo.ResolveTerm(r.Context(), tx, termIDParam)
+		term, err := repo.ResolveTerm(r.Context(), tx, classID, termIDParam)
 		if err != nil {
 			return err
 		}
+		repo.HealClassPlan(r.Context(), tx, classID)
 		dashboard, err = repo.GetClassDashboard(r.Context(), tx, classID, term, today)
 		return err
 	})

@@ -57,7 +57,7 @@ func (a *API) handleCreatePracticeScore(w http.ResponseWriter, r *http.Request) 
 		if err := a.requireStudentOnRoster(r.Context(), tx, tc, classID, studentID); err != nil {
 			return err
 		}
-		term, err := repo.ResolveTerm(r.Context(), tx, termIDParam)
+		term, err := repo.ResolveTerm(r.Context(), tx, classID, termIDParam)
 		if err != nil {
 			return err
 		}

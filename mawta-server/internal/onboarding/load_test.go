@@ -99,6 +99,11 @@ func TestLoadExample(t *testing.T) {
 			"select count(*) from standard_level_mappings":                                1,
 			"select count(*) from grade_levels where cycle = 'ciclo_vi'":                  1,
 			"select count(*) from non_teaching_days":                                      len(noClass),
+			// Only the first periodo is active (terms_one_active_key); the rest
+			// are planned, which still accept scores.
+			"select count(*) from terms where status = 'active' and sequence = 1":  1,
+			"select count(*) from terms where status = 'planned' and sequence > 1": 2,
+			"select count(*) from terms where status = 'active'":                   1,
 			// No session is generated on a day without class.
 			`select count(*) from class_sessions cs
 			   join non_teaching_days n on n.day = cs.session_date`: 0,

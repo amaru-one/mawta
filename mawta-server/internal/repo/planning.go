@@ -165,8 +165,8 @@ type Plan struct {
 // (it must be a term of the class's year), else the term containing today,
 // else the next one, else the last one. Terms of another stage are skipped.
 //
-// This is not ResolveTerm: onboarding leaves every term 'active', so "the
-// active term" says nothing about which one the teacher is living in.
+// This is not ResolveTerm: planning shows where the teacher is in the year,
+// by date, whether or not the term has been activated yet.
 func ResolvePlanTerm(ctx context.Context, tx pgx.Tx, classID, termID uuid.UUID, today time.Time) (PlanTerm, error) {
 	cc, err := loadClassContext(ctx, tx, classID)
 	if err != nil {
@@ -1239,8 +1239,10 @@ func ConfirmExperience(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID) e
 	if h.Status != "borrador" {
 		return conflict("experience_not_draft", "la experiencia ya está planificada")
 	}
-	_, err = tx.Exec(ctx, `update learning_experiences set status = 'planificada' where id = $1`, h.ID)
-	return err
+	if _, err = tx.Exec(ctx, `update learning_experiences set status = 'planificada' where id = $1`, h.ID); err != nil {
+		return err
+	}
+	return SyncExperience(ctx, tx, h.ID)
 }
 
 // DeleteExperience soft-deletes an experience with everything planned in it.
@@ -1252,6 +1254,13 @@ func DeleteExperience(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID) er
 		return err
 	}
 	for _, q := range []string{
+		`update assessments set deleted_at = now()
+		  where deleted_at is null
+		    and planned_evidence_id in (select id from planned_evidences where experience_id = $1)`,
+		`update class_sessions cs set topic = null
+		   from session_outline_entries e
+		  where e.experience_id = $1 and e.deleted_at is null
+		    and cs.class_id = $2 and cs.session_date = e.class_date and cs.topic = e.title`,
 		`update planned_evidence_criteria set deleted_at = now()
 		  where deleted_at is null
 		    and evidence_id in (select id from planned_evidences where experience_id = $1)`,
@@ -1264,7 +1273,11 @@ func DeleteExperience(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID) er
 		`update experience_competencies set deleted_at = now() where experience_id = $1 and deleted_at is null`,
 		`update learning_experiences set deleted_at = now() where id = $1`,
 	} {
-		if _, err := tx.Exec(ctx, q, h.ID); err != nil {
+		args := []any{h.ID}
+		if strings.Contains(q, "$2") {
+			args = append(args, h.ClassID)
+		}
+		if _, err := tx.Exec(ctx, q, args...); err != nil {
 			return err
 		}
 	}
@@ -1636,7 +1649,11 @@ func setEvidenceCriteria(ctx context.Context, tx pgx.Tx, evidenceID uuid.UUID, i
 // CreatePlannedEvidence writes a teacher's planned evidence, optionally
 // placed in the session entry of SessionDate.
 func CreatePlannedEvidence(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID, in EvidenceInput) (uuid.UUID, error) {
-	return createPlannedEvidence(ctx, tx, experienceID, in, byTeacher)
+	id, err := createPlannedEvidence(ctx, tx, experienceID, in, byTeacher)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return id, SyncExperience(ctx, tx, experienceID)
 }
 
 // ProposeEvidence writes a planned evidence the planning agent proposes,
@@ -1761,24 +1778,31 @@ func UpdatePlannedEvidence(ctx context.Context, tx pgx.Tx, evidenceID uuid.UUID,
 		       accepted_at = coalesce(accepted_at, now())
 		 where id = $1
 	`, evidenceID, name, p.Kind)
-	return err
+	if err != nil {
+		return err
+	}
+	return SyncExperience(ctx, tx, h.ID)
 }
 
 // AcceptPlannedEvidence accepts a proposal unchanged.
 func AcceptPlannedEvidence(ctx context.Context, tx pgx.Tx, evidenceID uuid.UUID) error {
-	if _, err := lockPlannedEvidence(ctx, tx, evidenceID); err != nil {
+	h, err := lockPlannedEvidence(ctx, tx, evidenceID)
+	if err != nil {
 		return err
 	}
-	_, err := tx.Exec(ctx, `
+	if _, err := tx.Exec(ctx, `
 		update planned_evidences set accepted_at = coalesce(accepted_at, now()) where id = $1
-	`, evidenceID)
-	return err
+	`, evidenceID); err != nil {
+		return err
+	}
+	return SyncExperience(ctx, tx, h.ID)
 }
 
 // DeletePlannedEvidence soft-deletes a planned evidence, its criterion links
 // and its place in the session outline.
 func DeletePlannedEvidence(ctx context.Context, tx pgx.Tx, evidenceID uuid.UUID) error {
-	if _, err := lockPlannedEvidence(ctx, tx, evidenceID); err != nil {
+	h, err := lockPlannedEvidence(ctx, tx, evidenceID)
+	if err != nil {
 		return err
 	}
 	for _, q := range []string{
@@ -1790,7 +1814,7 @@ func DeletePlannedEvidence(ctx context.Context, tx pgx.Tx, evidenceID uuid.UUID)
 			return err
 		}
 	}
-	return nil
+	return SyncExperience(ctx, tx, h.ID)
 }
 
 // GetPlannedEvidence returns one planned evidence.
@@ -1887,9 +1911,14 @@ func PutSessionEntry(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID, dat
 	}
 
 	if in.PlannedEvidenceID != nil {
-		return placeEvidence(ctx, tx, *in.PlannedEvidenceID, &entryID)
+		err = placeEvidence(ctx, tx, *in.PlannedEvidenceID, &entryID)
+	} else {
+		err = unplaceEntry(ctx, tx, entryID)
 	}
-	return unplaceEntry(ctx, tx, entryID)
+	if err != nil {
+		return err
+	}
+	return SyncExperience(ctx, tx, h.ID)
 }
 
 // ProposeSessionEntry writes a session entry the planning agent proposes, on
@@ -1965,7 +1994,7 @@ func AcceptSessionEntry(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID, 
 	if tag.RowsAffected() == 0 {
 		return sessionEntryNotFound()
 	}
-	return nil
+	return SyncExperience(ctx, tx, experienceID)
 }
 
 // DeleteSessionEntry soft-deletes the session entry of a date; the evidence
@@ -1988,8 +2017,19 @@ func DeleteSessionEntry(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID, 
 	if err := unplaceEntry(ctx, tx, entryID); err != nil {
 		return err
 	}
-	_, err = tx.Exec(ctx, `update session_outline_entries set deleted_at = now() where id = $1`, entryID)
-	return err
+	if _, err = tx.Exec(ctx, `update session_outline_entries set deleted_at = now() where id = $1`, entryID); err != nil {
+		return err
+	}
+	// The class session keeps no name the plan gave it.
+	if _, err = tx.Exec(ctx, `
+		update class_sessions cs set topic = null
+		  from learning_experiences le
+		 where le.id = $1 and le.status = 'planificada'
+		   and cs.class_id = le.class_id and cs.session_date = $2 and cs.deleted_at is null
+	`, experienceID, date); err != nil {
+		return err
+	}
+	return SyncExperience(ctx, tx, experienceID)
 }
 
 // GetSessionEntry returns the experience's session entry of one date.
