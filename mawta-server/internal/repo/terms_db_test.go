@@ -4,9 +4,6 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"os"
-	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/google/uuid"
@@ -17,7 +14,7 @@ import (
 	"mawta-server/internal/repo"
 )
 
-// Tests for "one active term per stage" (migrations/00007_one_active_term.sql)
+// Tests for "one active term per stage" (index terms_one_active_key)
 // and for ResolveTerm, the default term every class screen reads.
 //
 // The fixture year (YearA) has Bimestre I closed and Bimestre II active, both
@@ -258,176 +255,6 @@ func TestResolveTermWithAnExplicitTerm(t *testing.T) {
 	})
 }
 
-// ------------------------------------------------- normalization migration --
-
-// normalizeSQL is the data fix of migration 00007, taken from the file so the
-// test runs the real statement. current_date is pinned so each case can say
-// what "today" is.
-func normalizeSQL(t *testing.T, today string) string {
-	t.Helper()
-	b, err := os.ReadFile(filepath.Join("..", "..", "migrations", "00007_one_active_term.sql"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	s := string(b)
-	from := strings.Index(s, "with active as")
-	to := strings.Index(s, "create unique index terms_one_active_key")
-	if from < 0 || to < 0 {
-		t.Fatal("migration 00007 no longer has the normalization statement this test extracts")
-	}
-	return strings.ReplaceAll(s[from:to], "current_date", "date '"+today+"'")
-}
-
-func TestNormalizationKeepsOneActiveTermPerStage(t *testing.T) {
-	env := dbtest.Setup(t)
-	fx := env.Fx
-
-	cases := []struct {
-		name  string
-		today string
-		want  [3]string // statuses of terms I, II and III
-	}{
-		{"today inside the last term", "2026-10-07", [3]string{"closed", "closed", "active"}},
-		{"today inside the first term", "2026-04-10", [3]string{"active", "planned", "planned"}},
-		{"today in the gap between two terms", "2026-08-29", [3]string{"closed", "closed", "active"}},
-		{"today after the year", "2027-01-10", [3]string{"closed", "closed", "active"}},
-		{"today before the year", "2026-01-05", [3]string{"active", "planned", "planned"}},
-	}
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			ctx := context.Background()
-			tx, err := env.Admin.Pool.Begin(ctx)
-			if err != nil {
-				t.Fatal(err)
-			}
-			defer tx.Rollback(ctx) //nolint:errcheck
-
-			// The index is what the migration creates after fixing the data, so
-			// the old state (everything active) only exists without it.
-			if _, err := tx.Exec(ctx, `drop index terms_one_active_key`); err != nil {
-				t.Fatal(err)
-			}
-			if _, err := tx.Exec(ctx, `
-				select set_config('app.tenant_id', $1, true)`, fx.TenantA.String()); err != nil {
-				t.Fatal(err)
-			}
-			year := uuid.New()
-			if _, err := tx.Exec(ctx, `
-				insert into academic_years (id, tenant_id, year, name, starts_on, ends_on, term_structure, status)
-				values ($1, $2, 2031, '2031', '2031-03-01', '2031-12-18', 'trimestre', 'planned')
-			`, year, fx.TenantA); err != nil {
-				t.Fatal(err)
-			}
-			// Every term of the year active, as onboarding used to leave them;
-			// the dates are shifted to the 2026 calendar of the case below.
-			ids := make([]uuid.UUID, 3)
-			for i, d := range [][2]string{{"2026-03-02", "2026-05-29"}, {"2026-06-01", "2026-08-28"}, {"2026-08-31", "2026-12-18"}} {
-				ids[i] = uuid.New()
-				if _, err := tx.Exec(ctx, `
-					insert into terms (id, tenant_id, academic_year_id, sequence, name, starts_on, ends_on, status)
-					values ($1, $2, $3, $4::smallint, 'T' || $4::text, $5, $6, 'active')
-				`, ids[i], fx.TenantA, year, i+1, d[0], d[1]); err != nil {
-					t.Fatal(err)
-				}
-			}
-
-			status := func() (got [3]string, closedAt [3]bool) {
-				for i, id := range ids {
-					var s string
-					var c bool
-					if err := tx.QueryRow(ctx, `select status, closed_at is not null from terms where id = $1`, id).Scan(&s, &c); err != nil {
-						t.Fatal(err)
-					}
-					got[i], closedAt[i] = s, c
-				}
-				return
-			}
-			for pass := 1; pass <= 2; pass++ { // the second pass proves it is idempotent
-				if _, err := tx.Exec(ctx, normalizeSQL(t, tc.today)); err != nil {
-					t.Fatalf("normalize (pass %d): %v", pass, err)
-				}
-				got, closedAt := status()
-				if got != tc.want {
-					t.Errorf("pass %d: statuses = %v, want %v", pass, got, tc.want)
-				}
-				for i := range got {
-					if (got[i] == "closed") != closedAt[i] {
-						t.Errorf("pass %d: term %d is %s but closed_at set = %v", pass, i+1, got[i], closedAt[i])
-					}
-				}
-			}
-			// The index can be created on the normalized data.
-			if _, err := tx.Exec(ctx, `
-				create unique index terms_one_active_key on terms (academic_year_id, coalesce(stage, ''))
-				 where status = 'active' and deleted_at is null`); err != nil {
-				t.Errorf("the normalized data still violates the index: %v", err)
-			}
-		})
-	}
-}
-
-func TestNormalizationTreatsEachStageOnItsOwn(t *testing.T) {
-	env := dbtest.Setup(t)
-	fx := env.Fx
-	ctx := context.Background()
-
-	tx, err := env.Admin.Pool.Begin(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer tx.Rollback(ctx) //nolint:errcheck
-	if _, err := tx.Exec(ctx, `drop index terms_one_active_key`); err != nil {
-		t.Fatal(err)
-	}
-	year := uuid.New()
-	if _, err := tx.Exec(ctx, `
-		insert into academic_years (id, tenant_id, year, name, starts_on, ends_on, term_structure, status)
-		values ($1, $2, 2031, '2031', '2031-03-01', '2031-12-18', 'bimestre', 'planned')
-	`, year, fx.TenantA); err != nil {
-		t.Fatal(err)
-	}
-	// Primaria runs trimestres, secundaria bimestres, all active. Today is
-	// 2026-07-10: inside primaria's second term and secundaria's third.
-	insert := func(stage string, seq int, from, to string) uuid.UUID {
-		id := uuid.New()
-		if _, err := tx.Exec(ctx, `
-			insert into terms (id, tenant_id, academic_year_id, stage, sequence, name, starts_on, ends_on, status)
-			values ($1, $2, $3, $4, $5::smallint, 'T' || $5::text, $6, $7, 'active')
-		`, id, fx.TenantA, year, stage, seq, from, to); err != nil {
-			t.Fatal(err)
-		}
-		return id
-	}
-	p1 := insert("primaria", 1, "2026-03-02", "2026-05-29")
-	p2 := insert("primaria", 2, "2026-06-01", "2026-08-28")
-	s1 := insert("secundaria", 1, "2026-03-02", "2026-04-30")
-	s2 := insert("secundaria", 2, "2026-05-01", "2026-06-15")
-	s3 := insert("secundaria", 3, "2026-06-16", "2026-08-28")
-
-	if _, err := tx.Exec(ctx, normalizeSQL(t, "2026-07-10")); err != nil {
-		t.Fatal(err)
-	}
-	for id, want := range map[uuid.UUID]string{
-		p1: "closed", p2: "active", s1: "closed", s2: "closed", s3: "active",
-	} {
-		var got string
-		if err := tx.QueryRow(ctx, `select status from terms where id = $1`, id).Scan(&got); err != nil {
-			t.Fatal(err)
-		}
-		if got != want {
-			t.Errorf("term %s = %s, want %s", id, got, want)
-		}
-	}
-	// The fixture's own year was already right and is left alone.
-	var status string
-	if err := tx.QueryRow(ctx, `select status from terms where id = $1`, fx.TermI).Scan(&status); err != nil || status != "closed" {
-		t.Errorf("fixture Bimestre I = %q (%v), want closed", status, err)
-	}
-	if err := tx.QueryRow(ctx, `select status from terms where id = $1`, fx.TermII).Scan(&status); err != nil || status != "active" {
-		t.Errorf("fixture Bimestre II = %q (%v), want active", status, err)
-	}
-}
-
 // A planned term still takes scores: only closed and archived terms reject
 // them. That is why onboarding can leave every term after the first planned
 // and still load the historical evidence of a later one.
@@ -438,7 +265,7 @@ func TestPlannedTermAcceptsScoresButClosedDoesNot(t *testing.T) {
 	score := func(ctx context.Context, tx pgx.Tx) error {
 		return probe(t, ctx, tx, func() error {
 			_, _, _, err := repo.CreateScore(ctx, tx, fx.AssessmentNumeric, fx.Students[1], fx.TeacherQuispe,
-				"graded", f64(15), 0)
+				"graded", f64(15), nil)
 			return err
 		})
 	}

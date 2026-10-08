@@ -49,8 +49,6 @@ func TestClassScopedRoutesRequireAnAssignment(t *testing.T) {
 		{"class dashboard", "GET", "/api/v1/classes/" + class + "/dashboard", ""},
 		{"class roster", "GET", "/api/v1/classes/" + class + "/students?competency_id=" + fx.CompetencyC2.String(), ""},
 		{"student evidence", "GET", "/api/v1/classes/" + class + "/students/" + student + "/evidence", ""},
-		{"student grades", "GET", "/api/v1/classes/" + class + "/students/" + student + "/grades", ""},
-		{"grading components", "GET", "/api/v1/classes/" + class + "/grading-components", ""},
 		{"student competencies", "GET", "/api/v1/classes/" + class + "/students/" + student + "/competencies", ""},
 		{"class criteria", "GET", "/api/v1/classes/" + class + "/criteria", ""},
 		{"session header", "GET", "/api/v1/sessions/" + fx.SessionOne.String(), ""},
@@ -103,7 +101,7 @@ func TestClassScopedWritesRequireAnAssignment(t *testing.T) {
 			"/api/v1/classes/" + class + "/students/" + student + "/conclusions",
 			fmt.Sprintf(`{"competency_id":%q,"body":"texto","status":"draft"}`, fx.CompetencyC2)},
 		{"create an assessment", "POST", "/api/v1/classes/" + class + "/assessments",
-			`{"title":"Suplantada","component_code":"practicas","value_scale":"numeric","max_score":20}`},
+			fmt.Sprintf(`{"title":"Suplantada","value_scale":"numeric","max_score":20,"criterion_ids":[%q]}`, fx.CriterionOne)},
 		{"delete someone else's assessment", "POST",
 			"/api/v1/assessments/" + fx.AssessmentNumeric.String() + "/delete", ""},
 		{"score against someone else's assessment", "POST",
@@ -204,7 +202,6 @@ func TestAStudentOutsideTheClassIsRefused(t *testing.T) {
 	class := env.Fx.ClassMat5B.String()
 	for _, rt := range []route{
 		{"their evidence", "GET", "/api/v1/classes/" + class + "/students/" + outsider.String() + "/evidence", ""},
-		{"their grades", "GET", "/api/v1/classes/" + class + "/students/" + outsider.String() + "/grades", ""},
 		{"their competencies", "GET", "/api/v1/classes/" + class + "/students/" + outsider.String() + "/competencies", ""},
 	} {
 		t.Run(rt.name, func(t *testing.T) {

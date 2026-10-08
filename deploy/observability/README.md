@@ -161,7 +161,7 @@ complete vocabulary):
 ```
 
 ```json
-{"time":"2026-09-27T12:00:01.000Z","level":"INFO","msg":"worker: job started","service":"mawta-server","event":"worker.job_started","task_id":42,"job_id":42,"kind":"grade.recompute","attempt":1,"max_attempts":3,"worker":"mawta-local"}
+{"time":"2026-09-27T12:00:01.000Z","level":"INFO","msg":"worker: job started","service":"mawta-server","event":"worker.job_started","task_id":42,"job_id":42,"kind":"voice_note.transcribe","attempt":1,"max_attempts":3,"worker":"mawta-local"}
 ```
 
 ```json
@@ -220,7 +220,7 @@ Open **Explore**, select the **Loki** datasource, and paste any of these:
 {service="mawta-server"} | json | event="http.request" | route="/api/v1/classes/{classID}/students"
 
 # Worker jobs of one kind, with outcomes
-{service="mawta-server"} | json | event="worker.job_outcome" | kind="grade.recompute"
+{service="mawta-server"} | json | event="worker.job_outcome" | kind="voice_note.transcribe"
 
 # One worker job across all its events
 {service="mawta-server"} | json | task_id="42"

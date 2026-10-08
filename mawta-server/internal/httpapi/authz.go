@@ -140,22 +140,6 @@ func (a *API) requireScoreAccess(ctx context.Context, tx pgx.Tx, tc db.TenantCtx
 	return a.requireClassAccess(ctx, tx, tc, classID)
 }
 
-func (a *API) requireCriterionScoreAccess(ctx context.Context, tx pgx.Tx, tc db.TenantCtx, criterionScoreID uuid.UUID) error {
-	classID, err := repo.ClassIDForCriterionScore(ctx, tx, criterionScoreID)
-	if err != nil {
-		return err
-	}
-	return a.requireClassAccess(ctx, tx, tc, classID)
-}
-
-func (a *API) requirePracticeScoreAccess(ctx context.Context, tx pgx.Tx, tc db.TenantCtx, practiceScoreID uuid.UUID) error {
-	classID, err := repo.ClassIDForPracticeScore(ctx, tx, practiceScoreID)
-	if err != nil {
-		return err
-	}
-	return a.requireClassAccess(ctx, tx, tc, classID)
-}
-
 func (a *API) requireCompetencyAccess(ctx context.Context, tx pgx.Tx, tc db.TenantCtx, competencyID uuid.UUID) error {
 	subjectID, err := repo.SubjectIDForCompetency(ctx, tx, competencyID)
 	if err != nil {

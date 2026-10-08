@@ -62,14 +62,13 @@ func Load(ctx context.Context, tx pgx.Tx, s *Spec, cat *curriculum.Catalog, bcry
 		return nil, err
 	}
 	l := &loader{
-		ctx:     ctx,
-		tx:      tx,
-		s:       s,
-		cat:     cat,
-		mod:     s.Colegio.CodigoModular,
-		anio:    fmt.Sprint(s.AnioEscolar.Anio),
-		schemes: map[string]uuid.UUID{},
-		sum:     &Summary{Colegio: s.Colegio.Nombre},
+		ctx:  ctx,
+		tx:   tx,
+		s:    s,
+		cat:  cat,
+		mod:  s.Colegio.CodigoModular,
+		anio: fmt.Sprint(s.AnioEscolar.Anio),
+		sum:  &Summary{Colegio: s.Colegio.Nombre},
 	}
 	l.tenant = ID("tenant", l.mod, "")
 	l.year = ID("year", l.mod, l.anio)
@@ -116,7 +115,6 @@ type loader struct {
 	tenant   uuid.UUID
 	year     uuid.UUID
 	firstDay string // earliest periodo start: when titulars and horarios begin
-	schemes  map[string]uuid.UUID
 	sum      *Summary
 }
 
@@ -195,9 +193,8 @@ func (l *loader) colegio() error {
 		tz = "America/Lima"
 	}
 	if err := l.exec(`
-		insert into tenants (id, name, legal_name, modular_code, kind, city, region, timezone,
-		                     uses_internal_grading, status)
-		values ($1, $2, $3, $4, $5, $6, $7, $8, true, 'active')`,
+		insert into tenants (id, name, legal_name, modular_code, kind, city, region, timezone, status)
+		values ($1, $2, $3, $4, $5, $6, $7, $8, 'active')`,
 		l.tenant, c.Nombre, nz(c.RazonSocial), c.CodigoModular, c.Tipo, nz(c.Ciudad), nz(c.Region), tz); err != nil {
 		return err
 	}
@@ -308,7 +305,7 @@ func (l *loader) teacherID(usuario string) uuid.UUID { return ID("teacher", l.mo
 // ------------------------------------------------------------------ áreas --
 
 // areas copies each área's competency tree from the catalog: the subject row
-// is the school's (its name, icon and scheme are school decisions), but the
+// is the school's (its name and icon are school decisions), but the
 // competencies, capabilities and their order come from the CNEB. Legacy
 // criteria stay possible at area level so seed_demo.sql keeps working.
 func (l *loader) areas() error {
@@ -335,9 +332,6 @@ func (l *loader) areas() error {
 			if err := l.criterioLegacy(cr, j+1); err != nil {
 				return err
 			}
-		}
-		if err := l.scheme(a); err != nil {
-			return fmt.Errorf("esquema de %s: %w", a.Codigo, err)
 		}
 	}
 	// Transversales hang off no área and no single teacher, and never count
@@ -529,17 +523,14 @@ func (l *loader) standards(codigo string, comp curriculum.Competencia) error {
 	return nil
 }
 
-// scales creates the two scales every school needs. They are different in
-// kind, not just in range: AD/A/B/C are levels of achievement (the only thing
-// that goes to SIAGIE), the vigesimal 0-20 feeds the school's internal
-// average and is never the official record.
+// scales creates the one scale every school needs: AD/A/B/C are levels of
+// achievement, the only thing that goes to SIAGIE. Marks given to an evidence
+// are never a scale of their own, so there is nothing else to create.
 func (l *loader) scales() error {
 	if err := l.exec(`
 		insert into grade_scales (id, tenant_id, code, name, kind, min_value, max_value, decimals)
-		values ($1, $3, $4, 'Escala MINEDU AD/A/B/C', 'ordinal', 1, 4, 0),
-		       ($2, $3, $5, 'Sistema interno vigesimal', 'numeric', 0, 20, 0)`,
-		ID("scale", l.mod, scaleMinedu), ID("scale", l.mod, scaleVigesimal), l.tenant,
-		scaleMinedu, scaleVigesimal); err != nil {
+		values ($1, $2, $3, 'Escala MINEDU AD/A/B/C', 'ordinal', 1, 4, 0)`,
+		ID("scale", l.mod, scaleMinedu), l.tenant, scaleMinedu); err != nil {
 		return err
 	}
 	for _, lv := range mineduLevels {
@@ -552,57 +543,6 @@ func (l *loader) scales() error {
 			return err
 		}
 	}
-	return nil
-}
-
-// scheme creates the área's grading scheme. The order is forced by the
-// triggers: check_publishable (a plain BEFORE trigger) looks for the weights
-// the moment published_at is written, so the version goes in unpublished, the
-// weights follow, and an UPDATE publishes it.
-func (l *loader) scheme(a Area) error {
-	s := schemeFor(a)
-	schemeID := ID("scheme", l.mod, s.Codigo)
-	versionID := ID("scheme_version", l.mod, s.Codigo+":1")
-	if err := l.exec(`
-		insert into grading_schemes (id, tenant_id, scale_id, code, name, description, is_active)
-		values ($1, $2, $3, $4, $5, $6, true)`,
-		schemeID, l.tenant, ID("scale", l.mod, scaleVigesimal), s.Codigo, s.Nombre, nz(s.Descripcion)); err != nil {
-		return err
-	}
-	// effective_from is 1 January, so the version governs even the earliest
-	// periodo of the year; class_effective_grading_schemes resolves nothing
-	// for a term that starts before it. The retake cap of 0.70 (= A) keeps a
-	// recuperación from producing an AD; nothing partial shows until 20% of
-	// the term's weight is evaluated.
-	if err := l.exec(`
-		insert into grading_scheme_versions (id, tenant_id, scheme_id, version, effective_from,
-		       rounding_mode, rounding_decimals, absent_counts_as, retake_policy,
-		       retake_cap_normalized, min_evaluated_weight_for_grade, notes)
-		values ($1, $2, $3, 1, make_date($4, 1, 1), 'half_up', 0, 'zero', 'capped', 0.70, 0.20, $5)`,
-		versionID, l.tenant, schemeID, l.s.AnioEscolar.Anio,
-		"Vigente todo el "+strings.ToLower(l.s.AnioEscolar.Nombre)+"."); err != nil {
-		return err
-	}
-	for i, c := range s.Componentes {
-		componentID := ID("component", l.mod, s.Codigo+":"+c.Codigo)
-		if err := l.exec(`
-			insert into grading_components (id, tenant_id, scheme_id, code, name, sort_order)
-			values ($1, $2, $3, $4, $5, $6)`,
-			componentID, l.tenant, schemeID, c.Codigo, c.Nombre, i+1); err != nil {
-			return err
-		}
-		if err := l.exec(`
-			insert into grading_scheme_component_weights (tenant_id, scheme_version_id, component_id,
-			       weight, drop_lowest_n, aggregation, is_required)
-			values ($1, $2, $3, round($4::numeric, 6), $5, 'weighted_mean', true)`,
-			l.tenant, versionID, componentID, c.Peso, c.DescartarMasBajas); err != nil {
-			return err
-		}
-	}
-	if err := l.exec(`update grading_scheme_versions set published_at = now() where id = $1`, versionID); err != nil {
-		return err
-	}
-	l.schemes[a.Codigo] = schemeID
 	return nil
 }
 
@@ -723,10 +663,10 @@ func (l *loader) clases() error {
 			}
 			if err := l.exec(`
 				insert into courses (id, tenant_id, academic_year_id, subject_id, grade_level_id, name,
-				                     weekly_hours, grading_scheme_id)
-				values ($1, $2, $3, $4, $5, $6, $7, $8)`,
+				                     weekly_hours)
+				values ($1, $2, $3, $4, $5, $6, $7)`,
 				courseID, l.tenant, l.year, ID("subject", l.mod, c.Area), gradeID,
-				area.Nombre+" "+grados[aula.Grado].Etiqueta, horas, l.schemes[c.Area]); err != nil {
+				area.Nombre+" "+grados[aula.Grado].Etiqueta, horas); err != nil {
 				return fmt.Errorf("curso %s %s: %w", c.Area, aula.Grado, err)
 			}
 			courses[courseKey] = true

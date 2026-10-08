@@ -164,8 +164,8 @@ type CapturePolicy struct {
 //     username, code — the words a teacher or a student wrote
 //
 // What remains is deliberately narrow: identifiers of the *thing being acted
-// on* (capability_id, component_code), structural flags (kind, value_scale,
-// status, counts_toward_internal), and numbers that describe the request
+// on* (capability_id), structural flags (kind, value_scale,
+// status), and numbers that describe the request
 // rather than a person (minutes_late).
 //
 // Every entry is a Chi route pattern, never a raw path: the middleware looks
@@ -183,12 +183,11 @@ var DefaultAllowlist = map[string][]string{
 
 	// Evidence authoring: structural fields only. Title is free text;
 	// max_score, student_id and criterion_ids are student data.
-	"/api/v1/classes/{classID}/assessments": {"kind", "value_scale", "component_code", "due_at", "counts_toward_internal"},
+	"/api/v1/classes/{classID}/assessments": {"kind", "value_scale", "due_at"},
 
 	// Soft deletes: no body.
-	"/api/v1/assessments/{assessmentID}/delete":        {},
-	"/api/v1/criteria/{criterionID}/delete":            {},
-	"/api/v1/practice-scores/{practiceScoreID}/delete": {},
+	"/api/v1/assessments/{assessmentID}/delete": {},
+	"/api/v1/criteria/{criterionID}/delete":     {},
 
 	// Criterion authoring: capability_id only. Description and code are the
 	// teacher's own words.

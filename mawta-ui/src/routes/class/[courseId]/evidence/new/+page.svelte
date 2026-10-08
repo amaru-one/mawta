@@ -24,17 +24,11 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { ApiError, list } from '$lib/api/client';
-	import type {
-		AssessmentKind,
-		CompetencyCriteriaDto,
-		GradingComponentDto,
-		ValueScale,
-	} from '$lib/api/dto';
-	import { createAssessment, getGradingComponents } from '$lib/api/endpoints/classes';
+	import type { AssessmentKind, CompetencyCriteriaDto, ValueScale } from '$lib/api/dto';
+	import { createAssessment } from '$lib/api/endpoints/classes';
 	import { getClassCriteria } from '$lib/api/endpoints/criteria';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
-	import { usesInternalGrading } from '$lib/stores';
 	import { showToast } from '$lib/toast';
 
 	const courseId = $derived(page.params.courseId ?? '');
@@ -47,18 +41,13 @@
 
 	let ready = $state(false);
 	let loadError = $state(false);
-	let components = $state<GradingComponentDto[]>([]);
 	let comps = $state<CompetencyCriteriaDto[]>([]);
 
 	async function load(): Promise<void> {
 		ready = false;
 		loadError = false;
 		try {
-			const [cmp, crits] = await Promise.all([
-				getGradingComponents(courseId),
-				getClassCriteria(courseId),
-			]);
-			components = list(cmp.components);
+			const crits = await getClassCriteria(courseId);
 			comps = list(crits.competencies);
 			if (competencyId === '' && comps.length > 0) competencyId = comps[0].competency_id;
 			ready = true;
@@ -83,17 +72,10 @@
 
 	let title = $state('');
 	let kind = $state<AssessmentKind>('practica');
-	// Empty means untouched, which resolves to the first component — reading
-	// components[0] into state at init would capture it before the load lands.
-	let componentCode = $state('');
 	let dueAt = $state('');
 	let maxScore = $state('20');
 	let competencyId = $state('');
 	let picked = $state<Set<string>>(new Set());
-	// Class work counts towards the school's average; a per-student piece does
-	// not by default — a recovery task that lifted one student's average would
-	// hand them an opportunity nobody else got.
-	let countsInternal = $state(true);
 	let submitting = $state(false);
 
 	// Which scale values this evidence. It is a property of the work, not of the
@@ -102,20 +84,18 @@
 	// student's screen.
 	let scale = $state<ValueScale>('numeric');
 
-	// A school with no internal system has nothing for a mark to mean, so it
-	// falls back to the letter scale rather than a vigesimal one.
-	$effect(() => {
-		if (!$usesInternalGrading) scale = 'ordinal';
-	});
-
-	const effectiveComponent = $derived(componentCode || (components[0]?.code ?? ''));
+	// The maximum is whatever the teacher says the work is worth — 20, 18, 100 —
+	// and the app shows the mark as a percentage of it. Whole numbers only: the
+	// ruler on the student's screen has one tick per point.
+	const maxValid = $derived(
+		Number.isInteger(Number(maxScore)) && Number(maxScore) >= 1 && Number(maxScore) <= 100
+	);
 	const current = $derived(comps.find((c) => c.competency_id === competencyId) ?? null);
 	const others = $derived(comps.filter((c) => c.competency_id !== competencyId));
 
+	// At least one criterio: that is how the evidence reaches a competencia.
 	const canSubmit = $derived(
-		title.trim() !== '' &&
-			effectiveComponent !== '' &&
-			(scale !== 'numeric' || Number(maxScore) > 0)
+		title.trim() !== '' && picked.size > 0 && (scale !== 'numeric' || maxValid)
 	);
 
 	function selectCompetency(id: string): void {
@@ -143,7 +123,6 @@
 			await createAssessment(courseId, {
 				title: title.trim(),
 				kind,
-				component_code: effectiveComponent,
 				value_scale: scale,
 				// The denominator belongs to the numeric scale and to nothing else;
 				// the server rejects it on the other two rather than storing a number
@@ -152,7 +131,6 @@
 				// The input is a plain date; the API takes a timestamp.
 				due_at: dueAt === '' ? null : `${dueAt}T23:59:00-05:00`,
 				student_id: scopeStudentId,
-				counts_toward_internal: scale === 'numeric' && countsInternal,
 				criterion_ids: [...picked],
 			});
 			showToast(
@@ -192,35 +170,17 @@
 
 				<Field label="Título" type="text" bind:value={title} placeholder="Práctica calificada" />
 
-				<div class="pair">
-					<Field kind="select" label="Tipo" bind:value={kind}>
-						{#each KINDS as k (k.value)}
-							<option value={k.value}>{k.label}</option>
-						{/each}
-					</Field>
-					<div class="field">
-						{#if components.length > 0}
-							<Field
-								kind="select"
-								label="Componente"
-								value={effectiveComponent}
-								onchange={(ev) => (componentCode = ev.currentTarget.value)}
-							>
-								{#each components as c (c.code)}
-									<option value={c.code}>{c.name}</option>
-								{/each}
-							</Field>
-						{:else}
-							<span class="warn">Esta clase no tiene componentes configurados.</span>
-						{/if}
-					</div>
-				</div>
+				<Field kind="select" label="Tipo" bind:value={kind}>
+					{#each KINDS as k (k.value)}
+						<option value={k.value}>{k.label}</option>
+					{/each}
+				</Field>
 
 				<Field label="Entrega (opcional)" type="date" bind:value={dueAt} />
 
-				<!-- The scale belongs to the evidence, not to the app: one school runs a
-			     vigesimal system, another values in letters only. This is what
-			     decides which control appears on the student's screen. -->
+				<!-- The scale belongs to the evidence, not to the app: a numeric practice
+			     and a lettered exposición can share a week. This is what decides
+			     which control appears on the student's screen. -->
 				<div class="field">
 					<span class="lbl">Cómo se valora</span>
 					<Segmented
@@ -228,7 +188,7 @@
 						value={scale}
 						onchange={(value) => (scale = value as typeof scale)}
 						options={[
-							{ value: 'numeric', label: 'Vigesimal · 0–20', disabled: !$usesInternalGrading },
+							{ value: 'numeric', label: 'Numérica · sobre un máximo' },
 							{ value: 'ordinal', label: 'Literal · AD–C' },
 						]}
 					/>
@@ -236,16 +196,20 @@
 
 				{#if scale === 'numeric'}
 					<Field
-						label="Sobre"
+						label="Nota máxima"
 						type="number"
-						step="0.01"
-						min="0.01"
+						step="1"
+						min="1"
+						max="100"
 						bind:value={maxScore}
 						class="narrow"
 					/>
 				{/if}
 				<p class="note">
-					{#if scale === 'ordinal'}
+					{#if scale === 'numeric'}
+						Pones la nota sobre este máximo y la pantalla del alumno la muestra como porcentaje. Una
+						nota no es un nivel de logro: ese lo pones tú al cierre, leyendo todo el periodo.
+					{:else}
 						Una letra en un trabajo no es un nivel de logro: ese lo pones tú al cierre, leyendo todo
 						el periodo.
 					{/if}
@@ -309,18 +273,6 @@
 					Esta evidencia no calcula ni sugiere nada. Al cierre, tú pones el nivel de logro de la
 					competencia leyendo todas las del periodo.
 				</p>
-
-				{#if scale === 'numeric'}
-					<Checkbox bind:checked={countsInternal}>
-						<span class="grow">
-							Cuenta para el promedio interno del colegio
-							<span class="isub">
-								Es el sistema vigesimal de la IE, aparte del registro oficial. Marcarla o no, no
-								cambia el nivel de logro.
-							</span>
-						</span>
-					</Checkbox>
-				{/if}
 
 				<Button
 					variant="primary"
@@ -416,16 +368,6 @@
 		width: 100%;
 	}
 
-	.pair {
-		display: flex;
-		gap: 10px;
-	}
-
-	.pair .field {
-		flex: 1;
-		min-width: 0;
-	}
-
 	.note {
 		margin: 10px 0 0;
 		font-size: var(--mw-type-caption-size);
@@ -514,17 +456,6 @@
 	.chevron {
 		display: flex;
 		flex-shrink: 0;
-		color: var(--mw-ink-muted);
-	}
-	.view :global(.internal) {
-		margin-top: 22px;
-	}
-
-	.isub {
-		display: block;
-		margin-top: 2px;
-		font-size: var(--mw-type-label-size);
-		line-height: 1.35;
 		color: var(--mw-ink-muted);
 	}
 	.view :global(.submit) {

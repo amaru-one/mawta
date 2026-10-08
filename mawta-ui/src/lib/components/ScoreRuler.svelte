@@ -26,9 +26,12 @@
 	// writing a score on every pixel.
 	let dragging = $state<number | null>(null);
 
+	// One tick per whole point. A maximum that is not a whole number (the API
+	// accepts any positive one) is drawn up to its last whole point.
+	const top = $derived(Math.max(1, Math.floor(max)));
 	const shown = $derived(dragging ?? value);
-	const ticks = $derived(Array.from({ length: max + 1 }, (_, i) => i));
-	const midLabel = $derived(Math.round(max / 2));
+	const ticks = $derived(Array.from({ length: top + 1 }, (_, i) => i));
+	const midLabel = $derived(Math.round(top / 2));
 
 	// Each tick owns an equal column, so the column under the finger *is* the
 	// value — no nearest-tick search.
@@ -36,7 +39,7 @@
 		if (track === null) return 0;
 		const r = track.getBoundingClientRect();
 		const t = (clientX - r.left) / r.width;
-		return Math.max(0, Math.min(max, Math.floor(t * (max + 1))));
+		return Math.max(0, Math.min(top, Math.floor(t * (top + 1))));
 	}
 
 	function down(e: PointerEvent): void {
@@ -71,7 +74,7 @@
 			onselect(Math.max(0, from - 1));
 		} else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
 			e.preventDefault();
-			onselect(Math.min(max, from + 1));
+			onselect(Math.min(top, from + 1));
 		}
 	}
 </script>
@@ -116,7 +119,7 @@
 		<div class="labels">
 			{#each ticks as t (t)}
 				<span class="lbl">
-					{#if t === 0 || t === max || t === midLabel}{t}{/if}
+					{#if t === 0 || t === top || t === midLabel}{t}{/if}
 				</span>
 			{/each}
 		</div>

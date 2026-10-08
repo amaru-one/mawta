@@ -1,21 +1,9 @@
 import { apiGet, apiSend } from '../client';
-import type { AssessmentCreateDto, ClassDashboardDto, GradingComponentsDto } from '../dto';
+import type { AssessmentCreateDto, ClassDashboardDto } from '../dto';
 
 export function getClassDashboard(classId: string, termId?: string): Promise<ClassDashboardDto> {
 	const qs = termId ? `?term_id=${termId}` : '';
 	return apiGet<ClassDashboardDto>(`/classes/${classId}/dashboard${qs}`);
-}
-
-// The components of the class's effective grading scheme — the sections the
-// evidence accordion groups by, and the options in the "añadir evidencia"
-// dialog. Read from the scheme rather than from the assessments that exist, so
-// a component with nothing filed under it yet is still offered.
-export function getGradingComponents(
-	classId: string,
-	termId?: string
-): Promise<GradingComponentsDto> {
-	const qs = termId ? `?term_id=${termId}` : '';
-	return apiGet<GradingComponentsDto>(`/classes/${classId}/grading-components${qs}`);
 }
 
 // Files one piece of evidencia. `student_id` omitted creates a column for the

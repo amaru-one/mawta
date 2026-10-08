@@ -679,10 +679,14 @@ type ExperienceCriterion struct {
 }
 
 type ExperienceEvidence struct {
-	ID           uuid.UUID   `json:"id"`
-	ExperienceID uuid.UUID   `json:"experience_id"`
-	Name         string      `json:"name"`
-	Kind         string      `json:"kind"`
+	ID           uuid.UUID `json:"id"`
+	ExperienceID uuid.UUID `json:"experience_id"`
+	Name         string    `json:"name"`
+	Kind         string    `json:"kind"`
+	// ValueScale is how the evidence will be valued once the experience is
+	// planned: 'numeric' (a mark out of MaxScore) or 'ordinal' (AD/A/B/C).
+	ValueScale   string      `json:"value_scale"`
+	MaxScore     *float64    `json:"max_score"`
 	CriterionIDs []uuid.UUID `json:"criterion_ids"`
 	SessionDate  *string     `json:"session_date"`
 	ProposedBy   string      `json:"proposed_by"`
@@ -820,7 +824,7 @@ func listExperienceCriteria(ctx context.Context, tx pgx.Tx, experienceID, criter
 // one of them when evidenceID is set.
 func listExperienceEvidences(ctx context.Context, tx pgx.Tx, experienceID, evidenceID uuid.UUID) ([]ExperienceEvidence, error) {
 	rows, err := tx.Query(ctx, `
-		select pe.id, pe.experience_id, pe.name, pe.kind,
+		select pe.id, pe.experience_id, pe.name, pe.kind, pe.value_scale, pe.max_score,
 		       coalesce((select array_agg(pc.criterion_id order by pc.created_at)
 		                   from planned_evidence_criteria pc
 		                  where pc.evidence_id = pe.id and pc.deleted_at is null), '{}'),
@@ -839,7 +843,7 @@ func listExperienceEvidences(ctx context.Context, tx pgx.Tx, experienceID, evide
 	out := []ExperienceEvidence{}
 	for rows.Next() {
 		var ev ExperienceEvidence
-		if err := rows.Scan(&ev.ID, &ev.ExperienceID, &ev.Name, &ev.Kind, &ev.CriterionIDs, &ev.SessionDate,
+		if err := rows.Scan(&ev.ID, &ev.ExperienceID, &ev.Name, &ev.Kind, &ev.ValueScale, &ev.MaxScore, &ev.CriterionIDs, &ev.SessionDate,
 			&ev.ProposedBy, &ev.AcceptedAt); err != nil {
 			return nil, err
 		}
@@ -1538,10 +1542,44 @@ func GetPlannedCriterion(ctx context.Context, tx pgx.Tx, criterionID uuid.UUID) 
 var evidenceKinds = map[string]bool{"produccion": true, "actuacion": true, "prueba_escrita": true}
 
 type EvidenceInput struct {
-	Name         string
-	Kind         string
+	Name string
+	Kind string
+	// ValueScale is 'numeric' or 'ordinal'; empty means numeric. MaxScore is
+	// the numeric maximum; nil means the default of defaultEvidenceMaxScore.
+	ValueScale   string
+	MaxScore     *float64
 	CriterionIDs []uuid.UUID
 	SessionDate  *time.Time
+}
+
+// defaultEvidenceMaxScore is the maximum a numeric planned evidence gets when
+// the teacher names none. It is only a default: any positive maximum is valid.
+const defaultEvidenceMaxScore = 20
+
+// resolveEvidenceScale validates a scale and its maximum and fills in the
+// default. A numeric evidence always ends with a maximum; an ordinal one never
+// has one.
+func resolveEvidenceScale(valueScale string, maxScore *float64) (string, *float64, error) {
+	if valueScale == "" {
+		valueScale = "numeric"
+	}
+	switch valueScale {
+	case "numeric":
+		if maxScore == nil {
+			m := float64(defaultEvidenceMaxScore)
+			return valueScale, &m, nil
+		}
+		if *maxScore <= 0 {
+			return "", nil, badInput("bad_request", "max_score debe ser mayor que 0")
+		}
+		return valueScale, maxScore, nil
+	case "ordinal":
+		if maxScore != nil {
+			return "", nil, badInput("bad_request", "una evidencia ordinal (AD/A/B/C) no lleva max_score")
+		}
+		return valueScale, nil, nil
+	}
+	return "", nil, badInput("bad_request", "value_scale debe ser numeric u ordinal")
 }
 
 func checkEvidenceKind(kind string) error {
@@ -1674,6 +1712,10 @@ func createPlannedEvidence(ctx context.Context, tx pgx.Tx, experienceID uuid.UUI
 	if err := checkEvidenceKind(in.Kind); err != nil {
 		return uuid.Nil, err
 	}
+	valueScale, maxScore, err := resolveEvidenceScale(in.ValueScale, in.MaxScore)
+	if err != nil {
+		return uuid.Nil, err
+	}
 	criterionIDs := dedupe(in.CriterionIDs)
 	if err := checkEvidenceCriteria(ctx, tx, h.ID, criterionIDs); err != nil {
 		return uuid.Nil, err
@@ -1689,10 +1731,11 @@ func createPlannedEvidence(ctx context.Context, tx pgx.Tx, experienceID uuid.UUI
 
 	var id uuid.UUID
 	if err := tx.QueryRow(ctx, `
-		insert into planned_evidences (tenant_id, experience_id, name, kind, proposed_by, accepted_at)
-		values (app.current_tenant_id(), $1, $2, $3, $4, case when $4 = 'teacher' then now() end)
+		insert into planned_evidences (tenant_id, experience_id, name, kind, value_scale, max_score,
+		                               proposed_by, accepted_at)
+		values (app.current_tenant_id(), $1, $2, $3, $5, $6, $4, case when $4 = 'teacher' then now() end)
 		returning id
-	`, h.ID, name, in.Kind, by).Scan(&id); err != nil {
+	`, h.ID, name, in.Kind, by, valueScale, maxScore).Scan(&id); err != nil {
 		return uuid.Nil, err
 	}
 	if err := setEvidenceCriteria(ctx, tx, id, criterionIDs); err != nil {
@@ -1709,8 +1752,13 @@ func createPlannedEvidence(ctx context.Context, tx pgx.Tx, experienceID uuid.UUI
 // EvidencePatch changes the fields that are set. SessionDateSet with a nil
 // SessionDate unplaces the evidence.
 type EvidencePatch struct {
-	Name           *string
-	Kind           *string
+	Name *string
+	Kind *string
+	// ValueScale and MaxScore change how the evidence will be valued. Setting
+	// the scale to ordinal clears the maximum; setting only MaxScore keeps a
+	// numeric scale.
+	ValueScale     *string
+	MaxScore       *float64
 	CriterionIDs   *[]uuid.UUID
 	SessionDateSet bool
 	SessionDate    *time.Time
@@ -1750,6 +1798,32 @@ func UpdatePlannedEvidence(ctx context.Context, tx pgx.Tx, evidenceID uuid.UUID,
 			return err
 		}
 	}
+	var newScale *string
+	var newMax *float64
+	setScale := p.ValueScale != nil || p.MaxScore != nil
+	if setScale {
+		var curScale string
+		var curMax *float64
+		if err := tx.QueryRow(ctx, `select value_scale, max_score from planned_evidences where id = $1`,
+			evidenceID).Scan(&curScale, &curMax); err != nil {
+			return err
+		}
+		scale, max := curScale, curMax
+		if p.ValueScale != nil {
+			scale = *p.ValueScale
+			if scale != curScale {
+				max = nil // the old maximum belongs to the old scale
+			}
+		}
+		if p.MaxScore != nil {
+			max = p.MaxScore
+		}
+		s, m, err := resolveEvidenceScale(scale, max)
+		if err != nil {
+			return err
+		}
+		newScale, newMax = &s, m
+	}
 	if p.CriterionIDs != nil {
 		ids := dedupe(*p.CriterionIDs)
 		if err := checkEvidenceCriteria(ctx, tx, h.ID, ids); err != nil {
@@ -1775,9 +1849,11 @@ func UpdatePlannedEvidence(ctx context.Context, tx pgx.Tx, evidenceID uuid.UUID,
 	_, err = tx.Exec(ctx, `
 		update planned_evidences
 		   set name = coalesce($2, name), kind = coalesce($3, kind),
+		       value_scale = coalesce($4, value_scale),
+		       max_score = case when $4::text is null then max_score else $5::numeric end,
 		       accepted_at = coalesce(accepted_at, now())
 		 where id = $1
-	`, evidenceID, name, p.Kind)
+	`, evidenceID, name, p.Kind, newScale, newMax)
 	if err != nil {
 		return err
 	}

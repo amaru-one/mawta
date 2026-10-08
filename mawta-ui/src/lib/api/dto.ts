@@ -7,13 +7,7 @@
 export type SessionStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'rescheduled';
 export type ScoreStatus = 'graded' | 'excused' | 'absent' | 'not_submitted';
 export type AssessmentKind =
-	| 'examen'
-	| 'practica'
-	| 'tarea'
-	| 'proyecto'
-	| 'exposicion'
-	| 'participacion'
-	| 'otro';
+	'examen' | 'practica' | 'tarea' | 'proyecto' | 'exposicion' | 'participacion' | 'otro';
 export type VoiceNoteStatus = 'draft' | 'saved' | 'discarded';
 export type NotificationKind = 'alert' | 'reminder';
 // memberships.role / user_sessions.role — mirrors internal/domain/consts.go.
@@ -32,11 +26,6 @@ export type MeDto = {
 		name: string;
 		city: string | null;
 		timezone: string;
-		/** Whether the school runs its own weighted numeric system alongside the
-		 *  official record (D.S. 009-2006-ED art. 37.4.f). False hides every mark
-		 *  input and the computed grade; niveles de logro are unaffected, since
-		 *  the official record never comes from a number either way. */
-		uses_internal_grading: boolean;
 	};
 };
 
@@ -109,8 +98,7 @@ export type ClassDashboardDto = {
 		expected: number;
 		asistencia_pct: number | null;
 	};
-	/** Counts of asserted niveles de logro — the official record, not the
-	 *  internal weighted system. */
+	/** Counts of asserted niveles de logro — the official record. */
 	distribution: { code: string; count: number }[] | null;
 	grades_pending: { assessment_id: string; title: string; missing: number }[] | null;
 	attendance_unmarked: { session_id: string; session_date: string }[] | null;
@@ -133,10 +121,10 @@ export type RosterEntryDto = {
 	voice_notes: RosterVoiceNoteDto[] | null;
 };
 
-// The server still sends `attendance_status` per row and `section_average_code`
-// / `attendance_marked` / `attendance_total` on the header. Nothing reads them
-// since the lesson screen became a recording screen, so they are off the DTO
-// per this folder's read-nowhere rule — the wire is unchanged.
+// The server still sends `attendance_status` per row and `attendance_marked` /
+// `attendance_total` on the header. Nothing reads them since the lesson screen
+// became a recording screen, so they are off the DTO per this folder's
+// read-nowhere rule — the wire is unchanged.
 export type SessionRosterDto = {
 	header: {
 		session_id: string;
@@ -150,19 +138,24 @@ export type SessionRosterDto = {
 	roster: RosterEntryDto[] | null;
 };
 
-// ---- grades ----
+// ---- evidence ----
 
-/** How one piece of evidencia is valued. `ordinal` is a letter ON THAT WORK and
- *  is not a nivel de logro: the level of a competencia is asserted separately,
- *  after reading the whole period. Nothing converts between them. */
+/** How one piece of evidencia is valued, a property of the work itself.
+ *  `numeric` is a mark out of the evidence's own `max_score`, shown as a
+ *  percentage; `ordinal` is an AD/A/B/C level ON THAT WORK. Neither is a nivel
+ *  de logro: the level of a competencia is asserted separately, after reading
+ *  the whole period. Nothing converts between them. */
 export type ValueScale = 'numeric' | 'ordinal';
 
-export type AttemptDto = {
+/** A student's valuation of one piece of evidencia. There is one per student
+ *  and evidence; a correction replaces it. */
+export type ScoreDto = {
 	score_id: string;
-	attempt_number: number;
 	status: ScoreStatus;
-	/** Set when the assessment's `value_scale` is `numeric`. */
+	/** Set when the evidence's `value_scale` is `numeric`. */
 	raw_value: number | null;
+	/** `raw_value` over `max_score`, 0–100. For display only. */
+	percentage: number | null;
 	/** Set when it is `ordinal`. Exactly one of the two is ever non-null. */
 	level: NivelLogro | null;
 };
@@ -176,8 +169,9 @@ export type CriterionRefDto = {
 	description: string;
 };
 
-/** A graded item as *evidence*. Carries no weight: under RVM 094-2020 a mark
- *  informs the teacher's judgement and never feeds a final grade. */
+/** A piece of evidence with the student's valuation of it. Carries no weight:
+ *  under RVM 094-2020 a mark informs the teacher's judgement and never feeds a
+ *  final grade. */
 export type EvaluationDto = {
 	assessment_id: string;
 	title: string;
@@ -186,82 +180,30 @@ export type EvaluationDto = {
 	/** The denominator, present only when `value_scale` is `numeric`. */
 	max_score: number | null;
 	due_at: string | null;
-	component_code: string;
-	component_name: string;
 	/** True when the assessment was created for this student alone rather than
 	 *  for the whole class (`assessments.student_id`). */
 	is_personal: boolean;
-	/** Whether this evidence feeds the school's internal weighted average. It
-	 *  always feeds the official judgement — the criterio levels below count
-	 *  regardless, because the norm knows nothing about this flag. */
-	counts_toward_internal: boolean;
 	criteria: CriterionRefDto[] | null;
-	attempts: AttemptDto[] | null;
+	/** Null until the teacher values this student's work. */
+	score: ScoreDto | null;
 };
-
-/** The school's OPTIONAL INTERNAL weighted system — never the official
- *  record, and never a forecast. The official record is the nivel de logro
- *  per competencia (CompetencyLevelDto). */
-export type ComputedGradeDto = {
-	normalized_value: number;
-	display_value: string | null;
-	evaluated_weight: number;
-	total_weight: number;
-};
-
-export type PracticeScoreDto = {
-	id: string;
-	title: string;
-	kind: AssessmentKind;
-	raw_value: number;
-	max_value: number;
-	note: string | null;
-	recorded_at: string;
-};
-
-export type StudentGradesDto = {
-	computed_grade: ComputedGradeDto | null;
-	evaluations: EvaluationDto[] | null;
-	practice_scores: PracticeScoreDto[] | null;
-};
-
-/** One grading component of the class's effective scheme — the accordion
- *  section a piece of evidence is filed under. */
-export type GradingComponentDto = {
-	code: string;
-	name: string;
-};
-
-export type GradingComponentsDto = { components: GradingComponentDto[] | null };
 
 export type AssessmentCreateDto = {
 	title: string;
 	kind?: AssessmentKind;
-	component_code: string;
-	/** Omitted means `numeric`, which every assessment was before scales existed. */
+	/** Omitted means `numeric`. */
 	value_scale?: ValueScale;
-	/** Required for `numeric`, and must be omitted for the other two. */
+	/** Required for `numeric` (any value above 0), and must be omitted for `ordinal`. */
 	max_score?: number | null;
 	due_at?: string | null;
 	term_id?: string | null;
 	/** Omitted or null files the evidence for the whole class; set, it is
 	 *  evidencia for that student alone. */
 	student_id?: string | null;
-	/** Whether this evidence feeds the school's internal weighted average.
-	 *  Omit for true. False keeps it in the official judgement and out of the
-	 *  school's own number — the recovery task given to one student. */
-	counts_toward_internal?: boolean;
-	/** Which criterios de evaluación the evidence speaks to. Evidence for the
-	 *  teacher's judgement — never rolled up into a nivel de logro. */
-	criterion_ids?: string[];
-};
-
-export type PracticeScoreCreateDto = {
-	title: string;
-	kind?: AssessmentKind;
-	raw_value: number;
-	max_value: number;
-	note?: string | null;
+	/** Which criterios de evaluación the evidence speaks to — at least one: that
+	 *  is how it reaches a competencia. Evidence for the teacher's judgement,
+	 *  never rolled up into a nivel de logro. */
+	criterion_ids: string[];
 };
 
 /** The value of one piece of work: `raw_value` on a numeric assessment, `level`
@@ -618,6 +560,10 @@ export type PlannedEvidenceDto = {
 	experience_id: string;
 	name: string;
 	kind: EvidenceKind;
+	/** How it will be valued once the experience is planned. */
+	value_scale: ValueScale;
+	/** The maximum of a `numeric` evidence; null for an `ordinal` one. */
+	max_score: number | null;
 	/** Criterios of this experience the evidencia speaks to, of any of its competencies. */
 	criterion_ids: string[] | null;
 	/** The class date whose session entry holds it, when it is placed. */
@@ -699,6 +645,10 @@ export type UpdateCriterionBody = {
 export type CreateEvidenceBody = {
 	name: string;
 	kind: EvidenceKind;
+	/** Omitted means `numeric`. */
+	value_scale?: ValueScale;
+	/** For `numeric`; omitted means 20. Must be omitted for `ordinal`. */
+	max_score?: number | null;
 	/** At least one, of this experience. */
 	criterion_ids: string[];
 	session_date?: string | null;
@@ -707,6 +657,9 @@ export type CreateEvidenceBody = {
 export type UpdateEvidenceBody = {
 	name?: string;
 	kind?: EvidenceKind;
+	/** Switching to `ordinal` clears the maximum. */
+	value_scale?: ValueScale;
+	max_score?: number | null;
 	criterion_ids?: string[];
 	session_date?: string | null;
 };

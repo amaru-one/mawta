@@ -2,7 +2,7 @@
 // $lib/api translate between the two.
 
 import type { IconName } from './icons';
-import type { Tier } from './grades';
+import type { Tier } from './levels';
 
 // --- View models built from the API ---
 

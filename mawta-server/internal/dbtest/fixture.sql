@@ -21,9 +21,6 @@
 --     the class's grade_level_id must equal BOTH of theirs.
 --   * terms_no_overlap uses an INCLUSIVE '[]' daterange, so consecutive terms
 --     must not share a boundary date.
---   * check_component_weights_sum is DEFERRED: weights must total 1 at commit.
---   * a grading_scheme_version cannot be INSERTed already published — publish
---     it in a later UPDATE, once its weights exist.
 --   * scores.class_id/term_id are filled by a BEFORE INSERT trigger and must
 --     not be supplied.
 --   * an assessment must be 'published' before any score row can exist.
@@ -100,11 +97,9 @@ insert into section_memberships (tenant_id, student_id, section_id, academic_yea
   ('a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000104', 'a0000000-0000-4000-8000-000000000041', 'a0000000-0000-4000-8000-000000000030', '2026-03-01', 'active'),
   ('a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000105', 'a0000000-0000-4000-8000-000000000041', 'a0000000-0000-4000-8000-000000000030', '2026-03-01', 'active');
 
--- Two scales. minedu_ad_a_b_c is the official ordinal ladder; vigesimal is the
--- school's own internal system and never the official record.
+-- One scale: minedu_ad_a_b_c, the official ordinal ladder.
 insert into grade_scales (id, tenant_id, code, name, kind, min_value, max_value, decimals) values
-  ('a0000000-0000-4000-8000-000000000070', 'a0000000-0000-4000-8000-000000000001', 'minedu_ad_a_b_c', 'Escala MINEDU AD/A/B/C', 'ordinal', 1, 4, 0),
-  ('a0000000-0000-4000-8000-000000000075', 'a0000000-0000-4000-8000-000000000001', 'vigesimal_0_20', 'Sistema interno vigesimal', 'numeric', 0, 20, 0);
+  ('a0000000-0000-4000-8000-000000000070', 'a0000000-0000-4000-8000-000000000001', 'minedu_ad_a_b_c', 'Escala MINEDU AD/A/B/C', 'ordinal', 1, 4, 0);
 
 -- No passing_value on the scale and no is_passing on its levels: neither
 -- column exists. "Aprobado" is not a property of a nivel de logro — AD/A/B/C
@@ -115,33 +110,9 @@ insert into grade_scale_levels (id, tenant_id, scale_id, code, label, ordinal, m
   ('a0000000-0000-4000-8000-000000000072', 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000070', 'A',  'Esperado',    3, 0.70, 0.85),
   ('a0000000-0000-4000-8000-000000000071', 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000070', 'AD', 'Destacado',   4, 0.85, 1.00);
 
-insert into grading_schemes (id, tenant_id, scale_id, code, name) values
-  ('a0000000-0000-4000-8000-000000000080', 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000075', 'matematica_estandar', 'Matemática — estándar');
-
-insert into grading_components (id, tenant_id, scheme_id, code, name) values
-  ('a0000000-0000-4000-8000-000000000082', 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000080', 'practicas', 'Prácticas');
-
--- Insert unpublished, add the weights, then publish. A scheme version cannot
--- be created already-published: forbid_publish_without_components is a plain
--- BEFORE trigger, not a deferred one, so it looks for the weights the moment
--- published_at is set and they do not exist yet.
---
--- effective_from must precede the earliest term this version governs, or
--- class_effective_grading_schemes resolves nothing for the live term.
-insert into grading_scheme_versions (id, tenant_id, scheme_id, version, effective_from) values
-  ('a0000000-0000-4000-8000-000000000081', 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000080', 1, '2026-01-01');
-
--- One component at weight 1: check_component_weights_sum IS deferred and fires
--- at commit, so the total has to be exactly 1 by then.
-insert into grading_scheme_component_weights (tenant_id, scheme_version_id, component_id, weight, aggregation) values
-  ('a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000081', 'a0000000-0000-4000-8000-000000000082', 1.0, 'mean');
-
-update grading_scheme_versions set published_at = '2026-01-01T00:00:00Z'
- where id = 'a0000000-0000-4000-8000-000000000081';
-
-insert into courses (id, tenant_id, academic_year_id, subject_id, grade_level_id, name, grading_scheme_id) values
+insert into courses (id, tenant_id, academic_year_id, subject_id, grade_level_id, name) values
   ('a0000000-0000-4000-8000-000000000051', 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000030',
-   'a0000000-0000-4000-8000-000000000050', 'a0000000-0000-4000-8000-000000000040', 'Matemática 5to', 'a0000000-0000-4000-8000-000000000080');
+   'a0000000-0000-4000-8000-000000000050', 'a0000000-0000-4000-8000-000000000040', 'Matemática 5to');
 
 insert into classes (id, tenant_id, academic_year_id, grade_level_id, course_id, section_id, code, name, status) values
   ('a0000000-0000-4000-8000-000000000052', 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000030',
@@ -158,31 +129,30 @@ insert into class_sessions (id, tenant_id, academic_year_id, class_id, term_id, 
    'a0000000-0000-4000-8000-000000000052', 'a0000000-0000-4000-8000-000000000032', '2026-05-18',
    '2026-05-18T13:00:00Z', '2026-05-18T14:30:00Z', 'completed', '2026-05-18T13:02:00Z', 'a0000000-0000-4000-8000-000000000011');
 
--- A numeric assessment (carries max_score, gets `scores` rows) and a rubric
--- one (no max_score, never counts toward the internal average, valued only
--- through criterion_scores). Both shapes have to exist: the rubric path has no
--- `scores` row at all and would otherwise go untested.
-insert into assessments (id, tenant_id, class_id, term_id, scheme_id, component_id, session_id, title, kind, value_scale, max_score, status, published_at, counts_toward_internal, created_by_id) values
+-- A numeric assessment (carries max_score, valued with a raw mark) and an
+-- ordinal one (no max_score, valued with an AD/A/B/C level). Both shapes have
+-- to exist: the two value kinds follow different paths through `scores`. Every
+-- evidence is tagged with at least one criterio.
+insert into assessments (id, tenant_id, class_id, term_id, session_id, title, kind, value_scale, max_score, status, published_at, created_by_id) values
   ('a0000000-0000-4000-8000-000000000120', 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000052',
-   'a0000000-0000-4000-8000-000000000032', 'a0000000-0000-4000-8000-000000000080', 'a0000000-0000-4000-8000-000000000082',
-   'a0000000-0000-4000-8000-000000000110', 'Práctica 1', 'practica', 'numeric', 20, 'published', '2026-05-18T13:00:00Z', true,
+   'a0000000-0000-4000-8000-000000000032',
+   'a0000000-0000-4000-8000-000000000110', 'Práctica 1', 'practica', 'numeric', 20, 'published', '2026-05-18T13:00:00Z',
    'a0000000-0000-4000-8000-000000000011'),
   ('a0000000-0000-4000-8000-000000000121', 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000052',
-   'a0000000-0000-4000-8000-000000000032', 'a0000000-0000-4000-8000-000000000080', 'a0000000-0000-4000-8000-000000000082',
-   null, 'Rúbrica de modelación', 'proyecto', 'rubric', null, 'published', '2026-05-18T13:00:00Z', false,
+   'a0000000-0000-4000-8000-000000000032',
+   null, 'Proyecto de modelación', 'proyecto', 'ordinal', null, 'published', '2026-05-18T13:00:00Z',
    'a0000000-0000-4000-8000-000000000011');
 
--- Only the rubric is tagged with criterios, so requireAssessmentCriterionTag
--- has both a tagged and an untagged assessment to distinguish.
 insert into assessment_criteria (tenant_id, assessment_id, criterion_id) values
+  ('a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000120', 'a0000000-0000-4000-8000-000000000063'),
   ('a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000121', 'a0000000-0000-4000-8000-000000000063'),
   ('a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000121', 'a0000000-0000-4000-8000-000000000064');
 
 -- class_id and term_id are omitted on purpose: a BEFORE INSERT trigger copies
 -- them from the assessment and raises if they are inconsistent.
-insert into scores (id, tenant_id, assessment_id, student_id, attempt_number, attempt_kind, status, raw_value, max_value, recorded_by_id) values
+insert into scores (id, tenant_id, assessment_id, student_id, status, raw_value, max_value, recorded_by_id) values
   ('a0000000-0000-4000-8000-000000000122', 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000120',
-   'a0000000-0000-4000-8000-000000000101', 1, 'original', 'graded', 16, 20, 'a0000000-0000-4000-8000-000000000011');
+   'a0000000-0000-4000-8000-000000000101', 'graded', 16, 20, 'a0000000-0000-4000-8000-000000000011');
 
 -- ---------------------------------------------------------------- tenant B --
 -- A second school, so tenant isolation has something to isolate. Kept minimal:
@@ -236,30 +206,15 @@ insert into grade_scale_levels (id, tenant_id, scale_id, code, label, ordinal, m
   ('b0000000-0000-4000-8000-000000000072', 'b0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000070', 'A',  'Esperado',   3, 0.70, 0.85),
   ('b0000000-0000-4000-8000-000000000071', 'b0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000070', 'AD', 'Destacado',  4, 0.85, 1.00);
 
-insert into grading_schemes (id, tenant_id, scale_id, code, name) values
-  ('b0000000-0000-4000-8000-000000000080', 'b0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000070', 'estandar', 'Estándar');
-
-insert into grading_components (id, tenant_id, scheme_id, code, name) values
-  ('b0000000-0000-4000-8000-000000000082', 'b0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000080', 'practicas', 'Prácticas');
-
-insert into grading_scheme_versions (id, tenant_id, scheme_id, version, effective_from) values
-  ('b0000000-0000-4000-8000-000000000081', 'b0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000080', 1, '2026-01-01');
-
-insert into grading_scheme_component_weights (tenant_id, scheme_version_id, component_id, weight, aggregation) values
-  ('b0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000081', 'b0000000-0000-4000-8000-000000000082', 1.0, 'mean');
-
-update grading_scheme_versions set published_at = '2026-01-01T00:00:00Z'
- where id = 'b0000000-0000-4000-8000-000000000081';
-
 insert into students (id, tenant_id, student_code, given_name, paternal_surname, status) values
   ('b0000000-0000-4000-8000-000000000101', 'b0000000-0000-4000-8000-000000000001', 'EST-2026-501', 'Nadia', 'Nolasco', 'active');
 
 insert into section_memberships (tenant_id, student_id, section_id, academic_year_id, joined_on, status) values
   ('b0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000101', 'b0000000-0000-4000-8000-000000000041', 'b0000000-0000-4000-8000-000000000030', '2026-03-01', 'active');
 
-insert into courses (id, tenant_id, academic_year_id, subject_id, grade_level_id, name, grading_scheme_id) values
+insert into courses (id, tenant_id, academic_year_id, subject_id, grade_level_id, name) values
   ('b0000000-0000-4000-8000-000000000051', 'b0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000030',
-   'b0000000-0000-4000-8000-000000000050', 'b0000000-0000-4000-8000-000000000040', 'Matemática 5to', 'b0000000-0000-4000-8000-000000000080');
+   'b0000000-0000-4000-8000-000000000050', 'b0000000-0000-4000-8000-000000000040', 'Matemática 5to');
 
 insert into classes (id, tenant_id, academic_year_id, grade_level_id, course_id, section_id, code, name, status) values
   ('b0000000-0000-4000-8000-000000000052', 'b0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000030',

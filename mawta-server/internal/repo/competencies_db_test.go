@@ -14,12 +14,10 @@ import (
 
 // ------------------------------------------------- nothing derives a level --
 
-// The norm's central rule, and the one thing no database constraint enforces.
-// AssertCompetencyLevel leaves suggested_level_id and computed_grade_id null
-// on purpose: under RVM 094-2020 the level is the teacher's judgement, and a
-// computed number sitting next to it is exactly the framing the norm moves
-// away from. Only a test can hold this.
-func TestAssertCompetencyLevelSuggestsNothing(t *testing.T) {
+// The norm's central rule: under RVM 094-2020 the level is the teacher's
+// judgement. AssertCompetencyLevel records who asserted it, from which class
+// and in which year, and carries nothing computed alongside it.
+func TestAssertCompetencyLevelRecordsTheJudgement(t *testing.T) {
 	env := dbtest.Setup(t)
 
 	inTx(t, env, func(ctx context.Context, tx pgx.Tx) {
@@ -29,22 +27,15 @@ func TestAssertCompetencyLevelSuggestsNothing(t *testing.T) {
 			t.Fatalf("AssertCompetencyLevel: %v", err)
 		}
 
-		var suggested, computed *uuid.UUID
 		var assertedBy uuid.UUID
 		var classID, yearID uuid.UUID
 		if err := tx.QueryRow(ctx, `
-			select suggested_level_id, computed_grade_id, asserted_by_id, class_id, academic_year_id
+			select asserted_by_id, class_id, academic_year_id
 			  from competency_term_levels where id = $1`, id).
-			Scan(&suggested, &computed, &assertedBy, &classID, &yearID); err != nil {
+			Scan(&assertedBy, &classID, &yearID); err != nil {
 			t.Fatalf("read: %v", err)
 		}
 
-		if suggested != nil {
-			t.Errorf("suggested_level_id = %v, want null — nothing may suggest a nivel de logro", *suggested)
-		}
-		if computed != nil {
-			t.Errorf("computed_grade_id = %v, want null — the official record is derived from nothing", *computed)
-		}
 		if assertedBy != env.Fx.TeacherQuispe {
 			t.Errorf("asserted_by_id = %s, want the asserting teacher", assertedBy)
 		}
@@ -228,15 +219,15 @@ func TestListClassStudentsHonoursTheRosterDate(t *testing.T) {
 // ---------------------------------------------------------------- jobs --
 
 // EnqueueJob dedupes on (kind, unique_key) while a job is still live, so a
-// burst of score writes produces one recompute rather than a queue full of
+// burst of identical enqueues produces one job rather than a queue full of
 // identical work.
 func TestEnqueueJobDedupesOnUniqueKey(t *testing.T) {
 	env := dbtest.Setup(t)
 
 	inTx(t, env, func(ctx context.Context, tx pgx.Tx) {
-		const key = "grade.recompute:test-key"
+		const key = "voice_note.transcribe:test-key"
 		for i := 0; i < 3; i++ {
-			if err := repo.EnqueueJob(ctx, tx, env.Fx.TenantA, "grade.recompute", 2, []byte(`{}`), key); err != nil {
+			if err := repo.EnqueueJob(ctx, tx, env.Fx.TenantA, "voice_note.transcribe", 2, []byte(`{}`), key); err != nil {
 				t.Fatalf("EnqueueJob %d: %v", i, err)
 			}
 		}
@@ -244,7 +235,7 @@ func TestEnqueueJobDedupesOnUniqueKey(t *testing.T) {
 		var n int
 		var queue string
 		if err := tx.QueryRow(ctx,
-			`select count(*), min(queue) from jobs where kind = 'grade.recompute' and unique_key = $1`, key).
+			`select count(*), min(queue) from jobs where kind = 'voice_note.transcribe' and unique_key = $1`, key).
 			Scan(&n, &queue); err != nil {
 			t.Fatalf("count jobs: %v", err)
 		}
@@ -259,18 +250,18 @@ func TestEnqueueJobDedupesOnUniqueKey(t *testing.T) {
 }
 
 // The enqueue rides the same transaction as the write that caused it, so a
-// rolled-back score cannot leave a recompute behind for work that never
+// rolled-back write cannot leave a job behind for work that never
 // happened.
 func TestEnqueueRollsBackWithItsTransaction(t *testing.T) {
 	env := dbtest.Setup(t)
 	ctx := context.Background()
-	const key = "grade.recompute:rollback-probe"
+	const key = "voice_note.transcribe:rollback-probe"
 
 	tx, err := env.App.Pool.Begin(ctx)
 	if err != nil {
 		t.Fatalf("begin: %v", err)
 	}
-	if err := repo.EnqueueJob(ctx, tx, env.Fx.TenantA, "grade.recompute", 2, []byte(`{}`), key); err != nil {
+	if err := repo.EnqueueJob(ctx, tx, env.Fx.TenantA, "voice_note.transcribe", 2, []byte(`{}`), key); err != nil {
 		t.Fatalf("EnqueueJob: %v", err)
 	}
 	if err := tx.Rollback(ctx); err != nil {

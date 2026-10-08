@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { ApiError } from '$lib/api/client';
 	import { login } from '$lib/api/endpoints/auth';
-	import { session, teacher, usesInternalGrading } from '$lib/stores';
+	import { session, teacher } from '$lib/stores';
 
 	let username = $state('');
 	let password = $state('');
@@ -49,7 +49,6 @@
 				shortName: name,
 				school: me.tenant.name,
 			});
-			usesInternalGrading.set(me.tenant.uses_internal_grading);
 			session.set({ status: 'authenticated', role: me.role });
 			await goto('/', { replaceState: true });
 		} catch (err) {

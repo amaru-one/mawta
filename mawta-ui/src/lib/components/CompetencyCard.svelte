@@ -3,7 +3,7 @@
 	import { untrack } from 'svelte';
 	import type { CompetencyLevel } from '$lib/types';
 	import type { CriterionDto } from '$lib/api/dto';
-	import type { Tier } from '$lib/grades';
+	import type { Tier } from '$lib/levels';
 	import LevelBadge from './LevelBadge.svelte';
 	import LevelPicker from './LevelPicker.svelte';
 

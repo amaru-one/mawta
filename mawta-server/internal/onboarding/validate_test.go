@@ -155,8 +155,6 @@ func TestValidationRules(t *testing.T) {
 			"grados[0].grado_cneb: \"9S\" no es un grado del catálogo CNEB"},
 		{"missing grado_cneb", func(s *Spec) { s.Grados[0].GradoCNEB = "" },
 			"grados[0].grado_cneb: es obligatorio"},
-		{"weights not summing to 1", func(s *Spec) { s.Areas[0].EsquemaCalificacion.Componentes[2].Peso = 0.25 },
-			"areas[0].esquema_calificacion.componentes: los pesos suman 1.05"},
 		{"aula of an unknown grado", func(s *Spec) { s.Aulas[0].Grado = "2S" },
 			"aulas[0].grado: \"2S\" no está en la lista de grados"},
 		{"tutor who is not a docente", func(s *Spec) { s.Aulas[0].Tutor = "maria" },

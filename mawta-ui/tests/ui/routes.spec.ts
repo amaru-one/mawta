@@ -1,4 +1,4 @@
-import { test, expect, routeCases, studentRoute, gradesRoute, planningBase } from './fixtures';
+import { test, expect, routeCases, studentRoute, planningBase } from './fixtures';
 
 for (const [url, title, text] of routeCases) {
 	test(`screen ${url}`, async ({ page, api }, info) => {
@@ -135,6 +135,36 @@ test('evidence deletion can be undone throughout the seven-second toast', async 
 	).toMatchObject({ name: 'Lista de precios', criterion_ids: ['criterion-1'] });
 });
 
+test('a planned evidence says how it will be valued, with its own maximum', async ({
+	page,
+	api,
+}) => {
+	await page.goto(`${planningBase}/evidences`);
+	await page.getByRole('button', { name: 'Agregar evidencia', exact: true }).click();
+	await page.getByLabel('Nombre', { exact: true }).fill('Prueba de vueltos');
+	await page.getByLabel('Nota máxima', { exact: true }).fill('15');
+	await page.getByRole('checkbox').first().check();
+	await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+	await expect
+		.poll(() => api.writes.some((w) => w.path === '/experiences/experience-1/evidences'))
+		.toBe(true);
+	expect(
+		api.writes.filter((w) => w.path === '/experiences/experience-1/evidences').at(-1)?.body
+	).toMatchObject({ name: 'Prueba de vueltos', value_scale: 'numeric', max_score: 15 });
+	await expect(page.getByText(/Se valora con nota sobre 15/)).toBeVisible();
+
+	await page.getByRole('button', { name: 'Agregar evidencia', exact: true }).click();
+	await page.getByLabel('Nombre', { exact: true }).fill('Exposición de la tienda');
+	await page.getByRole('button', { name: 'Letras · AD–C', exact: true }).click();
+	await expect(page.getByLabel('Nota máxima', { exact: true })).toHaveCount(0);
+	await page.getByRole('checkbox').first().check();
+	await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+	await expect(page.getByText(/Se valora con letras/)).toBeVisible();
+	const last = api.writes.filter((w) => w.path === '/experiences/experience-1/evidences').at(-1);
+	expect(last?.body).toMatchObject({ name: 'Exposición de la tienda', value_scale: 'ordinal' });
+	expect(last?.body.max_score ?? null).toBeNull();
+});
+
 test('sessions can be created on an empty date and summary can be confirmed', async ({
 	page,
 	api,
@@ -173,17 +203,6 @@ test('evidence scores and official level remain separate and null stays unset', 
 	await official.getByRole('radio', { name: 'C · En inicio', exact: true }).check();
 	await expect(official.locator('input:checked')).toHaveValue('C');
 	expect(api.writes.find((w) => w.path.endsWith('/competency-levels'))?.body.level).toBe('C');
-});
-
-test('schools without internal grading show no numeric controls', async ({ page, api }) => {
-	api.internal = false;
-	await page.goto(studentRoute);
-	await expect(page.getByText('Nivel de logro', { exact: true }).first()).toBeVisible();
-	await expect(page.getByRole('slider')).toHaveCount(0);
-	await page.goto(gradesRoute);
-	await expect(page.getByText('Sistema interno de la IE')).toHaveCount(0);
-	await page.getByRole('button', { name: /Prácticas/ }).click();
-	await expect(page.getByRole('spinbutton')).toHaveCount(0);
 });
 
 test('a failed screen load offers retry and recovers', async ({ page, api }) => {
@@ -251,20 +270,68 @@ test('No entregó and final conclusions preserve their distinct contracts', asyn
 		.toBe(true);
 });
 
-test('personal notes require a score and do not assert an official level', async ({
+test('a numeric evidence shows its mark as a percentage of its own maximum', async ({
 	page,
 	api,
 }) => {
-	await page.goto(gradesRoute);
-	await page.getByRole('button', { name: 'Añadir nota personal' }).click();
-	const dialog = page.getByRole('dialog', { name: 'Añadir evaluación' });
-	await dialog.getByLabel('Título', { exact: true }).fill('Práctica personal');
-	await expect(dialog.getByRole('button', { name: 'Guardar', exact: true })).toBeDisabled();
-	await dialog.getByLabel('Nota', { exact: true }).fill('0');
-	await dialog.getByRole('button', { name: 'Guardar', exact: true }).click();
-	await expect.poll(() => api.writes.some((w) => w.path.endsWith('/practice-scores'))).toBe(true);
-	expect(api.writes.find((w) => w.path.endsWith('/practice-scores'))?.body.raw_value).toBe(0);
-	expect(api.writes.some((w) => w.path.endsWith('/competency-levels'))).toBe(false);
+	api.evaluations[0].max_score = 4;
+	await page.goto(studentRoute);
+	const slider = page.getByRole('slider');
+	await expect(slider).toHaveAttribute('aria-valuemax', '4');
+	await slider.focus();
+	await page.keyboard.press('ArrowRight');
+	await expect(slider).toHaveAttribute('aria-valuenow', '1');
+	await expect(page.getByText('25 %', { exact: true })).toBeVisible();
+	expect(
+		api.writes.some((w) => w.path === '/assessments/numeric-1/scores' && w.body.raw_value === 1)
+	).toBe(true);
+});
+
+test('a literal evidence is valued with a level, never a mark', async ({ page, api }) => {
+	await page.goto(studentRoute);
+	const card = page.locator('.mw-card', { hasText: 'Explicación de estrategias' });
+	await card.getByRole('radio', { name: 'A · Esperado', exact: true }).check();
+	await expect
+		.poll(() => api.writes.some((w) => w.path === '/assessments/ordinal-1/scores'))
+		.toBe(true);
+	const write = api.writes.find((w) => w.path === '/assessments/ordinal-1/scores');
+	expect(write?.body.level).toBe('A');
+	expect(write?.body.raw_value ?? null).toBeNull();
+});
+
+test('a new evidence needs a criterio and carries its own maximum', async ({ page, api }) => {
+	await page.goto('/class/class-1/evidence/new');
+	await page.getByLabel('Título', { exact: true }).fill('Control de cálculo');
+	await page.getByLabel('Nota máxima', { exact: true }).fill('18');
+	const save = page.getByRole('button', { name: 'Guardar evidencia', exact: true });
+	await expect(save).toBeDisabled();
+	await page.getByRole('checkbox', { name: /CR1/ }).check();
+	await expect(save).toBeEnabled();
+	await save.click();
+	await expect
+		.poll(() => api.writes.some((w) => w.path === '/classes/class-1/assessments'))
+		.toBe(true);
+	expect(api.writes.find((w) => w.path === '/classes/class-1/assessments')?.body).toMatchObject({
+		title: 'Control de cálculo',
+		value_scale: 'numeric',
+		max_score: 18,
+		criterion_ids: ['criterion-1'],
+	});
+});
+
+test('a new evidence can be valued with letters, without a maximum', async ({ page, api }) => {
+	await page.goto('/class/class-1/evidence/new');
+	await page.getByLabel('Título', { exact: true }).fill('Exposición oral');
+	await page.getByRole('button', { name: 'Literal · AD–C' }).click();
+	await expect(page.getByLabel('Nota máxima', { exact: true })).toHaveCount(0);
+	await page.getByRole('checkbox', { name: /CR1/ }).check();
+	await page.getByRole('button', { name: 'Guardar evidencia', exact: true }).click();
+	await expect
+		.poll(() => api.writes.some((w) => w.path === '/classes/class-1/assessments'))
+		.toBe(true);
+	const body = api.writes.find((w) => w.path === '/classes/class-1/assessments')?.body;
+	expect(body).toMatchObject({ value_scale: 'ordinal', criterion_ids: ['criterion-1'] });
+	expect(body?.max_score ?? null).toBeNull();
 });
 
 test('missing pages use the shared shell and offer a route home', async ({ page, api }) => {

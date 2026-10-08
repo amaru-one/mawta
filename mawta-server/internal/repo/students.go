@@ -79,26 +79,25 @@ func ListClassStudents(ctx context.Context, tx pgx.Tx, classID uuid.UUID, compet
 }
 
 // ListStudentEvidence returns the period's evidencia for one student, narrowed
-// to the competencia being judged, each piece carrying its value.
+// to the competencia being judged, each piece carrying the student's valuation.
 //
 // The narrowing goes through assessment_criteria: a piece of evidence belongs
 // to a competencia when it is tagged with at least one of that competencia's
 // criterios. That is the whole job the criterio tag does — it is how the
 // teacher's note of "what to look at" ends up grouping the evidence under the
-// thing it informs. Evidence tagged with nothing belongs to no competencia and
-// appears only on the student's full grades screen.
+// thing it informs.
 //
 // Nothing here is aggregated. The list is material for a judgement the teacher
 // makes; the level itself is written by AssertCompetencyLevel.
 func ListStudentEvidence(ctx context.Context, tx pgx.Tx, classID, studentID uuid.UUID, competencyID *uuid.UUID, termID uuid.UUID) ([]EvaluationEntry, error) {
 	rows, err := tx.Query(ctx, `
-		select a.id, a.title, a.kind, a.value_scale, a.max_score, a.due_at, gc.code, gc.name,
-		       a.student_id is not null as is_personal, a.counts_toward_internal,
-		       s.id, s.attempt_number, s.attempt_kind, s.status, s.raw_value
+		select a.id, a.title, a.kind, a.value_scale, a.max_score, a.due_at,
+		       a.student_id is not null as is_personal,
+		       s.id, s.status, s.raw_value, l.code
 		  from assessments a
-		  join grading_components gc on gc.id = a.component_id
 		  left join scores s on s.assessment_id = a.id and s.student_id = $2
 		                     and s.superseded_at is null and s.deleted_at is null
+		  left join grade_scale_levels l on l.id = s.scale_level_id
 		 where a.class_id = $1 and a.term_id = $3
 		   and a.status = 'published' and a.deleted_at is null
 		   and (a.student_id is null or a.student_id = $2)
@@ -108,7 +107,7 @@ func ListStudentEvidence(ctx context.Context, tx pgx.Tx, classID, studentID uuid
 		           join evaluation_criteria ec on ec.id = ac.criterion_id
 		          where ac.assessment_id = a.id and ac.deleted_at is null
 		            and ec.competency_id = $4::uuid))
-		 order by a.due_at nulls last, a.title, s.attempt_number
+		 order by a.due_at nulls last, a.title
 	`, classID, studentID, termID, competencyID)
 	if err != nil {
 		return nil, err
@@ -120,36 +119,30 @@ func ListStudentEvidence(ctx context.Context, tx pgx.Tx, classID, studentID uuid
 	for rows.Next() {
 		var e EvaluationEntry
 		var scoreID *uuid.UUID
-		var attemptNumber *int16
-		var attemptKind, status *string
+		var status, level *string
 		var rawValue *float64
 		if err := rows.Scan(&e.AssessmentID, &e.Title, &e.Kind, &e.ValueScale, &e.MaxScore, &e.DueAt,
-			&e.ComponentCode, &e.ComponentName, &e.IsPersonal, &e.CountsTowardInternal,
-			&scoreID, &attemptNumber, &attemptKind, &status, &rawValue); err != nil {
+			&e.IsPersonal, &scoreID, &status, &rawValue, &level); err != nil {
 			return nil, err
 		}
-		entry, ok := byAssessment[e.AssessmentID]
-		if !ok {
-			entry = &e
-			entry.Criteria = []CriterionRef{}
-			entry.Attempts = []ScoreAttempt{}
-			entry.CriterionScores = []CriterionScoreEntry{}
-			byAssessment[e.AssessmentID] = entry
-			order = append(order, e.AssessmentID)
-		}
+		e.Criteria = []CriterionRef{}
 		if scoreID != nil {
-			entry.Attempts = append(entry.Attempts, ScoreAttempt{
-				ScoreID: *scoreID, AttemptNumber: *attemptNumber, AttemptKind: *attemptKind,
-				Status: *status, RawValue: rawValue,
-			})
+			sv := &ScoreView{ScoreID: *scoreID, Status: *status, RawValue: rawValue, Level: level}
+			if rawValue != nil && e.MaxScore != nil && *e.MaxScore > 0 {
+				pct := *rawValue / *e.MaxScore * 100
+				sv.Percentage = &pct
+			}
+			e.Score = sv
 		}
+		byAssessment[e.AssessmentID] = &e
+		order = append(order, e.AssessmentID)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
 	// The criterio tags, read separately: one assessment carries several, and
-	// joining them above would multiply the attempt rows.
+	// joining them above would multiply the rows.
 	critRows, err := tx.Query(ctx, `
 		select ac.assessment_id, ec.id, ec.code, ec.description
 		  from assessment_criteria ac
@@ -176,39 +169,6 @@ func ListStudentEvidence(ctx context.Context, tx pgx.Tx, classID, studentID uuid
 		}
 	}
 	if err := critRows.Err(); err != nil {
-		return nil, err
-	}
-
-	// The independent per-criterio marks, read separately for the same reason
-	// GetStudentGrades does: a rubric assessment carries no scores row at all,
-	// so its marks would otherwise be invisible here.
-	csRows, err := tx.Query(ctx, `
-		select cs.assessment_id, cs.id, cs.criterion_id, cs.student_id, cs.value_scale,
-		       cs.raw_value, cs.max_value, l.code, cs.recorded_at
-		  from criterion_scores cs
-		  join assessments a on a.id = cs.assessment_id
-		  left join grade_scale_levels l on l.id = cs.scale_level_id
-		 where a.class_id = $1 and a.term_id = $2 and cs.student_id = $3
-		   and a.status = 'published' and a.deleted_at is null
-		   and cs.superseded_at is null and cs.deleted_at is null
-		 order by cs.recorded_at
-	`, classID, termID, studentID)
-	if err != nil {
-		return nil, err
-	}
-	defer csRows.Close()
-	for csRows.Next() {
-		var assessmentID uuid.UUID
-		var entry CriterionScoreEntry
-		if err := csRows.Scan(&assessmentID, &entry.ID, &entry.CriterionID, &entry.StudentID, &entry.ValueScale,
-			&entry.RawValue, &entry.MaxValue, &entry.Level, &entry.RecordedAt); err != nil {
-			return nil, err
-		}
-		if e, ok := byAssessment[assessmentID]; ok {
-			e.CriterionScores = append(e.CriterionScores, entry)
-		}
-	}
-	if err := csRows.Err(); err != nil {
 		return nil, err
 	}
 

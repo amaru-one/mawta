@@ -48,16 +48,11 @@ type Fixture struct {
 	CriterionOne uuid.UUID
 	CriterionTwo uuid.UUID
 
-	ScaleMinedu    uuid.UUID // ordinal AD/A/B/C — the official ladder
-	LevelAD        uuid.UUID
-	LevelA         uuid.UUID
-	LevelB         uuid.UUID
-	LevelC         uuid.UUID
-	ScaleVigesimal uuid.UUID // numeric 0-20 — the school's internal system
-
-	SchemeMat          uuid.UUID
-	SchemeVersion      uuid.UUID
-	ComponentPracticas uuid.UUID
+	ScaleMinedu uuid.UUID // ordinal AD/A/B/C — the official ladder
+	LevelAD     uuid.UUID
+	LevelA      uuid.UUID
+	LevelB      uuid.UUID
+	LevelC      uuid.UUID
 
 	Students [5]uuid.UUID
 
@@ -65,10 +60,9 @@ type Fixture struct {
 
 	// AssessmentNumeric carries a max_score and real scores.
 	AssessmentNumeric uuid.UUID
-	// AssessmentRubric has no max_score and is valued only through
-	// criterion_scores — the shape that has no `scores` row at all.
-	AssessmentRubric uuid.UUID
-	ScoreOne         uuid.UUID // student 0's live score on AssessmentNumeric
+	// AssessmentOrdinal has no max_score and is valued with an AD/A/B/C level.
+	AssessmentOrdinal uuid.UUID
+	ScoreOne          uuid.UUID // student 0's live score on AssessmentNumeric
 
 	// Tenant B — I.E. San Martín
 	TenantB       uuid.UUID
@@ -104,16 +98,11 @@ var fx = Fixture{
 	CriterionOne: uuid.MustParse("a0000000-0000-4000-8000-000000000063"),
 	CriterionTwo: uuid.MustParse("a0000000-0000-4000-8000-000000000064"),
 
-	ScaleMinedu:    uuid.MustParse("a0000000-0000-4000-8000-000000000070"),
-	LevelAD:        uuid.MustParse("a0000000-0000-4000-8000-000000000071"),
-	LevelA:         uuid.MustParse("a0000000-0000-4000-8000-000000000072"),
-	LevelB:         uuid.MustParse("a0000000-0000-4000-8000-000000000073"),
-	LevelC:         uuid.MustParse("a0000000-0000-4000-8000-000000000074"),
-	ScaleVigesimal: uuid.MustParse("a0000000-0000-4000-8000-000000000075"),
-
-	SchemeMat:          uuid.MustParse("a0000000-0000-4000-8000-000000000080"),
-	SchemeVersion:      uuid.MustParse("a0000000-0000-4000-8000-000000000081"),
-	ComponentPracticas: uuid.MustParse("a0000000-0000-4000-8000-000000000082"),
+	ScaleMinedu: uuid.MustParse("a0000000-0000-4000-8000-000000000070"),
+	LevelAD:     uuid.MustParse("a0000000-0000-4000-8000-000000000071"),
+	LevelA:      uuid.MustParse("a0000000-0000-4000-8000-000000000072"),
+	LevelB:      uuid.MustParse("a0000000-0000-4000-8000-000000000073"),
+	LevelC:      uuid.MustParse("a0000000-0000-4000-8000-000000000074"),
 
 	Students: [5]uuid.UUID{
 		uuid.MustParse("a0000000-0000-4000-8000-000000000101"),
@@ -126,7 +115,7 @@ var fx = Fixture{
 	SessionOne: uuid.MustParse("a0000000-0000-4000-8000-000000000110"),
 
 	AssessmentNumeric: uuid.MustParse("a0000000-0000-4000-8000-000000000120"),
-	AssessmentRubric:  uuid.MustParse("a0000000-0000-4000-8000-000000000121"),
+	AssessmentOrdinal: uuid.MustParse("a0000000-0000-4000-8000-000000000121"),
 	ScoreOne:          uuid.MustParse("a0000000-0000-4000-8000-000000000122"),
 
 	TenantB:       uuid.MustParse("b0000000-0000-4000-8000-000000000001"),

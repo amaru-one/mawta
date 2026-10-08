@@ -8,6 +8,7 @@
 		Icon,
 		LoadingState,
 		Notice,
+		Segmented,
 	} from '$lib/design-system';
 	// The evidences step of a saved experience: where the teacher will observe
 	// the criteria. An evidencia is a producción, an actuación or a prueba
@@ -25,6 +26,7 @@
 		ExperienceCriterionDto,
 		ExperienceDto,
 		PlannedEvidenceDto,
+		ValueScale,
 	} from '$lib/api/dto';
 	import {
 		acceptEvidence,
@@ -91,6 +93,13 @@
 		prueba_escrita: 'Prueba escrita',
 	};
 
+	// How an evidencia will be valued, in the teacher's words.
+	function scaleWords(evidence: PlannedEvidenceDto): string {
+		return evidence.value_scale === 'ordinal'
+			? 'Se valora con letras · AD, A, B, C'
+			: `Se valora con nota sobre ${evidence.max_score ?? 20}`;
+	}
+
 	function criteriaOf(competencyId: string): ExperienceCriterionDto[] {
 		return criteria.filter((criterion) => criterion.competency_id === competencyId);
 	}
@@ -145,6 +154,9 @@
 		id: string | null;
 		name: string;
 		kind: EvidenceKind;
+		valueScale: ValueScale;
+		// Kept as typed; only read when the scale is numeric.
+		maxScore: string;
 		criterionIds: string[];
 	};
 
@@ -162,7 +174,14 @@
 		form =
 			form && form.id === null
 				? null
-				: { id: null, name: '', kind: 'produccion', criterionIds: [] };
+				: {
+						id: null,
+						name: '',
+						kind: 'produccion',
+						valueScale: 'numeric',
+						maxScore: '20',
+						criterionIds: [],
+					};
 	}
 
 	function openEdit(evidence: PlannedEvidenceDto): void {
@@ -172,6 +191,8 @@
 			id: evidence.id,
 			name: evidence.name,
 			kind: evidence.kind,
+			valueScale: evidence.value_scale,
+			maxScore: String(evidence.max_score ?? 20),
 			criterionIds: [...list(evidence.criterion_ids)],
 		};
 	}
@@ -183,7 +204,20 @@
 			: [...form.criterionIds, id];
 	}
 
-	const canSave = $derived(!!form && form.name.trim() !== '' && form.criterionIds.length > 0);
+	// The maximum is whatever the teacher says the work is worth, in whole
+	// points: the ruler on the student's screen has one tick per point.
+	const maxValid = $derived(
+		!!form &&
+			Number.isInteger(Number(form.maxScore)) &&
+			Number(form.maxScore) >= 1 &&
+			Number(form.maxScore) <= 100
+	);
+	const canSave = $derived(
+		!!form &&
+			form.name.trim() !== '' &&
+			form.criterionIds.length > 0 &&
+			(form.valueScale === 'ordinal' || maxValid)
+	);
 
 	async function save(): Promise<void> {
 		if (!form || !canSave || saving) return;
@@ -192,6 +226,8 @@
 		const body = {
 			name: form.name.trim(),
 			kind: form.kind,
+			value_scale: form.valueScale,
+			max_score: form.valueScale === 'numeric' ? Number(form.maxScore) : null,
 			criterion_ids: form.criterionIds,
 		};
 		try {
@@ -247,6 +283,8 @@
 			await createEvidence(experienceId, {
 				name: evidence.name,
 				kind: evidence.kind,
+				value_scale: evidence.value_scale,
+				max_score: evidence.max_score,
 				criterion_ids: [...list(evidence.criterion_ids)],
 				session_date: evidence.session_date,
 			});
@@ -340,7 +378,9 @@
 						{:else}
 							<Card>
 								<p class="ev-name">{evidence.name}</p>
-								<p class="meta ev-kind">{KIND_WORDS[evidence.kind]}</p>
+								<p class="meta ev-kind">
+									{KIND_WORDS[evidence.kind]} · {scaleWords(evidence)}
+								</p>
 								{#if groupsOf(evidence).length > 0}
 									<ul class="ev-crit">
 										{#each groupsOf(evidence) as group (group.competency.id)}
@@ -432,6 +472,29 @@
 					<option value="actuacion">Actuación</option>
 					<option value="prueba_escrita">Prueba escrita</option>
 				</Field>
+
+				<p class="f-label spaced">Cómo la valorarás</p>
+				<Segmented
+					label="Cómo la valorarás"
+					value={form.valueScale}
+					onchange={(value) => {
+						if (form) form.valueScale = value as ValueScale;
+					}}
+					options={[
+						{ value: 'numeric', label: 'Nota sobre un máximo' },
+						{ value: 'ordinal', label: 'Letras · AD–C' },
+					]}
+				/>
+				{#if form.valueScale === 'numeric'}
+					<Field
+						label="Nota máxima"
+						type="number"
+						step="1"
+						min="1"
+						max="100"
+						bind:value={form.maxScore}
+					/>
+				{/if}
 
 				<p class="f-label spaced">Criterios que observarás en ella</p>
 				{#if criteria.length === 0}

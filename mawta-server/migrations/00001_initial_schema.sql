@@ -147,7 +147,6 @@ create table tenants (
   city                     text,
   region                   text,
   timezone                 text not null default 'America/Lima',
-  uses_internal_grading    boolean not null default true,
   status                   text not null default 'active' check (status in ('active', 'suspended', 'closed')),
   created_at               timestamptz not null default now(),
   updated_at               timestamptz not null default now(),
@@ -157,9 +156,6 @@ create table tenants (
 comment on table tenants is 'Un colegio (institución educativa). Raíz de toda política RLS: app.current_tenant_id() resuelve a una fila aquí.';
 comment on column tenants.modular_code is 'Código modular MINEDU de la institución educativa, cuando tiene uno. Null para colegios privados fuera del registro.';
 comment on column tenants.timezone is 'Zona horaria IANA del colegio. Todos los timestamps se almacenan en UTC; este es el único lugar donde se define un día calendario local, y es contra el que se calcula "HOY".';
-comment on column tenants.uses_internal_grading is
-  'Si este colegio lleva su propio sistema de calificación numérica ponderada junto al registro oficial de MINEDU (el D.S. 009-2006-ED art. 37.4.f lo permite). True es el comportamiento histórico y sigue siendo el valor por defecto. False significa que el colegio solo registra niveles de logro: la interfaz deja de pedir una nota por cada evidencia y oculta computed_grades por completo. Esto nunca cambia cómo se produce el registro oficial, que en ambos casos es el juicio del docente sobre la evidencia frente a los criterios. Ningún valor de esta columna puede hacer que un número determine un nivel de logro: la RVM 048-2024 Anexo II convierte un nivel en un número, nunca al revés.';
-
 create unique index tenants_modular_code_key
   on tenants (modular_code) where modular_code is not null and deleted_at is null;
 
@@ -490,7 +486,7 @@ create table grade_levels (
   long_label  text not null,
   stage       text not null default 'secundaria'
                 check (stage in ('inicial', 'primaria', 'secundaria', 'otro')),
-  cycle       text check (cycle in ('ciclo_i', 'ciclo_ii')),
+  cycle       text check (cycle in ('ciclo_i', 'ciclo_ii', 'ciclo_iii', 'ciclo_iv', 'ciclo_v', 'ciclo_vi', 'ciclo_vii')),
   ordinal     smallint not null,
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now(),
@@ -572,7 +568,7 @@ create table competencies (
     check ((kind = 'transversal') = (subject_id is null))
 );
 
-comment on table competencies is 'Una competencia MINEDU dentro de una asignatura, ej. "Se comunica oralmente en inglés como lengua extranjera". Las assessments enlazan aquí para que el logro pueda reportarse luego por competencia y no solo por componente.';
+comment on table competencies is 'Una competencia MINEDU dentro de una asignatura, ej. "Se comunica oralmente en inglés como lengua extranjera". Las evidencias (assessments) llegan aquí a través de sus criterios de evaluación.';
 comment on column competencies.code is 'Código del currículo nacional cuando existe, o un código propio del colegio si no. No es único entre tenants por diseño: dos colegios pueden codificar la misma competencia de forma distinta.';
 comment on column competencies.kind is
   'Qué cuenta esta competencia para la promoción (RVM 094-2020 num. 5.1.3 p.9-11). ''area'': una competencia CNEB de un área curricular o taller — cuenta. ''adicional_area'': una competencia agregada por el colegio y organizada en un área curricular — cuenta (5.1.3 p.11). ''adicional_libre'': una competencia agregada por el colegio no organizada en un área — no cuenta (p.10). ''transversal'': una de las dos competencias transversales CNEB — nunca cuenta (p.9), y no lleva subject_id.';
@@ -1229,360 +1225,6 @@ select app.attach_updated_at('grade_scale_levels');
 select app.attach_soft_delete_guard('grade_scale_levels');
 
 -- ---------------------------------------------------------------------------
--- grading_schemes
--- ---------------------------------------------------------------------------
-create table grading_schemes (
-  id          uuid primary key default gen_random_uuid(),
-  tenant_id   uuid not null references tenants (id),
-  scale_id    uuid not null,
-  code        text not null,
-  name        text not null,
-  description text,
-  is_active   boolean not null default true,
-  created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now(),
-  deleted_at  timestamptz,
-  constraint grading_schemes_tenant_id_key unique (tenant_id, id),
-  constraint grading_schemes_scale_fk foreign key (tenant_id, scale_id)
-    references grade_scales (tenant_id, id)
-);
-
-comment on table grading_schemes is 'Una política de calificación con nombre, ej. "Evaluación MINEDU secundaria" o "Bachillerato 0-20". Identidad estable; las reglas viven en sus versiones.';
-
-create unique index grading_schemes_tenant_code_key
-  on grading_schemes (tenant_id, code) where deleted_at is null;
-
-select app.enable_tenant_rls('grading_schemes');
-select app.attach_updated_at('grading_schemes');
-select app.attach_soft_delete_guard('grading_schemes');
-
--- ---------------------------------------------------------------------------
--- grading_components
--- ---------------------------------------------------------------------------
--- Deliberadamente depende del scheme y no de la versión. Una assessment creada
--- en abril apunta a "Examen final"; cuando el colegio re-versiona sus pesos en
--- junio, esa assessment debe seguir resolviendo al mismo componente bajo la nueva
--- versión. Si los componentes pertenecieran a las versiones, cada re-versión dejaría huérfana
--- a cada assessment existente.
-create table grading_components (
-  id          uuid primary key default gen_random_uuid(),
-  tenant_id   uuid not null references tenants (id),
-  scheme_id   uuid not null,
-  code        text not null,
-  name        text not null,
-  description text,
-  sort_order  smallint not null default 0,
-  created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now(),
-  deleted_at  timestamptz,
-  constraint grading_components_tenant_id_key unique (tenant_id, id),
-  constraint grading_components_scheme_component_key unique (tenant_id, scheme_id, id),
-  constraint grading_components_scheme_fk foreign key (tenant_id, scheme_id)
-    references grading_schemes (tenant_id, id)
-);
-
-comment on table grading_components is 'Un balde ponderado dentro de un scheme: Participación, Práctica, Examen final. Se lista una fila por componente con su peso y el resultado del estudiante en él.';
-comment on column grading_components.code is 'Clave estable para el sistema. El nombre puede reescribirse sin romper assessments ni computed grades históricos.';
-comment on constraint grading_components_scheme_component_key on grading_components is 'Permite que assessments lleve una FK compuesta (tenant_id, scheme_id, component_id), lo que hace estructuralmente imposible registrar una assessment bajo un componente del scheme de otro colegio.';
-
-create unique index grading_components_scheme_code_key
-  on grading_components (tenant_id, scheme_id, code) where deleted_at is null;
-
-select app.enable_tenant_rls('grading_components');
-select app.attach_updated_at('grading_components');
-select app.attach_soft_delete_guard('grading_components');
-
--- ---------------------------------------------------------------------------
--- grading_scheme_versions
--- ---------------------------------------------------------------------------
-create table grading_scheme_versions (
-  id                            uuid primary key default gen_random_uuid(),
-  tenant_id                     uuid not null references tenants (id),
-  scheme_id                     uuid not null,
-  version                       integer not null check (version >= 1),
-  effective_from                date not null,
-  effective_to                  date,
-  rounding_mode                 text not null default 'half_up'
-                                  check (rounding_mode in ('half_up', 'half_even', 'floor', 'ceil', 'none')),
-  rounding_decimals             smallint not null default 0 check (rounding_decimals between 0 and 4),
-  absent_counts_as              text not null default 'zero'
-                                  check (absent_counts_as in ('zero', 'excused')),
-  late_penalty_pct_per_day      numeric(5, 4) not null default 0
-                                  check (late_penalty_pct_per_day >= 0 and late_penalty_pct_per_day <= 1),
-  retake_policy                 text not null default 'best'
-                                  check (retake_policy in ('none', 'best', 'last', 'capped')),
-  retake_cap_normalized         numeric(6, 5)
-                                  check (retake_cap_normalized is null or (retake_cap_normalized >= 0 and retake_cap_normalized <= 1)),
-  min_evaluated_weight_for_grade numeric(6, 5) not null default 0
-                                  check (min_evaluated_weight_for_grade >= 0 and min_evaluated_weight_for_grade <= 1),
-  notes                         text,
-  published_at                  timestamptz,
-  published_by_id               uuid,
-  created_at                    timestamptz not null default now(),
-  updated_at                    timestamptz not null default now(),
-  deleted_at                    timestamptz,
-  constraint grading_scheme_versions_tenant_id_key unique (tenant_id, id),
-  constraint grading_scheme_versions_scheme_fk foreign key (tenant_id, scheme_id)
-    references grading_schemes (tenant_id, id),
-  constraint grading_scheme_versions_published_by_fk foreign key (tenant_id, published_by_id)
-    references teachers (tenant_id, id),
-  constraint grading_scheme_versions_range_valid
-    check (effective_to is null or effective_to > effective_from),
-  constraint grading_scheme_versions_capped_needs_cap
-    check (retake_policy <> 'capped' or retake_cap_normalized is not null),
-  constraint grading_scheme_versions_no_overlap
-    exclude using gist (
-      scheme_id with =,
-      daterange(effective_from, effective_to, '[)') with &&
-    ) where (published_at is not null and deleted_at is null)
-);
-
-comment on table grading_scheme_versions is 'Una fotografía inmutable de las reglas de un scheme durante un rango de fechas. Cambiar los pesos inserta una nueva versión y cierra la anterior con effective_to; nunca se edita una fila publicada. Cada computed grade registra la versión que la produjo, para que una libreta emitida en abril no pueda cambiar silenciosamente en junio.';
-comment on column grading_scheme_versions.absent_counts_as is 'Cuánto vale una ausencia no justificada en una assessment. Esto es política, no dato: la fila de score solo registra que el estudiante estuvo ausente, y esto decide si eso se vuelve un cero o sale del denominador.';
-comment on column grading_scheme_versions.late_penalty_pct_per_day is 'Fracción descontada por día de atraso. Se aplica al momento del cálculo a partir de scores.late_days — el score en crudo nunca se modifica, así que corregir esta política vuelve a calificar correctamente.';
-comment on column grading_scheme_versions.retake_policy is 'Cómo se combinan varios intentos sobre una misma assessment: best, last, o best-capped. La recuperación peruana normalmente es capped. Nunca se resuelve descartando el intento anterior.';
-comment on column grading_scheme_versions.min_evaluated_weight_for_grade is 'Proporción mínima del peso del term que debe estar evaluada antes de mostrar siquiera una nota parcial. Evita reportar "AD" a partir de una sola práctica con 5% de peso.';
-comment on column grading_scheme_versions.published_at is 'Null mientras la versión es un borrador. Publicar la congela: después de esto, solo effective_to puede cambiar.';
-comment on constraint grading_scheme_versions_no_overlap on grading_scheme_versions is 'Dos versiones publicadas de un mismo scheme no pueden estar vigentes en la misma fecha, así que "la política que aplica a esta assessment" es inequívoca. Los borradores se excluyen para poder redactar un reemplazo mientras el actual sigue vigente.';
-
-create unique index grading_scheme_versions_scheme_version_key
-  on grading_scheme_versions (scheme_id, version) where deleted_at is null;
-
-select app.enable_tenant_rls('grading_scheme_versions');
-select app.attach_updated_at('grading_scheme_versions');
-select app.attach_soft_delete_guard('grading_scheme_versions');
-
--- ---------------------------------------------------------------------------
--- grading_scheme_component_weights
--- ---------------------------------------------------------------------------
-create table grading_scheme_component_weights (
-  id                 uuid primary key default gen_random_uuid(),
-  tenant_id          uuid not null references tenants (id),
-  scheme_version_id  uuid not null,
-  component_id       uuid not null,
-  weight             numeric(9, 6) not null check (weight > 0 and weight <= 1),
-  drop_lowest_n      smallint not null default 0 check (drop_lowest_n >= 0),
-  aggregation        text not null default 'weighted_mean'
-                       check (aggregation in ('mean', 'weighted_mean', 'best', 'last', 'sum')),
-  is_required        boolean not null default true,
-  created_at         timestamptz not null default now(),
-  updated_at         timestamptz not null default now(),
-  deleted_at         timestamptz,
-  constraint gscw_version_fk foreign key (tenant_id, scheme_version_id)
-    references grading_scheme_versions (tenant_id, id),
-  constraint gscw_component_fk foreign key (tenant_id, component_id)
-    references grading_components (tenant_id, id)
-);
-
-comment on table grading_scheme_component_weights is 'Los pesos en sí, una fila por componente por versión. "Peso 20%" se muestra directamente desde weight. Los pesos dentro de una versión suman exactamente 1, forzado por un trigger de restricción diferido.';
-comment on column grading_scheme_component_weights.drop_lowest_n is 'Descarta las N scores más bajas de este componente antes de agregar. Qué scores se descartaron se registra por estudiante en computed_grade_components, para que el docente pueda explicar el número.';
-comment on column grading_scheme_component_weights.aggregation is 'Cómo se combinan varias assessments dentro de un componente. weighted_mean usa assessments.weight_within_component; sum es para schemes de acumulación de puntos donde el total del componente es el denominador.';
-comment on column grading_scheme_component_weights.is_required is 'Si es false, el componente sale del denominador cuando no tiene ninguna score, en vez de contar como peso no evaluado.';
-
-create unique index gscw_version_component_key
-  on grading_scheme_component_weights (scheme_version_id, component_id) where deleted_at is null;
-create index gscw_component_idx on grading_scheme_component_weights (component_id);
-
--- Los pesos deben sumar 1 por versión. Un CHECK a nivel de fila no puede ver filas hermanas,
--- así que esto es un trigger de restricción diferido: se dispara en el COMMIT, lo que permite
--- insertar o rebalancear toda una tabla de pesos en una sola transacción.
--- +goose StatementBegin
-create or replace function app.check_component_weights_sum() returns trigger
-  language plpgsql
-  as $fn$
-  declare
-    v_version uuid;
-    v_sum     numeric;
-  begin
-    -- NEW no está definido en un DELETE; referenciarlo ahí lanzaría un error.
-    if tg_op = 'DELETE' then
-      v_version := old.scheme_version_id;
-    else
-      v_version := new.scheme_version_id;
-    end if;
-
-    -- La versión pudo haberse eliminado en la misma transacción; no hay nada que verificar.
-    if not exists (select 1 from grading_scheme_versions v
-                    where v.id = v_version and v.deleted_at is null) then
-      return null;
-    end if;
-
-    select coalesce(sum(weight), 0) into v_sum
-      from grading_scheme_component_weights
-     where scheme_version_id = v_version and deleted_at is null;
-
-    if v_sum <> 1 then
-      raise exception 'component weights for grading scheme version % sum to %, must sum to exactly 1', v_version, v_sum
-        using errcode = 'check_violation',
-              hint = 'For thirds use 0.333333 / 0.333333 / 0.333334 -- weights are exact numerics, not floats.';
-    end if;
-    return null;
-  end;
-  $fn$;
--- +goose StatementEnd
-
-create constraint trigger check_weights_sum
-  after insert or update or delete on grading_scheme_component_weights
-  deferrable initially deferred
-  for each row execute function app.check_component_weights_sum();
-
--- Una versión sin ninguna fila de peso nunca dispararía el trigger de arriba, así que
--- publicar también es un punto de control.
--- +goose StatementBegin
-create or replace function app.check_version_publishable() returns trigger
-  language plpgsql
-  as $fn$
-  declare
-    v_sum numeric;
-    v_cnt integer;
-  begin
-    if new.published_at is null then
-      return new;
-    end if;
-
-    select count(*), coalesce(sum(weight), 0) into v_cnt, v_sum
-      from grading_scheme_component_weights
-     where scheme_version_id = new.id and deleted_at is null;
-
-    if v_cnt = 0 then
-      raise exception 'grading scheme version % has no components and cannot be published', new.id
-        using errcode = 'check_violation';
-    end if;
-    if v_sum <> 1 then
-      raise exception 'grading scheme version % has weights summing to %, must be exactly 1', new.id, v_sum
-        using errcode = 'check_violation';
-    end if;
-    return new;
-  end;
-  $fn$;
--- +goose StatementEnd
-
-create trigger check_publishable before insert or update of published_at on grading_scheme_versions
-  for each row execute function app.check_version_publishable();
-
--- Las versiones publicadas son inmutables salvo por cerrarse con effective_to.
--- +goose StatementBegin
-create or replace function app.forbid_published_version_mutation() returns trigger
-  language plpgsql
-  as $fn$
-  begin
-    if old.published_at is null then
-      return new;
-    end if;
-    if new.scheme_id            is distinct from old.scheme_id
-       or new.version           is distinct from old.version
-       or new.effective_from    is distinct from old.effective_from
-       or new.rounding_mode     is distinct from old.rounding_mode
-       or new.rounding_decimals is distinct from old.rounding_decimals
-       or new.absent_counts_as  is distinct from old.absent_counts_as
-       or new.late_penalty_pct_per_day is distinct from old.late_penalty_pct_per_day
-       or new.retake_policy            is distinct from old.retake_policy
-       or new.retake_cap_normalized    is distinct from old.retake_cap_normalized
-       or new.min_evaluated_weight_for_grade is distinct from old.min_evaluated_weight_for_grade
-       or new.published_at             is distinct from old.published_at then
-      raise exception 'grading scheme version % is published and immutable; insert a new version instead', old.id
-        using errcode = 'restrict_violation',
-              hint = 'Only effective_to may change on a published version, to close it off.';
-    end if;
-    return new;
-  end;
-  $fn$;
--- +goose StatementEnd
-
-create trigger forbid_published_mutation before update on grading_scheme_versions
-  for each row execute function app.forbid_published_version_mutation();
-
--- +goose StatementBegin
-create or replace function app.forbid_published_weight_mutation() returns trigger
-  language plpgsql
-  as $fn$
-  declare
-    v_version   uuid;
-    v_published timestamptz;
-  begin
-    -- NEW no está definido en un DELETE, así que la fila examinada depende de la operación.
-    if tg_op = 'DELETE' then
-      -- Un borrado autorizado (baja de un tenant, reversión de datos semilla) puede eliminar
-      -- las filas directamente; el código normal de la aplicación no puede.
-      if coalesce(nullif(current_setting('app.allow_hard_delete', true), ''), 'off') = 'on' then
-        return old;
-      end if;
-      v_version := old.scheme_version_id;
-    else
-      v_version := new.scheme_version_id;
-    end if;
-
-    select published_at into v_published
-      from grading_scheme_versions where id = v_version;
-
-    if v_published is not null then
-      raise exception 'weights of published grading scheme version % cannot be changed; insert a new version', v_version
-        using errcode = 'restrict_violation';
-    end if;
-
-    if tg_op = 'DELETE' then
-      return old;
-    end if;
-    return new;
-  end;
-  $fn$;
--- +goose StatementEnd
-
-create trigger forbid_published_weight_mutation
-  before update or delete on grading_scheme_component_weights
-  for each row execute function app.forbid_published_weight_mutation();
-
-select app.enable_tenant_rls('grading_scheme_component_weights');
-select app.attach_updated_at('grading_scheme_component_weights');
-
--- ---------------------------------------------------------------------------
--- Resolución del scheme: default del tenant -> override de course -> override de class/term
--- ---------------------------------------------------------------------------
-alter table tenants add column default_grading_scheme_id uuid;
-alter table tenants add constraint tenants_default_scheme_fk
-  foreign key (id, default_grading_scheme_id) references grading_schemes (tenant_id, id);
-comment on column tenants.default_grading_scheme_id is 'Scheme de calificación de respaldo para todo el colegio. Se sobrescribe por course, luego por class y term.';
-
-alter table courses add column grading_scheme_id uuid;
-alter table courses add constraint courses_grading_scheme_fk
-  foreign key (tenant_id, grading_scheme_id) references grading_schemes (tenant_id, id);
-comment on column courses.grading_scheme_id is 'Override opcional por course, para un colegio donde Matemática pondera distinto que Inglés. Null recae en el default del tenant.';
-
--- El orden de resolución en un solo lugar, para que ningún código en Go lo reimplemente.
-create view class_effective_grading_schemes as
-select
-  c.tenant_id,
-  c.id                                            as class_id,
-  t.id                                            as term_id,
-  coalesce(co.grading_scheme_id, tn.default_grading_scheme_id) as scheme_id,
-  case
-    when co.grading_scheme_id is not null     then 'course'
-    when tn.default_grading_scheme_id is not null then 'tenant'
-  end                                             as resolved_from,
-  v.id                                            as scheme_version_id
-from classes c
-join tenants tn on tn.id = c.tenant_id
-join courses co on co.id = c.course_id and co.tenant_id = c.tenant_id
-join grade_levels gl on gl.id = co.grade_level_id and gl.tenant_id = c.tenant_id
-join terms   t  on t.tenant_id = c.tenant_id and t.academic_year_id = c.academic_year_id
-                and (t.stage is null or t.stage = gl.stage)
-left join lateral (
-  select gv.id
-    from grading_scheme_versions gv
-   where gv.scheme_id = coalesce(co.grading_scheme_id, tn.default_grading_scheme_id)
-     and gv.published_at is not null
-     and gv.deleted_at is null
-     and gv.effective_from <= t.starts_on
-     and (gv.effective_to is null or gv.effective_to > t.starts_on)
-   order by gv.effective_from desc
-   limit 1
-) v on true
-where c.deleted_at is null;
-
-comment on view class_effective_grading_schemes is 'Resuelve qué grading scheme, y qué versión publicada de este, rige una class en un term. La versión se elige por la fecha de inicio del term, así que re-versionar a mitad de año no cambia retroactivamente un term ya en curso. El join con terms se acota por stage (a través de grade_levels, vía courses) para que un colegio con calendarios mixtos no le asigne a una class de Primaria los bimestres de Secundaria, o viceversa; un term sin stage sigue aplicando a todas.';
-
-
--- ---------------------------------------------------------------------------
 -- assessments
 -- ---------------------------------------------------------------------------
 create table assessments (
@@ -1590,8 +1232,6 @@ create table assessments (
   tenant_id                 uuid not null references tenants (id),
   class_id                  uuid not null,
   term_id                   uuid,
-  scheme_id                 uuid not null,
-  component_id              uuid not null,
   session_id                uuid,
   title                     text not null,
   description               text,
@@ -1600,16 +1240,13 @@ create table assessments (
                               check (kind in ('examen', 'practica', 'tarea', 'proyecto',
                                               'exposicion', 'participacion', 'otro')),
   value_scale               text not null default 'numeric'
-                              check (value_scale in ('numeric', 'rubric')),
+                              check (value_scale in ('numeric', 'ordinal')),
   max_score                 numeric(8, 4) check (max_score > 0),
-  counts_toward_internal    boolean not null default true,
-  weight_within_component   numeric(9, 6) not null default 1 check (weight_within_component > 0),
   due_at                    timestamptz,
   status                    text not null default 'draft'
                               check (status in ('draft', 'published', 'closed', 'cancelled')),
   published_at              timestamptz,
   closed_at                 timestamptz,
-  late_penalty_pct_per_day  numeric(5, 4) check (late_penalty_pct_per_day between 0 and 1),
   created_by_id             uuid,
   created_at                timestamptz not null default now(),
   updated_at                timestamptz not null default now(),
@@ -1619,8 +1256,6 @@ create table assessments (
     references classes (tenant_id, id),
   constraint assessments_term_fk foreign key (tenant_id, term_id)
     references terms (tenant_id, id),
-  constraint assessments_component_fk foreign key (tenant_id, scheme_id, component_id)
-    references grading_components (tenant_id, scheme_id, id),
   constraint assessments_session_fk foreign key (tenant_id, session_id)
     references class_sessions (tenant_id, id),
   constraint assessments_created_by_fk foreign key (tenant_id, created_by_id)
@@ -1632,43 +1267,29 @@ create table assessments (
   constraint assessments_closed_consistent
     check ((status = 'closed') = (closed_at is not null)),
   constraint assessments_max_score_matches_scale
-    check ((value_scale = 'numeric') = (max_score is not null)),
-  constraint assessments_rubric_not_internal
-    check (value_scale <> 'rubric' or counts_toward_internal = false)
+    check ((value_scale = 'numeric') = (max_score is not null))
 );
 
-comment on table assessments is 'Un ítem calificado para una class: "Tarea 1", "Examen final", "Participación". Se listan bajo EVALUACIONES con el peso del componente junto a cada una. "Añadir evaluación" inserta aquí.';
-comment on column assessments.scheme_id is 'Desnormalizado desde el componente para que la FK compuesta pueda probar que el componente pertenece al scheme previsto. Se establece a partir de la política de calificación resuelta de la class al crearse.';
-comment on column assessments.term_id is 'El term al que pertenece esta evidencia. Nulable: una recuperación pedagógica o evaluación de subsanación suele ocurrir fuera del periodo lectivo regular, así que su evidencia queda registrada sin pertenecer al promedio ponderado de ningún term.';
-comment on column assessments.student_id is 'Null significa que la assessment aplica a toda la class, que es el caso original y sigue siendo el más común. Si está definido, es evidencia solo para ese estudiante: una tarea de recuperación, un proyecto rehecho, una defensa oral que reemplaza una exposición grupal perdida. Toda consulta que expanda assessments sobre el roster debe filtrar (student_id is null or student_id = el estudiante), o la evidencia personal de un estudiante contará como faltante para todos los demás.';
+comment on table assessments is 'Una evidencia de una class: lo que los estudiantes producen o actúan y que el docente valora contra criterios de evaluación. Nace de una evidencia planificada (planned_evidence_id) o la crea el docente con "Añadir evidencia". Se valora en una sola escala (value_scale) y nunca lleva peso: informa el juicio del docente sobre el nivel de logro de la competencia y no lo calcula.';
+comment on column assessments.term_id is 'El term al que pertenece esta evidencia. Nulable: una recuperación pedagógica o evaluación de subsanación suele ocurrir fuera del periodo lectivo regular, así que no tiene term que cerrar.';
+comment on column assessments.student_id is 'Null significa que la evidencia aplica a toda la class, que es el caso original y sigue siendo el más común. Si está definido, es evidencia solo para ese estudiante, ej. una tarea de recuperación dada a uno solo.';
 comment on column assessments.value_scale is
-  'Cómo se valora esta evidencia. ''numeric'': una nota en la escala vigesimal propia del colegio, con max_score como denominador y el valor en scores.raw_value. ''rubric'': evidencia puramente cualitativa, sin nota general — se valora solo a través de los niveles por criterio en criterion_scores, y max_score queda null. Ninguno de los dos casos es un nivel de logro: el nivel de una competencia se afirma en competency_term_levels por un docente que ha leído todo el periodo, y nada puede derivarlo de estos valores.';
-comment on column assessments.max_score is 'El denominador sobre el que se mide cada score de esta assessment, ej. 20 para una práctica vigesimal. Solo aplica a value_scale = ''numeric''; null cuando value_scale = ''rubric'', que no tiene nota general.';
-comment on column assessments.counts_toward_internal is
-  'Si esta evidencia alimenta el promedio ponderado interno del colegio. Siempre alimenta el juicio oficial: un nivel de criterio registrado contra ella cuenta de todas formas, porque la norma no sabe nada de esta bandera. False existe para la tarea de recuperación dada a un solo estudiante (assessments.student_id definido). Esa tarea es evidencia legítima de la competencia, pero dejar que eleve solo el promedio interno de ese estudiante le da una oportunidad que el resto de la class nunca tuvo. Leído por worker/handlers/recompute.go, su único consumidor. assessments_rubric_not_internal fuerza este valor a false cuando value_scale es rubric: una rúbrica nunca tiene fila en scores (no hay raw_value/max_value que derivar), así que dejarla contar la marcaría como peso pendiente para siempre.';
-comment on column assessments.weight_within_component is 'Peso relativo frente a otras assessments del mismo componente, usado cuando el componente agrega por weighted_mean. No es una porción de la nota final — ese es el peso del componente.';
-comment on column assessments.due_at is 'Fecha límite. Determina scores.late_days, y define qué assessments cuentan en el denominador de "notas esperadas hasta ahora" detrás del indicador "Notas reg.".';
-comment on column assessments.status is 'draft es invisible para el cálculo de notas. Una assessment debe publicarse antes de contribuir peso no evaluado al indicador "falta 40%".';
-comment on column assessments.late_penalty_pct_per_day is 'Override por assessment de la política de atraso de la versión del scheme. Null hereda.';
+  'Cómo se valora esta evidencia, y es una propiedad de la evidencia, no de la pantalla. ''numeric'': una nota cruda sobre max_score (el máximo lo fija el docente), que la interfaz presenta como porcentaje. ''ordinal'': un nivel AD/A/B/C sobre esa evidencia. Ninguno de los dos es un nivel de logro: el nivel de una competencia se afirma en competency_term_levels por un docente que ha leído todo el periodo, y nada puede derivarlo de estos valores.';
+comment on column assessments.max_score is 'El denominador sobre el que se mide cada score de esta evidencia, ej. 20 o 18. Solo aplica a value_scale = ''numeric''; null cuando es ''ordinal''.';
+comment on column assessments.due_at is 'Fecha límite. Define qué evidencias cuentan como pendientes de valorar en el dashboard de la class.';
+comment on column assessments.status is 'draft es invisible para el docente en la pantalla de valoración. Una evidencia debe publicarse antes de poder recibir scores.';
 
--- Las assessments de este estudiante para esta class y term, en orden de componente.
--- Deliberadamente sin índice para counts_toward_internal: este índice se mantiene
--- no parcial porque la lista de evidencia, los conteos del dashboard y el recompute
--- leen todos las mismas filas (class_id, term_id, status), y solo el último de los
--- tres usa esa bandera. Acotar el índice compartido a ese único consumidor
--- dejaría a los otros dos sin índice para servir un filtro que descarta como mucho un
--- puñado de filas por class.
+-- La evidencia de este estudiante para esta class y term.
 create index assessments_class_term_idx
   on assessments (class_id, term_id, status) where deleted_at is null;
 -- Leer la propia evidencia de un estudiante para una class+term es el camino más frecuente.
 create index assessments_student_idx
   on assessments (class_id, term_id, student_id)
   where student_id is not null and deleted_at is null;
--- "Notas reg." y "Pendientes": assessments publicadas ya vencidas.
+-- "Pendientes": evidencias publicadas ya vencidas.
 create index assessments_due_idx
   on assessments (tenant_id, due_at)
   where status = 'published' and deleted_at is null;
-create index assessments_component_idx on assessments (component_id) where deleted_at is null;
 create index assessments_session_idx on assessments (session_id) where session_id is not null and deleted_at is null;
 
 select app.enable_tenant_rls('assessments');
@@ -1681,8 +1302,9 @@ select app.attach_soft_delete_guard('assessments');
 -- El camino de una score en crudo al reporte por competencia: la cobertura de
 -- una competencia se deriva uniendo assessment_criteria -> evaluation_criteria
 -- .competency_id. Esta fila es lo que hace que un criterio forme parte de una
--- evidencia dada; si el trabajo del estudiante frente a ese criterio se valora
--- de forma independiente vive en criterion_scores más abajo.
+-- evidencia dada. El criterio es la regla con la que se lee la evidencia, no
+-- lo que se califica: la valoración es una sola por estudiante y evidencia
+-- (scores).
 create table assessment_criteria (
   id             uuid primary key default gen_random_uuid(),
   tenant_id      uuid not null references tenants (id),
@@ -1698,102 +1320,14 @@ create table assessment_criteria (
   constraint assessment_criteria_tenant_key unique (tenant_id, assessment_id, criterion_id)
 );
 
-comment on table assessment_criteria is 'A qué criterios de evaluación habla una evidencia, ej. una "Tarea 1" etiquetada contra dos criterios de "Resuelve problemas de cantidad". criterion_scores_rubric_item_fk (en criterion_scores) es compuesta sobre assessment_criteria_tenant_key, así que una marca por criterio solo puede existir para un par assessment+criterio que esta tabla realmente etiquetó.';
-comment on constraint assessment_criteria_tenant_key on assessment_criteria is 'A diferencia del resto de esta migración, esta es una unique constraint completa, no parcial por deleted_at is null: Postgres solo permite que una FK apunte a una unique/primary key completa, nunca a un índice parcial, y esta es lo que hace posible criterion_scores_rubric_item_fk. Sin consecuencia práctica hoy — nada en Go borra una fila de assessment_criteria (linkAssessmentCriteria solo inserta) — pero si algún día se agrega un "destag", debe reactivar la fila existente en vez de insertar una nueva para el mismo par.';
+comment on table assessment_criteria is 'A qué criterios de evaluación habla una evidencia, ej. una "Tarea 1" etiquetada contra dos criterios de "Resuelve problemas de cantidad". Toda evidencia tiene al menos un criterio: es lo que la hace llegar a una competencia (el servidor lo exige al crearla).';
+comment on constraint assessment_criteria_tenant_key on assessment_criteria is 'A diferencia del resto de esta migración, esta es una unique constraint completa, no parcial por deleted_at is null: Postgres solo permite que una FK apunte a una unique/primary key completa, nunca a un índice parcial, y una FK compuesta hacia esta tabla la necesitaría completa. Sin consecuencia práctica hoy — nada en Go borra una fila de assessment_criteria (linkAssessmentCriteria solo inserta) — pero si algún día se agrega un "destag", debe reactivar la fila existente en vez de insertar una nueva para el mismo par.';
 
 create index assessment_criteria_criterion_idx on assessment_criteria (criterion_id);
 
 select app.enable_tenant_rls('assessment_criteria');
 select app.attach_updated_at('assessment_criteria');
 select app.attach_soft_delete_guard('assessment_criteria');
-
--- ---------------------------------------------------------------------------
--- criterion_scores
--- ---------------------------------------------------------------------------
--- La valoración independiente de un estudiante contra un criterio dentro de una
--- assessment, ej. una rúbrica que califica "Plantea estrategias" y "Ejecuta el
--- plan" por separado dentro del mismo "Proyecto final". De solo inserción, con la misma
--- forma de reemplazo (supersede) que scores: una corrección inserta una fila nueva en vez de
--- actualizar en el lugar.
-create table criterion_scores (
-  id             uuid primary key default gen_random_uuid(),
-  tenant_id      uuid not null references tenants (id),
-  assessment_id  uuid not null,
-  criterion_id   uuid not null,
-  student_id     uuid not null,
-  value_scale    text not null default 'numeric'
-                   check (value_scale in ('numeric', 'ordinal')),
-  raw_value      numeric(8, 4),
-  max_value      numeric(8, 4),
-  scale_level_id uuid,
-  recorded_by_id uuid not null,
-  recorded_at    timestamptz not null default now(),
-  supersedes_id  uuid,
-  superseded_at  timestamptz,
-  created_at     timestamptz not null default now(),
-  updated_at     timestamptz not null default now(),
-  deleted_at     timestamptz,
-  constraint criterion_scores_tenant_id_key unique (tenant_id, id),
-  constraint criterion_scores_rubric_item_fk foreign key (tenant_id, assessment_id, criterion_id)
-    references assessment_criteria (tenant_id, assessment_id, criterion_id),
-  constraint criterion_scores_student_fk foreign key (tenant_id, student_id)
-    references students (tenant_id, id),
-  constraint criterion_scores_recorded_by_fk foreign key (tenant_id, recorded_by_id)
-    references teachers (tenant_id, id),
-  constraint criterion_scores_supersedes_fk foreign key (tenant_id, supersedes_id)
-    references criterion_scores (tenant_id, id),
-  constraint criterion_scores_scale_level_fk foreign key (tenant_id, scale_level_id)
-    references grade_scale_levels (tenant_id, id),
-  constraint criterion_scores_max_value_positive
-    check (max_value is null or max_value > 0),
-  constraint criterion_scores_value_matches_scale
-    check ((value_scale = 'numeric') = (raw_value is not null and max_value is not null)),
-  constraint criterion_scores_level_matches_scale
-    check ((value_scale = 'ordinal') = (scale_level_id is not null)),
-  constraint criterion_scores_value_in_range
-    check (raw_value is null or (max_value is not null and raw_value >= 0 and raw_value <= max_value))
-);
-
-comment on table criterion_scores is
-  'DATOS PERSONALES DE MENORES (académico). La nota de un estudiante contra un criterio dentro de una assessment, ej. 3 de 4 en "Plantea estrategias" dentro de "Proyecto final", o un nivel para una fila de rúbrica valorada de forma descriptiva en vez de numérica. Una corrección reemplaza la fila anterior en vez de sobrescribirla, el mismo protocolo que usa scores. criterion_scores_rubric_item_fk es compuesta sobre (assessment_id, criterion_id) hacia assessment_criteria en vez de dos FKs simples hacia assessments y evaluation_criteria por separado — así una marca solo puede existir para un criterio que la assessment realmente etiquetó, nunca uno ajeno al instrumento.';
-comment on column criterion_scores.value_scale is 'numeric: raw_value sobre max_value, heredado de assessments.max_score — requiere que la assessment tenga uno, así que no aplica a una assessment rubric (max_score null). ordinal: un nivel en scale_level_id (AD/A/B/C), sin esa restricción. Independiente de assessments.value_scale: una assessment numeric puede calificar algunos criterios por nivel, y una rubric solo admite calificarlos por nivel.';
-comment on column criterion_scores.scale_level_id is 'El nivel que obtuvo este criterio, cuando value_scale es ordinal. No es un nivel de logro: el juicio oficial de una competencia se afirma por separado en competency_term_levels por un docente que ha leído todo el periodo, nunca se deriva de un valor aquí.';
-
-create unique index criterion_scores_live_key
-  on criterion_scores (assessment_id, criterion_id, student_id)
-  where superseded_at is null and deleted_at is null;
-create index criterion_scores_student_idx
-  on criterion_scores (student_id) where superseded_at is null and deleted_at is null;
-
--- +goose StatementBegin
-create or replace function app.forbid_criterion_score_mutation() returns trigger
-  language plpgsql
-  as $fn$
-  begin
-    if new.assessment_id  is distinct from old.assessment_id
-       or new.criterion_id is distinct from old.criterion_id
-       or new.student_id   is distinct from old.student_id
-       or new.value_scale    is distinct from old.value_scale
-       or new.raw_value      is distinct from old.raw_value
-       or new.max_value      is distinct from old.max_value
-       or new.scale_level_id is distinct from old.scale_level_id
-       or new.recorded_by_id is distinct from old.recorded_by_id
-       or new.recorded_at    is distinct from old.recorded_at then
-      raise exception 'criterion_scores is append-only (row %); insert a superseding row instead of updating', old.id
-        using errcode = 'restrict_violation',
-              hint = 'Stamp superseded_at on this row FIRST, then insert the replacement with supersedes_id set.';
-    end if;
-    return new;
-  end;
-  $fn$;
--- +goose StatementEnd
-
-create trigger forbid_mutation before update on criterion_scores
-  for each row execute function app.forbid_criterion_score_mutation();
-
-select app.enable_tenant_rls('criterion_scores');
-select app.attach_updated_at('criterion_scores');
-select app.attach_soft_delete_guard('criterion_scores');
 
 -- ---------------------------------------------------------------------------
 -- scores
@@ -1805,14 +1339,11 @@ create table scores (
   student_id                uuid not null,
   class_id                  uuid not null,
   term_id                   uuid,
-  attempt_number            smallint not null default 1 check (attempt_number >= 1),
-  attempt_kind              text not null default 'original'
-                              check (attempt_kind in ('original', 'recuperacion', 'subsanacion', 'makeup')),
   status                    text not null default 'graded'
                               check (status in ('graded', 'excused', 'absent', 'not_submitted')),
   raw_value                 numeric(8, 4),
   max_value                 numeric(8, 4),
-  late_days                 smallint not null default 0 check (late_days >= 0),
+  scale_level_id            uuid,
   feedback                  text,
   source                    text not null default 'manual'
                               check (source in ('manual', 'bulk', 'import', 'voice', 'auto')),
@@ -1836,55 +1367,50 @@ create table scores (
     references teachers (tenant_id, id),
   constraint scores_supersedes_fk foreign key (tenant_id, supersedes_id)
     references scores (tenant_id, id),
+  constraint scores_scale_level_fk foreign key (tenant_id, scale_level_id)
+    references grade_scale_levels (tenant_id, id),
   constraint scores_max_value_positive
     check (max_value is null or max_value > 0),
   constraint scores_value_matches_status
-    check ((status = 'graded') = (raw_value is not null)),
+    check ((status = 'graded') = (raw_value is not null or scale_level_id is not null)),
+  constraint scores_single_value
+    check (raw_value is null or scale_level_id is null),
   constraint scores_value_in_range
-    check (raw_value is null or (max_value is not null and raw_value >= 0 and raw_value <= max_value)),
-  constraint scores_attempt_kind_consistent
-    check ((attempt_number = 1) = (attempt_kind = 'original'))
+    check (raw_value is null or (max_value is not null and raw_value >= 0 and raw_value <= max_value))
 );
 
 comment on table scores is
-  'DATOS PERSONALES DE MENORES (académico). De solo inserción. Contiene el valor en crudo y el máximo de la assessment y nada derivado — sin porcentaje, sin contribución ponderada, sin penalidad por atraso ya descontada. Corregir una score inserta una fila nueva que reemplaza a la anterior; una recuperación inserta un nuevo intento junto a ella. Nada aquí se actualiza en el lugar ni se borra físicamente.';
+  'DATOS PERSONALES DE MENORES (académico). De solo inserción. La valoración de un estudiante en una evidencia: una nota cruda sobre el máximo (raw_value, max_value) o un nivel AD/A/B/C (scale_level_id), según value_scale de la evidencia, y nada derivado — sin porcentaje, sin peso. Corregir una score inserta una fila nueva que reemplaza a la anterior.';
+comment on column scores.status is 'graded lleva un valor. not_submitted, absent y excused no llevan ninguno: son información para el docente sobre por qué falta la valoración.';
+comment on column scores.raw_value is 'El número que escribió el docente, sobre max_value, ej. 14 sobre 18. Solo cuando la evidencia es numeric y status = graded.';
+comment on column scores.max_value is 'Copiado de la evidencia al momento de escribir y congelado, así que cambiar después el máximo de una evidencia no puede reinterpretar notas ya ingresadas.';
+comment on column scores.scale_level_id is 'El nivel AD/A/B/C que el docente dio a esta evidencia, como fila de grade_scale_levels. Solo cuando la evidencia es ordinal y status = graded. No es el nivel de logro de la competencia.';
+comment on column scores.supersedes_id is 'La fila que esta reemplaza tras una corrección. El enlace apunta solo hacia atrás: un superseded_by_id hacia adelante tendría que escribirse en el mismo momento que superseded_at.';
+comment on column scores.superseded_at is 'Se establece cuando una fila más nueva reemplaza a esta. Una fila con superseded_at null y deleted_at null es el valor vigente. Se escribe antes de insertar el reemplazo — ver scores_live_key.';
+comment on column scores.class_id is 'Desnormalizado desde la evidencia. Se mantiene por trigger; permite que los agregados por class se salten un join.';
+comment on column scores.term_id is 'Desnormalizado desde la evidencia. Nulable: una score de recuperación o subsanación puede registrarse contra una evidencia sin term (ver assessments.term_id).';
 
-comment on column scores.attempt_number is 'El intento 1 es la sesión original. Una recuperación es el intento 2 sobre la misma assessment, nunca una sobrescritura.';
-comment on column scores.attempt_kind is 'Qué instrumento legal produjo este intento. Restringido para coincidir con attempt_number, así que el intento 1 siempre es el original.';
-comment on column scores.status is 'excused excluye la fila del denominador por completo; absent y not_submitted se califican según el absent_counts_as de la versión del scheme. Por eso una score excused es una fila y no una fila faltante — una fila faltante significa que el docente aún no ha calificado ("Sin evaluar").';
-comment on column scores.raw_value is 'El número que escribió el docente, sobre max_value, ej. 15 sobre 20. Null salvo que status = graded.';
-comment on column scores.max_value is 'Copiado de la assessment al momento de escribir y congelado, así que cambiar después el máximo de una assessment no puede reinterpretar notas ya ingresadas.';
-comment on column scores.late_days is 'Días completos después de due_at. La penalidad se aplica al momento del cálculo según la política de la versión del scheme, nunca se hornea en raw_value, así que corregir la política de atraso vuelve a calificar correctamente.';
-comment on column scores.supersedes_id is 'La fila que esta reemplaza tras una corrección. El enlace apunta solo hacia atrás: un superseded_by_id hacia adelante tendría que escribirse en el mismo momento que superseded_at, pero la fila de reemplazo no puede existir hasta que la anterior se cierre. Sigue supersedes_id hacia atrás para el historial completo de una nota.';
-comment on column scores.superseded_at is 'Se establece cuando una fila más nueva reemplaza a esta. Una fila con superseded_at null y deleted_at null es el valor vigente. Se escribe antes de insertar el reemplazo — ver scores_live_attempt_key.';
-comment on column scores.class_id is 'Desnormalizado desde la assessment. Se mantiene por trigger; permite que los agregados de cobertura de calificación por class se salten un join.';
-comment on column scores.term_id is 'Desnormalizado desde la assessment. Nulable: una score de recuperación o subsanación puede registrarse contra una assessment sin term (ver assessments.term_id), en cuyo caso es evidencia real en el registro del estudiante pero queda fuera de todo agregado de notas acotado por term.';
-
--- Exactamente una fila vigente por (assessment, student, attempt). Corregir una score está
+-- Exactamente una fila vigente por (evidencia, estudiante). Corregir una score está
 -- entonces ordenado: cerrar la fila anterior (fijar superseded_at), luego insertar el
 -- reemplazo. Un índice parcial no puede ser DEFERRABLE, así que las dos no pueden solaparse.
-create unique index scores_live_attempt_key
-  on scores (assessment_id, student_id, attempt_number)
+create unique index scores_live_key
+  on scores (assessment_id, student_id)
   where superseded_at is null and deleted_at is null;
--- "Pendientes · 3 alumnos": quién en esta assessment no tiene score vigente.
+-- "Pendientes": quién en esta evidencia no tiene score vigente.
 create index scores_assessment_idx
   on scores (assessment_id) where superseded_at is null and deleted_at is null;
--- Las scores vigentes de un estudiante para una class y term.
+-- Las scores vigentes de un estudiante para un term.
 create index scores_student_term_idx
   on scores (student_id, term_id) where superseded_at is null and deleted_at is null;
--- Cobertura de "Notas reg.": scores vigentes de una class en un term.
 create index scores_class_term_idx
   on scores (class_id, term_id) where superseded_at is null and deleted_at is null;
--- Estudiantes que alguna vez necesitaron una recuperación.
-create index scores_retake_idx
-  on scores (tenant_id, student_id) where attempt_number > 1 and deleted_at is null;
 create index scores_supersedes_idx on scores (supersedes_id) where supersedes_id is not null;
 
--- Las columnas desnormalizadas se copian de la assessment, nunca se proveen. Las
--- verificaciones de term cerrado y assessment en borrador viven en esta misma función a
--- propósito: dependen de term_id, que no existe en la fila entrante.
--- Como triggers BEFORE INSERT separados se dispararían en orden alfabético, y una verificación
--- que corriera antes que esta leería silenciosamente un term null y pasaría.
+-- Las columnas desnormalizadas se copian de la evidencia, nunca se proveen. Las
+-- verificaciones de term cerrado, evidencia en borrador y valor que no corresponde a
+-- la escala viven en esta misma función a propósito: dependen de columnas que no
+-- existen en la fila entrante. Como triggers BEFORE INSERT separados se dispararían en
+-- orden alfabético, una verificación que corriera antes que esta leería un term null y pasaría.
 -- +goose StatementBegin
 create or replace function app.sync_score_denormalised() returns trigger
   language plpgsql
@@ -1892,9 +1418,10 @@ create or replace function app.sync_score_denormalised() returns trigger
   declare
     v_assessment_status text;
     v_term_status       text;
+    v_value_scale       text;
   begin
-    select a.class_id, a.term_id, a.status, t.status
-      into new.class_id, new.term_id, v_assessment_status, v_term_status
+    select a.class_id, a.term_id, a.status, t.status, a.value_scale
+      into new.class_id, new.term_id, v_assessment_status, v_term_status, v_value_scale
       from assessments a
       left join terms t on t.id = a.term_id
      where a.id = new.assessment_id
@@ -1910,13 +1437,23 @@ create or replace function app.sync_score_denormalised() returns trigger
         using errcode = 'check_violation';
     end if;
 
-    -- Un term cerrado deja de aceptar notas. Esto es lo que hace que una libreta
-    -- cerrada sea real y no solo una convención. Una assessment sin term (ej. una
-    -- recuperación) no tiene term que cerrar, así que la verificación se omite.
+    -- Un term cerrado deja de aceptar valoraciones. Esto es lo que hace que una libreta
+    -- cerrada sea real y no solo una convención. Una evidencia sin term no tiene term que
+    -- cerrar, así que la verificación se omite.
     if v_term_status in ('closed', 'archived') then
-      raise exception 'term % is closed; grades cannot be added or changed', new.term_id
+      raise exception 'term % is closed; scores cannot be added or changed', new.term_id
         using errcode = 'restrict_violation',
               hint = 'Reopen the term explicitly, which is an audited action, or record the change as a subsanación in the current term.';
+    end if;
+
+    -- El valor tiene que ser del tipo de la escala de la evidencia.
+    if v_value_scale = 'numeric' and new.scale_level_id is not null then
+      raise exception 'assessment % is numeric and cannot take a level', new.assessment_id
+        using errcode = 'check_violation';
+    end if;
+    if v_value_scale = 'ordinal' and new.raw_value is not null then
+      raise exception 'assessment % is ordinal and cannot take a numeric mark', new.assessment_id
+        using errcode = 'check_violation';
     end if;
 
     return new;
@@ -1927,7 +1464,7 @@ create or replace function app.sync_score_denormalised() returns trigger
 create trigger sync_denormalised before insert on scores
   for each row execute function app.sync_score_denormalised();
 
--- Restricción 5: las notas son temporales. Una score nunca se actualiza en el lugar.
+-- Las valoraciones son temporales. Una score nunca se actualiza en el lugar.
 -- +goose StatementBegin
 create or replace function app.forbid_score_mutation() returns trigger
   language plpgsql
@@ -1935,17 +1472,15 @@ create or replace function app.forbid_score_mutation() returns trigger
   begin
     if new.assessment_id  is distinct from old.assessment_id
        or new.student_id  is distinct from old.student_id
-       or new.attempt_number is distinct from old.attempt_number
-       or new.attempt_kind   is distinct from old.attempt_kind
        or new.status         is distinct from old.status
        or new.raw_value      is distinct from old.raw_value
        or new.max_value      is distinct from old.max_value
-       or new.late_days      is distinct from old.late_days
+       or new.scale_level_id is distinct from old.scale_level_id
        or new.recorded_by_id is distinct from old.recorded_by_id
        or new.recorded_at    is distinct from old.recorded_at then
       raise exception 'scores are append-only (score %); insert a superseding row instead of updating', old.id
         using errcode = 'restrict_violation',
-              hint = 'Stamp superseded_at on this row FIRST, then insert the replacement with supersedes_id set. scores_live_attempt_key is a partial unique index and cannot be deferred, so two live rows for one attempt never coexist, even briefly.';
+              hint = 'Stamp superseded_at on this row FIRST, then insert the replacement with supersedes_id set. scores_live_key is a partial unique index and cannot be deferred, so two live rows for one student and evidence cannot overlap.';
     end if;
     return new;
   end;
@@ -1958,147 +1493,6 @@ create trigger forbid_mutation before update on scores
 select app.enable_tenant_rls('scores');
 select app.attach_updated_at('scores');
 select app.attach_soft_delete_guard('scores');
-
-
--- ---------------------------------------------------------------------------
--- computed_grades
--- ---------------------------------------------------------------------------
-create table computed_grades (
-  id                        uuid primary key default gen_random_uuid(),
-  tenant_id                 uuid not null references tenants (id),
-  student_id                uuid not null,
-  class_id                  uuid not null,
-  term_id                   uuid not null,
-  scheme_version_id         uuid not null,
-  scale_id                  uuid not null,
-  scope                     text not null default 'term_partial'
-                              check (scope in ('term_partial', 'term_final')),
-
-  normalized_value          numeric(6, 5) not null check (normalized_value between 0 and 1),
-  normalization_method      text not null
-                              check (normalization_method in ('ratio_of_evaluated', 'linear_min_max',
-                                                              'band_midpoint', 'identity')),
-  scale_level_id            uuid,
-  display_value             text,
-
-  total_weight              numeric(9, 6) not null check (total_weight > 0),
-  evaluated_weight          numeric(9, 6) not null check (evaluated_weight >= 0),
-
-  previous_scale_level_id   uuid,
-  previous_normalized_value numeric(6, 5) check (previous_normalized_value between 0 and 1),
-  trend                     text check (trend in ('up', 'down', 'flat')),
-
-  scores_counted            integer not null default 0 check (scores_counted >= 0),
-  inputs_digest             text,
-  computed_by_job_id        bigint,
-  supersedes_id             uuid,
-  superseded_at             timestamptz,
-  created_at                timestamptz not null default now(),
-  updated_at                timestamptz not null default now(),
-  deleted_at                timestamptz,
-
-  constraint computed_grades_tenant_id_key unique (tenant_id, id),
-  constraint computed_grades_student_fk foreign key (tenant_id, student_id)
-    references students (tenant_id, id),
-  constraint computed_grades_class_fk foreign key (tenant_id, class_id)
-    references classes (tenant_id, id),
-  constraint computed_grades_term_fk foreign key (tenant_id, term_id)
-    references terms (tenant_id, id),
-  constraint computed_grades_version_fk foreign key (tenant_id, scheme_version_id)
-    references grading_scheme_versions (tenant_id, id),
-  constraint computed_grades_scale_fk foreign key (tenant_id, scale_id)
-    references grade_scales (tenant_id, id),
-  constraint computed_grades_level_fk foreign key (tenant_id, scale_level_id)
-    references grade_scale_levels (tenant_id, id),
-  constraint computed_grades_prev_level_fk foreign key (tenant_id, previous_scale_level_id)
-    references grade_scale_levels (tenant_id, id),
-  constraint computed_grades_supersedes_fk foreign key (tenant_id, supersedes_id)
-    references computed_grades (tenant_id, id),
-  constraint computed_grades_evaluated_within_total
-    check (evaluated_weight <= total_weight),
-  constraint computed_grades_trend_needs_previous
-    check ((trend is null) or (previous_normalized_value is not null))
-);
-
-comment on table computed_grades is
-  'DATOS PERSONALES DE MENORES (académico, derivado). NO es el registro oficial. El sistema ponderado interno propio del colegio (el D.S. 009-2006-ED art. 37.4.f permite que una IE privada lleve uno), mantenido para colegios que quieren una nota numérica junto a la norma. La RVM 094-2020 determina el logro por competencia a partir del juicio del docente frente a los criterios (ver competency_term_levels, que es el registro oficial y nunca se deriva de esta tabla). Una fila por estudiante por class por term, reescrita como una fila nueva cada vez que el resultado cambia.';
-
-comment on column computed_grades.normalized_value is 'La nota en un eje 0-1, comparable entre toda escala y todo tenant. Esta es la columna sobre la que se entrenan modelos con un simple SELECT. Para un term parcial es el logro solo sobre la parte evaluada: "83% de lo evaluado" es 0.83333.';
-comment on column computed_grades.normalization_method is 'Cómo se convirtió el resultado en crudo en un número 0-1. ratio_of_evaluated es el caso de term parcial; band_midpoint es la vía con pérdida usada cuando el origen es un juicio ordinal sin número subyacente. Se almacena porque el método cambia lo que significa el valor.';
-comment on column computed_grades.scale_level_id is 'La banda en la que cae el valor normalizado: la "A" que se muestra, y la clave de agrupación detrás de "Distribución de logros". Null cuando evaluated_weight está por debajo del mínimo de la versión para mostrar una nota.';
-comment on column computed_grades.display_value is 'Qué imprimir: "A" para una escala ordinal, "15.4" para vigesimal. Se calcula una sola vez aquí en vez de en cada cliente.';
-comment on column computed_grades.total_weight is 'Suma de los pesos de los componentes en juego para este term. Normalmente 1; menos si se descartó un componente opcional por no tener assessments.';
-comment on column computed_grades.evaluated_weight is 'Porción de total_weight ya evaluada. "60% del curso evaluado · falta 40%" es esto sobre total_weight.';
-comment on column computed_grades.previous_scale_level_id is
-  'Nivel del cálculo anterior, para el sistema ponderado interno propio del colegio. Se conserva para poder mostrar un cambio de posición sin recalcular el historial. Solo lo lee ese sistema: el nivel de logro oficial lo afirma un docente y nunca se deriva de estas filas.';
-comment on column computed_grades.trend is
-  'Dirección del último cambio, para el sistema ponderado interno propio del colegio. Se puede derivar de previous_normalized_value, se cachea porque un dashboard de class lo lee para toda una section a la vez.';
-comment on column computed_grades.inputs_digest is 'Hash de las filas de score que alimentaron este cálculo. Permite que el job de recompute se salte escribir una fila nueva cuando nada material cambió, que es lo que evita que esta tabla crezca con cada tecla presionada.';
-comment on column computed_grades.superseded_at is 'Se establece cuando un cálculo más nuevo reemplaza esta fila. Null significa vigente. Se escribe antes de insertar el reemplazo, ya que computed_grades_current_key admite solo una fila vigente por estudiante, class y term.';
-comment on column computed_grades.supersedes_id is 'El cálculo que esta fila reemplaza. Apunta solo hacia atrás, por la misma razón que scores.supersedes_id: un puntero hacia adelante nunca podría escribirse, porque el sucesor no existe en el momento en que el predecesor debe cerrarse.';
-comment on column computed_grades.computed_by_job_id is 'La fila de jobs que produjo este cálculo, cuando vino de la cola en vez de un guardado interactivo. Intencionalmente no es una FK: los jobs terminados se depuran, y una nota no debe volverse imposible de escribir porque su fila de job envejeció.';
-
--- Una fila vigente por estudiante, class y term.
-create unique index computed_grades_current_key
-  on computed_grades (student_id, class_id, term_id)
-  where superseded_at is null and deleted_at is null;
--- "Distribución de logros": cuenta las notas vigentes por nivel para una class.
-create index computed_grades_class_level_idx
-  on computed_grades (class_id, term_id, scale_level_id)
-  where superseded_at is null and deleted_at is null;
--- El roster con el nivel y la tendencia vigentes de cada estudiante.
-create index computed_grades_class_term_idx
-  on computed_grades (class_id, term_id)
-  where superseded_at is null and deleted_at is null;
--- El historial de notas de un estudiante, más reciente primero.
-create index computed_grades_student_history_idx
-  on computed_grades (student_id, class_id, created_at desc) where deleted_at is null;
--- Entrenamiento de modelos: extraer notas normalizadas entre todos los tenants para un periodo.
-create index computed_grades_training_idx
-  on computed_grades (created_at) where superseded_at is null and deleted_at is null;
-
-select app.enable_tenant_rls('computed_grades');
-select app.attach_updated_at('computed_grades');
-select app.attach_soft_delete_guard('computed_grades');
-
--- ---------------------------------------------------------------------------
--- computed_grade_components
--- ---------------------------------------------------------------------------
-create table computed_grade_components (
-  id                  uuid primary key default gen_random_uuid(),
-  tenant_id           uuid not null references tenants (id),
-  computed_grade_id   uuid not null,
-  component_id        uuid not null,
-  weight_applied      numeric(9, 6) not null check (weight_applied >= 0),
-  is_evaluated        boolean not null default false,
-  normalized_value    numeric(6, 5) check (normalized_value between 0 and 1),
-  display_value       text,
-  assessments_counted integer not null default 0 check (assessments_counted >= 0),
-  counted_score_ids   uuid[] not null default '{}',
-  dropped_score_ids   uuid[] not null default '{}',
-  excused_score_ids   uuid[] not null default '{}',
-  created_at          timestamptz not null default now(),
-  updated_at          timestamptz not null default now(),
-  deleted_at          timestamptz,
-  constraint cgc_grade_fk foreign key (tenant_id, computed_grade_id)
-    references computed_grades (tenant_id, id) on delete cascade,
-  constraint cgc_component_fk foreign key (tenant_id, component_id)
-    references grading_components (tenant_id, id),
-  constraint cgc_evaluated_has_value
-    check (is_evaluated = (normalized_value is not null))
-);
-
-comment on table computed_grade_components is 'El desglose por componente detrás de un computed grade. La lista de EVALUACIONES lee weight_applied y normalized_value de aquí, y la fila "Sin evaluar" es un componente con is_evaluated = false.';
-comment on column computed_grade_components.counted_score_ids is 'Exactamente qué filas de score alimentaron este número. Hace que una nota sea explicable a un padre sin volver a ejecutar el cálculo.';
-comment on column computed_grade_components.dropped_score_ids is 'Scores removidas por drop-lowest-N. Se conservan para que el docente pueda responder con precisión "por qué mi peor práctica no cuenta".';
-comment on column computed_grade_components.excused_score_ids is 'Scores excluidas del denominador por haber sido excused. Distinto de dropped: excused fue una decisión sobre el estudiante, dropped fue una regla sobre los números.';
-
-create unique index cgc_key on computed_grade_components (computed_grade_id, component_id)
-  where deleted_at is null;
-create index cgc_component_idx on computed_grade_components (component_id);
-
-select app.enable_tenant_rls('computed_grade_components');
-select app.attach_updated_at('computed_grade_components');
 
 -- ---------------------------------------------------------------------------
 -- voice_notes
@@ -2387,12 +1781,12 @@ create table jobs (
 );
 
 comment on table jobs is
-  'La cola de trabajo, en Postgres. La recomputación de notas y la transcripción de notas de voz pasan por aquí. Se reclama con SELECT ... FOR UPDATE SKIP LOCKED, que es la única razón por la que una cola en la base de datos primaria es viable a esta escala.';
+  'La cola de trabajo, en Postgres. La transcripción de notas de voz y las generaciones de los agentes pasan por aquí. Se reclama con SELECT ... FOR UPDATE SKIP LOCKED, que es la única razón por la que una cola en la base de datos primaria es viable a esta escala.';
 
 comment on column jobs.tenant_id is 'Nulable: el trabajo de mantenimiento entre tenants no tiene tenant. Por eso jobs no lleva política RLS — un worker legítimamente abarca varios tenants y establece app.tenant_id por cada job.';
 comment on column jobs.kind is
-  'Qué handler ejecuta el job. Dos tipos están vigentes: ''grade.recompute'' (recalcula la nota ponderada interna opcional del colegio para una class/term) y ''voice_note.transcribe'' (transcripción de voz a texto en español para una nota grabada). Texto libre sin CHECK: las filas de tipos retirados fallan como ''unknown job kind'' en vez de reescribirse.';
-comment on column jobs.priority is 'El menor corre primero. La transcripción de una nota que el docente está viendo tiene prioridad sobre un recompute nocturno.';
+  'Qué handler ejecuta el job. Los tipos vigentes son ''voice_note.transcribe'' (transcripción de voz a texto en español para una nota grabada) y ''agent.generate'' (una generación de los agentes de Mawta). Texto libre sin CHECK: las filas de tipos retirados fallan como ''unknown job kind'' en vez de reescribirse.';
+comment on column jobs.priority is 'El menor corre primero. La transcripción de una nota que el docente está viendo tiene prioridad sobre un trabajo de mantenimiento nocturno.';
 comment on column jobs.run_after is 'El momento más temprano en que este job puede reclamarse. Sirve tanto para programación como para el backoff exponencial.';
 comment on column jobs.attempted_by is 'Identidad del worker que sostiene el lease actual, para diagnosticar un job atascado.';
 comment on column jobs.errors is 'Arreglo de solo inserción de registros de fallo, uno por intento. Se conserva completo porque un job que eventualmente tuvo éxito tras tres fallos de transcripción es en sí mismo una señal sobre la calidad del audio.';
@@ -2472,47 +1866,6 @@ where n.nspname = 'public'
 
 comment on view privacy.undeclared_student_references is 'Debe devolver cero filas. Cualquier tabla que lleve un student_id sin declararse a sí misma en el registro es un hueco de documentación; se verifica que esto esté vacío en CI para que las tablas nuevas no puedan saltarse la declaración. Las particiones se omiten porque heredan la declaración de su tabla padre en vez de llevar su propio comentario, y events se omite por nombre: referencia a todo tipo de entidad y vive bajo sus propias reglas de retención.';
 
-create table practice_scores (
-  id             uuid primary key default gen_random_uuid(),
-  tenant_id      uuid not null references tenants (id),
-  student_id     uuid not null,
-  class_id       uuid not null,
-  term_id        uuid not null,
-  title          text not null,
-  kind           text not null default 'otro'
-                   check (kind in ('examen', 'practica', 'tarea', 'proyecto',
-                                    'exposicion', 'participacion', 'otro')),
-  raw_value      numeric(8, 4) not null,
-  max_value      numeric(8, 4) not null check (max_value > 0),
-  note           text,
-  recorded_by_id uuid not null,
-  recorded_at    timestamptz not null default now(),
-  created_at     timestamptz not null default now(),
-  updated_at     timestamptz not null default now(),
-  deleted_at     timestamptz,
-  constraint practice_scores_tenant_id_key unique (tenant_id, id),
-  constraint practice_scores_student_fk foreign key (tenant_id, student_id)
-    references students (tenant_id, id),
-  constraint practice_scores_class_fk foreign key (tenant_id, class_id)
-    references classes (tenant_id, id),
-  constraint practice_scores_term_fk foreign key (tenant_id, term_id)
-    references terms (tenant_id, id),
-  constraint practice_scores_recorded_by_fk foreign key (tenant_id, recorded_by_id)
-    references teachers (tenant_id, id)
-);
-
-comment on table practice_scores is
-  'Un registro personal y no oficial de un docente, creado con "Añadir evaluación" en la pantalla de notas del estudiante. Explícitamente no es una assessment: no lleva componente ni peso, internal/grading nunca lo lee, y nunca llega a computed_grades. Para qué se usa (una práctica de clase, un repaso, lo que sea) depende enteramente del docente.';
-comment on column practice_scores.kind is 'El mismo vocabulario que assessments.kind, por consistencia de etiquetas con la lista oficial de EVALUACIONES — no es una FK, ya que estas no están atadas a ningún grading scheme.';
-comment on column practice_scores.note is 'Texto libre opcional que el docente adjunta a la score.';
-
--- Las scores personales de un estudiante para una class/term, más reciente primero.
-create index practice_scores_student_idx
-  on practice_scores (student_id, class_id, term_id, recorded_at desc) where deleted_at is null;
-
-select app.enable_tenant_rls('practice_scores');
-select app.attach_updated_at('practice_scores');
-select app.attach_soft_delete_guard('practice_scores');
 
 
 -- ---------------------------------------------------------------------------
@@ -2542,8 +1895,6 @@ create table competency_term_levels (
   term_id            uuid,
   class_id           uuid,
   scale_level_id     uuid not null,
-  suggested_level_id uuid,
-  computed_grade_id  uuid,
   asserted_by_id     uuid,
   asserted_at        timestamptz not null default now(),
   note               text,
@@ -2565,10 +1916,6 @@ create table competency_term_levels (
     references classes (tenant_id, academic_year_id, id),
   constraint ctl_level_fk foreign key (tenant_id, scale_level_id)
     references grade_scale_levels (tenant_id, id),
-  constraint ctl_suggested_level_fk foreign key (tenant_id, suggested_level_id)
-    references grade_scale_levels (tenant_id, id),
-  constraint ctl_computed_grade_fk foreign key (tenant_id, computed_grade_id)
-    references computed_grades (tenant_id, id),
   constraint ctl_asserted_by_fk foreign key (tenant_id, asserted_by_id)
     references teachers (tenant_id, id),
   constraint ctl_supersedes_fk foreign key (tenant_id, supersedes_id)
@@ -2576,10 +1923,8 @@ create table competency_term_levels (
 );
 
 comment on table competency_term_levels is
-  'DATOS PERSONALES DE MENORES (académico, oficial). El nivel de logro de una competencia para un estudiante en un periodo — la fila que va a SIAGIE y, al cierre del año, decide la situación final. Escrito por el juicio de un docente sobre la evidencia del periodo (5.1.1.3 p.2-3), nunca por un cálculo: internal/grading solo completa suggested_level_id. Una competencia no desarrollada ni evaluada explícitamente en el periodo simplemente no tiene fila (5.1.2.2 p.1) — la ausencia es significativa y no debe leerse como C.';
+  'DATOS PERSONALES DE MENORES (académico, oficial). El nivel de logro de una competencia para un estudiante en un periodo — la fila que va a SIAGIE y, al cierre del año, decide la situación final. Escrito por el juicio de un docente sobre la evidencia del periodo (5.1.1.3 p.2-3), nunca por un cálculo. Una competencia no desarrollada ni evaluada explícitamente en el periodo simplemente no tiene fila (5.1.2.2 p.1) — la ausencia es significativa y no debe leerse como C.';
 comment on column competency_term_levels.scale_level_id is 'El nivel afirmado, como una fila de grade_scale_levels (AD/A/B/C en la escala ordinal MINEDU). El único valor que es oficial.';
-comment on column competency_term_levels.suggested_level_id is 'Lo que Mawta propuso a partir de las scores ponderadas antes de que el docente decidiera. Null cuando no se calculó nada. Se conserva para medir con qué frecuencia se anula la sugerencia — no tiene ningún valor normativo.';
-comment on column competency_term_levels.computed_grade_id is 'La fila de computed_grades de la que vino la sugerencia, para trazabilidad. Null cuando el docente afirmó sin ningún insumo calculado.';
 comment on column competency_term_levels.class_id is 'Desde qué class afirmó el docente, para trazabilidad y permisos. No forma parte de la identidad del registro: la norma conoce competencias y periodos, no classes, y una competencia obtiene exactamente un nivel por periodo.';
 comment on column competency_term_levels.superseded_at is 'Se establece cuando una corrección reemplaza esta fila. Null significa vigente. Se escribe antes de insertar el reemplazo, ya que ctl_regular_key/ctl_recuperacion_key admiten solo una fila vigente por estudiante, competencia y term (o año, sin term).';
 comment on column competency_term_levels.asserted_by_id is 'El docente que hizo el juicio. Nulable: una competencia transversal no está adscrita a un solo docente, así que su nivel puede afirmarse sin uno.';
@@ -2862,30 +2207,1024 @@ select app.enable_tenant_rls('competency_exemptions');
 select app.attach_updated_at('competency_exemptions');
 select app.attach_soft_delete_guard('competency_exemptions');
 
+-- ===========================================================================
+-- Planeamiento por experiencias de aprendizaje
+-- ===========================================================================
+-- Esquema de planificación de experiencias de aprendizaje (flujo "Plan del
+-- trimestre"). Segunda migración: no reescribe nada de 00001, solo agrega.
+--
+-- Tabla de decisiones (resumen; el detalle vive en cada comentario de abajo):
+--
+--   | Decisión                                        | Qué se normalizó y por qué |
+--   |-------------------------------------------------|------------------------------------------------------------------------------------|
+--   | Experiencia de aprendizaje                      | Nueva tabla learning_experiences: una class, un term, fechas dentro del term, sin solaparse. Es la unidad de planificación del periodo; hoy no existía. |
+--   | Criterio → capacidades (N:M)                   | evaluation_criteria.capability_id pasa a nullable y se copia a evaluation_criterion_capabilities. Un criterio mira una o más capacidades de su competencia; la FK compuesta (tenant_id, competency_id, capability_id) sigue probando la pertenencia. La columna vieja no se elimina para que el código actual siga corriendo. |
+--   | Criterio anclado a la experiencia y al desempeño | evaluation_criteria gana experience_id y performance_id, ambos nullable: los criterios existentes (globales por competencia) siguen siendo válidos hasta que las pantallas nuevas los reemplacen. |
+--   | Desempeños por grado                            | Nueva tabla grade_level_performances: texto oficial por competencia y grado, con la postura en_proceso/logra. El vínculo desempeño→capacidad (suggested_capability_id) es INFERIDO, no oficial: los programas no etiquetan desempeños por capacidad. |
+--   | Estándares de aprendizaje                       | Nuevas tablas learning_standards (competencia, nivel 1-8, texto oficial) y standard_level_mappings ((modalidad, ciclo) → nivel esperado). Referencia de la conclusión descriptiva; NUNCA fuente de criterios. |
+--   | Evidencias planificadas vs. assessments          | planned_evidences es la promesa de qué se observará, contra qué criterios y en qué escala se valorará; assessments es la evidencia valorable. El enlace es assessments.planned_evidence_id: cada evidencia aceptada se materializa como una assessment al planificar la experiencia. |
+--   | Esquema de sesiones                             | session_outline_entries: a lo sumo una fila por (experiencia, fecha de clase). Un bloque doble es una sola sesión, así que la unicidad es por fecha y no por franja horaria. |
+--   | Días no laborables                              | non_teaching_days por año escolar, cargados en onboarding, para excluir feriados/vacaciones/gestión del conteo de sesiones. |
+--   | Procedencia de propuestas                       | proposed_by ('mawta'/'teacher') + accepted_at en criterios, evidencias planificadas y entradas de esquema: una propuesta queda pendiente hasta que el docente la acepta o edita. |
+--   | Seguimiento entre periodos                      | Sin tabla resumen: se calcula con una consulta sobre learning_experiences + experience_competencies (decisión 9 del flujo). |
+--   | Fuera de alcance (diferido por decisión)        | Ajustes por estudiante, sistema de diseño, vista "Hoy" y agente de detalle de sesión. No se modelan aquí. |
+--
+-- Nada aquí calcula ni sugiere un nivel de logro oficial: el nivel es el
+-- juicio del docente (RVM 094-2020 / RVM 048-2024) y vive en
+-- competency_term_levels.
+
+
+-- ---------------------------------------------------------------------------
+-- grade_level_performances
+-- ---------------------------------------------------------------------------
+-- El desempeño de grado: el texto oficial del programa (RM 649-2016) que el
+-- docente precisa en un criterio. Es dato curricular, cargado por onboarding,
+-- nunca redactado por la app.
+create table grade_level_performances (
+  id                       uuid primary key default gen_random_uuid(),
+  tenant_id                uuid not null references tenants (id),
+  competency_id            uuid not null,
+  grade_level_id           uuid not null,
+  sort_order               smallint not null,
+  official_text            text not null,
+  en_proceso               boolean not null default false,
+  expected_standard_level  smallint not null check (expected_standard_level between 1 and 8),
+  suggested_capability_id  uuid,
+  created_at               timestamptz not null default now(),
+  updated_at               timestamptz not null default now(),
+  deleted_at               timestamptz,
+  constraint grade_level_performances_tenant_id_key unique (tenant_id, id),
+  constraint grade_level_performances_competency_key unique (tenant_id, competency_id, id),
+  constraint grade_level_performances_grade_key unique (tenant_id, grade_level_id, id),
+  constraint grade_level_performances_competency_fk foreign key (tenant_id, competency_id)
+    references competencies (tenant_id, id),
+  constraint grade_level_performances_grade_fk foreign key (tenant_id, grade_level_id)
+    references grade_levels (tenant_id, id),
+  constraint grade_level_performances_suggested_capability_fk
+    foreign key (tenant_id, competency_id, suggested_capability_id)
+    references capabilities (tenant_id, competency_id, id)
+);
+
+comment on table grade_level_performances is
+  'Los desempeños de grado del programa oficial: por competencia y por grado, con su texto oficial y su postura frente al estándar del ciclo. Es la única fuente de la que un criterio puede derivar (decisión 2 del flujo): un criterio es el precisado del docente de uno de estos textos en la situación de la experiencia.';
+comment on column grade_level_performances.sort_order is
+  'Posición del desempeño dentro de su competencia y grado. Los programas listan los desempeños en un orden pedagógico; ese orden se conserva para mostrarlos tal como aparecen en el documento oficial.';
+comment on column grade_level_performances.official_text is
+  'El texto literal del programa (RM 649-2016). Nunca se redacta ni se parafrasea en la app: el currículo no se inventa.';
+comment on column grade_level_performances.en_proceso is
+  'La postura del desempeño frente al estándar del ciclo: true = "en proceso hacia" el nivel esperado, false = "logra" el nivel esperado. Los programas de un grado intermedio describen avances hacia el estándar del fin de ciclo; los del grado final del ciclo describen el logro.';
+comment on column grade_level_performances.expected_standard_level is
+  'Nivel (1-8) del estándar de aprendizaje al que este desempeño apunta. Los programas lo declaran por grado; se guarda por fila para que el desempeño se lea junto al estándar correcto sin re-derivarlo del ciclo.';
+comment on column grade_level_performances.suggested_capability_id is
+  'INFERIDO, NO OFICIAL. Los programas no etiquetan desempeños por capacidad: este vínculo es una pista que se calcula al cargar el currículo y que el docente puede ignorar. Nunca reemplaza el juicio del docente sobre qué capacidades mira un criterio. La FK compuesta (tenant_id, competency_id, suggested_capability_id) garantiza que la pista apunte a una capacidad de la misma competencia.';
+
+create unique index grade_level_performances_order_key
+  on grade_level_performances (tenant_id, competency_id, grade_level_id, sort_order)
+  where deleted_at is null;
+create index grade_level_performances_grade_idx
+  on grade_level_performances (grade_level_id) where deleted_at is null;
+
+select app.enable_tenant_rls('grade_level_performances');
+select app.attach_updated_at('grade_level_performances');
+select app.attach_soft_delete_guard('grade_level_performances');
+
+-- ---------------------------------------------------------------------------
+-- learning_standards
+-- ---------------------------------------------------------------------------
+-- El estándar de aprendizaje: el texto oficial del CNEB por competencia y
+-- nivel (1-8, un nivel por fin de ciclo). Referencia de la conclusión
+-- descriptiva; NUNCA fuente de criterios (decisión 2 del flujo).
+create table learning_standards (
+  id             uuid primary key default gen_random_uuid(),
+  tenant_id      uuid not null references tenants (id),
+  competency_id  uuid not null,
+  level          smallint not null check (level between 1 and 8),
+  official_text  text not null,
+  created_at     timestamptz not null default now(),
+  updated_at     timestamptz not null default now(),
+  deleted_at     timestamptz,
+  constraint learning_standards_tenant_id_key unique (tenant_id, id),
+  constraint learning_standards_competency_key unique (tenant_id, competency_id, id),
+  constraint learning_standards_competency_fk foreign key (tenant_id, competency_id)
+    references competencies (tenant_id, id)
+);
+
+comment on table learning_standards is
+  'Los estándares de aprendizaje del CNEB: por competencia y nivel (1-8), con su texto oficial. Son la referencia con la que se redacta la conclusión descriptiva de fin de ciclo, nunca una fuente de criterios: el criterio proviene del desempeño de grado, el estándar describe el punto de llegada del ciclo.';
+comment on column learning_standards.level is
+  'Nivel del estándar, 1-8: un nivel por fin de ciclo de la EBR. El mapeo (modalidad, ciclo) → nivel vive en standard_level_mappings.';
+comment on column learning_standards.official_text is
+  'El texto literal del CNEB. Nunca se redacta ni se parafrasea en la app.';
+
+create unique index learning_standards_competency_level_key
+  on learning_standards (tenant_id, competency_id, level) where deleted_at is null;
+
+select app.enable_tenant_rls('learning_standards');
+select app.attach_updated_at('learning_standards');
+select app.attach_soft_delete_guard('learning_standards');
+
+-- ---------------------------------------------------------------------------
+-- standard_level_mappings
+-- ---------------------------------------------------------------------------
+-- (modalidad, ciclo) → nivel esperado del estándar. Necesario porque el nivel
+-- del estándar no se deriva del grado: depende de la modalidad y del ciclo.
+create table standard_level_mappings (
+  id              uuid primary key default gen_random_uuid(),
+  tenant_id       uuid not null references tenants (id),
+  modality        text not null check (modality in ('ebr', 'ebe', 'eja')),
+  cycle           text not null check (cycle in ('ciclo_i', 'ciclo_ii', 'ciclo_iii', 'ciclo_iv',
+                                                 'ciclo_v', 'ciclo_vi', 'ciclo_vii')),
+  expected_level  smallint not null check (expected_level between 1 and 8),
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now(),
+  deleted_at      timestamptz,
+  constraint standard_level_mappings_tenant_id_key unique (tenant_id, id)
+);
+
+comment on table standard_level_mappings is
+  'Qué nivel de estándar (1-8) corresponde a cada combinación de modalidad y ciclo, ej. (ebr, ciclo_vii) → 7. Permite resolver "el estándar de fin de ciclo de esta class" a partir del grado, sin codificarlo en Go ni asumir que todos los colegios siguen la EBR regular.';
+comment on column standard_level_mappings.modality is
+  'Modalidad del servicio educativo: ebr (Educación Básica Regular), ebe (Educación Básica Especial), eja (Educación Básica Alternativa).';
+comment on column standard_level_mappings.cycle is
+  'Ciclo de la modalidad. En EBR: ciclo_i (0-2 años), ciclo_ii (3-5), ciclo_iii (1ro-2do primaria), ciclo_iv (3ro-4to), ciclo_v (5to-6to), ciclo_vi (1ro-2do secundaria), ciclo_vii (3ro-5to).';
+comment on column standard_level_mappings.expected_level is
+  'El nivel (1-8) del estándar de aprendizaje que cierra ese ciclo. Un ciclo termina en un nivel: este mapeo es la única fuente de esa correspondencia.';
+
+create unique index standard_level_mappings_key
+  on standard_level_mappings (tenant_id, modality, cycle) where deleted_at is null;
+
+select app.enable_tenant_rls('standard_level_mappings');
+select app.attach_updated_at('standard_level_mappings');
+select app.attach_soft_delete_guard('standard_level_mappings');
+
+-- ---------------------------------------------------------------------------
+-- non_teaching_days
+-- ---------------------------------------------------------------------------
+-- Días sin clase del año escolar: feriados, rangos de vacaciones y días de
+-- gestión. Los carga el colegio en onboarding, para que el conteo de sesiones
+-- de una experiencia excluya lo que no es clase.
+create table non_teaching_days (
+  id                uuid primary key default gen_random_uuid(),
+  tenant_id         uuid not null references tenants (id),
+  academic_year_id  uuid not null,
+  day               date not null,
+  kind              text not null check (kind in ('feriado', 'vacaciones', 'gestion')),
+  label             text,
+  created_at        timestamptz not null default now(),
+  updated_at        timestamptz not null default now(),
+  deleted_at        timestamptz,
+  constraint non_teaching_days_tenant_id_key unique (tenant_id, id),
+  constraint non_teaching_days_year_key unique (tenant_id, academic_year_id, id),
+  constraint non_teaching_days_year_fk foreign key (tenant_id, academic_year_id)
+    references academic_years (tenant_id, id)
+);
+
+comment on table non_teaching_days is
+  'Los días sin clase de un año escolar: feriados, vacaciones y días de gestión. Se cargan por onboarding (el colegio los declara, la app no los inventa) y sirven para excluir del conteo de sesiones de una experiencia las fechas que no son clase. Un rango de vacaciones se carga como una fila por día: el conteo y la exclusión son por fecha, y un rango obligaría a un chequeo de solapamiento de rangos para algo que es, en el fondo, un conjunto de fechas.';
+comment on column non_teaching_days.kind is
+  'feriado: fecha cívica o feriado nacional/regional. vacaciones: día dentro de un periodo de vacaciones del año escolar. gestion: día de gestión pedagógica o administrativa (los colegios lo usan para reuniones y planificación, sin estudiantes).';
+comment on column non_teaching_days.label is
+  'Nombre opcional para mostrar, ej. "San Pedro y San Pablo" o "Vacaciones de medio año". Null cuando el tipo basta.';
+
+create unique index non_teaching_days_year_day_key
+  on non_teaching_days (tenant_id, academic_year_id, day) where deleted_at is null;
+create index non_teaching_days_year_idx
+  on non_teaching_days (academic_year_id, day) where deleted_at is null;
+
+select app.enable_tenant_rls('non_teaching_days');
+select app.attach_updated_at('non_teaching_days');
+select app.attach_soft_delete_guard('non_teaching_days');
+
+-- ---------------------------------------------------------------------------
+-- learning_experiences
+-- ---------------------------------------------------------------------------
+-- La experiencia de aprendizaje: la unidad con la que un docente planifica un
+-- periodo para una class. Una class, un term, fechas dentro del term, sin
+-- solaparse entre sí.
+create table learning_experiences (
+  id                uuid primary key default gen_random_uuid(),
+  tenant_id         uuid not null references tenants (id),
+  class_id          uuid not null,
+  academic_year_id  uuid not null,
+  term_id           uuid not null,
+  title             text not null,
+  idea_text          text not null,
+  situation_text    text,
+  starts_on         date not null,
+  ends_on           date not null,
+  status            text not null default 'borrador'
+                      check (status in ('borrador', 'planificada')),
+  created_at        timestamptz not null default now(),
+  updated_at        timestamptz not null default now(),
+  deleted_at        timestamptz,
+  constraint learning_experiences_tenant_id_key unique (tenant_id, id),
+  constraint learning_experiences_class_key unique (tenant_id, class_id, id),
+  constraint learning_experiences_year_key unique (tenant_id, academic_year_id, id),
+  constraint learning_experiences_class_fk foreign key (tenant_id, class_id)
+    references classes (tenant_id, id),
+  constraint learning_experiences_year_fk foreign key (tenant_id, academic_year_id)
+    references academic_years (tenant_id, id),
+  constraint learning_experiences_term_fk foreign key (tenant_id, academic_year_id, term_id)
+    references terms (tenant_id, academic_year_id, id),
+  constraint learning_experiences_range_valid check (starts_on <= ends_on),
+  constraint learning_experiences_no_overlap
+    exclude using gist (
+      class_id with =,
+      daterange(starts_on, ends_on, '[]') with &&
+    ) where (deleted_at is null)
+);
+
+comment on table learning_experiences is
+  'Una experiencia de aprendizaje: la unidad con la que un docente planifica un periodo para una class. Nace de la idea del docente (idea_text), se concreta en una situación (situation_text) y trabaja una o más competencias del área de la class (experience_competencies). Vive dentro de un term y sus fechas no pueden solaparse con las de otra experiencia de la misma class.';
+comment on column learning_experiences.academic_year_id is
+  'Copiado del term. No es una fuente independiente de verdad: existe para que learning_experiences_term_fk sea compuesta sobre él, lo que hace estructuralmente imposible que una experiencia apunte a un term de otro año escolar.';
+comment on column learning_experiences.title is
+  'Título con el que el docente reconoce la experiencia, ej. "La feria matemática del 5to B".';
+comment on column learning_experiences.idea_text is
+  'La idea original del docente, tal como la escribió en "Tengo una idea". Es la semilla de la experiencia y no se reescribe: la propuesta de Mawta se acepta o se edita aparte.';
+comment on column learning_experiences.situation_text is
+  'La situación significativa en la que la experiencia se desarrolla (CNEB). Null mientras aún no se ha redactado: la propuesta de Mawta puede llenarla, y el docente siempre decide.';
+comment on column learning_experiences.starts_on is
+  'Primer día de la experiencia, inclusive. Debe caer dentro del term (check_experience_inside_term) y no solaparse con otra experiencia de la misma class (learning_experiences_no_overlap).';
+comment on column learning_experiences.ends_on is
+  'Último día de la experiencia, inclusive. Misma regla que starts_on.';
+comment on constraint learning_experiences_no_overlap on learning_experiences is
+  'Dos experiencias no eliminadas de la misma class no pueden cubrir la misma fecha. El rango es inclusivo ''[]'': una experiencia que termina el lunes y otra que empieza ese mismo lunes se solapan — el docente no puede estar en dos experiencias a la vez.';
+
+-- El term debe contener la experiencia. Un CHECK no puede consultar otra
+-- tabla, así que esto es un trigger de restricción.
+-- +goose StatementBegin
+create or replace function app.check_experience_inside_term() returns trigger
+  language plpgsql
+  as $fn$
+  declare
+    v_term_starts date;
+    v_term_ends   date;
+  begin
+    select t.starts_on, t.ends_on into v_term_starts, v_term_ends
+      from terms t
+     where t.tenant_id = new.tenant_id
+       and t.id = new.term_id
+       and t.deleted_at is null;
+
+    if not found then
+      raise exception 'term % not found in tenant %', new.term_id, new.tenant_id
+        using errcode = 'foreign_key_violation';
+    end if;
+
+    if new.starts_on < v_term_starts or new.ends_on > v_term_ends then
+      raise exception 'experience % (% .. %) falls outside its term (% .. %)',
+        new.id, new.starts_on, new.ends_on, v_term_starts, v_term_ends
+        using errcode = 'check_violation',
+              hint = 'An experience must start and end inside its term.';
+    end if;
+    return new;
+  end;
+  $fn$;
+-- +goose StatementEnd
+
+create constraint trigger check_inside_term
+  after insert or update of term_id, starts_on, ends_on on learning_experiences
+  deferrable initially deferred
+  for each row execute function app.check_experience_inside_term();
+
+comment on function app.check_experience_inside_term() is
+  'Un CHECK de fila no puede leer terms, así que el "dentro del term" es un trigger de restricción diferido: se dispara al COMMIT, lo que permite crear la experiencia y ajustar sus fechas en una misma transacción.';
+
+-- El conteo de sesiones de una experiencia: por class y rango de fechas.
+create index learning_experiences_class_range_idx
+  on learning_experiences (class_id, starts_on, ends_on) where deleted_at is null;
+-- "Tu trimestre": las experiencias del term de una class.
+create index learning_experiences_term_idx
+  on learning_experiences (term_id) where deleted_at is null;
+
+select app.enable_tenant_rls('learning_experiences');
+select app.attach_updated_at('learning_experiences');
+select app.attach_soft_delete_guard('learning_experiences');
+
+-- ---------------------------------------------------------------------------
+-- experience_competencies
+-- ---------------------------------------------------------------------------
+-- El vínculo N:M experiencia ↔ competencia. Cada competencia vinculada debe
+-- pertenecer al área de la course de la class: se exige por trigger, porque
+-- la pertenencia no es una columna de esta fila sino un camino a través de
+-- classes → courses → subjects.
+create table experience_competencies (
+  id              uuid primary key default gen_random_uuid(),
+  tenant_id       uuid not null references tenants (id),
+  experience_id   uuid not null,
+  competency_id   uuid not null,
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now(),
+  deleted_at      timestamptz,
+  constraint experience_competencies_tenant_id_key unique (tenant_id, id),
+  constraint experience_competencies_experience_key unique (tenant_id, experience_id, id),
+  constraint experience_competencies_competency_key unique (tenant_id, competency_id, id),
+  constraint experience_competencies_experience_fk foreign key (tenant_id, experience_id)
+    references learning_experiences (tenant_id, id),
+  constraint experience_competencies_competency_fk foreign key (tenant_id, competency_id)
+    references competencies (tenant_id, id)
+);
+
+comment on table experience_competencies is
+  'Qué competencias trabaja una experiencia de aprendizaje. Una experiencia trabaja una o más competencias del área de la class (decisión 1 del flujo); esta tabla es ese vínculo N:M y es lo que hace computable el seguimiento entre periodos: qué competencia se trabajó en qué term es una consulta sobre esta tabla, sin tabla resumen.';
+comment on constraint experience_competencies_experience_key on experience_competencies is
+  'Permite que las tablas hijas lleven FKs compuestas (tenant_id, experience_id, ...) — la misma técnica que en 00001: una referencia entre tenants queda estructuralmente imposible.';
+
+create unique index experience_competencies_pair_key
+  on experience_competencies (tenant_id, experience_id, competency_id) where deleted_at is null;
+create index experience_competencies_competency_idx
+  on experience_competencies (competency_id) where deleted_at is null;
+
+-- La competencia debe pertenecer al área de la course de la class de la
+-- experiencia. Un CHECK no puede recorrer el camino classes → courses →
+-- subjects, así que es un trigger.
+-- +goose StatementBegin
+create or replace function app.check_experience_competency_subject() returns trigger
+  language plpgsql
+  as $fn$
+  declare
+    v_subject uuid;
+  begin
+    select co.subject_id into v_subject
+      from learning_experiences le
+      join classes cl on cl.id = le.class_id and cl.tenant_id = le.tenant_id
+      join courses co on co.id = cl.course_id and co.tenant_id = cl.tenant_id
+     where le.id = new.experience_id
+       and le.tenant_id = new.tenant_id
+       and le.deleted_at is null;
+
+    if not exists (
+      select 1 from competencies c
+       where c.id = new.competency_id
+         and c.tenant_id = new.tenant_id
+         and c.deleted_at is null
+         and c.subject_id = v_subject
+    ) then
+      raise exception 'competency % does not belong to the subject of experience %''s class',
+        new.competency_id, new.experience_id
+        using errcode = 'foreign_key_violation',
+              hint = 'An experience works competencies of its class''s subject only.';
+    end if;
+    return new;
+  end;
+  $fn$;
+-- +goose StatementEnd
+
+create trigger check_competency_subject before insert or update on experience_competencies
+  for each row execute function app.check_experience_competency_subject();
+
+comment on function app.check_experience_competency_subject() is
+  'Cada competencia vinculada a una experiencia debe pertenecer al área de la course de la class. La pertenencia no es una columna de la fila (es un camino a través de classes → courses → subjects), así que no puede ser una FK compuesta ni un CHECK: es un trigger BEFORE que rechaza la fila.';
+
+select app.enable_tenant_rls('experience_competencies');
+select app.attach_updated_at('experience_competencies');
+select app.attach_soft_delete_guard('experience_competencies');
+
+-- ---------------------------------------------------------------------------
+-- evaluation_criteria: anclaje a la experiencia y al desempeño
+-- ---------------------------------------------------------------------------
+-- Los criterios existentes son globales por competencia y siguen siéndolo:
+-- experience_id y performance_id son nullable para que las pantallas actuales
+-- no se rompan hasta que las nuevas los reemplacen.
+alter table evaluation_criteria add column experience_id uuid;
+alter table evaluation_criteria add column performance_id uuid;
+alter table evaluation_criteria add column proposed_by text not null default 'teacher'
+  check (proposed_by in ('mawta', 'teacher'));
+alter table evaluation_criteria add column accepted_at timestamptz;
+
+comment on column evaluation_criteria.experience_id is
+  'La experiencia a la que pertenece este criterio. Null para los criterios globales por competencia que ya existían: siguen siendo válidos y visibles en las pantallas actuales hasta que el flujo de planificación los reemplace. La FK es compuesta (tenant_id, experience_id), así que un criterio no puede apuntar a una experiencia de otro tenant.';
+comment on column evaluation_criteria.performance_id is
+  'El desempeño de grado del que este criterio deriva (decisión 2 del flujo): un criterio es el precisado del docente de ese desempeño en la situación de la experiencia. Null cuando el docente lo escribió sin partir de un desempeño cargado. La FK compuesta (tenant_id, competency_id, performance_id) prueba que el desempeño es de la misma competencia del criterio.';
+comment on column evaluation_criteria.proposed_by is
+  'Quién redactó el criterio: ''mawta'' (propuesta del asistente) o ''teacher'' (el docente). El default es ''teacher'' para que los criterios existentes, migrados sin este dato, no aparezcan como propuestas de la máquina.';
+comment on column evaluation_criteria.accepted_at is
+  'Cuándo el docente aceptó o editó la propuesta. Null mientras la propuesta está pendiente: una propuesta de Mawta no es un criterio hasta que el docente la acepta o la edita.';
+
+alter table evaluation_criteria
+  add constraint evaluation_criteria_experience_fk foreign key (tenant_id, experience_id)
+    references learning_experiences (tenant_id, id);
+alter table evaluation_criteria
+  add constraint evaluation_criteria_performance_fk
+    foreign key (tenant_id, competency_id, performance_id)
+    references grade_level_performances (tenant_id, competency_id, id);
+
+-- El criterio debe pertenecer a la experiencia a la que dice pertenecer, y su
+-- competencia debe estar vinculada a esa experiencia. Ninguna FK puede ver
+-- ambas cosas a la vez, así que es un trigger.
+-- +goose StatementBegin
+create or replace function app.check_criterion_experience() returns trigger
+  language plpgsql
+  as $fn$
+  begin
+    if new.experience_id is null then
+      return new;
+    end if;
+
+    if not exists (
+      select 1
+        from experience_competencies ec
+       where ec.tenant_id = new.tenant_id
+         and ec.experience_id = new.experience_id
+         and ec.competency_id = new.competency_id
+         and ec.deleted_at is null
+    ) then
+      raise exception 'competency % is not worked by experience %',
+        new.competency_id, new.experience_id
+        using errcode = 'foreign_key_violation',
+              hint = 'Link the competency to the experience in experience_competencies first.';
+    end if;
+    return new;
+  end;
+  $fn$;
+-- +goose StatementEnd
+
+create trigger check_criterion_experience before insert or update
+  of experience_id, competency_id on evaluation_criteria
+  for each row execute function app.check_criterion_experience();
+
+comment on function app.check_criterion_experience() is
+  'Un criterio anclado a una experiencia solo puede hablar de una competencia que esa experiencia trabaja. Ninguna FK compuesta puede expresar esto (la fila de experience_competencies no existe todavía cuando se crea el criterio), así que es un trigger BEFORE.';
+
+create index evaluation_criteria_experience_idx
+  on evaluation_criteria (experience_id) where experience_id is not null and deleted_at is null;
+create index evaluation_criteria_performance_idx
+  on evaluation_criteria (performance_id) where performance_id is not null and deleted_at is null;
+
+-- ---------------------------------------------------------------------------
+-- evaluation_criterion_capabilities
+-- ---------------------------------------------------------------------------
+-- El vínculo N:M criterio ↔ capacidad. Un criterio mira una o más capacidades
+-- de su competencia; la FK compuesta (tenant_id, competency_id,
+-- capability_id) prueba la pertenencia.
+create table evaluation_criterion_capabilities (
+  id             uuid primary key default gen_random_uuid(),
+  tenant_id      uuid not null references tenants (id),
+  criterion_id   uuid not null,
+  competency_id  uuid not null,
+  capability_id  uuid not null,
+  created_at     timestamptz not null default now(),
+  updated_at     timestamptz not null default now(),
+  deleted_at     timestamptz,
+  constraint evaluation_criterion_capabilities_tenant_id_key unique (tenant_id, id),
+  constraint evaluation_criterion_capabilities_criterion_key unique (tenant_id, criterion_id, id),
+  constraint evaluation_criterion_capabilities_criterion_fk
+    foreign key (tenant_id, criterion_id) references evaluation_criteria (tenant_id, id),
+  constraint evaluation_criterion_capabilities_capability_fk
+    foreign key (tenant_id, competency_id, capability_id)
+    references capabilities (tenant_id, competency_id, id)
+);
+
+comment on table evaluation_criterion_capabilities is
+  'Qué capacidades mira un criterio de evaluación. Un criterio mira una o más capacidades de su competencia (N:M, decisión 2 del flujo): ser competente es usar las capacidades de forma combinada, así que un criterio puede mirar más de una. competency_id se desnormaliza del criterio para que la FK compuesta hacia capabilities pueda probar que la capacidad pertenece a la misma competencia.';
+comment on column evaluation_criterion_capabilities.competency_id is
+  'Desnormalizado desde el criterio. No es una fuente independiente de verdad: existe para que la FK compuesta (tenant_id, competency_id, capability_id) haga estructuralmente imposible vincular una capacidad de otra competencia.';
+comment on constraint evaluation_criterion_capabilities_criterion_key on evaluation_criterion_capabilities is
+  'Permite que otras tablas lleven FKs compuestas hacia esta, y mantiene la técnica de 00001: una referencia entre tenants es imposible.';
+
+create unique index evaluation_criterion_capabilities_pair_key
+  on evaluation_criterion_capabilities (tenant_id, criterion_id, capability_id)
+  where deleted_at is null;
+create index evaluation_criterion_capabilities_capability_idx
+  on evaluation_criterion_capabilities (capability_id) where deleted_at is null;
+
+-- La competencia desnormalizada debe coincidir con la del criterio. La FK
+-- compuesta hacia evaluation_criteria no puede expresar esa igualdad.
+-- +goose StatementBegin
+create or replace function app.check_criterion_capability_competency() returns trigger
+  language plpgsql
+  as $fn$
+  declare
+    v_competency uuid;
+  begin
+    select ec.competency_id into v_competency
+      from evaluation_criteria ec
+     where ec.id = new.criterion_id
+       and ec.tenant_id = new.tenant_id;
+
+    if v_competency is distinct from new.competency_id then
+      raise exception 'criterion % belongs to competency %, not %',
+        new.criterion_id, v_competency, new.competency_id
+        using errcode = 'foreign_key_violation',
+              hint = 'Copy the criterion''s competency_id; do not supply your own.';
+    end if;
+    return new;
+  end;
+  $fn$;
+-- +goose StatementEnd
+
+create trigger check_criterion_capability_competency
+  before insert or update of criterion_id, competency_id on evaluation_criterion_capabilities
+  for each row execute function app.check_criterion_capability_competency();
+
+comment on function app.check_criterion_capability_competency() is
+  'La competency_id desnormalizada debe ser exactamente la del criterio. Sin esto, una fila podría pasar la FK compuesta hacia capabilities apuntando a una capacidad de la competencia correcta mientras el criterio habla de otra.';
+
+select app.enable_tenant_rls('evaluation_criterion_capabilities');
+select app.attach_updated_at('evaluation_criterion_capabilities');
+select app.attach_soft_delete_guard('evaluation_criterion_capabilities');
+
+-- La columna vieja pasa a nullable: el vínculo vive en la tabla de join. No se
+-- elimina para que el código actual (que la lee y la escribe) siga corriendo.
+alter table evaluation_criteria alter column capability_id drop not null;
+
+comment on column evaluation_criteria.capability_id is
+  'DEPRECATED: el vínculo criterio ↔ capacidad vive en evaluation_criterion_capabilities, que permite varias capacidades por criterio. Esta columna se mantiene (nullable, no eliminada) para que el código actual siga corriendo mientras las pantallas nuevas la reemplazan; la migración copió su valor a la tabla de join.';
+
+-- Backfill: cada criterio existente conserva su capacidad en la tabla de
+-- join, de modo que nada de lo que ya funciona deja de funcionar.
+insert into evaluation_criterion_capabilities (tenant_id, criterion_id, competency_id, capability_id)
+select ec.tenant_id, ec.id, ec.competency_id, ec.capability_id
+  from evaluation_criteria ec
+ where ec.capability_id is not null
+   and not exists (
+     select 1 from evaluation_criterion_capabilities x
+      where x.tenant_id = ec.tenant_id
+        and x.criterion_id = ec.id
+        and x.capability_id = ec.capability_id
+   );
+
+-- Un criterio no eliminado mira al menos una capacidad. Un CHECK de fila no
+-- puede contar filas hermanas, así que es un trigger de restricción diferido:
+-- se dispara al COMMIT, lo que permite insertar el criterio y sus capacidades
+-- en una misma transacción.
+--
+-- La columna vieja capability_id cuenta como vínculo: el código actual
+-- (repo.CreateCriterion, el onboarding) todavía escribe esa columna y no
+-- inserta filas en la tabla de join, y esta migración no puede romperlo. El
+-- backfill de arriba copió su valor a la tabla de join, así que en la práctica
+-- todo criterio tiene su vínculo normalizado; la tolerancia existe solo para
+-- que el camino viejo siga corriendo hasta que las pantallas nuevas lo
+-- reemplacen.
+-- +goose StatementBegin
+create or replace function app.check_criterion_has_capability() returns trigger
+  language plpgsql
+  as $fn$
+  declare
+    v_criterion uuid;
+    v_tenant    uuid;
+  begin
+    if tg_op = 'DELETE' then
+      v_criterion := old.criterion_id;
+      v_tenant    := old.tenant_id;
+    else
+      v_criterion := new.criterion_id;
+      v_tenant    := new.tenant_id;
+    end if;
+
+    -- El criterio pudo haberse eliminado en la misma transacción; no hay nada
+    -- que verificar.
+    if not exists (select 1 from evaluation_criteria ec
+                    where ec.id = v_criterion
+                      and ec.tenant_id = v_tenant
+                      and ec.deleted_at is null) then
+      return null;
+    end if;
+
+    if not exists (
+      select 1 from evaluation_criterion_capabilities x
+       where x.criterion_id = v_criterion
+         and x.deleted_at is null
+    ) and not exists (
+      select 1 from evaluation_criteria ec
+       where ec.id = v_criterion
+         and ec.deleted_at is null
+         and ec.capability_id is not null
+    ) then
+      raise exception 'criterion % has no capabilities left',
+        v_criterion
+        using errcode = 'check_violation',
+              hint = 'A criterion looks at one or more capabilities of its competency.';
+    end if;
+    return null;
+  end;
+  $fn$;
+-- +goose StatementEnd
+
+create constraint trigger check_criterion_capabilities
+  after insert or update or delete on evaluation_criterion_capabilities
+  deferrable initially deferred
+  for each row execute function app.check_criterion_has_capability();
+
+-- Insertar un criterio sin capacidades también debe fallar: el trigger de
+-- arriba no se dispara si nunca se inserta una fila en la tabla de join.
+-- +goose StatementBegin
+create or replace function app.check_criterion_has_capability_on_write() returns trigger
+  language plpgsql
+  as $fn$
+  begin
+    if new.deleted_at is not null then
+      return null;
+    end if;
+
+    if not exists (
+      select 1 from evaluation_criterion_capabilities x
+       where x.criterion_id = new.id
+         and x.deleted_at is null
+    ) and new.capability_id is null then
+      raise exception 'criterion % has no capabilities',
+        new.id
+        using errcode = 'check_violation',
+              hint = 'Insert the criterion and its capabilities in the same transaction.';
+    end if;
+    return null;
+  end;
+  $fn$;
+-- +goose StatementEnd
+
+create constraint trigger check_criterion_on_write
+  after insert or update of deleted_at, capability_id on evaluation_criteria
+  deferrable initially deferred
+  for each row execute function app.check_criterion_has_capability_on_write();
+
+comment on function app.check_criterion_has_capability() is
+  'Un criterio no eliminado mira al menos una capacidad (decisión 2 del flujo), sea a través de evaluation_criterion_capabilities (camino nuevo, N:M) o de la columna vieja capability_id (camino legacy que esta migración no rompe). Diferido al COMMIT: crear un criterio y sus capacidades en una misma transacción es el caso normal, y sin la deferral ese insert sería imposible.';
+
+-- ---------------------------------------------------------------------------
+-- planned_evidences
+-- ---------------------------------------------------------------------------
+-- La evidencia planificada: qué se va a observar en la experiencia y contra
+-- qué criterios. No es la evidencia real (assessments): el enlace se hace en
+-- un ticket posterior (ver la tabla de decisiones del encabezado).
+create table planned_evidences (
+  id               uuid primary key default gen_random_uuid(),
+  tenant_id        uuid not null references tenants (id),
+  experience_id    uuid not null,
+  name             text not null,
+  kind             text not null check (kind in ('produccion', 'actuacion', 'prueba_escrita')),
+  value_scale      text not null default 'numeric' check (value_scale in ('numeric', 'ordinal')),
+  max_score        numeric(8, 4) default 20 check (max_score > 0),
+  session_entry_id uuid,
+  proposed_by      text not null default 'teacher' check (proposed_by in ('mawta', 'teacher')),
+  accepted_at      timestamptz,
+  created_at       timestamptz not null default now(),
+  updated_at       timestamptz not null default now(),
+  deleted_at       timestamptz,
+  constraint planned_evidences_max_score_matches_scale
+    check ((value_scale = 'numeric') = (max_score is not null)),
+  constraint planned_evidences_tenant_id_key unique (tenant_id, id),
+  constraint planned_evidences_experience_key unique (tenant_id, experience_id, id),
+  constraint planned_evidences_experience_fk foreign key (tenant_id, experience_id)
+    references learning_experiences (tenant_id, id)
+);
+
+comment on table planned_evidences is
+  'Una evidencia planificada dentro de una experiencia: qué se va a observar (name), de qué tipo (kind) y contra qué criterios (planned_evidence_criteria). Es una PROMESA, no la evidencia real: la evidencia valorable es la assessment en la que se materializa al planificar la experiencia (assessments.planned_evidence_id).';
+comment on column planned_evidences.kind is
+  'produccion: un producto (maqueta, informe, portafolio). actuacion: una actuación (exposición, debate, demostración). prueba_escrita: una prueba escrita. La norma (RVM 094-2020) pide evidencias de distinto tipo por competencia; el tipo se restringe aquí para que el conteo por tipo sea confiable.';
+comment on column planned_evidences.session_entry_id is
+  'La entrada del esquema de sesiones donde se planea recoger esta evidencia. Null cuando aún no se ha ubicado en una sesión. La FK es compuesta (tenant_id, experience_id, session_entry_id), así que la evidencia no puede ubicarse en una sesión de otra experiencia.';
+comment on column planned_evidences.proposed_by is
+  'Quién propuso la evidencia: ''mawta'' (el asistente) o ''teacher'' (el docente). El default es ''teacher''.';
+comment on column planned_evidences.accepted_at is
+  'Cuándo el docente aceptó o editó la propuesta. Null mientras está pendiente.';
+
+create index planned_evidences_experience_idx
+  on planned_evidences (experience_id) where deleted_at is null;
+
+select app.enable_tenant_rls('planned_evidences');
+select app.attach_updated_at('planned_evidences');
+select app.attach_soft_delete_guard('planned_evidences');
+
+-- ---------------------------------------------------------------------------
+-- session_outline_entries
+-- ---------------------------------------------------------------------------
+-- El esquema de sesiones de una experiencia: a lo sumo una entrada por fecha
+-- de clase. Un bloque doble es una sola sesión (decisión 15 del flujo).
+create table session_outline_entries (
+  id                  uuid primary key default gen_random_uuid(),
+  tenant_id           uuid not null references tenants (id),
+  experience_id       uuid not null,
+  class_date          date not null,
+  title               text not null,
+  topics              text,
+  planned_evidence_id uuid,
+  proposed_by         text not null default 'teacher' check (proposed_by in ('mawta', 'teacher')),
+  accepted_at         timestamptz,
+  created_at          timestamptz not null default now(),
+  updated_at          timestamptz not null default now(),
+  deleted_at          timestamptz,
+  constraint session_outline_entries_tenant_id_key unique (tenant_id, id),
+  constraint session_outline_entries_experience_key unique (tenant_id, experience_id, id),
+  constraint session_outline_entries_experience_fk foreign key (tenant_id, experience_id)
+    references learning_experiences (tenant_id, id)
+);
+
+comment on table session_outline_entries is
+  'El esquema de sesiones de una experiencia: una entrada por fecha de clase, con un título y una línea de temas. Es deliberadamente ligero: no reemplaza a class_sessions (que son las sesiones reales con asistencia y audio) sino que planifica qué se hará en cada fecha. Las fechas sin entrada quedan permitidas: el esquema no tiene que cubrir todo.';
+comment on column session_outline_entries.class_date is
+  'La fecha de clase. Debe caer dentro del rango de la experiencia (check_session_entry_date): una entrada fuera del rango es rechazada. La unicidad session_outline_entries_date_key es por fecha y no por franja horaria porque un bloque doble es una sola sesión (decisión 15 del flujo).';
+comment on column session_outline_entries.title is
+  'Título de la sesión, ej. "Lanzamiento de la situación".';
+comment on column session_outline_entries.topics is
+  'Línea de temas, texto libre. Null cuando aún no se ha redactado.';
+comment on column session_outline_entries.planned_evidence_id is
+  'La evidencia planificada que se recogerá en esta sesión, si ya se decidió. La FK es compuesta (tenant_id, experience_id, planned_evidence_id), así que no puede apuntar a una evidencia de otra experiencia.';
+comment on column session_outline_entries.proposed_by is
+  'Quién propuso la entrada: ''mawta'' (el asistente) o ''teacher'' (el docente). El default es ''teacher''.';
+comment on column session_outline_entries.accepted_at is
+  'Cuándo el docente aceptó o editó la propuesta. Null mientras está pendiente.';
+
+create unique index session_outline_entries_date_key
+  on session_outline_entries (tenant_id, experience_id, class_date) where deleted_at is null;
+create index session_outline_entries_evidence_idx
+  on session_outline_entries (planned_evidence_id)
+  where planned_evidence_id is not null and deleted_at is null;
+
+-- La fecha debe caer dentro del rango de la experiencia. Un CHECK de fila no
+-- puede leer learning_experiences, así que es un trigger.
+-- +goose StatementBegin
+create or replace function app.check_session_entry_date() returns trigger
+  language plpgsql
+  as $fn$
+  declare
+    v_starts date;
+    v_ends   date;
+  begin
+    select le.starts_on, le.ends_on into v_starts, v_ends
+      from learning_experiences le
+     where le.id = new.experience_id
+       and le.tenant_id = new.tenant_id
+       and le.deleted_at is null;
+
+    if not found then
+      raise exception 'experience % not found in tenant %', new.experience_id, new.tenant_id
+        using errcode = 'foreign_key_violation';
+    end if;
+
+    if new.class_date < v_starts or new.class_date > v_ends then
+      raise exception 'session entry date % is outside experience % (% .. %)',
+        new.class_date, new.experience_id, v_starts, v_ends
+        using errcode = 'check_violation',
+              hint = 'A session outline entry must fall inside its experience.';
+    end if;
+    return new;
+  end;
+  $fn$;
+-- +goose StatementEnd
+
+create trigger check_session_entry_date before insert or update
+  of experience_id, class_date on session_outline_entries
+  for each row execute function app.check_session_entry_date();
+
+comment on function app.check_session_entry_date() is
+  'La fecha de una entrada del esquema debe caer dentro del rango de su experiencia. Ninguna FK compuesta puede expresar "entre starts_on y ends_on" (el rango son dos columnas de una sola fila), así que es un trigger BEFORE.';
+
+select app.enable_tenant_rls('session_outline_entries');
+select app.attach_updated_at('session_outline_entries');
+select app.attach_soft_delete_guard('session_outline_entries');
+
+-- Ahora que session_outline_entries existe, la ubicación de una evidencia
+-- planificada puede apuntar a ella con una FK compuesta que prueba que ambas
+-- filas son de la misma experiencia.
+alter table planned_evidences
+  add constraint planned_evidences_session_entry_fk
+    foreign key (tenant_id, experience_id, session_entry_id)
+    references session_outline_entries (tenant_id, experience_id, id);
+
+-- Y simétricamente: la evidencia planificada que una entrada del esquema
+-- declara debe ser de la misma experiencia. La FK compuesta lo prueba.
+alter table session_outline_entries
+  add constraint session_outline_entries_evidence_fk
+    foreign key (tenant_id, experience_id, planned_evidence_id)
+    references planned_evidences (tenant_id, experience_id, id);
+
+-- ---------------------------------------------------------------------------
+-- planned_evidence_criteria
+-- ---------------------------------------------------------------------------
+-- Qué criterios observa una evidencia planificada. Los criterios pueden venir
+-- de competencias distintas de la misma experiencia (decisión 11 del flujo).
+create table planned_evidence_criteria (
+  id             uuid primary key default gen_random_uuid(),
+  tenant_id      uuid not null references tenants (id),
+  evidence_id    uuid not null,
+  criterion_id   uuid not null,
+  created_at     timestamptz not null default now(),
+  updated_at     timestamptz not null default now(),
+  deleted_at     timestamptz,
+  constraint planned_evidence_criteria_tenant_id_key unique (tenant_id, id),
+  constraint planned_evidence_criteria_evidence_key unique (tenant_id, evidence_id, id),
+  constraint planned_evidence_criteria_criterion_key unique (tenant_id, criterion_id, id),
+  constraint planned_evidence_criteria_evidence_fk foreign key (tenant_id, evidence_id)
+    references planned_evidences (tenant_id, id),
+  constraint planned_evidence_criteria_criterion_fk foreign key (tenant_id, criterion_id)
+    references evaluation_criteria (tenant_id, id)
+);
+
+comment on table planned_evidence_criteria is
+  'Qué criterios observa una evidencia planificada. Los criterios pueden venir de competencias distintas de la misma experiencia: una misma evidencia puede observar varias competencias (decisión 11 del flujo). El requisito de que el criterio pertenezca a la misma experiencia se exige por trigger: la FK compuesta hacia evaluation_criteria no puede ver experience_id.';
+comment on constraint planned_evidence_criteria_evidence_key on planned_evidence_criteria is
+  'Permite que otras tablas lleven FKs compuestas hacia esta, y mantiene la técnica de 00001: una referencia entre tenants es imposible.';
+
+create unique index planned_evidence_criteria_pair_key
+  on planned_evidence_criteria (tenant_id, evidence_id, criterion_id) where deleted_at is null;
+create index planned_evidence_criteria_criterion_idx
+  on planned_evidence_criteria (criterion_id) where deleted_at is null;
+
+-- El criterio debe pertenecer a la misma experiencia que la evidencia.
+-- +goose StatementBegin
+create or replace function app.check_evidence_criterion_experience() returns trigger
+  language plpgsql
+  as $fn$
+  declare
+    v_evidence_experience  uuid;
+    v_criterion_experience uuid;
+  begin
+    select pe.experience_id into v_evidence_experience
+      from planned_evidences pe
+     where pe.id = new.evidence_id
+       and pe.tenant_id = new.tenant_id;
+
+    select ec.experience_id into v_criterion_experience
+      from evaluation_criteria ec
+     where ec.id = new.criterion_id
+       and ec.tenant_id = new.tenant_id;
+
+    if v_evidence_experience is null
+       or v_criterion_experience is distinct from v_evidence_experience then
+      raise exception 'criterion % does not belong to experience %',
+        new.criterion_id, v_evidence_experience
+        using errcode = 'foreign_key_violation',
+              hint = 'A planned evidence observes criteria of its own experience only.';
+    end if;
+    return new;
+  end;
+  $fn$;
+-- +goose StatementEnd
+
+create trigger check_evidence_criterion_experience
+  before insert or update of evidence_id, criterion_id on planned_evidence_criteria
+  for each row execute function app.check_evidence_criterion_experience();
+
+comment on function app.check_evidence_criterion_experience() is
+  'Una evidencia planificada observa criterios de su propia experiencia. Un criterio global (experience_id null) nunca es observable por una evidencia planificada: la evidencia observa criterios que el docente precisó para esta experiencia.';
+
+select app.enable_tenant_rls('planned_evidence_criteria');
+select app.attach_updated_at('planned_evidence_criteria');
+select app.attach_soft_delete_guard('planned_evidence_criteria');
+
+-- ===========================================================================
+-- Generaciones de los agentes
+-- ===========================================================================
+-- Generaciones de los agentes de Mawta (ticket 6). Mawta es un sistema de
+-- varios agentes acotados — planificación primero, después sesiones y
+-- conclusiones descriptivas — que comparten esta misma tabla: cada fila es un
+-- pedido de "✦ Generar con Mawta" y su resultado.
+--
+-- El job encolado (tabla jobs) solo lleva el id de la generación: jobs no
+-- tiene RLS ni columna de resultado, así que nunca se expone. La app consulta
+-- esta tabla (GET /generations/{id}) hasta que la generación termina.
+
+create table agent_generations (
+  id                     uuid primary key default gen_random_uuid(),
+  tenant_id              uuid not null references tenants (id),
+  agent                  text not null check (agent in ('planning')),
+  kind                   text not null,
+  class_id               uuid not null,
+  experience_id          uuid,
+  requested_by           uuid not null,
+  target_key             text not null,
+  status                 text not null default 'pending'
+                           check (status in ('pending', 'running', 'completed', 'failed')),
+  input                  jsonb not null default '{}'::jsonb,
+  result                 jsonb,
+  error                  text,
+  error_detail           text,
+  model                  text,
+  prompt_version         text,
+  input_tokens           integer not null default 0 check (input_tokens >= 0),
+  output_tokens          integer not null default 0 check (output_tokens >= 0),
+  cache_read_tokens      integer not null default 0 check (cache_read_tokens >= 0),
+  cache_write_tokens     integer not null default 0 check (cache_write_tokens >= 0),
+  cost_usd               numeric(10, 6) not null default 0 check (cost_usd >= 0),
+  attempts               smallint not null default 0 check (attempts >= 0),
+  deadline_at            timestamptz not null default now() + interval '5 minutes',
+  started_at             timestamptz,
+  finished_at            timestamptz,
+  created_at             timestamptz not null default now(),
+  updated_at             timestamptz not null default now(),
+  constraint agent_generations_tenant_id_key unique (tenant_id, id),
+  constraint agent_generations_class_fk foreign key (tenant_id, class_id)
+    references classes (tenant_id, id),
+  constraint agent_generations_experience_fk foreign key (tenant_id, experience_id)
+    references learning_experiences (tenant_id, id),
+  constraint agent_generations_requested_by_fk foreign key (tenant_id, requested_by)
+    references teachers (tenant_id, id),
+  constraint agent_generations_planning_kind check (
+    agent <> 'planning' or kind in ('experience', 'criteria', 'evidences', 'sessions')),
+  constraint agent_generations_finished_consistent check (
+    (status in ('completed', 'failed')) = (finished_at is not null)),
+  constraint agent_generations_result_consistent check (
+    status <> 'completed' or result is not null),
+  constraint agent_generations_error_consistent check (
+    status <> 'failed' or error is not null)
+);
+
+-- Una sola generación en curso por objetivo: pedir dos veces "Generar
+-- criterios" para la misma competencia devuelve la que ya corre.
+create unique index agent_generations_target_key
+  on agent_generations (tenant_id, target_key) where status in ('pending', 'running');
+create index agent_generations_class_idx on agent_generations (tenant_id, class_id, created_at desc);
+
+comment on table agent_generations is
+  'Un pedido a un agente de Mawta ("✦ Generar con Mawta") y su resultado. Los agentes son acotados: reciben datos curados de la base, responden en un formato fijo que el servidor valida, y lo que proponen se guarda pendiente (proposed_by = mawta, accepted_at null) hasta que el docente lo acepta o lo edita. Nunca sugieren niveles de logro ni reciben datos de estudiantes en la planificación.';
+comment on column agent_generations.agent is
+  'Qué agente atiende el pedido. planning es el primero; los agentes de sesiones y de conclusiones amplían este check en su propia migración.';
+comment on column agent_generations.kind is
+  'Qué genera, según el agente. planning: experience (propuesta de experiencia desde la idea del docente; no se guarda como experiencia), criteria, evidences o sessions (se guardan como propuestas pendientes de la experiencia).';
+comment on column agent_generations.experience_id is
+  'La experiencia sobre la que se genera. Null en kind = experience: la propuesta todavía no es una experiencia.';
+comment on column agent_generations.requested_by is
+  'El docente que pidió la generación. Solo para rastro: el acceso se decide por la clase, como en el resto de la planificación.';
+comment on column agent_generations.target_key is
+  'Identifica el objetivo de la generación (ej. exp:<id>:criteria:<competencia>). Con agent_generations_target_key garantiza una sola generación en curso por objetivo.';
+comment on column agent_generations.input is
+  'Lo que pidió el docente (ej. su idea y las competencias elegidas). No incluye datos de estudiantes.';
+comment on column agent_generations.result is
+  'Lo que hizo una generación completada: la propuesta (kind = experience) o los ids de lo que insertó como pendiente.';
+comment on column agent_generations.error is
+  'Mensaje para el docente, en español, cuando la generación falla. Se expone en la API.';
+comment on column agent_generations.error_detail is
+  'Causa técnica del fallo, para soporte. Nunca se expone en la API.';
+comment on column agent_generations.cost_usd is
+  'Costo estimado de las llamadas al modelo de esta generación, según la tabla de precios del servidor. Sirve para seguir el gasto por agente y por colegio.';
+comment on column agent_generations.deadline_at is
+  'Después de esta hora una generación sin terminar se da por fallida: el worker no la empieza y la API la muestra como failed. Cubre el caso de un worker que muere a mitad de camino.';
+
+select app.enable_tenant_rls('agent_generations');
+select app.attach_updated_at('agent_generations');
+
+comment on column learning_experiences.status is
+  'borrador: la experiencia se está armando y cada paso ya quedó guardado. planificada: el docente la confirmó en "Revisar y guardar". El solapamiento de fechas se exige en ambos estados, así que un borrador también reserva sus semanas.';
+comment on column planned_evidences.value_scale is
+  'Cómo se valorará esta evidencia cuando se materialice como assessment: numeric (nota sobre max_score) u ordinal (AD/A/B/C). Se elige al planificar, porque los criterios y la tarea se comunican a los estudiantes con anticipación.';
+comment on column planned_evidences.max_score is
+  'El máximo de la nota cuando value_scale = numeric (por defecto 20). Null cuando es ordinal.';
+
+-- ---------------------------------------------------------------------------
+-- El puente entre el planeamiento y la evaluación real
+-- ---------------------------------------------------------------------------
+-- Una evidencia planificada (planned_evidences) es una promesa; la evidencia
+-- valorable es una assessment. Una experiencia planificada materializa cada
+-- evidencia aceptada como una assessment (ver repo.SyncExperience). Esta
+-- columna recuerda de cuál evidencia planificada viene, para que la
+-- sincronización sea idempotente.
+alter table assessments
+  add column planned_evidence_id uuid;
+
+alter table assessments
+  add constraint assessments_planned_evidence_fk
+    foreign key (tenant_id, planned_evidence_id)
+    references planned_evidences (tenant_id, id);
+
+comment on column assessments.planned_evidence_id is
+  'La evidencia planificada de la que esta assessment se materializó al planificar la experiencia. Null para la evidencia registrada a mano. A lo sumo una assessment viva por evidencia planificada (assessments_planned_evidence_key).';
+
+create unique index assessments_planned_evidence_key
+  on assessments (planned_evidence_id)
+  where planned_evidence_id is not null and deleted_at is null;
+
+-- ---------------------------------------------------------------------------
+-- Un solo periodo activo por nivel
+-- ---------------------------------------------------------------------------
+-- active: el periodo en curso de su nivel (a lo sumo uno por año y nivel).
+-- planned: aún no empieza. closed: cerrado, solo lectura; se cierra a mano antes
+-- de activar el siguiente. No tener ningún periodo activo es un estado válido
+-- (entre dos periodos): la base no exige uno, solo prohíbe dos.
+create unique index terms_one_active_key
+  on terms (academic_year_id, coalesce(stage, ''))
+  where status = 'active' and deleted_at is null;
+
+comment on index terms_one_active_key is
+  'A lo sumo un periodo activo por año y nivel (stage), la misma clave que terms_no_overlap. Es por nivel y no por tenant porque un colegio puede llevar calendarios distintos por nivel. No exige que haya uno: entre dos periodos puede no haber ninguno activo.';
+
 -- +goose Down
 
-drop view if exists class_effective_grading_schemes;
+drop table if exists agent_generations cascade;
+drop table if exists planned_evidence_criteria cascade;
+drop table if exists session_outline_entries cascade;
+drop table if exists planned_evidences cascade;
+drop table if exists evaluation_criterion_capabilities cascade;
+drop table if exists experience_competencies cascade;
+drop table if exists learning_experiences cascade;
+drop table if exists non_teaching_days cascade;
+drop table if exists standard_level_mappings cascade;
+drop table if exists learning_standards cascade;
+drop table if exists grade_level_performances cascade;
 
 drop table if exists competency_exemptions cascade;
 drop table if exists year_final_situations cascade;
 drop table if exists competency_year_snapshots cascade;
 drop table if exists descriptive_conclusions cascade;
 drop table if exists competency_term_levels cascade;
-drop table if exists practice_scores cascade;
 drop table if exists jobs cascade;
 drop table if exists events cascade;
 drop table if exists notifications cascade;
 drop table if exists voice_notes cascade;
-drop table if exists computed_grade_components cascade;
-drop table if exists computed_grades cascade;
-drop table if exists criterion_scores cascade;
 drop table if exists scores cascade;
 drop table if exists assessment_criteria cascade;
 drop table if exists assessments cascade;
-drop table if exists grading_scheme_component_weights cascade;
-drop table if exists grading_scheme_versions cascade;
-drop table if exists grading_components cascade;
-drop table if exists grading_schemes cascade;
 drop table if exists grade_scale_levels cascade;
 drop table if exists grade_scales cascade;
 drop table if exists attendance_records cascade;

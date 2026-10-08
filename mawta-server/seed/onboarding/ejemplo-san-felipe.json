@@ -33,7 +33,7 @@
   "docentes": [
     {
       "usuario": "jeffrey",
-      "clave": "",
+      "clave": "jeffrey2026",
       "email": "amaruorihuela@gmail.com",
       "nombres": "Jeffrey",
       "apellidos": "Orihuela",
@@ -44,7 +44,7 @@
     },
     {
       "usuario": "gonzalo",
-      "clave": "",
+      "clave": "gonzalo2026",
       "email": "gonzaloscb7@gmail.com",
       "nombres": "Gonzalo",
       "apellidos": "Saavedra",
@@ -71,17 +71,7 @@
         { "codigo": "MAT-C3-CR2", "descripcion": "Emplea estrategias para calcular perímetros, áreas y ubicaciones", "capacidad": "MAT-C3-CAP3" },
         { "codigo": "MAT-C4-CR1", "descripcion": "Organiza datos en tablas y gráficos estadísticos pertinentes", "capacidad": "MAT-C4-CAP1" },
         { "codigo": "MAT-C4-CR2", "descripcion": "Sustenta conclusiones sobre los datos a partir de medidas de tendencia central", "capacidad": "MAT-C4-CAP4" }
-      ],
-      "esquema_calificacion": {
-        "codigo": "matematica_1ro",
-        "nombre": "Matemática 1ro — estándar",
-        "descripcion": "Prácticas 40%, exámenes 40%, proyectos 20%.",
-        "componentes": [
-          { "codigo": "practicas", "nombre": "Prácticas calificadas", "peso": 0.40, "descartar_mas_bajas": 1 },
-          { "codigo": "examenes", "nombre": "Exámenes", "peso": 0.40 },
-          { "codigo": "proyectos", "nombre": "Proyectos", "peso": 0.20 }
-        ]
-      }
+      ]
     },
     {
       "codigo": "CCSS",
@@ -95,17 +85,7 @@
         { "codigo": "CCSS-C2-CR1", "descripcion": "Explica cómo interactúan los elementos naturales y sociales de un territorio", "capacidad": "CCSS-C2-CAP1" },
         { "codigo": "CCSS-C2-CR2", "descripcion": "Interpreta mapas, croquis e imágenes para describir el espacio geográfico", "capacidad": "CCSS-C2-CAP2" },
         { "codigo": "CCSS-C2-CR3", "descripcion": "Propone acciones concretas de conservación del ambiente en su localidad", "capacidad": "CCSS-C2-CAP3" }
-      ],
-      "esquema_calificacion": {
-        "codigo": "ccss_1ro",
-        "nombre": "Ciencias Sociales 1ro — estándar",
-        "descripcion": "Fuentes 30%, exámenes 40%, proyecto 30%.",
-        "componentes": [
-          { "codigo": "fuentes", "nombre": "Análisis de fuentes", "peso": 0.30 },
-          { "codigo": "examenes", "nombre": "Exámenes", "peso": 0.40 },
-          { "codigo": "proyecto", "nombre": "Proyecto integrador", "peso": 0.30 }
-        ]
-      }
+      ]
     }
   ],
   "competencias_transversales": ["TR-C1", "TR-C2"],

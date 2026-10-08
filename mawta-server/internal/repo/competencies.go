@@ -165,8 +165,7 @@ func ListClassCompetencyLevels(ctx context.Context, tx pgx.Tx, classID, studentI
 // whatsoever is derived into it. Under RVM 094-2020 the level is the
 // teacher's judgement of the period's evidence against the criterios de
 // evaluación (5.1.1.3 p.2-3) — not a number the system computes and offers
-// first. suggested_level_id and computed_grade_id are deliberately left null:
-// the weighted internal system must not shadow the official record.
+// first.
 func AssertCompetencyLevel(ctx context.Context, tx pgx.Tx, classID, studentID, competencyID, termID, teacherID uuid.UUID, levelCode string, note *string) (uuid.UUID, error) {
 	var levelID uuid.UUID
 	err := tx.QueryRow(ctx, `

@@ -10,7 +10,6 @@ export const competency = { id: 'comp-1', code: 'MAT-1', name: 'Resuelve problem
 export const dates = ['2026-10-05', '2026-10-07', '2026-10-09'];
 const timestamp = '2026-10-06T14:00:00Z';
 export const studentRoute = '/class/class-1/students/student-1?name=Ana%20Quispe&course=Matemática';
-export const gradesRoute = '/grades/student-1?class=class-1&name=Ana%20Quispe&course=Matemática';
 export const planningBase = '/class/class-1/plan/experience-1';
 export const routeCases = [
 	['/', 'Mawta — Inicio', 'Matemática'],
@@ -23,7 +22,6 @@ export const routeCases = [
 	['/class/class-1/lesson/session-1', 'Matemática — Lección', 'La tiendita escolar'],
 	['/class/class-1/students', 'Alumnos — Matemática', 'Quispe, Ana'],
 	[studentRoute, 'Ana Quispe — Matemática', 'Nivel de logro'],
-	[gradesRoute, 'Ana Quispe', 'NOTAS PERSONALES'],
 	['/class/class-1/plan', 'Tu trimestre', 'La tiendita escolar'],
 	['/class/class-1/plan/new', 'Nueva experiencia', '¿Qué tienes en mente?'],
 	[`${planningBase}/criteria`, 'Criterios', competency.name],
@@ -62,6 +60,8 @@ export function seed() {
 				experience_id: 'experience-1',
 				name: 'Lista de precios',
 				kind: 'produccion',
+				value_scale: 'numeric',
+				max_score: 20,
 				criterion_ids: ['criterion-1'],
 				session_date: null,
 				proposed_by: 'mawta',
@@ -89,10 +89,7 @@ export function seed() {
 			value_scale: 'numeric',
 			max_score: 20,
 			due_at: null,
-			component_code: 'practicas',
-			component_name: 'Prácticas',
 			is_personal: false,
-			counts_toward_internal: true,
 			criteria: [
 				{
 					criterion_id: 'criterion-1',
@@ -100,7 +97,7 @@ export function seed() {
 					description: 'Explica cómo calcula el cambio.',
 				},
 			],
-			attempts: null,
+			score: null,
 		},
 		{
 			assessment_id: 'ordinal-1',
@@ -109,10 +106,7 @@ export function seed() {
 			value_scale: 'ordinal',
 			max_score: null,
 			due_at: null,
-			component_code: 'practicas',
-			component_name: 'Prácticas',
 			is_personal: false,
-			counts_toward_internal: false,
 			criteria: [
 				{
 					criterion_id: 'criterion-1',
@@ -120,7 +114,7 @@ export function seed() {
 					description: 'Explica cómo calcula el cambio.',
 				},
 			],
-			attempts: null,
+			score: null,
 		},
 	];
 	const levels: CompetencyLevelDto[] = [
@@ -155,7 +149,6 @@ export function seed() {
 		evaluations,
 		levels,
 		notifications,
-		internal: true,
 		unavailable: false,
 		loginError: false,
 		failures: new Set<string>(),
@@ -186,7 +179,6 @@ export async function mockApi(page: Page, state: ApiState) {
 				name: 'Colegio San Felipe',
 				city: 'Lima',
 				timezone: 'America/Lima',
-				uses_internal_grading: state.internal,
 			},
 		};
 		const classCriteria = {
@@ -267,19 +259,18 @@ export async function mockApi(page: Page, state: ApiState) {
 			}
 			if (/\/assessments\/.*\/scores$/.test(path) || path.startsWith('/scores/')) {
 				const ev = state.evaluations.find(
-					(e) =>
-						path.includes(e.assessment_id) || e.attempts?.some((a) => path.includes(a.score_id))
+					(e) => path.includes(e.assessment_id) || path.includes(e.score?.score_id ?? '-')
 				);
-				if (ev)
-					ev.attempts = [
-						{
-							score_id: `score-${ev.assessment_id}`,
-							attempt_number: 1,
-							status: (body.status ?? 'graded') as 'graded',
-							raw_value: body.raw_value == null ? null : Number(body.raw_value),
-							level: (body.level as 'A') ?? null,
-						},
-					];
+				if (ev) {
+					const raw = body.raw_value == null ? null : Number(body.raw_value);
+					ev.score = {
+						score_id: `score-${ev.assessment_id}`,
+						status: (body.status ?? 'graded') as 'graded',
+						raw_value: raw,
+						percentage: raw !== null && ev.max_score ? (raw / ev.max_score) * 100 : null,
+						level: (body.level as 'A') ?? null,
+					};
+				}
 				return send({ id: ev ? `score-${ev.assessment_id}` : 'score-1' });
 			}
 			if (path.endsWith('/experience-proposals') || path.endsWith('/generate'))
@@ -332,10 +323,12 @@ export async function mockApi(page: Page, state: ApiState) {
 			}
 			if (path === '/experiences/experience-1/evidences') {
 				const item = {
-					id: 'evidence-new',
+					id: `evidence-new-${state.writes.length}`,
 					experience_id: 'experience-1',
 					name: String(body.name),
 					kind: body.kind as 'produccion',
+					value_scale: (body.value_scale ?? 'numeric') as 'numeric',
+					max_score: body.value_scale === 'ordinal' ? null : Number(body.max_score ?? 20),
 					criterion_ids: body.criterion_ids as string[],
 					session_date: null,
 					proposed_by: 'teacher',
@@ -373,8 +366,7 @@ export async function mockApi(page: Page, state: ApiState) {
 			if (path.endsWith('/voice-notes')) return send({ id: 'voice-new' });
 			if (path.startsWith('/voice-notes/'))
 				return send({ status: path.endsWith('/discard') ? 'discarded' : 'saved' });
-			if (path.endsWith('/assessments') || path.endsWith('/practice-scores'))
-				return send({ id: 'new-1' });
+			if (path.endsWith('/assessments')) return send({ id: 'new-1' });
 			if (path.endsWith('/delete') || path.endsWith('/start'))
 				return send({ status: 'in_progress' });
 			state.unexpected.push(method + ' ' + path);
@@ -463,8 +455,6 @@ export async function mockApi(page: Page, state: ApiState) {
 				past: [],
 			});
 		if (path === '/classes/class-1/criteria') return send(classCriteria);
-		if (path.endsWith('/grading-components'))
-			return send({ components: [{ code: 'practicas', name: 'Prácticas' }] });
 		if (path === '/classes/class-1/students')
 			return send({
 				students: [
@@ -479,17 +469,6 @@ export async function mockApi(page: Page, state: ApiState) {
 			});
 		if (path.endsWith('/competencies')) return send({ competencies: state.levels });
 		if (path.endsWith('/evidence')) return send({ evidence: state.evaluations });
-		if (path.endsWith('/grades'))
-			return send({
-				computed_grade: {
-					normalized_value: 0.6,
-					display_value: '12',
-					evaluated_weight: 1,
-					total_weight: 2,
-				},
-				evaluations: state.evaluations,
-				practice_scores: [],
-			});
 		if (path === '/sessions/session-1')
 			return send({
 				header: {

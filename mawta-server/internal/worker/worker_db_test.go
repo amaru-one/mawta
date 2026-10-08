@@ -67,15 +67,15 @@ func statusOf(t *testing.T, env *dbtest.Env, uniqueKey string) (status string, a
 func TestClaimTakesAnAvailableJobAndMarksItRunning(t *testing.T) {
 	env := dbtest.Setup(t)
 	ctx := context.Background()
-	const key = "grade.recompute:claim-probe"
-	enqueue(t, env, "grade.recompute", key)
+	const key = "voice_note.transcribe:claim-probe"
+	enqueue(t, env, "voice_note.transcribe", key)
 
 	var id int64
 	var kind string
 	if err := env.App.Pool.QueryRow(ctx, claim, "test-worker").Scan(&id, &kind); err != nil {
 		t.Fatalf("claim: %v", err)
 	}
-	if kind != "grade.recompute" {
+	if kind != "voice_note.transcribe" {
 		t.Errorf("claimed kind = %q", kind)
 	}
 
@@ -94,8 +94,8 @@ func TestClaimTakesAnAvailableJobAndMarksItRunning(t *testing.T) {
 func TestARunningJobIsNotClaimedAgain(t *testing.T) {
 	env := dbtest.Setup(t)
 	ctx := context.Background()
-	const key = "grade.recompute:double-claim-probe"
-	enqueue(t, env, "grade.recompute", key)
+	const key = "voice_note.transcribe:double-claim-probe"
+	enqueue(t, env, "voice_note.transcribe", key)
 
 	var id int64
 	var kind string
@@ -115,8 +115,8 @@ func TestARunningJobIsNotClaimedAgain(t *testing.T) {
 func TestAnAbandonedRunningJobIsNeverRecovered(t *testing.T) {
 	env := dbtest.Setup(t)
 	ctx := context.Background()
-	const key = "grade.recompute:abandoned-probe"
-	enqueue(t, env, "grade.recompute", key)
+	const key = "voice_note.transcribe:abandoned-probe"
+	enqueue(t, env, "voice_note.transcribe", key)
 
 	var id int64
 	var kind string
@@ -141,16 +141,16 @@ func TestAnAbandonedRunningJobIsNeverRecovered(t *testing.T) {
 // jobs_unique_key_idx includes 'running' in its predicate, so while a job is
 // running, EnqueueJob for the same key is a silent no-op. Combined with the
 // absent reaper, a worker that dies mid-job leaves that dedup key poisoned
-// permanently: every future grade.recompute for that student/class/term is
-// dropped, and the student's internal grade silently stops updating.
+// permanently: every future voice_note.transcribe with that key is
+// dropped, and the work it stood for silently stops happening.
 //
 // SPEC.md says "a job whose worker dies stays running; diagnose via
 // attempted_by/attempted_at", which reads like one lost job. It is not.
 func TestAnAbandonedJobPermanentlyBlocksItsDedupKey(t *testing.T) {
 	env := dbtest.Setup(t)
 	ctx := context.Background()
-	const key = "grade.recompute:poisoned-key-probe"
-	enqueue(t, env, "grade.recompute", key)
+	const key = "voice_note.transcribe:poisoned-key-probe"
+	enqueue(t, env, "voice_note.transcribe", key)
 
 	var id int64
 	var kind string
@@ -158,13 +158,13 @@ func TestAnAbandonedJobPermanentlyBlocksItsDedupKey(t *testing.T) {
 		t.Fatalf("claim: %v", err)
 	}
 
-	// A teacher writes three more scores. Each tries to enqueue a recompute.
+	// A teacher writes three more scores. Each tries to enqueue the same job.
 	for i := 0; i < 3; i++ {
 		tx, err := env.App.Pool.Begin(ctx)
 		if err != nil {
 			t.Fatalf("begin: %v", err)
 		}
-		if err := repo.EnqueueJob(ctx, tx, env.Fx.TenantA, "grade.recompute", 2, []byte(`{}`), key); err != nil {
+		if err := repo.EnqueueJob(ctx, tx, env.Fx.TenantA, "voice_note.transcribe", 2, []byte(`{}`), key); err != nil {
 			tx.Rollback(ctx) //nolint:errcheck
 			t.Fatalf("EnqueueJob: %v", err)
 		}
@@ -193,8 +193,8 @@ func TestAnAbandonedJobPermanentlyBlocksItsDedupKey(t *testing.T) {
 func TestACompletedJobReleasesItsDedupKey(t *testing.T) {
 	env := dbtest.Setup(t)
 	ctx := context.Background()
-	const key = "grade.recompute:released-key-probe"
-	enqueue(t, env, "grade.recompute", key)
+	const key = "voice_note.transcribe:released-key-probe"
+	enqueue(t, env, "voice_note.transcribe", key)
 
 	if _, err := env.App.Pool.Exec(ctx,
 		`update jobs set status = 'completed', finalized_at = now() where unique_key = $1`, key); err != nil {
@@ -205,7 +205,7 @@ func TestACompletedJobReleasesItsDedupKey(t *testing.T) {
 	if err != nil {
 		t.Fatalf("begin: %v", err)
 	}
-	if err := repo.EnqueueJob(ctx, tx, env.Fx.TenantA, "grade.recompute", 2, []byte(`{}`), key); err != nil {
+	if err := repo.EnqueueJob(ctx, tx, env.Fx.TenantA, "voice_note.transcribe", 2, []byte(`{}`), key); err != nil {
 		tx.Rollback(ctx) //nolint:errcheck
 		t.Fatalf("EnqueueJob: %v", err)
 	}
@@ -227,11 +227,11 @@ func TestACompletedJobReleasesItsDedupKey(t *testing.T) {
 func TestAJobOnAnotherQueueIsNeverClaimed(t *testing.T) {
 	env := dbtest.Setup(t)
 	ctx := context.Background()
-	const key = "grade.recompute:other-queue-probe"
+	const key = "voice_note.transcribe:other-queue-probe"
 
 	if _, err := env.App.Pool.Exec(ctx,
 		`insert into jobs (tenant_id, kind, queue, priority, payload, unique_key)
-		 values ($1, 'grade.recompute', 'somewhere-else', 2, '{}', $2)`,
+		 values ($1, 'voice_note.transcribe', 'somewhere-else', 2, '{}', $2)`,
 		env.Fx.TenantA, key); err != nil {
 		t.Fatalf("insert: %v", err)
 	}

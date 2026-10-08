@@ -3,7 +3,7 @@
 --
 -- QUÉ ES ESTO
 --   El relleno: un año escolar vivido. Sesiones dictadas, asistencia,
---   evaluaciones con sus notas, valoraciones por criterio, niveles de logro
+--   evidencias con su valoración, niveles de logro
 --   afirmados y conclusiones descriptivas. Sirve para ver la aplicación con
 --   datos realistas y para probar; no es la instalación de un colegio.
 --
@@ -166,24 +166,22 @@ select md5('att:' || cs.id::text || ':' || sm.student_id::text)::uuid,
 --
 -- assessments_published_consistent obliga a published_at cuando el estado es
 -- published o closed; assessments_max_score_matches_scale exige max_score
--- exactamente cuando value_scale es 'numeric'; y una rúbrica nunca puede
--- llevar counts_toward_internal = true (assessments_rubric_not_internal),
--- porque no tiene fila en scores de la que sacar un promedio.
+-- exactamente cuando value_scale es 'numeric'. Una evidencia 'ordinal' se
+-- valora con un nivel AD/A/B/C y no lleva max_score.
 --
 -- Las de T-I y T-II van 'closed': su trimestre ya cerró y no admiten notas
 -- nuevas. Las de T-III quedan 'published' — evaluación en vivo.
 -- ---------------------------------------------------------------------------
 
 insert into assessments
-  (id, tenant_id, class_id, term_id, scheme_id, component_id, title, kind,
-   value_scale, max_score, counts_toward_internal, weight_within_component,
+  (id, tenant_id, class_id, term_id, title, kind,
+   value_scale, max_score,
    due_at, status, published_at, closed_at, created_by_id)
 select md5('asm:' || v.code)::uuid,
        md5('tenant:0723519:')::uuid,
-       v.class_id::uuid, v.term_id::uuid, v.scheme_id::uuid, v.component_id::uuid,
+       v.class_id::uuid, v.term_id::uuid,
        v.title, v.kind, v.value_scale,
        case when v.value_scale = 'numeric' then 20 end,
-       (v.value_scale = 'numeric'), 1,
        (v.due::date + time '23:59') at time zone 'America/Lima',
        v.status,
        (v.published::date + time '08:00') at time zone 'America/Lima',
@@ -192,37 +190,37 @@ select md5('asm:' || v.code)::uuid,
        v.created_by::uuid
   from (values
     -- ============================ MATEMÁTICA — T-I (cerrado) =============
-    ('MAT-T1-P1',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:practicas')::uuid,'Práctica 1 — Números enteros','practica','numeric','closed','2026-03-20','2026-03-16','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T1-P2',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:practicas')::uuid,'Práctica 2 — Operaciones con racionales','practica','numeric','closed','2026-04-17','2026-04-13','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T1-P3',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:practicas')::uuid,'Práctica 3 — Ecuaciones lineales','practica','numeric','closed','2026-05-15','2026-05-11','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T1-EX',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:examenes')::uuid,'Examen de Trimestre I','examen','numeric','closed','2026-05-26','2026-05-18','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T1-PR',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:proyectos')::uuid,'Proyecto — Presupuesto familiar','proyecto','numeric','closed','2026-05-22','2026-04-20','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T1-RU',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:proyectos')::uuid,'Rúbrica — Argumentación matemática','proyecto','rubric','closed','2026-05-22','2026-04-20','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T1-P1',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Práctica 1 — Números enteros','practica','numeric','closed','2026-03-20','2026-03-16','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T1-P2',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Práctica 2 — Operaciones con racionales','practica','numeric','closed','2026-04-17','2026-04-13','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T1-P3',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Práctica 3 — Ecuaciones lineales','practica','numeric','closed','2026-05-15','2026-05-11','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T1-EX',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Examen de Trimestre I','examen','numeric','closed','2026-05-26','2026-05-18','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T1-PR',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Proyecto — Presupuesto familiar','proyecto','numeric','closed','2026-05-22','2026-04-20','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T1-RU',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Argumentación matemática','proyecto','ordinal','closed','2026-05-22','2026-04-20','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
     -- ============================ MATEMÁTICA — T-II (cerrado) ============
-    ('MAT-T2-P1',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:practicas')::uuid,'Práctica 4 — Sistemas de ecuaciones','practica','numeric','closed','2026-06-19','2026-06-15','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T2-P2',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:practicas')::uuid,'Práctica 5 — Proporcionalidad','practica','numeric','closed','2026-07-17','2026-07-13','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T2-P3',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:practicas')::uuid,'Práctica 6 — Polígonos y perímetros','practica','numeric','closed','2026-08-14','2026-08-10','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T2-EX',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:examenes')::uuid,'Examen de Trimestre II','examen','numeric','closed','2026-08-25','2026-08-17','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T2-PR',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:proyectos')::uuid,'Proyecto — Maqueta a escala','proyecto','numeric','closed','2026-08-21','2026-07-20','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T2-P1',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Práctica 4 — Sistemas de ecuaciones','practica','numeric','closed','2026-06-19','2026-06-15','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T2-P2',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Práctica 5 — Proporcionalidad','practica','numeric','closed','2026-07-17','2026-07-13','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T2-P3',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Práctica 6 — Polígonos y perímetros','practica','numeric','closed','2026-08-14','2026-08-10','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T2-EX',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Examen de Trimestre II','examen','numeric','closed','2026-08-25','2026-08-17','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T2-PR',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Proyecto — Maqueta a escala','proyecto','numeric','closed','2026-08-21','2026-07-20','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
     -- ============================ MATEMÁTICA — T-III (EN VIVO) ===========
-    ('MAT-T3-P1',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:3')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:practicas')::uuid,'Práctica 7 — Área y volumen','practica','numeric','published','2026-09-11','2026-09-07',null,md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T3-P2',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:3')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:practicas')::uuid,'Práctica 8 — Tablas y gráficos estadísticos','practica','numeric','published','2026-09-18','2026-09-14',null,md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T3-P3',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:3')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:practicas')::uuid,'Práctica 9 — Medidas de tendencia central','practica','numeric','published','2026-10-09','2026-09-21',null,md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T3-EX',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:3')::uuid,md5('scheme:0723519:matematica_1ro')::uuid,md5('component:0723519:matematica_1ro:examenes')::uuid,'Examen de Trimestre III','examen','numeric','published','2026-12-04','2026-09-21',null,md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T3-P1',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:3')::uuid,'Práctica 7 — Área y volumen','practica','numeric','published','2026-09-11','2026-09-07',null,md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T3-P2',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:3')::uuid,'Práctica 8 — Tablas y gráficos estadísticos','practica','numeric','published','2026-09-18','2026-09-14',null,md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T3-P3',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:3')::uuid,'Práctica 9 — Medidas de tendencia central','practica','numeric','published','2026-10-09','2026-09-21',null,md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T3-EX',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:3')::uuid,'Examen de Trimestre III','examen','numeric','published','2026-12-04','2026-09-21',null,md5('teacher:0723519:jeffrey')::uuid),
     -- ============================ CC.SS. — T-I (cerrado) =================
-    ('CCS-T1-F1',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:1')::uuid,md5('scheme:0723519:ccss_1ro')::uuid,md5('component:0723519:ccss_1ro:fuentes')::uuid,'Análisis de fuentes — Poblamiento americano','tarea','numeric','closed','2026-03-26','2026-03-19','2026-06-08',md5('teacher:0723519:gonzalo')::uuid),
-    ('CCS-T1-F2',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:1')::uuid,md5('scheme:0723519:ccss_1ro')::uuid,md5('component:0723519:ccss_1ro:fuentes')::uuid,'Análisis de fuentes — Culturas preincas','tarea','numeric','closed','2026-04-30','2026-04-23','2026-06-08',md5('teacher:0723519:gonzalo')::uuid),
-    ('CCS-T1-EX',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:1')::uuid,md5('scheme:0723519:ccss_1ro')::uuid,md5('component:0723519:ccss_1ro:examenes')::uuid,'Examen de Trimestre I','examen','numeric','closed','2026-05-28','2026-05-19','2026-06-08',md5('teacher:0723519:gonzalo')::uuid),
-    ('CCS-T1-PR',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:1')::uuid,md5('scheme:0723519:ccss_1ro')::uuid,md5('component:0723519:ccss_1ro:proyecto')::uuid,'Proyecto — Línea de tiempo del Tahuantinsuyo','proyecto','numeric','closed','2026-05-21','2026-04-16','2026-06-08',md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T1-F1',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Análisis de fuentes — Poblamiento americano','tarea','numeric','closed','2026-03-26','2026-03-19','2026-06-08',md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T1-F2',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Análisis de fuentes — Culturas preincas','tarea','numeric','closed','2026-04-30','2026-04-23','2026-06-08',md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T1-EX',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Examen de Trimestre I','examen','numeric','closed','2026-05-28','2026-05-19','2026-06-08',md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T1-PR',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Proyecto — Línea de tiempo del Tahuantinsuyo','proyecto','numeric','closed','2026-05-21','2026-04-16','2026-06-08',md5('teacher:0723519:gonzalo')::uuid),
     -- ============================ CC.SS. — T-II (cerrado) ================
-    ('CCS-T2-F1',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:2')::uuid,md5('scheme:0723519:ccss_1ro')::uuid,md5('component:0723519:ccss_1ro:fuentes')::uuid,'Análisis de fuentes — Conquista y virreinato','tarea','numeric','closed','2026-06-25','2026-06-18','2026-09-07',md5('teacher:0723519:gonzalo')::uuid),
-    ('CCS-T2-F2',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:2')::uuid,md5('scheme:0723519:ccss_1ro')::uuid,md5('component:0723519:ccss_1ro:fuentes')::uuid,'Análisis de fuentes — Cartografía del Perú','tarea','numeric','closed','2026-07-30','2026-07-23','2026-09-07',md5('teacher:0723519:gonzalo')::uuid),
-    ('CCS-T2-EX',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:2')::uuid,md5('scheme:0723519:ccss_1ro')::uuid,md5('component:0723519:ccss_1ro:examenes')::uuid,'Examen de Trimestre II','examen','numeric','closed','2026-08-27','2026-08-18','2026-09-07',md5('teacher:0723519:gonzalo')::uuid),
-    ('CCS-T2-RU',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:2')::uuid,md5('scheme:0723519:ccss_1ro')::uuid,md5('component:0723519:ccss_1ro:proyecto')::uuid,'Rúbrica — Exposición sobre el espacio geográfico','exposicion','rubric','closed','2026-08-20','2026-07-16','2026-09-07',md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T2-F1',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Análisis de fuentes — Conquista y virreinato','tarea','numeric','closed','2026-06-25','2026-06-18','2026-09-07',md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T2-F2',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Análisis de fuentes — Cartografía del Perú','tarea','numeric','closed','2026-07-30','2026-07-23','2026-09-07',md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T2-EX',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Examen de Trimestre II','examen','numeric','closed','2026-08-27','2026-08-18','2026-09-07',md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T2-RU',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Exposición sobre el espacio geográfico','exposicion','ordinal','closed','2026-08-20','2026-07-16','2026-09-07',md5('teacher:0723519:gonzalo')::uuid),
     -- ============================ CC.SS. — T-III (EN VIVO) ===============
-    ('CCS-T3-F1',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:3')::uuid,md5('scheme:0723519:ccss_1ro')::uuid,md5('component:0723519:ccss_1ro:fuentes')::uuid,'Análisis de fuentes — Cuencas y regiones naturales','tarea','numeric','published','2026-09-17','2026-09-10',null,md5('teacher:0723519:gonzalo')::uuid),
-    ('CCS-T3-EX',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:3')::uuid,md5('scheme:0723519:ccss_1ro')::uuid,md5('component:0723519:ccss_1ro:examenes')::uuid,'Examen de Trimestre III','examen','numeric','published','2026-12-03','2026-09-21',null,md5('teacher:0723519:gonzalo')::uuid)
-  ) as v(code, class_id, term_id, scheme_id, component_id, title, kind,
+    ('CCS-T3-F1',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:3')::uuid,'Análisis de fuentes — Cuencas y regiones naturales','tarea','numeric','published','2026-09-17','2026-09-10',null,md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T3-EX',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:3')::uuid,'Examen de Trimestre III','examen','numeric','published','2026-12-03','2026-09-21',null,md5('teacher:0723519:gonzalo')::uuid)
+  ) as v(code, class_id, term_id, title, kind,
          value_scale, status, due, published, closed, created_by);
 
 
@@ -293,15 +291,15 @@ select md5('tenant:0723519:')::uuid,
 -- ---------------------------------------------------------------------------
 
 insert into scores
-  (id, tenant_id, assessment_id, student_id, attempt_number, attempt_kind,
-   status, raw_value, max_value, late_days, source, recorded_by_id, recorded_at)
+  (id, tenant_id, assessment_id, student_id,
+   status, raw_value, max_value, source, recorded_by_id, recorded_at)
 select md5('score:' || a.id::text || ':' || st.id::text)::uuid,
        md5('tenant:0723519:')::uuid,
-       a.id, st.id, 1, 'original',
+       a.id, st.id,
        g.status,
        case when g.status = 'graded' then g.val end,
        20,
-       0, 'manual', a.created_by_id,
+       'manual', a.created_by_id,
        a.due_at + interval '3 days'
   from assessments a
   join students st
@@ -343,31 +341,24 @@ select md5('score:' || a.id::text || ':' || st.id::text)::uuid,
 
 -- §6 ==================================================================
 -- ---------------------------------------------------------------------------
--- Valoración por criterio de las dos rúbricas.
+-- Valoración de las evidencias literales.
 --
--- Una assessment 'rubric' no tiene fila en scores: no lleva max_score ni nota
--- general, y se valora ÚNICAMENTE aquí, criterio por criterio, en la misma
--- escala ordinal AD/A/B/C que usa el nivel de competencia.
+-- Una evidencia 'ordinal' se valora con un nivel AD/A/B/C sobre ESA evidencia
+-- (scores.scale_level_id); no lleva raw_value ni max_value.
 --
--- Esto no es un nivel de logro de la competencia. Es evidencia sobre un
--- criterio concreto; el nivel lo afirma el docente después, habiendo leído
--- todo el periodo.
---
--- criterion_scores_value_matches_scale: value_scale 'ordinal' exige
--- scale_level_id y prohíbe raw_value/max_value.
--- La FK a assessment_criteria impide valorar un criterio con el que la
--- evaluación nunca fue etiquetada.
+-- Esto no es un nivel de logro de la competencia. Es la valoración de un
+-- trabajo concreto; el nivel de la competencia lo afirma el docente después,
+-- habiendo leído todo el periodo.
 -- ---------------------------------------------------------------------------
 
-insert into criterion_scores
-  (id, tenant_id, assessment_id, criterion_id, student_id, value_scale,
-   scale_level_id, recorded_by_id, recorded_at)
-select md5('cscore:' || ac.assessment_id::text || ':' || ac.criterion_id::text || ':' || st.id::text)::uuid,
+insert into scores
+  (id, tenant_id, assessment_id, student_id,
+   status, scale_level_id, source, recorded_by_id, recorded_at)
+select md5('score:' || a.id::text || ':' || st.id::text)::uuid,
        md5('tenant:0723519:')::uuid,
-       ac.assessment_id, ac.criterion_id, st.id, 'ordinal',
-       lv.id, a.created_by_id, a.due_at + interval '4 days'
-  from assessment_criteria ac
-  join assessments a on a.id = ac.assessment_id
+       a.id, st.id, 'graded', lv.id, 'manual', a.created_by_id,
+       a.due_at + interval '4 days'
+  from assessments a
   join students st
     on st.tenant_id = md5('tenant:0723519:')::uuid
    and st.student_code like 'EST-DEMO-2026-%'
@@ -386,14 +377,16 @@ select md5('cscore:' || ac.assessment_id::text || ':' || ac.criterion_id::text |
                    when 'EST-DEMO-2026-05' then 77 when 'EST-DEMO-2026-06' then 48
                    when 'EST-DEMO-2026-07' then 72 when 'EST-DEMO-2026-08' then 58
                    when 'EST-DEMO-2026-09' then 78 else 60 end
-                 + (('x' || substr(md5('cs:' || ac.criterion_id::text || ':' || st.id::text), 1, 8))::bit(32)::bigint % 13) - 6
+                 + (('x' || substr(md5('cs:' || a.id::text || ':' || st.id::text), 1, 8))::bit(32)::bigint % 13) - 6
                )) as b
       ) q
   ) as g
   join grade_scale_levels lv
     on lv.scale_id = md5('scale:0723519:minedu_ad_a_b_c')::uuid
    and lv.code = g.code
- where a.value_scale = 'rubric';
+ where a.value_scale = 'ordinal'
+   and a.tenant_id = md5('tenant:0723519:')::uuid
+   and a.due_at < (now() at time zone 'America/Lima');
 
 
 -- §7 ==================================================================
@@ -404,10 +397,9 @@ select md5('cscore:' || ac.assessment_id::text || ':' || ac.criterion_id::text |
 -- final. Tres reglas de la RVM 094-2020 están materializadas aquí:
 --
 -- 1. LA AFIRMA EL DOCENTE, NO EL CÁLCULO (5.1.1.3 p.2-3). scale_level_id es
---    juicio humano. suggested_level_id guarda lo que Mawta propuso a partir
---    de la evidencia ponderada, y se conserva solo para medir cuántas veces
---    se anula la sugerencia — no tiene valor normativo. Dos estudiantes
---    llevan aquí una anulación deliberada del docente.
+--    juicio humano. Aquí se siembra a partir de la evidencia registrada, y dos
+--    estudiantes llevan un nivel que el docente fijó apartándose de lo que la
+--    evidencia sola sugería.
 --
 -- 2. SOLO T-I Y T-II. T-III está en curso: nadie ha afirmado nada todavía y
 --    no debe existir ni una fila suya. Afirmar un nivel a mitad de periodo
@@ -470,11 +462,11 @@ afirmado as (
 )
 insert into competency_term_levels
   (id, tenant_id, student_id, competency_id, academic_year_id, term_id,
-   class_id, scale_level_id, suggested_level_id, asserted_by_id, asserted_at, note)
+   class_id, scale_level_id, asserted_by_id, asserted_at, note)
 select md5('ctl:' || a.student_id::text || ':' || a.competency_id::text || ':' || a.term_id::text)::uuid,
        md5('tenant:0723519:')::uuid,
        a.student_id, a.competency_id, md5('year:0723519:2026')::uuid,
-       a.term_id, a.class_id, fin.id, a.sug_id, ct.teacher_id,
+       a.term_id, a.class_id, fin.id, ct.teacher_id,
        -- Fecha explícita, no derivada de terms.closed_at: en este punto del
        -- archivo los trimestres siguen abiertos (se cierran en 17) para que
        -- las notas hayan podido entrar. El docente afirma poco antes del
@@ -482,7 +474,7 @@ select md5('ctl:' || a.student_id::text || ':' || a.competency_id::text || ':' |
        case t.sequence when 1 then timestamptz '2026-06-06 12:00:00-05'
                        when 2 then timestamptz '2026-09-05 12:00:00-05' end,
        case when a.final_ord <> a.sug_ord
-            then 'Nivel afirmado por el docente apartándose de la sugerencia calculada.' end
+            then 'Nivel afirmado por el docente: la evidencia por sí sola sugería otro.' end
   from afirmado a
   join grade_scale_levels fin
     on fin.scale_id = md5('scale:0723519:minedu_ad_a_b_c')::uuid
@@ -493,20 +485,19 @@ select md5('ctl:' || a.student_id::text || ':' || a.competency_id::text || ':' |
 
 -- La transversal TR-C2 en T-II. Va aparte a propósito: no está adscrita a un
 -- área ni a un solo docente (5.1.1.3 p.8), así que asserted_by_id queda NULO
--- y no hay class_id. suggested_level_id también es nulo: no se calculó nada,
--- porque ninguna assessment alimenta una competencia transversal. Es el caso
--- de "el docente afirmó sin ningún insumo calculado" en estado puro.
+-- y no hay class_id. Ninguna evidencia alimenta una competencia transversal:
+-- es el caso de "el docente afirmó sin ningún insumo" en estado puro.
 --
 -- Y no cuenta para la promoción (5.1.3 p.9), por kind = 'transversal'.
 insert into competency_term_levels
   (id, tenant_id, student_id, competency_id, academic_year_id, term_id,
-   class_id, scale_level_id, suggested_level_id, asserted_by_id, asserted_at, note)
+   class_id, scale_level_id, asserted_by_id, asserted_at, note)
 select md5('ctl-tr:' || st.id::text)::uuid,
        md5('tenant:0723519:')::uuid,
        st.id, md5('competency:0723519:TR-C2')::uuid,
        md5('year:0723519:2026')::uuid,
        md5('term:0723519:2026:2')::uuid,
-       null, lv.id, null, null,
+       null, lv.id, null,
        '2026-09-05 12:00:00-05',
        'Nivel acordado en reunión de docentes: la competencia transversal no pertenece a un área.'
   from students st
@@ -640,10 +631,9 @@ select md5('dc:' || cl.student_id::text || ':' || cl.competency_id::text || ':' 
 -- ---------------------------------------------------------------------------
 -- Correcciones: la cadena de supersesión.
 --
--- scores, criterion_scores, competency_term_levels y descriptive_conclusions
--- son APPEND-ONLY. Una corrección NO actualiza la fila: marca superseded_at
+-- scores, competency_term_levels y descriptive_conclusions son APPEND-ONLY. Una corrección NO actualiza la fila: marca superseded_at
 -- en la vigente e inserta el reemplazo con supersedes_id apuntando a ella.
--- En scores y criterion_scores esto lo impone un trigger forbid_mutation que
+-- En scores esto lo impone un trigger forbid_mutation que
 -- lanza excepción si cambia cualquier columna que no sea
 -- superseded_at/deleted_at — la convención la hace cumplir la base, no solo
 -- el código Go.
@@ -664,12 +654,12 @@ update scores
 --    valor original a 17: al revisar, la docente halló un ejercicio bien
 --    resuelto que no se había contabilizado.
 insert into scores
-  (id, tenant_id, assessment_id, student_id, attempt_number, attempt_kind,
-   status, raw_value, max_value, late_days, feedback, source,
+  (id, tenant_id, assessment_id, student_id,
+   status, raw_value, max_value, feedback, source,
    recorded_by_id, recorded_at, supersedes_id)
 select md5('score-fix:' || sc.id::text)::uuid,
-       sc.tenant_id, sc.assessment_id, sc.student_id, sc.attempt_number,
-       sc.attempt_kind, 'graded', 17, sc.max_value, sc.late_days,
+       sc.tenant_id, sc.assessment_id, sc.student_id,
+       'graded', 17, sc.max_value,
        'Recalificación: el ejercicio 4 estaba correcto y no se había sumado.',
        'manual', sc.recorded_by_id, timestamptz '2026-09-14 09:30:00-05', sc.id
   from scores sc
