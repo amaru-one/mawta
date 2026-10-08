@@ -55,9 +55,9 @@ type Fixture struct {
 	LevelC         uuid.UUID
 	ScaleVigesimal uuid.UUID // numeric 0-20 — the school's internal system
 
-	SchemeMat     uuid.UUID
-	SchemeVersion uuid.UUID
-	ComponentQuiz uuid.UUID
+	SchemeMat          uuid.UUID
+	SchemeVersion      uuid.UUID
+	ComponentPracticas uuid.UUID
 
 	Students [5]uuid.UUID
 
@@ -111,9 +111,9 @@ var fx = Fixture{
 	LevelC:         uuid.MustParse("a0000000-0000-4000-8000-000000000074"),
 	ScaleVigesimal: uuid.MustParse("a0000000-0000-4000-8000-000000000075"),
 
-	SchemeMat:     uuid.MustParse("a0000000-0000-4000-8000-000000000080"),
-	SchemeVersion: uuid.MustParse("a0000000-0000-4000-8000-000000000081"),
-	ComponentQuiz: uuid.MustParse("a0000000-0000-4000-8000-000000000082"),
+	SchemeMat:          uuid.MustParse("a0000000-0000-4000-8000-000000000080"),
+	SchemeVersion:      uuid.MustParse("a0000000-0000-4000-8000-000000000081"),
+	ComponentPracticas: uuid.MustParse("a0000000-0000-4000-8000-000000000082"),
 
 	Students: [5]uuid.UUID{
 		uuid.MustParse("a0000000-0000-4000-8000-000000000101"),

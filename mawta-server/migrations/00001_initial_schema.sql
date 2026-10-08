@@ -1281,7 +1281,7 @@ create table grading_components (
     references grading_schemes (tenant_id, id)
 );
 
-comment on table grading_components is 'Un balde ponderado dentro de un scheme: Participación, Quiz, Examen final. Se lista una fila por componente con su peso y el resultado del estudiante en él.';
+comment on table grading_components is 'Un balde ponderado dentro de un scheme: Participación, Práctica, Examen final. Se lista una fila por componente con su peso y el resultado del estudiante en él.';
 comment on column grading_components.code is 'Clave estable para el sistema. El nombre puede reescribirse sin romper assessments ni computed grades históricos.';
 comment on constraint grading_components_scheme_component_key on grading_components is 'Permite que assessments lleve una FK compuesta (tenant_id, scheme_id, component_id), lo que hace estructuralmente imposible registrar una assessment bajo un componente del scheme de otro colegio.';
 
@@ -1341,7 +1341,7 @@ comment on table grading_scheme_versions is 'Una fotografía inmutable de las re
 comment on column grading_scheme_versions.absent_counts_as is 'Cuánto vale una ausencia no justificada en una assessment. Esto es política, no dato: la fila de score solo registra que el estudiante estuvo ausente, y esto decide si eso se vuelve un cero o sale del denominador.';
 comment on column grading_scheme_versions.late_penalty_pct_per_day is 'Fracción descontada por día de atraso. Se aplica al momento del cálculo a partir de scores.late_days — el score en crudo nunca se modifica, así que corregir esta política vuelve a calificar correctamente.';
 comment on column grading_scheme_versions.retake_policy is 'Cómo se combinan varios intentos sobre una misma assessment: best, last, o best-capped. La recuperación peruana normalmente es capped. Nunca se resuelve descartando el intento anterior.';
-comment on column grading_scheme_versions.min_evaluated_weight_for_grade is 'Proporción mínima del peso del term que debe estar evaluada antes de mostrar siquiera una nota parcial. Evita reportar "AD" a partir de un solo quiz con 5% de peso.';
+comment on column grading_scheme_versions.min_evaluated_weight_for_grade is 'Proporción mínima del peso del term que debe estar evaluada antes de mostrar siquiera una nota parcial. Evita reportar "AD" a partir de una sola práctica con 5% de peso.';
 comment on column grading_scheme_versions.published_at is 'Null mientras la versión es un borrador. Publicar la congela: después de esto, solo effective_to puede cambiar.';
 comment on constraint grading_scheme_versions_no_overlap on grading_scheme_versions is 'Dos versiones publicadas de un mismo scheme no pueden estar vigentes en la misma fecha, así que "la política que aplica a esta assessment" es inequívoca. Los borradores se excluyen para poder redactar un reemplazo mientras el actual sigue vigente.';
 
@@ -1637,13 +1637,13 @@ create table assessments (
     check (value_scale <> 'rubric' or counts_toward_internal = false)
 );
 
-comment on table assessments is 'Un ítem calificado para una class: "Quiz 1", "Examen final", "Participación". Se listan bajo EVALUACIONES con el peso del componente junto a cada una. "Añadir evaluación" inserta aquí.';
+comment on table assessments is 'Un ítem calificado para una class: "Tarea 1", "Examen final", "Participación". Se listan bajo EVALUACIONES con el peso del componente junto a cada una. "Añadir evaluación" inserta aquí.';
 comment on column assessments.scheme_id is 'Desnormalizado desde el componente para que la FK compuesta pueda probar que el componente pertenece al scheme previsto. Se establece a partir de la política de calificación resuelta de la class al crearse.';
 comment on column assessments.term_id is 'El term al que pertenece esta evidencia. Nulable: una recuperación pedagógica o evaluación de subsanación suele ocurrir fuera del periodo lectivo regular, así que su evidencia queda registrada sin pertenecer al promedio ponderado de ningún term.';
 comment on column assessments.student_id is 'Null significa que la assessment aplica a toda la class, que es el caso original y sigue siendo el más común. Si está definido, es evidencia solo para ese estudiante: una tarea de recuperación, un proyecto rehecho, una defensa oral que reemplaza una exposición grupal perdida. Toda consulta que expanda assessments sobre el roster debe filtrar (student_id is null or student_id = el estudiante), o la evidencia personal de un estudiante contará como faltante para todos los demás.';
 comment on column assessments.value_scale is
   'Cómo se valora esta evidencia. ''numeric'': una nota en la escala vigesimal propia del colegio, con max_score como denominador y el valor en scores.raw_value. ''rubric'': evidencia puramente cualitativa, sin nota general — se valora solo a través de los niveles por criterio en criterion_scores, y max_score queda null. Ninguno de los dos casos es un nivel de logro: el nivel de una competencia se afirma en competency_term_levels por un docente que ha leído todo el periodo, y nada puede derivarlo de estos valores.';
-comment on column assessments.max_score is 'El denominador sobre el que se mide cada score de esta assessment, ej. 20 para un quiz vigesimal. Solo aplica a value_scale = ''numeric''; null cuando value_scale = ''rubric'', que no tiene nota general.';
+comment on column assessments.max_score is 'El denominador sobre el que se mide cada score de esta assessment, ej. 20 para una práctica vigesimal. Solo aplica a value_scale = ''numeric''; null cuando value_scale = ''rubric'', que no tiene nota general.';
 comment on column assessments.counts_toward_internal is
   'Si esta evidencia alimenta el promedio ponderado interno del colegio. Siempre alimenta el juicio oficial: un nivel de criterio registrado contra ella cuenta de todas formas, porque la norma no sabe nada de esta bandera. False existe para la tarea de recuperación dada a un solo estudiante (assessments.student_id definido). Esa tarea es evidencia legítima de la competencia, pero dejar que eleve solo el promedio interno de ese estudiante le da una oportunidad que el resto de la class nunca tuvo. Leído por worker/handlers/recompute.go, su único consumidor. assessments_rubric_not_internal fuerza este valor a false cuando value_scale es rubric: una rúbrica nunca tiene fila en scores (no hay raw_value/max_value que derivar), así que dejarla contar la marcaría como peso pendiente para siempre.';
 comment on column assessments.weight_within_component is 'Peso relativo frente a otras assessments del mismo componente, usado cuando el componente agrega por weighted_mean. No es una porción de la nota final — ese es el peso del componente.';
@@ -1698,7 +1698,7 @@ create table assessment_criteria (
   constraint assessment_criteria_tenant_key unique (tenant_id, assessment_id, criterion_id)
 );
 
-comment on table assessment_criteria is 'A qué criterios de evaluación habla una evidencia, ej. un "Quiz 1" etiquetado contra dos criterios de "Resuelve problemas de cantidad". criterion_scores_rubric_item_fk (en criterion_scores) es compuesta sobre assessment_criteria_tenant_key, así que una marca por criterio solo puede existir para un par assessment+criterio que esta tabla realmente etiquetó.';
+comment on table assessment_criteria is 'A qué criterios de evaluación habla una evidencia, ej. una "Tarea 1" etiquetada contra dos criterios de "Resuelve problemas de cantidad". criterion_scores_rubric_item_fk (en criterion_scores) es compuesta sobre assessment_criteria_tenant_key, así que una marca por criterio solo puede existir para un par assessment+criterio que esta tabla realmente etiquetó.';
 comment on constraint assessment_criteria_tenant_key on assessment_criteria is 'A diferencia del resto de esta migración, esta es una unique constraint completa, no parcial por deleted_at is null: Postgres solo permite que una FK apunte a una unique/primary key completa, nunca a un índice parcial, y esta es lo que hace posible criterion_scores_rubric_item_fk. Sin consecuencia práctica hoy — nada en Go borra una fila de assessment_criteria (linkAssessmentCriteria solo inserta) — pero si algún día se agrega un "destag", debe reactivar la fila existente en vez de insertar una nueva para el mismo par.';
 
 create index assessment_criteria_criterion_idx on assessment_criteria (criterion_id);
@@ -2090,7 +2090,7 @@ create table computed_grade_components (
 
 comment on table computed_grade_components is 'El desglose por componente detrás de un computed grade. La lista de EVALUACIONES lee weight_applied y normalized_value de aquí, y la fila "Sin evaluar" es un componente con is_evaluated = false.';
 comment on column computed_grade_components.counted_score_ids is 'Exactamente qué filas de score alimentaron este número. Hace que una nota sea explicable a un padre sin volver a ejecutar el cálculo.';
-comment on column computed_grade_components.dropped_score_ids is 'Scores removidas por drop-lowest-N. Se conservan para que el docente pueda responder con precisión "por qué mi peor quiz no cuenta".';
+comment on column computed_grade_components.dropped_score_ids is 'Scores removidas por drop-lowest-N. Se conservan para que el docente pueda responder con precisión "por qué mi peor práctica no cuenta".';
 comment on column computed_grade_components.excused_score_ids is 'Scores excluidas del denominador por haber sido excused. Distinto de dropped: excused fue una decisión sobre el estudiante, dropped fue una regla sobre los números.';
 
 create unique index cgc_key on computed_grade_components (computed_grade_id, component_id)
@@ -2502,7 +2502,7 @@ create table practice_scores (
 );
 
 comment on table practice_scores is
-  'Un registro personal y no oficial de un docente, creado con "Añadir evaluación" en la pantalla de notas del estudiante. Explícitamente no es una assessment: no lleva componente ni peso, internal/grading nunca lo lee, y nunca llega a computed_grades. Para qué se usa (un quiz de práctica, un repaso, lo que sea) depende enteramente del docente.';
+  'Un registro personal y no oficial de un docente, creado con "Añadir evaluación" en la pantalla de notas del estudiante. Explícitamente no es una assessment: no lleva componente ni peso, internal/grading nunca lo lee, y nunca llega a computed_grades. Para qué se usa (una práctica de clase, un repaso, lo que sea) depende enteramente del docente.';
 comment on column practice_scores.kind is 'El mismo vocabulario que assessments.kind, por consistencia de etiquetas con la lista oficial de EVALUACIONES — no es una FK, ya que estas no están atadas a ningún grading scheme.';
 comment on column practice_scores.note is 'Texto libre opcional que el docente adjunta a la score.';
 

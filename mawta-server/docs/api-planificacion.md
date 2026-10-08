@@ -44,7 +44,7 @@ Same as the rest of the API:
    `planificada`, every accepted session outline entry sets
    `class_sessions.topic` of its date (what the class calendar shows), and every
    accepted planned evidence becomes an assessment (`assessments.planned_evidence_id`):
-   `value_scale = "rubric"`, tagged with the evidence's criteria, linked to the
+   `value_scale = "numeric"` out of 20 (`max_score = 20`, counted in the internal average), tagged with the evidence's criteria, linked to the
    class session of its date (which is also its `due_at`) and filed under the
    first component of the class's grading scheme. Kinds map `produccion` →
    `proyecto`, `actuacion` → `exposicion`, `prueba_escrita` → `examen`. The sync

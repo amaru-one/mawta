@@ -44,7 +44,7 @@ type CriterionRef struct {
 	Description string    `json:"description"`
 }
 
-// EvaluationEntry is one graded item — a quiz, an exam — as *evidence*. It
+// EvaluationEntry is one graded item — a task, an exam — as *evidence*. It
 // carries no weight: under RVM 094-2020 a mark informs the teacher's
 // judgement of the criterios and never feeds a final grade arithmetically.
 type EvaluationEntry struct {

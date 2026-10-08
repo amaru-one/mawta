@@ -913,7 +913,7 @@ func TestConfirmedExperienceReachesCalendarAndStudents(t *testing.T) {
 	`, ev.ID, crit.ID).Scan(&title, &kind, &scale, &sessionID, &criteria); err != nil {
 		t.Fatal(err)
 	}
-	if title != "Lista de precios" || kind != "proyecto" || scale != "rubric" || sessionID == nil || criteria != 1 {
+	if title != "Lista de precios" || kind != "proyecto" || scale != "numeric" || sessionID == nil || criteria != 1 {
 		t.Errorf("assessment = %q %q %q session=%v criteria=%d", title, kind, scale, sessionID, criteria)
 	}
 

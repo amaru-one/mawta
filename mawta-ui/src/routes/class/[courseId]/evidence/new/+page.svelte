@@ -72,14 +72,12 @@
 	// ---- the form ----
 
 	const KINDS: { value: AssessmentKind; label: string }[] = [
-		{ value: 'quiz', label: 'Quiz' },
 		{ value: 'examen', label: 'Examen' },
 		{ value: 'practica', label: 'Práctica' },
 		{ value: 'tarea', label: 'Tarea' },
 		{ value: 'proyecto', label: 'Proyecto' },
 		{ value: 'exposicion', label: 'Exposición' },
 		{ value: 'participacion', label: 'Participación' },
-		{ value: 'rubrica', label: 'Rúbrica' },
 		{ value: 'otro', label: 'Otro' },
 	];
 

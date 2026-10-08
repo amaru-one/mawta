@@ -176,14 +176,12 @@
 	}
 
 	const kindLabels: Record<string, string> = {
-		quiz: 'Quiz',
 		examen: 'Examen',
 		practica: 'Práctica',
 		tarea: 'Tarea',
 		proyecto: 'Proyecto',
 		exposicion: 'Exposición',
 		participacion: 'Participación',
-		rubrica: 'Rúbrica',
 		otro: 'Otro',
 	};
 

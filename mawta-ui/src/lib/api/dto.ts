@@ -7,14 +7,12 @@
 export type SessionStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'rescheduled';
 export type ScoreStatus = 'graded' | 'excused' | 'absent' | 'not_submitted';
 export type AssessmentKind =
-	| 'quiz'
 	| 'examen'
 	| 'practica'
 	| 'tarea'
 	| 'proyecto'
 	| 'exposicion'
 	| 'participacion'
-	| 'rubrica'
 	| 'otro';
 export type VoiceNoteStatus = 'draft' | 'saved' | 'discarded';
 export type NotificationKind = 'alert' | 'reminder';

@@ -17,6 +17,10 @@ var plannedEvidenceKinds = map[string]string{
 	"prueba_escrita": "examen",
 }
 
+// defaultPlannedMaxScore is the denominator of an assessment materialized
+// from a planned evidence: the vigesimal scale, the school's own.
+const defaultPlannedMaxScore = 20
+
 // SyncClassPlan runs SyncExperience for every planned experience of a class.
 // It is idempotent, so screens that show the class calendar or the plan call
 // it to bring experiences planned before the bridge existed up to date.
@@ -55,9 +59,9 @@ func SyncClassPlan(ctx context.Context, tx pgx.Tx, classID uuid.UUID) error {
 //     date (class_sessions.topic), which is what the class calendar shows;
 //   - each accepted planned evidence becomes an assessment tagged with its
 //     criteria, so it reaches every student on the roster and can be
-//     evaluated. It is a rubric assessment: judged per criterion, never a
-//     mark, and outside the internal average. It is linked to the class
-//     session of its date, which is also its due date.
+//     evaluated. It is a numeric assessment out of defaultPlannedMaxScore and
+//     counts toward the internal average like any ordinary class work. It is
+//     linked to the class session of its date, which is also its due date.
 //
 // A draft experience is left alone. Pending proposals are not synced until the
 // teacher accepts them. The function only writes what differs, so calling it
@@ -186,12 +190,12 @@ func SyncExperience(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID) erro
 			}
 		} else if err := tx.QueryRow(ctx, `
 			insert into assessments (tenant_id, class_id, term_id, scheme_id, component_id, session_id,
-			                         title, kind, value_scale, counts_toward_internal, due_at,
+			                         title, kind, value_scale, max_score, counts_toward_internal, due_at,
 			                         status, published_at, planned_evidence_id)
-			values (app.current_tenant_id(), $1, $2, $3, $4, $5, $6, $7, 'rubric', false, $8,
+			values (app.current_tenant_id(), $1, $2, $3, $4, $5, $6, $7, 'numeric', $10, true, $8,
 			        'published', now(), $9)
 			returning id
-		`, classID, termID, scheme.SchemeID, componentID, sessionID, p.name, kind, dueAt, p.id).Scan(&assessmentID); err != nil {
+		`, classID, termID, scheme.SchemeID, componentID, sessionID, p.name, kind, dueAt, p.id, defaultPlannedMaxScore).Scan(&assessmentID); err != nil {
 			return err
 		}
 

@@ -10,14 +10,12 @@
 	let { onsubmit, oncancel }: Props = $props();
 
 	const kindOptions: { value: AssessmentKind; label: string }[] = [
-		{ value: 'quiz', label: 'Quiz' },
 		{ value: 'examen', label: 'Examen' },
 		{ value: 'practica', label: 'Práctica' },
 		{ value: 'tarea', label: 'Tarea' },
 		{ value: 'proyecto', label: 'Proyecto' },
 		{ value: 'exposicion', label: 'Exposición' },
 		{ value: 'participacion', label: 'Participación' },
-		{ value: 'rubrica', label: 'Rúbrica' },
 		{ value: 'otro', label: 'Otro' },
 	];
 
@@ -56,7 +54,7 @@
 	onclose={oncancel}
 >
 	<form onsubmit={handleSubmit}>
-		<Field label="Título" bind:value={title} placeholder="Quiz práctica 3" required />
+		<Field label="Título" bind:value={title} placeholder="Práctica 3" required />
 		<Field label="Tipo" kind="select" bind:value={kind} options={kindOptions} />
 		<div class="scores">
 			<Field label="Nota" type="number" bind:value={rawValue} step="0.01" required /><Field
