@@ -9,7 +9,7 @@
 	import { getMe } from '$lib/api/endpoints/home';
 	import { setUnauthorizedHandler } from '$lib/api/client';
 	import { loadNotifications } from '$lib/notifications';
-	import { session, teacher, usesInternalGrading } from '$lib/stores';
+	import { session, teacher } from '$lib/stores';
 
 	let { children } = $props();
 
@@ -42,7 +42,6 @@
 					shortName: name,
 					school: me.tenant.name,
 				});
-				usesInternalGrading.set(me.tenant.uses_internal_grading);
 				session.set({ status: 'authenticated', role: me.role });
 
 				// Only loads once signed in — an unconditional load would spam

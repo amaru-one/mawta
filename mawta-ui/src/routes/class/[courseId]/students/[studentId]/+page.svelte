@@ -34,22 +34,21 @@
 		upsertConclusion,
 	} from '$lib/api/endpoints/competencies';
 	import { getClassCriteria } from '$lib/api/endpoints/criteria';
-	import { correctScore, createScore } from '$lib/api/endpoints/grades';
+	import { correctScore, createScore } from '$lib/api/endpoints/scores';
 	import { getStudentEvidence } from '$lib/api/endpoints/students';
 	import CompetencyIndex from '$lib/components/CompetencyIndex.svelte';
 	import LevelScale from '$lib/components/LevelScale.svelte';
 	import LevelSelector from '$lib/components/LevelSelector.svelte';
 	import ScoreRuler from '$lib/components/ScoreRuler.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
-	import type { Tier } from '$lib/grades';
+	import type { Tier } from '$lib/levels';
 	import { hapticTap } from '$lib/haptics';
-	import { usesInternalGrading } from '$lib/stores';
 	import { showToast } from '$lib/toast';
 
 	const courseId = $derived(page.params.courseId ?? '');
 	const studentId = $derived(page.params.studentId ?? '');
 	// No endpoint returns a student's name or the class name, so both travel as
-	// query params — the convention the grades screen already uses. `comp` joins
+	// query params — the convention the other student screens use. `comp` joins
 	// them for the same reason `selected` needs to survive a remount (back
 	// navigation, a reload): it names which competencia was being read, and
 	// nothing else remembers that once SvelteKit tears the component down.
@@ -150,15 +149,11 @@
 
 	// ---- evidence values ----
 
-	// The live attempt, if any: the last one the server sent back.
-	const liveAttempt = (e: EvaluationDto) => {
-		const a = list(e.attempts);
-		return a.length === 0 ? null : a[a.length - 1];
-	};
-
-	const markOf = (e: EvaluationDto): number | null => liveAttempt(e)?.raw_value ?? null;
-	const letterOf = (e: EvaluationDto): Tier | null => liveAttempt(e)?.level ?? null;
-	const notSubmitted = (e: EvaluationDto): boolean => liveAttempt(e)?.status === 'not_submitted';
+	// The student's valuation of the evidence, if the teacher has made one.
+	const markOf = (e: EvaluationDto): number | null => e.score?.raw_value ?? null;
+	const letterOf = (e: EvaluationDto): Tier | null => e.score?.level ?? null;
+	const percentOf = (e: EvaluationDto): number | null => e.score?.percentage ?? null;
+	const notSubmitted = (e: EvaluationDto): boolean => e.score?.status === 'not_submitted';
 
 	// Patch in place rather than refetch: a full reload on every tap would make
 	// marking a class feel like waiting on a network.
@@ -173,9 +168,13 @@
 			e.assessment_id === assessmentId
 				? {
 						...e,
-						attempts: [
-							{ score_id: scoreId, attempt_number: 1, status, raw_value: rawValue, level },
-						],
+						score: {
+							score_id: scoreId,
+							status,
+							raw_value: rawValue,
+							percentage: rawValue !== null && e.max_score ? (rawValue / e.max_score) * 100 : null,
+							level,
+						},
 					}
 				: e
 		);
@@ -193,7 +192,7 @@
 		if (savingScore.has(e.assessment_id)) return;
 		savingScore = new Set(savingScore).add(e.assessment_id);
 		try {
-			const existing = liveAttempt(e);
+			const existing = e.score;
 			const res =
 				existing === null
 					? await createScore(e.assessment_id, {
@@ -213,7 +212,7 @@
 		}
 	}
 
-	// Marking "no entregó" clears the value server-side (the live attempt becomes
+	// Marking "no entregó" clears the value server-side (the live score becomes
 	// {status: not_submitted, raw_value: null, level: null}), so by the time the
 	// teacher unmarks it there is nothing left in `evidence` to read the old value
 	// back from — markOf/letterOf would just return the nulls that are already
@@ -345,15 +344,6 @@
 		{#if ready}
 			<h1 class="title">{studentName}</h1>
 			{#if courseName}<span class="sub">{courseName}</span>{/if}
-			<Action
-				variant="link"
-				href="/grades/{page.params.studentId}?class={courseId}&name={encodeURIComponent(
-					studentName
-				)}&course={encodeURIComponent(courseName)}"
-				onclick={hapticTap}
-			>
-				Ver notas
-			</Action>
 
 			{#if indexItems.length > 0}
 				<div class="idx">
@@ -386,9 +376,9 @@
 								<p class="crit">{critLine(e)}</p>
 
 								<!-- The scale is a property of the evidence, so the control is
-							     chosen by the work rather than by the screen. `none` shows
-							     no control at all: registered, read, never valued. -->
-								{#if e.value_scale === 'numeric' && e.max_score !== null && $usesInternalGrading}
+							     chosen by the work rather than by the screen: a ruler out of
+							     the evidence's own maximum, or the AD/A/B/C letters. -->
+								{#if e.value_scale === 'numeric' && e.max_score !== null}
 									<div class="ruler">
 										<ScoreRuler
 											value={off ? null : markOf(e)}
@@ -397,7 +387,10 @@
 											onselect={(v) => void writeScore(e, 'graded', v, null)}
 										/>
 									</div>
-								{:else if e.value_scale === 'ordinal'}
+									{#if !off && percentOf(e) !== null}
+										<p class="pct">{Math.round(percentOf(e) ?? 0)} %</p>
+									{/if}
+								{:else}
 									<div class="ruler">
 										<LevelScale
 											level={off ? null : letterOf(e)}
@@ -405,15 +398,6 @@
 											onselect={(l) => void writeScore(e, 'graded', null, l)}
 										/>
 									</div>
-								{:else}
-									<p class="noscale">
-										{#if e.value_scale === 'numeric'}
-											El colegio no lleva sistema propio de notas, así que esta evidencia no lleva
-											valor.
-										{:else}
-											Sin valor: esta evidencia se registra y se lee, no se puntúa.
-										{/if}
-									</p>
 								{/if}
 
 								<Checkbox
@@ -422,10 +406,6 @@
 									disabled={busy}
 									onchange={() => toggleNotSubmitted(e)}
 								/>
-
-								{#if !e.counts_toward_internal}
-									<p class="tag">Fuera del promedio interno</p>
-								{/if}
 							</Card>
 						{/each}
 					</div>
@@ -554,14 +534,6 @@
 		opacity: 0.5;
 	}
 
-	.noscale {
-		margin: 16px 0 0;
-		font-size: var(--mw-type-caption-size);
-		line-height: 1.4;
-		color: var(--mw-ink-muted);
-		text-wrap: pretty;
-	}
-
 	.cardhead {
 		display: flex;
 		align-items: baseline;
@@ -594,9 +566,10 @@
 		margin-top: 16px;
 	}
 
-	.tag {
-		margin: 10px 0 0;
+	.pct {
+		margin: 6px 0 0;
 		font-size: var(--mw-type-label-size);
+		letter-spacing: 0.04em;
 		color: var(--mw-ink-muted);
 		font-family: var(--mw-font-sans);
 	}

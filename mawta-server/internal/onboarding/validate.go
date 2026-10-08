@@ -2,7 +2,6 @@ package onboarding
 
 import (
 	"fmt"
-	"math"
 	"regexp"
 	"sort"
 	"strings"
@@ -378,7 +377,7 @@ func (v *checker) areas(as []Area, transversales []string) map[string]bool {
 	if len(as) == 0 {
 		v.addf("areas", "debe haber al menos un área")
 	}
-	areaCodes, schemeCodes := map[string]string{}, map[string]string{}
+	areaCodes := map[string]string{}
 	// Criterio codes are unique across the whole school, not just within
 	// their parent: seed_demo.sql and every report find them by code alone.
 	crits := map[string]string{}
@@ -405,12 +404,6 @@ func (v *checker) areas(as []Area, transversales []string) map[string]bool {
 				}
 			}
 		}
-		s := schemeFor(a)
-		spath := path + ".esquema_calificacion"
-		if a.EsquemaCalificacion == nil {
-			spath = path + " (esquema estándar)"
-		}
-		v.esquema(spath, s, schemeCodes)
 	}
 	seenTransversal := map[string]string{}
 	for i, code := range transversales {
@@ -439,38 +432,6 @@ func (v *checker) catTransversalList() string {
 		codes = append(codes, t.Codigo)
 	}
 	return strings.Join(codes, ", ")
-}
-
-func (v *checker) esquema(path string, s Esquema, schemeCodes map[string]string) {
-	if v.required(path+".codigo", s.Codigo) {
-		v.unique(schemeCodes, path+".codigo", "el código de esquema", s.Codigo)
-	}
-	v.required(path+".nombre", s.Nombre)
-	if len(s.Componentes) == 0 {
-		v.addf(path+".componentes", "el esquema debe tener al menos un componente")
-		return
-	}
-	codes := map[string]string{}
-	var total int64
-	for i, c := range s.Componentes {
-		cpath := fmt.Sprintf("%s.componentes[%d]", path, i)
-		if v.required(cpath+".codigo", c.Codigo) {
-			v.unique(codes, cpath+".codigo", "el código de componente", c.Codigo)
-		}
-		v.required(cpath+".nombre", c.Nombre)
-		if c.Peso <= 0 || c.Peso > 1 {
-			v.addf(cpath+".peso", "%v debe ser mayor que 0 y como máximo 1 (0.40 es 40%%)", c.Peso)
-		}
-		if c.DescartarMasBajas < 0 {
-			v.addf(cpath+".descartar_mas_bajas", "no puede ser negativo")
-		}
-		// Weights are numeric(9,6) and must sum to exactly 1 when published;
-		// compare in millionths so 0.1+0.2+0.7 isn't lost to float error.
-		total += int64(math.Round(c.Peso * 1e6))
-	}
-	if total != 1_000_000 {
-		v.addf(path+".componentes", "los pesos suman %.6g y deben sumar exactamente 1", float64(total)/1e6)
-	}
 }
 
 // ----------------------------------------------------------------- grados --

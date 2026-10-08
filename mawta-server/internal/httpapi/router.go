@@ -60,8 +60,6 @@ func (a *API) Router() http.Handler {
 			// the two reads the evaluating screens are built on.
 			r.Get("/classes/{classID}/students", a.handleClassStudents)
 			r.Get("/classes/{classID}/students/{studentID}/evidence", a.handleStudentEvidence)
-			r.Get("/classes/{classID}/students/{studentID}/grades", a.handleStudentGrades)
-			r.Get("/classes/{classID}/grading-components", a.handleGradingComponents)
 			r.Post("/classes/{classID}/assessments", a.handleCreateAssessment)
 			r.Post("/assessments/{assessmentID}/delete", a.handleDeleteAssessment)
 
@@ -72,9 +70,8 @@ func (a *API) Router() http.Handler {
 
 			// Criterios de evaluación: what the teacher says to look at in a piece of
 			// work, each anchored to a capacidad. Authoring only — no route here
-			// writes a nivel de logro for a criterio, and none may be added. Marks
-			// against a criterio are per-evidence and live on the criterion-scores
-			// routes below.
+			// writes a nivel de logro for a criterio, and none may be added. A
+			// student is valued once per evidence, on the scores routes below.
 			r.Get("/classes/{classID}/criteria", a.handleClassCriteria)
 			r.Get("/competencies/{competencyID}/capabilities", a.handleCompetencyCapabilities)
 			r.Post("/competencies/{competencyID}/capabilities", a.handleCreateCapability)
@@ -120,11 +117,6 @@ func (a *API) Router() http.Handler {
 
 			r.Post("/assessments/{assessmentID}/scores", a.handleCreateScore)
 			r.Post("/scores/{scoreID}/correct", a.handleCorrectScore)
-			r.Post("/assessments/{assessmentID}/criterion-scores", a.handleCreateCriterionScore)
-			r.Post("/criterion-scores/{criterionScoreID}/correct", a.handleCorrectCriterionScore)
-
-			r.Post("/classes/{classID}/students/{studentID}/practice-scores", a.handleCreatePracticeScore)
-			r.Post("/practice-scores/{practiceScoreID}/delete", a.handleDeletePracticeScore)
 
 			r.Get("/notifications", a.handleListNotifications)
 			r.Post("/notifications/{notificationID}/read", a.handleMarkNotificationRead)

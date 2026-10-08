@@ -203,25 +203,18 @@ func GetClassDashboard(ctx context.Context, tx pgx.Tx, classID uuid.UUID, term T
 		}
 	}
 
-	// pendientes: grades pending. Un rubric assessment nunca tiene fila en
-	// scores — se cuenta como pendiente solo si tampoco tiene ningún
-	// criterion_scores vigente para ese estudiante.
+	// pendientes: evidences past their due date with no valuation yet for
+	// some student.
 	rows, err := tx.Query(ctx, `
 		select a.id, a.title, count(*) as missing
 		  from assessments a
 		  cross join unnest($3::uuid[]) as r(student_id)
 		  left join scores s on s.assessment_id = a.id and s.student_id = r.student_id
 		                     and s.superseded_at is null and s.deleted_at is null
-		  left join lateral (
-		    select true as has_mark from criterion_scores cs
-		     where cs.assessment_id = a.id and cs.student_id = r.student_id
-		       and cs.superseded_at is null and cs.deleted_at is null
-		     limit 1
-		  ) cs on true
 		 where a.class_id = $1 and a.term_id = $2 and a.status = 'published'
 		   and a.due_at is not null and a.due_at <= now() and a.deleted_at is null
 		   and (a.student_id is null or a.student_id = r.student_id)
-		   and s.id is null and cs.has_mark is null
+		   and s.id is null
 		 group by a.id, a.title
 		 having count(*) > 0
 		 order by a.title
@@ -333,15 +326,9 @@ func listSessions(ctx context.Context, tx pgx.Tx, classID uuid.UUID, d time.Time
 			       and sm.deleted_at is null
 			      left join scores s on s.assessment_id = a.id and s.student_id = sm.student_id
 			                         and s.superseded_at is null and s.deleted_at is null
-			      left join lateral (
-			        select true as has_mark from criterion_scores cs2
-			         where cs2.assessment_id = a.id and cs2.student_id = sm.student_id
-			           and cs2.superseded_at is null and cs2.deleted_at is null
-			         limit 1
-			      ) cs2 on true
 			     where a.session_id = cs.id and a.status = 'published' and a.deleted_at is null
 			       and (a.student_id is null or a.student_id = sm.student_id)
-			       and s.id is null and cs2.has_mark is null
+			       and s.id is null
 			  ) pg on true
 			 where cs.class_id = $1 and cs.deleted_at is null
 			   and (cs.session_date < $2::date

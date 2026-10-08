@@ -38,6 +38,7 @@ import type {
 	UpdateEvidenceBody,
 	UpdateExperienceBody,
 	UpdateSessionBody,
+	ValueScale,
 	WarningDto,
 } from '../dto';
 
@@ -164,6 +165,8 @@ interface Evidence {
 	experience_id: string;
 	name: string;
 	kind: EvidenceKind;
+	value_scale: ValueScale;
+	max_score: number | null;
 	criterion_ids: string[];
 	session_date: string | null;
 	proposed_by: string;
@@ -624,6 +627,8 @@ function seedExperience(): void {
 			experience_id: experience.id,
 			name: 'Lista de precios de la tiendita',
 			kind: 'produccion',
+			value_scale: 'numeric',
+			max_score: 20,
 			criterion_ids: ['crit-tiendita-1', 'crit-tiendita-4'],
 			session_date: dates[0] ?? null,
 			proposed_by: 'teacher',
@@ -635,6 +640,8 @@ function seedExperience(): void {
 			experience_id: experience.id,
 			name: 'Prueba escrita: vueltos y descuentos',
 			kind: 'prueba_escrita',
+			value_scale: 'numeric',
+			max_score: 20,
 			criterion_ids: ['crit-tiendita-2', 'crit-tiendita-3'],
 			session_date: null,
 			proposed_by: 'teacher',
@@ -1237,6 +1244,8 @@ function toExperienceDto(experience: Experience): ExperienceDto {
 			experience_id: evidence.experience_id,
 			name: evidence.name,
 			kind: evidence.kind,
+			value_scale: evidence.value_scale,
+			max_score: evidence.max_score,
 			criterion_ids: evidence.criterion_ids,
 			session_date: evidence.session_date,
 			proposed_by: evidence.proposed_by,
@@ -1477,12 +1486,32 @@ export async function deleteCriterion(criterionId: string): Promise<void> {
 	}
 }
 
+// Same rules as the server: a numeric evidence has a maximum above 0 (20 when
+// none is named); an ordinal one (AD/A/B/C) has none.
+function resolveScale(
+	valueScale: ValueScale | undefined,
+	maxScore: number | null | undefined
+): { value_scale: ValueScale; max_score: number | null } {
+	const scale = valueScale ?? 'numeric';
+	if (scale === 'ordinal') {
+		if (maxScore !== undefined && maxScore !== null) {
+			fail(400, 'bad_request', 'Una evidencia con letras (AD/A/B/C) no lleva nota máxima.');
+		}
+		return { value_scale: scale, max_score: null };
+	}
+	const max = maxScore ?? 20;
+	if (max <= 0) fail(400, 'bad_request', 'La nota máxima debe ser mayor que 0.');
+	return { value_scale: scale, max_score: max };
+}
+
 function toEvidenceDto(evidence: Evidence): PlannedEvidenceDto {
 	return clone({
 		id: evidence.id,
 		experience_id: evidence.experience_id,
 		name: evidence.name,
 		kind: evidence.kind,
+		value_scale: evidence.value_scale,
+		max_score: evidence.max_score,
 		criterion_ids: evidence.criterion_ids,
 		session_date: evidence.session_date,
 		proposed_by: evidence.proposed_by,
@@ -1501,6 +1530,7 @@ export async function createEvidence(
 		fail(400, 'missing_name', 'La evidencia necesita un nombre.');
 	}
 	requireEvidenceKind(body.kind);
+	const scale = resolveScale(body.value_scale, body.max_score);
 	requireEvidenceCriteria(experience, body.criterion_ids);
 	if (body.session_date !== undefined && body.session_date !== null) {
 		requireClassDateIn(experience, body.session_date);
@@ -1514,6 +1544,8 @@ export async function createEvidence(
 		experience_id: experienceId,
 		name: body.name,
 		kind: body.kind,
+		value_scale: scale.value_scale,
+		max_score: scale.max_score,
 		criterion_ids: [...body.criterion_ids],
 		session_date: null,
 		proposed_by: 'teacher',
@@ -1544,6 +1576,14 @@ export async function updateEvidence(
 	if (body.kind !== undefined) {
 		requireEvidenceKind(body.kind);
 		evidence.kind = body.kind;
+	}
+	if (body.value_scale !== undefined || body.max_score !== undefined) {
+		const next = body.value_scale ?? evidence.value_scale;
+		// The old maximum belongs to the old scale.
+		const max = body.max_score ?? (next === evidence.value_scale ? evidence.max_score : undefined);
+		const scale = resolveScale(next, max);
+		evidence.value_scale = scale.value_scale;
+		evidence.max_score = scale.max_score;
 	}
 	if (body.criterion_ids !== undefined) {
 		requireEvidenceCriteria(experience, body.criterion_ids);
@@ -1777,6 +1817,8 @@ export async function generateEvidences(experienceId: string): Promise<Generatio
 				experience_id: experienceId,
 				name: bank.name,
 				kind: bank.kind,
+				value_scale: 'numeric',
+				max_score: 20,
 				criterion_ids: unobserved,
 				session_date: null,
 				proposed_by: 'mawta',

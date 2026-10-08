@@ -9,16 +9,15 @@ import (
 )
 
 type SessionHeader struct {
-	SessionID          uuid.UUID `json:"session_id"`
-	ClassID            uuid.UUID `json:"class_id"`
-	ClassName          string    `json:"class_name"`
-	TermID             uuid.UUID `json:"term_id"`
-	Topic              *string   `json:"topic"`
-	SessionDate        string    `json:"session_date"`
-	Status             string    `json:"status"`
-	SectionAverageCode *string   `json:"section_average_code"`
-	AttendanceMarked   int       `json:"attendance_marked"`
-	AttendanceTotal    int       `json:"attendance_total"`
+	SessionID        uuid.UUID `json:"session_id"`
+	ClassID          uuid.UUID `json:"class_id"`
+	ClassName        string    `json:"class_name"`
+	TermID           uuid.UUID `json:"term_id"`
+	Topic            *string   `json:"topic"`
+	SessionDate      string    `json:"session_date"`
+	Status           string    `json:"status"`
+	AttendanceMarked int       `json:"attendance_marked"`
+	AttendanceTotal  int       `json:"attendance_total"`
 }
 
 type VoiceNoteRef struct {
@@ -63,34 +62,6 @@ func GetSessionHeader(ctx context.Context, tx pgx.Tx, sessionID uuid.UUID) (Sess
 		select count(*) from attendance_records where session_id = $1 and deleted_at is null
 	`, sessionID).Scan(&h.AttendanceMarked); err != nil {
 		return h, err
-	}
-
-	if h.TermID != uuid.Nil {
-		var avg *float64
-		if err := tx.QueryRow(ctx, `
-			select avg(normalized_value) from computed_grades
-			 where class_id = $1 and term_id = $2 and scope = 'term_partial'
-			   and superseded_at is null and deleted_at is null
-		`, h.ClassID, h.TermID).Scan(&avg); err != nil {
-			return h, err
-		}
-		if avg != nil {
-			var code string
-			err := tx.QueryRow(ctx, `
-				select l.code
-				  from class_effective_grading_schemes ceg
-				  join grading_schemes gsch on gsch.id = ceg.scheme_id
-				  join grade_scale_levels l on l.scale_id = gsch.scale_id
-				 where ceg.class_id = $1 and ceg.term_id = $2
-				   and $3 >= l.min_normalized and ($3 < l.max_normalized or l.max_normalized = 1)
-				   and l.deleted_at is null
-			`, h.ClassID, h.TermID, *avg).Scan(&code)
-			if err == nil {
-				h.SectionAverageCode = &code
-			} else if err != pgx.ErrNoRows {
-				return h, err
-			}
-		}
 	}
 
 	return h, nil

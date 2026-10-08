@@ -10,7 +10,7 @@
 	import AppToast from '../../src/lib/components/Toast.svelte';
 	import LevelSelector from '../../src/lib/components/LevelSelector.svelte';
 	import { showToast } from '../../src/lib/toast';
-	import type { Tier } from '../../src/lib/grades';
+	import type { Tier } from '../../src/lib/levels';
 	let { onaction = () => {} }: { onaction?: () => void } = $props();
 	let control: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null = $state(null);
 	let level: Tier | null = $state(null);

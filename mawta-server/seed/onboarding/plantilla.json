@@ -45,8 +45,7 @@
       "nombre": "<nombre del área, por ejemplo Matemática>",
       "icono": "",
       "es_tutoria": false,
-      "criterios_legacy": [],
-      "esquema_calificacion": null
+      "criterios_legacy": []
     }
   ],
   "competencias_transversales": ["TR-C1", "TR-C2"],

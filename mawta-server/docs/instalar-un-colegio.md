@@ -91,9 +91,7 @@ values exactly as specified below.
   grades. An area the catalog does not have yet is rejected; the catalog grows
   area by area. `criterios_legacy` (optional, normally `[]`) keeps criteria a
   school already uses, each with `codigo`, `descripcion`, and the `capacidad`
-  code it belongs to. `esquema_calificacion` may be `null`:
-  the subject then receives the standard scheme (practice 40%, dropping the
-  lowest score; exams 40%; projects 20%). Custom weights must total exactly 1.
+  code it belongs to.
 - **Cross-curricular competencies (`competencias_transversales`):** a list of
   catalog codes; the template includes both (`TR-C1`, `TR-C2`).
 - **Grades (`grados`):** `orden` is the schooling position, from 1 to 11
@@ -122,7 +120,7 @@ values exactly as specified below.
 - **Days without class:** one `non_teaching_days` row per declared day (a range
   becomes one row per date, weekends included). Planning uses them to count
   class dates and lay out sessions.
-- **Scales:** the official MINEDU AD/A/B/C scale and internal 0–20 scale.
+- **Scales:** the official MINEDU AD/A/B/C scale.
 - **Curriculum from the catalog:** for each subject, its competencies and
   capabilities, the standards (levels 1–8) of those competencies, the
   performances of the school's grades, and the (modality, cycle) → expected level
@@ -179,15 +177,10 @@ trigger rejects scores for a `closed` term, preventing changes to reported
 grades. The loader leaves all terms open; `seed_demo.sql` closes its first two
 terms only after inserting their evidence.
 
-**Publish a grading scheme after adding its weights.** `check_publishable` is
-an immediate `BEFORE` trigger: it checks weights when `published_at` is written.
-The loader inserts an unpublished version, adds weights, then publishes it
-through an `UPDATE`.
-
 **Scores and judgments are superseded, not overwritten.** `scores`,
-`criterion_scores`, `competency_term_levels`, and `descriptive_conclusions`
+`competency_term_levels`, and `descriptive_conclusions`
 retain replaced records. Corrections mark the current row's `superseded_at`
-and insert a replacement with `supersedes_id`. For the first two tables, a
+and insert a replacement with `supersedes_id`. For `scores`, a
 trigger rejects updates to score values.
 
 ## Adding a teacher or changing a password

@@ -560,6 +560,8 @@ func (a *API) handleAcceptPlannedCriterion(w http.ResponseWriter, r *http.Reques
 type createPlannedEvidenceRequest struct {
 	Name         string   `json:"name"`
 	Kind         string   `json:"kind"`
+	ValueScale   string   `json:"value_scale"`
+	MaxScore     *float64 `json:"max_score"`
 	CriterionIDs []string `json:"criterion_ids"`
 	SessionDate  *string  `json:"session_date"`
 }
@@ -576,7 +578,7 @@ func (a *API) handleCreatePlannedEvidence(w http.ResponseWriter, r *http.Request
 	if !decodeBody(w, r, &req) {
 		return
 	}
-	in := repo.EvidenceInput{Name: req.Name, Kind: req.Kind}
+	in := repo.EvidenceInput{Name: req.Name, Kind: req.Kind, ValueScale: req.ValueScale, MaxScore: req.MaxScore}
 	if in.CriterionIDs, err = parseUUIDList("criterion_ids", req.CriterionIDs); err != nil {
 		badRequest(w, err.Error())
 		return
@@ -612,6 +614,8 @@ func (a *API) handleCreatePlannedEvidence(w http.ResponseWriter, r *http.Request
 type updatePlannedEvidenceRequest struct {
 	Name         *string        `json:"name"`
 	Kind         *string        `json:"kind"`
+	ValueScale   *string        `json:"value_scale"`
+	MaxScore     *float64       `json:"max_score"`
 	CriterionIDs *[]string      `json:"criterion_ids"`
 	SessionDate  nullableString `json:"session_date"`
 }
@@ -631,7 +635,7 @@ func (a *API) handleUpdatePlannedEvidence(w http.ResponseWriter, r *http.Request
 	if !decodeBody(w, r, &req) {
 		return
 	}
-	p := repo.EvidencePatch{Name: req.Name, Kind: req.Kind, SessionDateSet: req.SessionDate.set}
+	p := repo.EvidencePatch{Name: req.Name, Kind: req.Kind, ValueScale: req.ValueScale, MaxScore: req.MaxScore, SessionDateSet: req.SessionDate.set}
 	if p.CriterionIDs, err = parseOptionalUUIDList("criterion_ids", req.CriterionIDs); err != nil {
 		badRequest(w, err.Error())
 		return

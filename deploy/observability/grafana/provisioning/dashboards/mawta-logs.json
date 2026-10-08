@@ -533,7 +533,7 @@
         "type": "textbox"
       },
       {
-        "description": "Filter worker events by job kind, e.g. grade.recompute or voice_note.transcribe. .* matches all.",
+        "description": "Filter worker events by job kind, e.g. voice_note.transcribe or agent.generate. .* matches all.",
         "hide": 0,
         "label": "kind",
         "name": "kind",

@@ -151,9 +151,6 @@ func planClass(t *testing.T, env *dbtest.Env) uuid.UUID {
 			delete from jobs where kind = 'agent.generate' and payload->>'generation_id' in
 			  (select id::text from agent_generations where class_id = '%[2]s');
 			delete from agent_generations where class_id = '%[2]s';
-			delete from criterion_scores where assessment_id in
-			  (select a.id from assessments a join planned_evidences pe on pe.id = a.planned_evidence_id
-			    where pe.experience_id in %[1]s);
 			delete from scores where assessment_id in
 			  (select a.id from assessments a join planned_evidences pe on pe.id = a.planned_evidence_id
 			    where pe.experience_id in %[1]s);
@@ -983,14 +980,10 @@ func TestStudentsWithoutAnActiveTermReadTheLatestClosedOne(t *testing.T) {
 		select {{tenant}}, academic_year_id, section_id, {{student}}, '2026-03-01' from classes where id = {{class}};
 	`, map[string]any{"tenant": fx.TenantA, "student": student, "class": classID})
 	adminScript(t, env, "an assessment in Bimestre II", `
-		insert into assessments (tenant_id, class_id, term_id, scheme_id, component_id, title, kind, value_scale,
-		                         counts_toward_internal, status, published_at)
-		select {{tenant}}, {{class}}, {{term}}, ceg.scheme_id, gc.id, 'Evidencia del bimestre', 'tarea', 'rubric',
-		       false, 'published', now()
-		  from class_effective_grading_schemes ceg
-		  join grading_components gc on gc.scheme_id = ceg.scheme_id
-		 where ceg.class_id = {{class}} and ceg.term_id = {{term}}
-		 limit 1;
+		insert into assessments (tenant_id, class_id, term_id, title, kind, value_scale, max_score,
+		                         status, published_at)
+		values ({{tenant}}, {{class}}, {{term}}, 'Evidencia del bimestre', 'tarea', 'numeric', 20,
+		        'published', now());
 	`, map[string]any{"tenant": fx.TenantA, "class": classID, "term": fx.TermII})
 	t.Cleanup(func() {
 		for _, c := range []struct {
@@ -1078,7 +1071,72 @@ func TestExplicitTermOfAnotherYearIsNotFound(t *testing.T) {
 	wantError(t, do(t, h, token, "GET", base+"/students?term_id="+term.String(), ""), http.StatusNotFound, "not_found")
 	wantError(t, do(t, h, token, "GET", base+"/dashboard?term_id="+term.String(), ""), http.StatusNotFound, "not_found")
 	wantError(t, do(t, h, token, "POST", base+"/assessments", fmt.Sprintf(
-		`{"title":"x","component_code":"c","value_scale":"rubric","term_id":%q}`, term)), http.StatusNotFound, "not_found")
+		`{"title":"x","value_scale":"ordinal","criterion_ids":[%q],"term_id":%q}`, fx.CriterionOne, term)), http.StatusNotFound, "not_found")
 	// A term of the class's own year still works.
 	mustDo(t, h, token, "GET", base+"/students?term_id="+fx.TermII.String(), "", http.StatusOK)
+}
+
+// A planned evidence says how it will be valued: a mark out of a maximum the
+// teacher chooses (20 when none is named), or an AD/A/B/C level. The two never
+// mix: a level has no maximum.
+func TestPlannedEvidenceScale(t *testing.T) {
+	env := dbtest.Setup(t)
+	h := newAPI(t, env)
+	classID := planClass(t, env)
+	token := login(t, env, env.Fx.UserQuispe, env.Fx.TenantA)
+	fx := env.Fx
+
+	exp := createExperience(t, h, token, env, classID, "2026-06-01", "2026-06-30", fx.CompetencyC1)
+	expPath := "/api/v1/experiences/" + exp.ID.String()
+	crit := createCriterion(t, h, token, exp.ID, fx.CompetencyC1, planPerfC1a, planCapC1a)
+
+	create := func(extra string) repo.ExperienceEvidence {
+		t.Helper()
+		w := mustDo(t, h, token, "POST", expPath+"/evidences", fmt.Sprintf(
+			`{"name":"Evidencia","kind":"produccion","criterion_ids":[%q]%s}`, crit.ID, extra), http.StatusCreated)
+		var ev repo.ExperienceEvidence
+		decodeInto(t, w, &ev)
+		return ev
+	}
+
+	ev := create("")
+	if ev.ValueScale != "numeric" || ev.MaxScore == nil || *ev.MaxScore != 20 {
+		t.Errorf("default = %s/%v, want numeric out of 20", ev.ValueScale, ev.MaxScore)
+	}
+	ev = create(`,"max_score":18`)
+	if ev.ValueScale != "numeric" || ev.MaxScore == nil || *ev.MaxScore != 18 {
+		t.Errorf("custom maximum = %s/%v, want numeric out of 18", ev.ValueScale, ev.MaxScore)
+	}
+	ev = create(`,"value_scale":"ordinal"`)
+	if ev.ValueScale != "ordinal" || ev.MaxScore != nil {
+		t.Errorf("ordinal = %s/%v, want ordinal with no maximum", ev.ValueScale, ev.MaxScore)
+	}
+
+	body := func(extra string) string {
+		return fmt.Sprintf(`{"name":"X","kind":"produccion","criterion_ids":[%q]%s}`, crit.ID, extra)
+	}
+	for name, extra := range map[string]string{
+		"a level with a maximum": `,"value_scale":"ordinal","max_score":10`,
+		"a zero maximum":         `,"max_score":0`,
+		"an unknown scale":       `,"value_scale":"porcentaje"`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			wantError(t, do(t, h, token, "POST", expPath+"/evidences", body(extra)), http.StatusBadRequest, "bad_request")
+		})
+	}
+
+	// Switching an evidence to a level drops the maximum that belonged to the
+	// old scale; a lone maximum on a level is refused.
+	evPath := "/api/v1/evidences/" + ev.ID.String()
+	w := mustDo(t, h, token, "PUT", evPath, `{"value_scale":"numeric","max_score":12}`, http.StatusOK)
+	decodeInto(t, w, &ev)
+	if ev.ValueScale != "numeric" || ev.MaxScore == nil || *ev.MaxScore != 12 {
+		t.Errorf("after PUT numeric = %s/%v, want numeric out of 12", ev.ValueScale, ev.MaxScore)
+	}
+	w = mustDo(t, h, token, "PUT", evPath, `{"value_scale":"ordinal"}`, http.StatusOK)
+	decodeInto(t, w, &ev)
+	if ev.ValueScale != "ordinal" || ev.MaxScore != nil {
+		t.Errorf("after PUT ordinal = %s/%v, want ordinal with no maximum", ev.ValueScale, ev.MaxScore)
+	}
+	wantError(t, do(t, h, token, "PUT", evPath, `{"max_score":9}`), http.StatusBadRequest, "bad_request")
 }

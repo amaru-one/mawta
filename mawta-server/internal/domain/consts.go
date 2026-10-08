@@ -29,31 +29,13 @@ const (
 	ScoreNotSubmitted = "not_submitted"
 )
 
-// grade_scales.kind
-const (
-	ScaleOrdinal    = "ordinal"
-	ScaleNumeric    = "numeric"
-	ScalePercentage = "percentage"
-)
-
-// assessments.value_scale — how one piece of evidencia is valued. Deliberately
-// a separate vocabulary from grade_scales.kind above, which describes a scale
-// the school configured; this describes what a single piece of work carries.
-// ValueScaleRubric means purely qualitative evidence with no overall mark —
-// valued only through per-criterio criterion_scores. ValueScaleOrdinal is
-// never used by assessments itself; it is for criterion_scores.value_scale,
-// which independently supports a level per criterio regardless of the
-// assessment's own scale.
+// assessments.value_scale — how one piece of evidencia is valued, a property
+// of the work itself. Numeric is a mark out of a maximum the teacher chooses
+// (shown as a percentage); ordinal is an AD/A/B/C level on that work. Neither
+// is a nivel de logro of the competencia.
 const (
 	ValueScaleNumeric = "numeric"
-	ValueScaleRubric  = "rubric"
 	ValueScaleOrdinal = "ordinal"
-)
-
-// computed_grades.scope
-const (
-	ScopeTermPartial = "term_partial"
-	ScopeTermFinal   = "term_final"
 )
 
 // grade_scale_levels.code on the MINEDU ordinal scale. Ordered C < B < A < AD.
@@ -104,16 +86,8 @@ const (
 	ConclusionFinal = "final"
 )
 
-// computed_grades.trend
-const (
-	TrendUp   = "up"
-	TrendDown = "down"
-	TrendFlat = "flat"
-)
-
 // jobs.kind
 const (
-	JobKindGradeRecompute      = "grade.recompute"
 	JobKindVoiceNoteTranscribe = "voice_note.transcribe"
 	// JobKindAgentGenerate runs one "✦ Generar con Mawta" generation
 	// (agent_generations); its payload carries only the generation id.

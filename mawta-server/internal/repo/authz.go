@@ -110,27 +110,6 @@ func ClassIDForScore(ctx context.Context, tx pgx.Tx, scoreID uuid.UUID) (uuid.UU
 	return classID, err
 }
 
-// ClassIDForCriterionScore resolves a criterion score to its class through the
-// assessment it was recorded against. criterion_scores carries no class_id of
-// its own.
-func ClassIDForCriterionScore(ctx context.Context, tx pgx.Tx, criterionScoreID uuid.UUID) (uuid.UUID, error) {
-	var classID uuid.UUID
-	err := tx.QueryRow(ctx, `
-		select a.class_id
-		  from criterion_scores cs
-		  join assessments a on a.id = cs.assessment_id and a.deleted_at is null
-		 where cs.id = $1 and cs.deleted_at is null`, criterionScoreID).Scan(&classID)
-	return classID, err
-}
-
-// ClassIDForPracticeScore resolves a practice score to its class.
-func ClassIDForPracticeScore(ctx context.Context, tx pgx.Tx, practiceScoreID uuid.UUID) (uuid.UUID, error) {
-	var classID uuid.UUID
-	err := tx.QueryRow(ctx,
-		`select class_id from practice_scores where id = $1 and deleted_at is null`, practiceScoreID).Scan(&classID)
-	return classID, err
-}
-
 // SubjectIDForCompetency resolves a competencia to its área.
 //
 // A transversal competencia has no subject (competencies_transversal_has_no_subject

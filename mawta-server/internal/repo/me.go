@@ -22,11 +22,6 @@ type MeResponse struct {
 		Name     string    `json:"name"`
 		City     *string   `json:"city"`
 		Timezone string    `json:"timezone"`
-		// UsesInternalGrading: this school runs its own weighted numeric system
-		// alongside the official record (D.S. 009-2006-ED art. 37.4.f). False
-		// hides every mark input and the computed grade — the school keeps only
-		// niveles de logro. It never changes how the official record is made.
-		UsesInternalGrading bool `json:"uses_internal_grading"`
 	} `json:"tenant"`
 }
 
@@ -35,7 +30,7 @@ func GetMe(ctx context.Context, tx pgx.Tx, teacherID uuid.UUID) (MeResponse, err
 	err := tx.QueryRow(ctx, `
 		select coalesce(u.display_name, u.given_name || ' ' || u.family_name), u.email,
 		       t.id, t.title,
-		       tn.id, tn.name, tn.city, tn.timezone, tn.uses_internal_grading
+		       tn.id, tn.name, tn.city, tn.timezone
 		  from teachers t
 		  join memberships m on m.id = t.membership_id
 		  join users u on u.id = m.user_id
@@ -45,7 +40,6 @@ func GetMe(ctx context.Context, tx pgx.Tx, teacherID uuid.UUID) (MeResponse, err
 		&resp.User.DisplayName, &resp.User.Email,
 		&resp.Teacher.ID, &resp.Teacher.Title,
 		&resp.Tenant.ID, &resp.Tenant.Name, &resp.Tenant.City, &resp.Tenant.Timezone,
-		&resp.Tenant.UsesInternalGrading,
 	)
 	return resp, err
 }

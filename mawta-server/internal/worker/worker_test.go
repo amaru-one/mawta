@@ -35,7 +35,7 @@ func TestJobSuccessLogFields(t *testing.T) {
 	job := Job{
 		ID:          42,
 		TenantID:    uuid.Nil,
-		Kind:        "grade.recompute",
+		Kind:        "voice_note.transcribe",
 		Payload:     []byte(`{"student_id":"abc"}`),
 		Attempts:    1,
 		MaxAttempts: 3,
@@ -61,8 +61,8 @@ func TestJobSuccessLogFields(t *testing.T) {
 			t.Errorf("missing field %q in log entry", key)
 		}
 	}
-	if entry["kind"] != "grade.recompute" {
-		t.Errorf("kind = %v, want grade.recompute", entry["kind"])
+	if entry["kind"] != "voice_note.transcribe" {
+		t.Errorf("kind = %v, want voice_note.transcribe", entry["kind"])
 	}
 	if entry["msg"] != "worker: job completed" {
 		t.Errorf("msg = %v, want worker: job completed", entry["msg"])

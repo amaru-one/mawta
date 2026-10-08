@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Tier } from '$lib/grades';
+	import type { Tier } from '$lib/levels';
 	let { tier, size = 22 }: { tier: Tier; size?: number } = $props();
 	const names = { AD: 'Destacado', A: 'Esperado', B: 'En proceso', C: 'En inicio' };
 </script>

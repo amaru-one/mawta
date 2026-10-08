@@ -116,12 +116,12 @@ func TestCorrectScoreSupersedesRatherThanOverwriting(t *testing.T) {
 			t.Errorf("raw_value = %v, want 18", raw)
 		}
 
-		// Exactly one live row for the attempt, so the partial unique index
+		// Exactly one live row for the student on the evidence, so the partial unique index
 		// still holds and reads cannot see two answers.
 		var live int
 		if err := tx.QueryRow(ctx, `
 			select count(*) from scores
-			 where assessment_id = $1 and student_id = $2 and attempt_number = 1
+			 where assessment_id = $1 and student_id = $2
 			   and superseded_at is null and deleted_at is null`,
 			env.Fx.AssessmentNumeric, env.Fx.Students[0]).Scan(&live); err != nil {
 			t.Fatalf("count live rows: %v", err)
@@ -152,7 +152,7 @@ func TestCorrectScoreValueInheritance(t *testing.T) {
 
 	t.Run("a correction naming no value inherits the old one", func(t *testing.T) {
 		inTx(t, env, func(ctx context.Context, tx pgx.Tx) {
-			newID, _, _, _, err := repo.CorrectScore(ctx, tx, env.Fx.ScoreOne, env.Fx.TeacherQuispe, nil, nil, f64i(2))
+			newID, _, _, _, err := repo.CorrectScore(ctx, tx, env.Fx.ScoreOne, env.Fx.TeacherQuispe, nil, nil, nil)
 			if err != nil {
 				t.Fatalf("CorrectScore: %v", err)
 			}
@@ -188,7 +188,7 @@ func TestCorrectScoreValueInheritance(t *testing.T) {
 	// would break first.
 	t.Run("a status other than graded clears the value", func(t *testing.T) {
 		inTx(t, env, func(ctx context.Context, tx pgx.Tx) {
-			newID, _, _, _, err := repo.CorrectScore(ctx, tx, env.Fx.ScoreOne, env.Fx.TeacherQuispe, nil, str("not_submitted"), nil)
+			newID, _, _, _, err := repo.CorrectScore(ctx, tx, env.Fx.ScoreOne, env.Fx.TeacherQuispe, nil, nil, str("not_submitted"))
 			if err != nil {
 				t.Fatalf("CorrectScore: %v", err)
 			}
@@ -224,63 +224,76 @@ func TestScoresCannotBeUpdatedInPlace(t *testing.T) {
 	})
 }
 
-// --------------------------------------------------------- criterion scores --
+// ------------------------------------------------------------ value kinds --
 
-func TestCreateCriterionScoreRejectsAmbiguousValues(t *testing.T) {
+// A numeric evidence takes a mark and nothing else; an ordinal one takes a
+// level and nothing else. The Go check gives the teacher a sentence; the
+// trigger in the database is the backstop.
+func TestCreateScoreMatchesTheEvidenceScale(t *testing.T) {
 	env := dbtest.Setup(t)
 
-	t.Run("a mark and a level together", func(t *testing.T) {
+	t.Run("a level on a numeric evidence", func(t *testing.T) {
 		inTx(t, env, func(ctx context.Context, tx pgx.Tx) {
-			_, err := repo.CreateCriterionScore(ctx, tx, env.Fx.AssessmentRubric, env.Fx.CriterionOne,
-				env.Fx.Students[0], env.Fx.TeacherQuispe, f64(3), str("A"))
-			requireCode(t, err, 400, "two_values")
+			_, _, _, err := repo.CreateScore(ctx, tx, env.Fx.AssessmentNumeric, env.Fx.Students[1],
+				env.Fx.TeacherQuispe, "graded", nil, str("A"))
+			requireCode(t, err, 400, "level_on_numeric")
 		})
 	})
 
-	t.Run("neither a mark nor a level", func(t *testing.T) {
+	t.Run("a mark on an ordinal evidence", func(t *testing.T) {
 		inTx(t, env, func(ctx context.Context, tx pgx.Tx) {
-			_, err := repo.CreateCriterionScore(ctx, tx, env.Fx.AssessmentRubric, env.Fx.CriterionOne,
-				env.Fx.Students[0], env.Fx.TeacherQuispe, nil, nil)
-			requireCode(t, err, 400, "missing_value")
+			_, _, _, err := repo.CreateScore(ctx, tx, env.Fx.AssessmentOrdinal, env.Fx.Students[1],
+				env.Fx.TeacherQuispe, "graded", f64(3), nil)
+			requireCode(t, err, 400, "mark_on_ordinal")
 		})
 	})
 
-	t.Run("a level outside the ordinal scale", func(t *testing.T) {
+	t.Run("a mark above the maximum", func(t *testing.T) {
 		inTx(t, env, func(ctx context.Context, tx pgx.Tx) {
-			_, err := repo.CreateCriterionScore(ctx, tx, env.Fx.AssessmentRubric, env.Fx.CriterionOne,
-				env.Fx.Students[0], env.Fx.TeacherQuispe, nil, str("A+"))
-			requireCode(t, err, 400, "unknown_level")
+			_, _, _, err := repo.CreateScore(ctx, tx, env.Fx.AssessmentNumeric, env.Fx.Students[1],
+				env.Fx.TeacherQuispe, "graded", f64(21), nil)
+			requireCode(t, err, 400, "mark_out_of_range")
+		})
+	})
+
+	t.Run("graded with no value", func(t *testing.T) {
+		inTx(t, env, func(ctx context.Context, tx pgx.Tx) {
+			_, _, _, err := repo.CreateScore(ctx, tx, env.Fx.AssessmentNumeric, env.Fx.Students[1],
+				env.Fx.TeacherQuispe, "graded", nil, nil)
+			requireCode(t, err, 400, "value_required")
+		})
+	})
+
+	t.Run("a level outside AD/A/B/C", func(t *testing.T) {
+		inTx(t, env, func(ctx context.Context, tx pgx.Tx) {
+			_, _, _, err := repo.CreateScore(ctx, tx, env.Fx.AssessmentOrdinal, env.Fx.Students[1],
+				env.Fx.TeacherQuispe, "graded", nil, str("A+"))
+			requireCode(t, err, 400, "invalid_level")
 		})
 	})
 }
 
-// A criterio CAN be marked by level — that is evidence, not a nivel de logro.
-// The vocabulary differs from assessments on purpose: 'ordinal' here, 'rubric'
-// there.
-func TestCriterionScoreByLevelStoresOrdinalAndNoMax(t *testing.T) {
+// A level on an ordinal evidence is stored as the scale level, with no mark and
+// no maximum. It is the valuation of that piece of work, not the nivel de logro.
+func TestOrdinalScoreStoresTheLevelAndNoMark(t *testing.T) {
 	env := dbtest.Setup(t)
 
 	inTx(t, env, func(ctx context.Context, tx pgx.Tx) {
-		id, err := repo.CreateCriterionScore(ctx, tx, env.Fx.AssessmentRubric, env.Fx.CriterionOne,
-			env.Fx.Students[0], env.Fx.TeacherQuispe, nil, str("A"))
+		id, _, _, err := repo.CreateScore(ctx, tx, env.Fx.AssessmentOrdinal, env.Fx.Students[0],
+			env.Fx.TeacherQuispe, "graded", nil, str("A"))
 		if err != nil {
-			t.Fatalf("CreateCriterionScore: %v", err)
+			t.Fatalf("CreateScore: %v", err)
 		}
 
-		var scale string
 		var raw, max *float64
 		var levelID uuid.UUID
 		if err := tx.QueryRow(ctx,
-			`select value_scale, raw_value, max_value, scale_level_id from criterion_scores where id = $1`, id).
-			Scan(&scale, &raw, &max, &levelID); err != nil {
+			`select raw_value, max_value, scale_level_id from scores where id = $1`, id).
+			Scan(&raw, &max, &levelID); err != nil {
 			t.Fatalf("read: %v", err)
 		}
-
-		if scale != "ordinal" {
-			t.Errorf("value_scale = %q, want ordinal (not 'rubric' — that is the assessment's vocabulary)", scale)
-		}
 		if raw != nil || max != nil {
-			t.Errorf("raw_value/max_value = %v/%v, want both null on a level-valued mark", raw, max)
+			t.Errorf("raw_value/max_value = %v/%v, want both null on a level-valued score", raw, max)
 		}
 		if levelID != env.Fx.LevelA {
 			t.Errorf("scale_level_id = %s, want the A level %s", levelID, env.Fx.LevelA)
@@ -288,115 +301,92 @@ func TestCriterionScoreByLevelStoresOrdinalAndNoMax(t *testing.T) {
 	})
 }
 
-// A rubric assessment carries no max_score, so there is nothing to mark out of.
-// The teacher is told to use a level instead, rather than getting a raw
-// constraint error.
-func TestNumericCriterionScoreNeedsAMaxScore(t *testing.T) {
+// A correction on an ordinal evidence replaces the level, and a second one on
+// the same row is told to reload.
+func TestCorrectOrdinalScore(t *testing.T) {
 	env := dbtest.Setup(t)
 
 	inTx(t, env, func(ctx context.Context, tx pgx.Tx) {
-		_, err := repo.CreateCriterionScore(ctx, tx, env.Fx.AssessmentRubric, env.Fx.CriterionOne,
-			env.Fx.Students[0], env.Fx.TeacherQuispe, f64(3), nil)
-		requireCode(t, err, 400, "no_max_score")
-	})
-}
-
-// The criterio has to have been tagged on the assessment. Checked in Go so the
-// teacher gets a sentence rather than a composite FK violation.
-func TestCriterionScoreRequiresTheCriterionToBeTagged(t *testing.T) {
-	env := dbtest.Setup(t)
-
-	inTx(t, env, func(ctx context.Context, tx pgx.Tx) {
-		// The numeric assessment was deliberately left untagged.
-		_, err := repo.CreateCriterionScore(ctx, tx, env.Fx.AssessmentNumeric, env.Fx.CriterionOne,
-			env.Fx.Students[0], env.Fx.TeacherQuispe, f64(3), nil)
-		requireCode(t, err, 400, "criterion_not_tagged")
-	})
-}
-
-func TestCorrectCriterionScoreSupersedesAndRevalidates(t *testing.T) {
-	env := dbtest.Setup(t)
-
-	inTx(t, env, func(ctx context.Context, tx pgx.Tx) {
-		original, err := repo.CreateCriterionScore(ctx, tx, env.Fx.AssessmentRubric, env.Fx.CriterionOne,
-			env.Fx.Students[0], env.Fx.TeacherQuispe, nil, str("B"))
+		original, _, _, err := repo.CreateScore(ctx, tx, env.Fx.AssessmentOrdinal, env.Fx.Students[0],
+			env.Fx.TeacherQuispe, "graded", nil, str("B"))
 		if err != nil {
-			t.Fatalf("CreateCriterionScore: %v", err)
+			t.Fatalf("CreateScore: %v", err)
 		}
-
-		corrected, err := repo.CorrectCriterionScore(ctx, tx, original, env.Fx.TeacherQuispe, nil, str("AD"))
+		corrected, _, _, _, err := repo.CorrectScore(ctx, tx, original, env.Fx.TeacherQuispe, nil, str("AD"), nil)
 		if err != nil {
-			t.Fatalf("CorrectCriterionScore: %v", err)
+			t.Fatalf("CorrectScore: %v", err)
 		}
-
-		var supersededAt *string
-		if err := tx.QueryRow(ctx, `select superseded_at::text from criterion_scores where id = $1`, original).Scan(&supersededAt); err != nil {
-			t.Fatalf("read the old row: %v", err)
-		}
-		if supersededAt == nil {
-			t.Error("the corrected criterion score was not stamped")
-		}
-
 		var levelID uuid.UUID
-		if err := tx.QueryRow(ctx, `select scale_level_id from criterion_scores where id = $1`, corrected).Scan(&levelID); err != nil {
-			t.Fatalf("read the new row: %v", err)
+		if err := tx.QueryRow(ctx, `select scale_level_id from scores where id = $1`, corrected).Scan(&levelID); err != nil {
+			t.Fatalf("read: %v", err)
 		}
 		if levelID != env.Fx.LevelAD {
 			t.Errorf("scale_level_id = %s, want AD", levelID)
 		}
 
-		// A second correction of the same row is a 409, same protocol as scores.
-		_, err = repo.CorrectCriterionScore(ctx, tx, original, env.Fx.TeacherQuispe, nil, str("C"))
+		_, _, _, _, err = repo.CorrectScore(ctx, tx, original, env.Fx.TeacherQuispe, nil, str("C"), nil)
 		requireCode(t, err, 409, "already_superseded")
 	})
 }
 
-// The correction path re-runs the value rules, so a correction cannot smuggle
-// in a shape the create path would have rejected.
-func TestCorrectCriterionScoreRejectsAmbiguousValues(t *testing.T) {
+// The database refuses a value that does not fit the scale even when the Go
+// check is bypassed.
+func TestDatabaseRejectsAValueOfTheWrongKind(t *testing.T) {
 	env := dbtest.Setup(t)
 
 	inTx(t, env, func(ctx context.Context, tx pgx.Tx) {
-		original, err := repo.CreateCriterionScore(ctx, tx, env.Fx.AssessmentRubric, env.Fx.CriterionOne,
-			env.Fx.Students[0], env.Fx.TeacherQuispe, nil, str("B"))
-		if err != nil {
-			t.Fatalf("CreateCriterionScore: %v", err)
-		}
-
-		_, err = repo.CorrectCriterionScore(ctx, tx, original, env.Fx.TeacherQuispe, f64(3), str("A"))
-		requireCode(t, err, 400, "two_values")
-
-		// And the original is still live: a rejected correction must not have
-		// consumed it.
-		var supersededAt *string
-		if err := tx.QueryRow(ctx, `select superseded_at::text from criterion_scores where id = $1`, original).Scan(&supersededAt); err != nil {
-			t.Fatalf("read: %v", err)
-		}
-		if supersededAt != nil {
-			t.Error("a rejected correction still superseded the original")
-		}
-	})
-}
-
-func TestCriterionScoresCannotBeUpdatedInPlace(t *testing.T) {
-	env := dbtest.Setup(t)
-
-	inTx(t, env, func(ctx context.Context, tx pgx.Tx) {
-		id, err := repo.CreateCriterionScore(ctx, tx, env.Fx.AssessmentRubric, env.Fx.CriterionOne,
-			env.Fx.Students[0], env.Fx.TeacherQuispe, nil, str("B"))
-		if err != nil {
-			t.Fatalf("CreateCriterionScore: %v", err)
-		}
-
-		_, err = tx.Exec(ctx, `update criterion_scores set scale_level_id = $1 where id = $2`, env.Fx.LevelAD, id)
+		_, err := tx.Exec(ctx, `
+			insert into scores (tenant_id, assessment_id, student_id, status, scale_level_id, recorded_by_id)
+			values (app.current_tenant_id(), $1, $2, 'graded', $3, $4)`,
+			env.Fx.AssessmentNumeric, env.Fx.Students[1], env.Fx.LevelA, env.Fx.TeacherQuispe)
 		if err == nil {
-			t.Fatal("a criterion score was updated in place")
+			t.Fatal("a level was stored on a numeric evidence")
 		}
 		var pgErr *pgconn.PgError
-		if !errors.As(err, &pgErr) || pgErr.Code != "23001" {
-			t.Errorf("got %v, want restrict_violation (23001)", err)
+		if !errors.As(err, &pgErr) || pgErr.Code != "23514" {
+			t.Errorf("got %v, want check_violation (23514)", err)
 		}
 	})
 }
 
-func f64i(v int16) *int16 { return &v }
+// ------------------------------------------------------------- evidences --
+
+// An evidence reaches a competencia only through its criterios, so one without
+// any is refused.
+func TestCreateAssessmentRequiresACriterion(t *testing.T) {
+	env := dbtest.Setup(t)
+
+	inTx(t, env, func(ctx context.Context, tx pgx.Tx) {
+		_, err := repo.CreateAssessment(ctx, tx, repo.NewAssessment{
+			ClassID: env.Fx.ClassMat5B, TermID: env.Fx.TermII, TeacherID: env.Fx.TeacherQuispe,
+			Title: "Sin criterio", Kind: "tarea", ValueScale: "numeric", MaxScore: f64(18),
+		})
+		requireCode(t, err, 400, "criteria_required")
+	})
+}
+
+func TestCreateAssessmentKeepsItsOwnMaximum(t *testing.T) {
+	env := dbtest.Setup(t)
+
+	inTx(t, env, func(ctx context.Context, tx pgx.Tx) {
+		id, err := repo.CreateAssessment(ctx, tx, repo.NewAssessment{
+			ClassID: env.Fx.ClassMat5B, TermID: env.Fx.TermII, TeacherID: env.Fx.TeacherQuispe,
+			Title: "Control", Kind: "tarea", ValueScale: "numeric", MaxScore: f64(18),
+			CriterionIDs: []uuid.UUID{env.Fx.CriterionOne},
+		})
+		if err != nil {
+			t.Fatalf("CreateAssessment: %v", err)
+		}
+		scoreID, _, _, err := repo.CreateScore(ctx, tx, id, env.Fx.Students[0], env.Fx.TeacherQuispe, "graded", f64(14), nil)
+		if err != nil {
+			t.Fatalf("CreateScore: %v", err)
+		}
+		var raw, max float64
+		if err := tx.QueryRow(ctx, `select raw_value, max_value from scores where id = $1`, scoreID).Scan(&raw, &max); err != nil {
+			t.Fatalf("read: %v", err)
+		}
+		if raw != 14 || max != 18 {
+			t.Errorf("raw/max = %v/%v, want 14/18", raw, max)
+		}
+	})
+}

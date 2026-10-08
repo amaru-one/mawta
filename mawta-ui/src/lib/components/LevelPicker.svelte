@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Tier } from '$lib/grades';
+	import type { Tier } from '$lib/levels';
 	import LevelSelector from './LevelSelector.svelte';
 	let {
 		level,

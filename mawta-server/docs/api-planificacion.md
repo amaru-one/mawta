@@ -44,15 +44,16 @@ Same as the rest of the API:
    `planificada`, every accepted session outline entry sets
    `class_sessions.topic` of its date (what the class calendar shows), and every
    accepted planned evidence becomes an assessment (`assessments.planned_evidence_id`):
-   `value_scale = "numeric"` out of 20 (`max_score = 20`, counted in the internal average), tagged with the evidence's criteria, linked to the
-   class session of its date (which is also its `due_at`) and filed under the
-   first component of the class's grading scheme. Kinds map `produccion` →
+   `value_scale` and `max_score` copied from the planned evidence (numeric out
+   of its maximum, or ordinal AD/A/B/C), tagged with the evidence's criteria and
+   linked to the class session of its date (which is also its `due_at`). The
+   scale of an assessment follows the planned evidence until someone has been
+   valued on it. Kinds map `produccion` →
    `proyecto`, `actuacion` → `exposicion`, `prueba_escrita` → `examen`. The sync
    (`repo.SyncExperience`) is idempotent and runs on confirm, on every later edit
    of sessions and evidences, and when the plan or the class dashboard is read,
    which also catches up experiences planned before the bridge existed. Pending
-   proposals are not synced. Confirming fails with `no_grading_scheme` if the
-   class has no scheme for the term.
+   proposals are not synced.
 
 ## Schema changes this contract needs (ticket 4)
 
@@ -162,7 +163,7 @@ screens.
   ],
   "evidences": [
     {"id": "…", "name": "Lista de precios de la tiendita", "kind": "produccion",
-     "criterion_ids": ["…"], "session_date": "2026-06-25",
+     "value_scale": "numeric", "max_score": 20, "criterion_ids": ["…"], "session_date": "2026-06-25",
      "proposed_by": "teacher", "accepted_at": "2026-06-10T14:02:00Z"}
   ],
   "sessions": [
@@ -219,8 +220,8 @@ included); a global one still through its area.
 
 | Route | Body |
 |---|---|
-| `POST /experiences/{experienceID}/evidences` | `name`, `kind` (`produccion` \| `actuacion` \| `prueba_escrita`), `criterion_ids` (≥1, of this experience, any of its competencies), optional `session_date` |
-| `PUT /evidences/{evidenceID}` | any of the above; `"session_date": null` takes it out of its session, leaving the key out keeps it; editing a proposal also accepts it |
+| `POST /experiences/{experienceID}/evidences` | `name`, `kind` (`produccion` \| `actuacion` \| `prueba_escrita`), `criterion_ids` (≥1, of this experience, any of its competencies), optional `session_date`, optional `value_scale` (`numeric` \| `ordinal`, default `numeric`) and `max_score` (numeric only, any value above 0, default 20; an ordinal evidence has none) |
+| `PUT /evidences/{evidenceID}` | any of the above (switching `value_scale` to `ordinal` clears `max_score`); `"session_date": null` takes it out of its session, leaving the key out keeps it; editing a proposal also accepts it |
 | `POST /evidences/{evidenceID}/accept` | — |
 | `POST /evidences/{evidenceID}/delete` | — |
 
@@ -326,7 +327,6 @@ and cost, never with prompts or answers.
 | `evidence_not_in_experience` | 422 | A session's `planned_evidence_id` is not an evidence of the experience |
 | `session_date_taken` | 409 | Two requests created the same date's session entry at once |
 | `experience_not_draft` | 409 | Confirming an experience that is already planned |
-| `no_grading_scheme` | 422 | The class has no grading scheme for the term, so planned evidences cannot become assessments |
 | `agent_unavailable` | 503 | No model is configured (`ANTHROPIC_API_KEY` unset); the app offers manual creation only |
 | `competency_not_in_experience` | 422 | Generating criteria for a competency the experience does not work |
 | `no_free_weeks`, `no_criteria`, `no_performances` | 200 (in the generation) | The agent cannot generate: no free stretch left in the term, no criteria to build evidences on, no performances loaded for the grade; the failed generation's `error` says so |

@@ -29,12 +29,12 @@ func TestMigrationProducedTheWholeSchema(t *testing.T) {
 	if err != nil {
 		t.Fatalf("count tables: %v", err)
 	}
-	// 43 schema tables (events counted once, as the partitioned parent) plus
-	// goose_db_version. Partitions are excluded by relispartition, so the 175
-	// monthly events_* children do not inflate this. 00002 adds 10 planning
-	// tables and 00005 adds agent_generations, so the count is 55.
-	if tables != 55 {
-		t.Errorf("top-level tables = %d, want 55", tables)
+	// 35 core tables (events counted once, as the partitioned parent), the 10
+	// planning tables, agent_generations and goose_db_version. Partitions are
+	// excluded by relispartition, so the monthly events_* children do not
+	// inflate this.
+	if tables != 47 {
+		t.Errorf("top-level tables = %d, want 47", tables)
 	}
 
 	var forced int
@@ -45,10 +45,10 @@ func TestMigrationProducedTheWholeSchema(t *testing.T) {
 		   and not c.relispartition and c.relrowsecurity and c.relforcerowsecurity`).Scan(&forced); err != nil {
 		t.Fatalf("count forced-RLS tables: %v", err)
 	}
-	// 41 from 00001, the 10 tenant-scoped planning tables of 00002 and
-	// agent_generations of 00005.
-	if forced != 52 {
-		t.Errorf("tables with FORCE ROW LEVEL SECURITY = %d, want 52", forced)
+	// Every tenant-scoped table: all of them but goose_db_version, events
+	// (RLS lives on its partitions) and the shared catalogues.
+	if forced != 44 {
+		t.Errorf("tables with FORCE ROW LEVEL SECURITY = %d, want 44", forced)
 	}
 }
 
@@ -77,8 +77,7 @@ func TestAppRoleCanReadAndWriteEveryFixtureTable(t *testing.T) {
 			"grade_levels", "sections", "subjects", "competencies", "capabilities",
 			"evaluation_criteria", "students", "section_memberships", "courses", "classes",
 			"class_teachers", "class_sessions", "grade_scales", "grade_scale_levels",
-			"grading_schemes", "grading_components", "grading_scheme_versions",
-			"grading_scheme_component_weights", "assessments", "assessment_criteria", "scores",
+			"assessments", "assessment_criteria", "scores",
 		} {
 			var n int
 			if err := tx.QueryRow(context.Background(), `select count(*) from `+table).Scan(&n); err != nil {

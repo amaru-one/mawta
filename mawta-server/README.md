@@ -84,7 +84,7 @@ go run ./cmd/api 2>&1 | jq 'select(.request_id=="abc-123")'
 | Field        | Source                                        |
 |--------------|-----------------------------------------------|
 | `job_id`     | Database row ID                               |
-| `kind`       | Job type (e.g. `grade.recompute`)             |
+| `kind`       | Job type (e.g. `voice_note.transcribe`)             |
 | `attempt`    | Attempt number                                |
 | `duration_ms`| Job processing duration in milliseconds        |
 
@@ -129,7 +129,7 @@ you've loaded against the tenant `useradd` pointed at.
 
 ## Notes
 
-- **Append-only**: `scores` and `computed_grades` are never updated in
+- **Append-only**: `scores` are never updated in
   place. `POST /scores/{id}/correct` stamps `superseded_at` on the old row,
   then inserts the replacement — same order the DB trigger requires.
 - **Soft delete only**: hard `DELETE` is blocked by trigger everywhere

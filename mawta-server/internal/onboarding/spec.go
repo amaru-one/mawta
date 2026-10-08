@@ -87,15 +87,14 @@ type Docente struct {
 
 // Area names a catalog area by codigo; the loader copies that area's
 // competencies, capabilities, standards and the performances of the school's
-// grades from the catalog. Nombre, Icono and EsquemaCalificacion stay in the
+// grades from the catalog. Nombre and Icono stay in the
 // file because they are school decisions, not curriculum.
 type Area struct {
-	Codigo              string           `json:"codigo"` // catalog area code, e.g. MAT
-	Nombre              string           `json:"nombre"` // how the school names the subject
-	Icono               string           `json:"icono"`
-	EsTutoria           bool             `json:"es_tutoria"`
-	CriteriosLegacy     []CriterioLegacy `json:"criterios_legacy"` // optional, see CriterioLegacy
-	EsquemaCalificacion *Esquema         `json:"esquema_calificacion"`
+	Codigo          string           `json:"codigo"` // catalog area code, e.g. MAT
+	Nombre          string           `json:"nombre"` // how the school names the subject
+	Icono           string           `json:"icono"`
+	EsTutoria       bool             `json:"es_tutoria"`
+	CriteriosLegacy []CriterioLegacy `json:"criterios_legacy"` // optional, see CriterioLegacy
 }
 
 // CriterioLegacy is an evaluation criterion the school already uses, kept so
@@ -107,20 +106,6 @@ type CriterioLegacy struct {
 	Codigo      string `json:"codigo"`
 	Descripcion string `json:"descripcion"`
 	Capacidad   string `json:"capacidad"` // capability code, e.g. MAT-C1-CAP1
-}
-
-type Esquema struct {
-	Codigo      string       `json:"codigo"`
-	Nombre      string       `json:"nombre"`
-	Descripcion string       `json:"descripcion"`
-	Componentes []Componente `json:"componentes"`
-}
-
-type Componente struct {
-	Codigo            string  `json:"codigo"`
-	Nombre            string  `json:"nombre"`
-	Peso              float64 `json:"peso"`
-	DescartarMasBajas int     `json:"descartar_mas_bajas"`
 }
 
 // Grado is a grade as the school names it. GradoCNEB names the catalog grade

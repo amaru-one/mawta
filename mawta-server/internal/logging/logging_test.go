@@ -243,7 +243,7 @@ func TestNestedAndArrayRedaction(t *testing.T) {
 	got := captureRequest(t, true, "/api/v1/classes/{classID}/assessments", jsonCT, `{
 		"kind": "tarea",
 		"value_scale": "numeric",
-		"component_code": "COMP",
+		"max_score": 20,
 		"nested": {"password": "hunter2", "student_id": "s1", "ok": 1},
 		"items": [{"title": "secret", "status": "a"}, {"status": "b"}]
 	}`)
@@ -254,7 +254,7 @@ func TestNestedAndArrayRedaction(t *testing.T) {
 	if !ok {
 		t.Fatalf("value = %T, want map", got.Value)
 	}
-	for _, absent := range []string{"nested", "items", "title", "password", "student_id"} {
+	for _, absent := range []string{"nested", "items", "title", "password", "student_id", "max_score"} {
 		if _, present := obj[absent]; present {
 			t.Errorf("field %q was captured: %v", absent, obj[absent])
 		}
@@ -385,7 +385,7 @@ func TestJobStartEventFields(t *testing.T) {
 	var buf bytes.Buffer
 	logger := logging.NewJSONLogger(slog.LevelInfo, &buf)
 	logging.LogJobStart(logger, logging.JobStartEvent{
-		TaskID: 42, JobID: 42, Kind: "grade.recompute",
+		TaskID: 42, JobID: 42, Kind: "voice_note.transcribe",
 		Attempt: 1, MaxAttempts: 3, WorkerName: "w1",
 	})
 

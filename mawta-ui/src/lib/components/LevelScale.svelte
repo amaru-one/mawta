@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Tier } from '$lib/grades';
+	import type { Tier } from '$lib/levels';
 	import { hapticTap } from '$lib/haptics';
 	let {
 		level,

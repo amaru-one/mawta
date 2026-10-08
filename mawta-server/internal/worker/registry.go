@@ -45,9 +45,6 @@ func defaultRegistry(cfg config.Config, database *db.DB, logger *slog.Logger) Re
 
 	return Registry{
 		InTx: map[string]HandlerFunc{
-			domain.JobKindGradeRecompute: func(ctx context.Context, tx pgx.Tx, job Job) error {
-				return handlers.GradeRecompute(ctx, tx, job.ID, job.Payload)
-			},
 			domain.JobKindVoiceNoteTranscribe: func(ctx context.Context, tx pgx.Tx, job Job) error {
 				return transcribe(ctx, tx, job.ID, job.Payload)
 			},

@@ -17,10 +17,6 @@ var plannedEvidenceKinds = map[string]string{
 	"prueba_escrita": "examen",
 }
 
-// defaultPlannedMaxScore is the denominator of an assessment materialized
-// from a planned evidence: the vigesimal scale, the school's own.
-const defaultPlannedMaxScore = 20
-
 // SyncClassPlan runs SyncExperience for every planned experience of a class.
 // It is idempotent, so screens that show the class calendar or the plan call
 // it to bring experiences planned before the bridge existed up to date.
@@ -59,9 +55,9 @@ func SyncClassPlan(ctx context.Context, tx pgx.Tx, classID uuid.UUID) error {
 //     date (class_sessions.topic), which is what the class calendar shows;
 //   - each accepted planned evidence becomes an assessment tagged with its
 //     criteria, so it reaches every student on the roster and can be
-//     evaluated. It is a numeric assessment out of defaultPlannedMaxScore and
-//     counts toward the internal average like any ordinary class work. It is
-//     linked to the class session of its date, which is also its due date.
+//     evaluated. It is valued the way the planned evidence says (numeric out
+//     of its max_score, or an AD/A/B/C level). It is linked to the class
+//     session of its date, which is also its due date.
 //
 // A draft experience is left alone. Pending proposals are not synced until the
 // teacher accepts them. The function only writes what differs, so calling it
@@ -109,11 +105,13 @@ func SyncExperience(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID) erro
 	type planned struct {
 		id           uuid.UUID
 		name, kind   string
+		valueScale   string
+		maxScore     *float64
 		date         *time.Time
 		assessmentID *uuid.UUID
 	}
 	rows, err := tx.Query(ctx, `
-		select pe.id, pe.name, pe.kind, e.class_date, a.id
+		select pe.id, pe.name, pe.kind, pe.value_scale, pe.max_score, e.class_date, a.id
 		  from planned_evidences pe
 		  left join session_outline_entries e on e.id = pe.session_entry_id and e.deleted_at is null
 		  left join assessments a on a.planned_evidence_id = pe.id and a.deleted_at is null
@@ -126,7 +124,7 @@ func SyncExperience(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID) erro
 	var evidences []planned
 	for rows.Next() {
 		var p planned
-		if err := rows.Scan(&p.id, &p.name, &p.kind, &p.date, &p.assessmentID); err != nil {
+		if err := rows.Scan(&p.id, &p.name, &p.kind, &p.valueScale, &p.maxScore, &p.date, &p.assessmentID); err != nil {
 			rows.Close()
 			return err
 		}
@@ -138,23 +136,6 @@ func SyncExperience(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID) erro
 	}
 	if len(evidences) == 0 {
 		return nil
-	}
-
-	scheme, err := GetEffectiveScheme(ctx, tx, classID, termID)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return unprocessable("no_grading_scheme",
-			"la clase no tiene un esquema de calificación para este periodo; las evidencias no se pueden evaluar")
-	}
-	if err != nil {
-		return err
-	}
-	var componentID uuid.UUID
-	if err := tx.QueryRow(ctx, `
-		select id from grading_components
-		 where scheme_id = $1 and deleted_at is null
-		 order by sort_order, name limit 1
-	`, scheme.SchemeID).Scan(&componentID); err != nil {
-		return err
 	}
 
 	for _, p := range evidences {
@@ -188,19 +169,29 @@ func SyncExperience(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID) erro
 			`, assessmentID, p.name, kind, sessionID, dueAt); err != nil {
 				return err
 			}
+			// The scale changes only while nobody has been valued yet: a mark
+			// already recorded was written against the old one.
+			if _, err := tx.Exec(ctx, `
+				update assessments a set value_scale = $2, max_score = $3
+				 where a.id = $1
+				   and (a.value_scale is distinct from $2 or a.max_score is distinct from $3::numeric)
+				   and not exists (select 1 from scores s where s.assessment_id = a.id and s.deleted_at is null)
+			`, assessmentID, p.valueScale, p.maxScore); err != nil {
+				return err
+			}
 		} else if err := tx.QueryRow(ctx, `
-			insert into assessments (tenant_id, class_id, term_id, scheme_id, component_id, session_id,
-			                         title, kind, value_scale, max_score, counts_toward_internal, due_at,
+			insert into assessments (tenant_id, class_id, term_id, session_id,
+			                         title, kind, value_scale, max_score, due_at,
 			                         status, published_at, planned_evidence_id)
-			values (app.current_tenant_id(), $1, $2, $3, $4, $5, $6, $7, 'numeric', $10, true, $8,
+			values (app.current_tenant_id(), $1, $2, $3, $4, $5, $6, $7, $8,
 			        'published', now(), $9)
 			returning id
-		`, classID, termID, scheme.SchemeID, componentID, sessionID, p.name, kind, dueAt, p.id, defaultPlannedMaxScore).Scan(&assessmentID); err != nil {
+		`, classID, termID, sessionID, p.name, kind, p.valueScale, p.maxScore, dueAt, p.id).Scan(&assessmentID); err != nil {
 			return err
 		}
 
-		// assessment_criteria cannot be deleted for good (criterion_scores
-		// points at it), so a criterion that returns reuses its old row.
+		// assessment_criteria rows are soft-deleted, so a criterion that
+		// returns reuses its old row.
 		if _, err := tx.Exec(ctx, `
 			update assessment_criteria set deleted_at = now()
 			 where assessment_id = $1 and deleted_at is null
@@ -225,8 +216,8 @@ func SyncExperience(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID) erro
 }
 
 // HealClassPlan is SyncClassPlan for read paths: it runs in a savepoint and
-// never fails the read. A class with no grading scheme, say, still shows its
-// calendar; the evidence simply waits for the next successful sync.
+// never fails the read. A class whose sync fails still shows its calendar;
+// the evidence simply waits for the next successful sync.
 func HealClassPlan(ctx context.Context, tx pgx.Tx, classID uuid.UUID) {
 	sp, err := tx.Begin(ctx)
 	if err != nil {
