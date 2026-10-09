@@ -362,11 +362,6 @@ export type ClassStudentsDto = { students: ClassStudentDto[] | null };
  *  grades screen's rows: it is the same evidence, read for a different job. */
 export type StudentEvidenceDto = { evidence: EvaluationDto[] | null };
 
-export type CriterionCreateDto = {
-	description: string;
-	code?: string | null;
-};
-
 // ---- planning ----
 // Term planning (mawta-server/docs/api-planificacion.md): a class plans each
 // term as learning experiences, each with its competencies, evaluation
@@ -546,7 +541,7 @@ export type ExperienceCompetencyRefDto = {
 // A criterio inside an experience: the teacher's instrument, grounded in one
 // grade-level performance and looking at one or more capabilities of its
 // competencia (N:M). Prefixed because the wire's plain CriterionDto is the
-// school-wide criterio of the criteria screen.
+// general criterio of GET /classes/{id}/criteria.
 export type ExperienceCriterionDto = {
 	id: string;
 	experience_id: string;

@@ -17,7 +17,6 @@ export const routeCases = [
 	['/profile', 'Mi perfil', 'María Santos'],
 	['/notifications', 'Notificaciones', 'Revisa los avances'],
 	['/class/class-1', 'Matemática — Panel', 'Alumnos'],
-	['/class/class-1/criteria', 'Criterios de evaluación', competency.name],
 	['/class/class-1/evidence/new', 'Nueva evidencia — Clase', 'Guardar evidencia'],
 	['/class/class-1/lesson/session-1', 'Matemática — Lección', 'La tiendita escolar'],
 	['/class/class-1/students', 'Alumnos — Matemática', 'Quispe, Ana'],

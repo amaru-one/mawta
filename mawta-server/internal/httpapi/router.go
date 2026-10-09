@@ -76,7 +76,6 @@ func (a *API) Router() http.Handler {
 			r.Get("/classes/{classID}/evidence-criteria", a.handleEvidenceCriteria)
 			r.Get("/competencies/{competencyID}/capabilities", a.handleCompetencyCapabilities)
 			r.Post("/competencies/{competencyID}/capabilities", a.handleCreateCapability)
-			r.Post("/classes/{classID}/competencies/{competencyID}/criteria", a.handleCreateCriterion)
 			r.Post("/criteria/{criterionID}/delete", a.handleDeleteCriterion)
 
 			// Term planning (docs/api-planificacion.md): learning experiences

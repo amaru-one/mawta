@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1720 900" width="1720" height="900" font-family="Helvetica, Arial, sans-serif">
+  <!--
+    Mawta UI navigation graph. Hand-written SVG: edit the nodes and edges below
+    when a screen or a link changes. Node boxes are 180x52, centred on the
+    coordinates in each comment.
+  -->
+  <defs>
+    <marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+    <marker id="a-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker>
+    <marker id="a-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+    <marker id="a-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker>
+    <marker id="a-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+    <style>
+      .node rect { fill: #ffffff; stroke: #334155; stroke-width: 1.5; }
+      .node text { font-family: Menlo, Consolas, monospace; font-size: 13px; fill: #0f172a; text-anchor: middle; }
+      .plan rect { fill: #f5f3ff; }
+      .hub rect { fill: #ede9fe; stroke: #6d28d9; stroke-width: 3; }
+      .home rect { fill: #dbeafe; stroke: #1d4ed8; stroke-width: 3; }
+      .leaf rect { fill: #dcfce7; stroke: #15803d; stroke-width: 2.5; }
+      .e { fill: none; stroke-width: 2; }
+      .blue { stroke: #2563eb; marker-end: url(#a-blue); }
+      .purple { stroke: #7c3aed; marker-end: url(#a-purple); }
+      .green { stroke: #059669; marker-end: url(#a-green); }
+      .gray { stroke: #6b7280; stroke-dasharray: 7 6; marker-end: url(#a-gray); }
+      .red { stroke: #dc2626; marker-end: url(#a-red); }
+      .lbl { font-size: 12px; text-anchor: middle; }
+      .lbl.blue-t { fill: #2563eb; } .lbl.purple-t { fill: #7c3aed; } .lbl.green-t { fill: #059669; }
+      .lbl.gray-t { fill: #6b7280; } .lbl.red-t { fill: #dc2626; }
+      .legend text, .rules text { font-size: 13px; fill: #334155; }
+    </style>
+  </defs>
+
+  <rect width="1720" height="900" fill="#ffffff"/>
+  <text x="24" y="40" font-size="26" font-weight="700" fill="#0f172a">Mawta UI — grafo de navegación</text>
+
+  <!-- ===================== edges ===================== -->
+  <!-- login -> home -->
+  <path class="e blue" d="M200,470 L268,470"/>
+  <text class="lbl blue-t" x="234" y="460">login ok</text>
+  <!-- home -> lesson -->
+  <path class="e blue" d="M450,470 L528,470"/>
+  <text class="lbl blue-t" x="490" y="436">bloque de horario</text>
+  <!-- panel -> lesson -->
+  <path class="e blue" d="M790,458 C770,440 732,440 712,458"/>
+  <text class="lbl blue-t" x="751" y="430">sesiones</text>
+  <!-- profile -> login -->
+  <path class="e blue" d="M330,654 L130,498"/>
+  <text class="lbl blue-t" x="205" y="590">cerrar sesión</text>
+  <!-- profile -> panel -->
+  <path class="e blue" d="M450,680 C640,680 800,620 860,498"/>
+  <text class="lbl blue-t" x="640" y="646">fila de clase</text>
+
+  <!-- panel -> plan list -->
+  <path class="e blue" d="M880,444 L880,278"/>
+  <text class="lbl blue-t" x="922" y="366">plan del</text>
+  <text class="lbl blue-t" x="922" y="380">trimestre</text>
+  <!-- panel -> evidence/new -->
+  <path class="e blue" d="M970,482 C1000,492 1030,492 1068,482"/>
+  <!-- evidence/new -> panel (guardar = volver) -->
+  <path class="e gray" d="M1070,458 C1040,446 1000,446 972,458"/>
+  <text class="lbl gray-t" x="1020" y="436">guardar = volver</text>
+  <!-- evidence/new -> plan list (new link) -->
+  <path class="e red" d="M1160,444 C1160,340 1060,280 972,266"/>
+  <text class="lbl red-t" x="1212" y="370">sin experiencia</text>
+  <text class="lbl red-t" x="1212" y="384">planificada:</text>
+  <text class="lbl red-t" x="1212" y="398">ir al plan</text>
+  <!-- panel -> students -->
+  <path class="e blue" d="M910,496 L1110,654"/>
+  <!-- students -> student -->
+  <path class="e blue" d="M1250,680 L1328,680"/>
+
+  <!-- plan list -> plan/new -->
+  <path class="e blue" d="M880,224 L880,118"/>
+  <text class="lbl blue-t" x="910" y="175">nueva</text>
+  <!-- plan list -> summary -->
+  <path class="e blue" d="M970,262 C1080,310 1180,310 1268,262"/>
+  <text class="lbl blue-t" x="1212" y="320">abrir experiencia</text>
+  <!-- summary -> plan list -->
+  <path class="e gray" d="M1270,238 C1180,206 1060,206 972,238"/>
+  <text class="lbl gray-t" x="1120" y="200">guardar / eliminar</text>
+
+  <!-- creation: plan/new -> criteria -> evidences -> sessions -> summary -->
+  <path class="e purple" d="M970,90 L1028,90"/>
+  <text class="lbl purple-t" x="1000" y="80">Siguiente</text>
+  <path class="e purple" d="M1210,90 L1268,90"/>
+  <text class="lbl purple-t" x="1240" y="80">Siguiente</text>
+  <path class="e purple" d="M1450,90 L1508,90"/>
+  <text class="lbl purple-t" x="1480" y="80">Siguiente</text>
+  <path class="e purple" d="M1590,116 C1570,190 1510,240 1452,250"/>
+  <text class="lbl purple-t" x="1625" y="190">Siguiente (crear)</text>
+  <text class="lbl purple-t" x="1625" y="204">Listo (editar)</text>
+
+  <!-- editing from the hub -->
+  <path class="e green" d="M1320,224 C1270,180 1190,150 1150,118"/>
+  <text class="lbl green-t" x="1268" y="168">editar</text>
+  <path class="e green" d="M1360,224 L1360,118"/>
+  <text class="lbl green-t" x="1383" y="175">editar</text>
+  <path class="e green" d="M1410,224 C1470,190 1530,160 1570,118"/>
+  <text class="lbl green-t" x="1505" y="158">editar</text>
+  <!-- Listo back to the hub -->
+  <path class="e gray" d="M1090,118 C1130,170 1220,210 1276,228"/>
+  <text class="lbl gray-t" x="1150" y="140">Listo</text>
+  <path class="e gray" d="M1340,118 C1328,160 1328,190 1340,222"/>
+  <text class="lbl gray-t" x="1312" y="140">Listo</text>
+
+  <!-- ===================== nodes ===================== -->
+  <g class="node"><rect x="20" y="444" width="180" height="52" rx="7"/><text x="110" y="475">/login</text></g>
+  <g class="node home"><rect x="270" y="444" width="180" height="52" rx="7"/><text x="360" y="466">/</text><text x="360" y="484">Home (agenda)</text></g>
+  <g class="node leaf"><rect x="270" y="264" width="180" height="52" rx="7"/><text x="360" y="295">/notifications</text></g>
+  <g class="node"><rect x="270" y="654" width="180" height="52" rx="7"/><text x="360" y="685">/profile</text></g>
+  <g class="node"><rect x="530" y="444" width="180" height="52" rx="7"/><text x="620" y="466">class/:id/lesson</text><text x="620" y="484">/:session</text></g>
+  <g class="node"><rect x="790" y="444" width="180" height="52" rx="7"/><text x="880" y="466">class/:id</text><text x="880" y="484">(panel de clase)</text></g>
+  <g class="node"><rect x="1070" y="444" width="180" height="52" rx="7"/><text x="1160" y="466">class/:id</text><text x="1160" y="484">/evidence/new</text></g>
+  <g class="node"><rect x="1070" y="654" width="180" height="52" rx="7"/><text x="1160" y="685">class/:id/students</text></g>
+  <g class="node leaf"><rect x="1330" y="654" width="200" height="52" rx="7"/><text x="1430" y="676">class/:id/students</text><text x="1430" y="694">/:student</text></g>
+
+  <g class="node plan"><rect x="790" y="224" width="180" height="52" rx="7"/><text x="880" y="246">class/:id/plan</text><text x="880" y="264">(lista, flag)</text></g>
+  <g class="node plan"><rect x="790" y="64" width="180" height="52" rx="7"/><text x="880" y="95">plan/new</text></g>
+  <g class="node plan"><rect x="1030" y="64" width="180" height="52" rx="7"/><text x="1120" y="95">plan/:exp/criteria</text></g>
+  <g class="node plan"><rect x="1270" y="64" width="180" height="52" rx="7"/><text x="1360" y="95">plan/:exp/evidences</text></g>
+  <g class="node plan"><rect x="1510" y="64" width="180" height="52" rx="7"/><text x="1600" y="95">plan/:exp/sessions</text></g>
+  <g class="node hub"><rect x="1270" y="224" width="180" height="52" rx="7"/><text x="1360" y="246">plan/:exp/summary</text><text x="1360" y="264">(hub)</text></g>
+
+  <!-- ===================== legend ===================== -->
+  <g class="legend" transform="translate(1340,390)">
+    <path class="e blue" d="M0,0 L44,0"/><text x="56" y="4">bajar un nivel (link / goto)</text>
+    <path class="e purple" d="M0,30 L44,30"/><text x="56" y="34">creación lineal: Siguiente (replaceState)</text>
+    <path class="e green" d="M0,60 L44,60"/><text x="56" y="64">editar un paso desde el hub</text>
+    <path class="e gray" d="M0,90 L44,90"/><text x="56" y="94">retorno al padre: Listo / guardar</text>
+    <path class="e red" d="M0,120 L44,120"/><text x="56" y="124">enlace nuevo</text>
+    <rect x="0" y="140" width="44" height="22" fill="#dcfce7" stroke="#15803d" stroke-width="2"/><text x="56" y="156">hoja: sin salida hacia adelante</text>
+  </g>
+
+  <!-- ===================== rules ===================== -->
+  <g class="rules" transform="translate(24,770)">
+    <text x="0" y="0" font-weight="700">REGLAS</text>
+    <text x="0" y="20">1. 'Volver' = padre fijo del árbol (href, sin history.back). En lesson el padre sale de ?from=home o ?from=area.</text>
+    <text x="0" y="38">2. Movimientos entre hermanos (Siguiente, Listo, editar) usan replaceState: el historial no se apila.</text>
+    <text x="0" y="56">3. Planeamiento: abrir una experiencia siempre va a summary (hub). Creación lineal; edición = hoja que vuelve al hub.</text>
+    <text x="0" y="74">4. Los criterios solo existen dentro de una experiencia (RVM 094-2020, 5.1.1.1): «Añadir evidencia» ofrece los de las experiencias planificadas.</text>
+    <text x="0" y="92">5. Barra global (casita / campana / avatar) sin cambios (no dibujada).</text>
+  </g>
+</svg>

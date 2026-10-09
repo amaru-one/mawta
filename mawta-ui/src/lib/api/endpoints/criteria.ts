@@ -1,13 +1,10 @@
-import { apiGet, apiSend } from '../client';
-import type { ClassCriteriaDto, CriterionCreateDto } from '../dto';
+import { apiGet } from '../client';
+import type { ClassCriteriaDto } from '../dto';
 
-// Every competencia of the class's área with the criterios the teacher has
-// written for it — what evidence is read against, and what a piece of evidencia
-// is tagged with when it is filed.
-//
-// A competencia with no criterios comes back with an empty list rather than
-// being omitted: under RVM 094-2020 criterios are what evidence is judged
-// against, so an empty one is what the teacher most needs to see.
+// Every competencia of the class's área with its general criterios (the ones
+// written before the planning flow, outside any experiencia). The student
+// screens read it for the list of competencias; a new evidence takes its
+// criterios from getEvidenceCriteria instead.
 export function getClassCriteria(classId: string): Promise<ClassCriteriaDto> {
 	return apiGet<ClassCriteriaDto>(`/classes/${classId}/criteria`);
 }
@@ -20,24 +17,4 @@ export function getClassCriteria(classId: string): Promise<ClassCriteriaDto> {
 export function getEvidenceCriteria(classId: string, termId?: string): Promise<ClassCriteriaDto> {
 	const qs = termId ? `?term_id=${encodeURIComponent(termId)}` : '';
 	return apiGet<ClassCriteriaDto>(`/classes/${classId}/evidence-criteria${qs}`);
-}
-
-// The teacher writes a criterio for one competencia. The text is theirs; the
-// server rejects a blank description and a competencia outside the class's área.
-export function createCriterion(
-	classId: string,
-	competencyId: string,
-	body: CriterionCreateDto
-): Promise<{ id: string }> {
-	return apiSend<{ id: string }>(
-		'POST',
-		`/classes/${classId}/competencies/${competencyId}/criteria`,
-		body
-	);
-}
-
-// Soft-deletes a criterio. Evidence already tagged with it keeps the tag — it
-// is part of a student's history even once the teacher stops using the criterio.
-export function deleteCriterion(criterionId: string): Promise<void> {
-	return apiSend<void>('POST', `/criteria/${criterionId}/delete`);
 }

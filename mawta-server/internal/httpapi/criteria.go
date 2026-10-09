@@ -78,62 +78,6 @@ func (a *API) handleEvidenceCriteria(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"competencies": rows})
 }
 
-type createCriterionRequest struct {
-	CapabilityID string  `json:"capability_id"`
-	Description  string  `json:"description"`
-	Code         *string `json:"code"`
-}
-
-// POST /classes/{classID}/competencies/{competencyID}/criteria
-//
-// The teacher writes a criterio for one competencia, anchored to one of its
-// capacidades. This is the "criterios are presented by the teacher" path:
-// the text is theirs.
-func (a *API) handleCreateCriterion(w http.ResponseWriter, r *http.Request) {
-	tc := tenantCtxFrom(r)
-	classID, err := pathUUID(r, "classID")
-	if err != nil {
-		badRequest(w, "invalid classID")
-		return
-	}
-	competencyID, err := pathUUID(r, "competencyID")
-	if err != nil {
-		badRequest(w, "invalid competencyID")
-		return
-	}
-
-	var req createCriterionRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		badRequest(w, "invalid body")
-		return
-	}
-	capabilityID, err := uuid.Parse(req.CapabilityID)
-	if err != nil {
-		badRequest(w, "invalid capability_id")
-		return
-	}
-
-	var criterionID uuid.UUID
-	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
-		if err := a.requireClassAccess(r.Context(), tx, tc, classID); err != nil {
-			return err
-		}
-		criterionID, err = repo.CreateCriterion(r.Context(), tx, classID, competencyID, capabilityID,
-			req.Code, req.Description)
-		if err != nil {
-			return err
-		}
-		payload, _ := json.Marshal(map[string]any{"competency_id": competencyID})
-		return repo.LogEvent(r.Context(), tx, "criterion.created", "evaluation_criterion",
-			&criterionID, payload, nil, &classID, nil)
-	})
-	if err != nil {
-		writeError(w, err)
-		return
-	}
-	writeJSON(w, http.StatusCreated, map[string]any{"id": criterionID})
-}
-
 // GET /competencies/{competencyID}/capabilities
 //
 // The capacidades a teacher picks from when writing a criterio: a criterio

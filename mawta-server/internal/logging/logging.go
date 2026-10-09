@@ -189,10 +189,6 @@ var DefaultAllowlist = map[string][]string{
 	"/api/v1/assessments/{assessmentID}/delete": {},
 	"/api/v1/criteria/{criterionID}/delete":     {},
 
-	// Criterion authoring: capability_id only. Description and code are the
-	// teacher's own words.
-	"/api/v1/classes/{classID}/competencies/{competencyID}/criteria": {"capability_id"},
-
 	// Capability authoring: nothing safe to log (code and name are both
 	// school content), listed to make the omission explicit.
 	"/api/v1/competencies/{competencyID}/capabilities": {},

@@ -153,7 +153,7 @@ const dateLayout = "2006-01-02"
 
 // ---------------------------------------------------------------- writes --
 //
-// Each write follows handleCreateCriterion: parse the path and body (ids as
+// Each write follows one shape: parse the path and body (ids as
 // strings, parsed here so a bad one is a 400 naming the field), then in one
 // tenant transaction guard the class, write, log the event, and answer with
 // the written object as the experience read shows it.
