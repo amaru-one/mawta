@@ -80,6 +80,10 @@ type CriterionRow struct {
 	Code         *string   `json:"code"`
 	Description  string    `json:"description"`
 	SortOrder    int16     `json:"sort_order"`
+	// The experiencia de aprendizaje the criterio was written for. Set only by
+	// ListEvidenceCriteria; a general criterio has none.
+	ExperienceID    *uuid.UUID `json:"experience_id,omitempty"`
+	ExperienceTitle *string    `json:"experience_title,omitempty"`
 }
 
 // CompetencyCriteriaRow is one competencia with the criterios the teacher has
@@ -95,8 +99,13 @@ type CompetencyCriteriaRow struct {
 }
 
 // ListClassCriteria returns every competencia of the class's área with its
-// criterios. It is not scoped to a student and has no reason to be: nothing
+// general criterios, the ones written for the competencia rather than for an
+// experiencia. It is not scoped to a student and has no reason to be: nothing
 // here is per-student any more.
+//
+// Criterios of an experiencia are left out: they belong to one class's
+// situation (RVM 094-2020, 5.1.1.1), and the área is shared by every class
+// that teaches it. ListEvidenceCriteria is where they are offered.
 func ListClassCriteria(ctx context.Context, tx pgx.Tx, classID uuid.UUID) ([]CompetencyCriteriaRow, error) {
 	rows, err := tx.Query(ctx, `
 		with cls as (
@@ -106,10 +115,12 @@ func ListClassCriteria(ctx context.Context, tx pgx.Tx, classID uuid.UUID) ([]Com
 		   where cl.id = $1 and cl.deleted_at is null
 		)
 		select c.id, c.code, c.name, c.kind,
-		       ec.id, ec.capability_id, ec.code, ec.description, ec.sort_order
+		       ec.id, ec.capability_id, ec.code, ec.description, ec.sort_order,
+		       null::uuid, null::text
 		  from competencies c
 		  left join evaluation_criteria ec
-		         on ec.competency_id = c.id and ec.is_active and ec.deleted_at is null
+		         on ec.competency_id = c.id and ec.experience_id is null
+		        and ec.is_active and ec.deleted_at is null
 		 where c.subject_id = (select subject_id from cls)
 		   and c.is_active and c.deleted_at is null
 		 order by c.sort_order, c.code, ec.sort_order nulls last, ec.code nulls last
@@ -117,6 +128,53 @@ func ListClassCriteria(ctx context.Context, tx pgx.Tx, classID uuid.UUID) ([]Com
 	if err != nil {
 		return nil, err
 	}
+	return scanCompetencyCriteria(rows)
+}
+
+// ListEvidenceCriteria returns every competencia of the class's área with the
+// criterios a new piece of evidencia may be read against: the accepted
+// criterios of the class's planned experiencias in the term.
+//
+// The norm writes criterios for a situation, from the standards and the
+// desempeños (RVM 094-2020, 5.1.1.1), so an evidencia filed by hand belongs to
+// one of the experiencias being lived that term. Drafts and pending proposals
+// are not offered: the teacher has not committed to them yet. A competencia
+// with no planned experiencia comes back with an empty list, which the screen
+// turns into "plan an experiencia first".
+func ListEvidenceCriteria(ctx context.Context, tx pgx.Tx, classID, termID uuid.UUID) ([]CompetencyCriteriaRow, error) {
+	rows, err := tx.Query(ctx, `
+		with cls as (
+		  select co.subject_id
+		    from classes cl
+		    join courses co on co.id = cl.course_id
+		   where cl.id = $1 and cl.deleted_at is null
+		), crit as (
+		  select ec.*, le.id as exp_id, le.title as exp_title, le.starts_on as exp_starts_on
+		    from evaluation_criteria ec
+		    join learning_experiences le on le.id = ec.experience_id
+		   where le.class_id = $1 and le.term_id = $2 and le.status = 'planificada'
+		     and le.deleted_at is null
+		     and ec.accepted_at is not null and ec.is_active and ec.deleted_at is null
+		)
+		select c.id, c.code, c.name, c.kind,
+		       crit.id, crit.capability_id, crit.code, crit.description, crit.sort_order,
+		       crit.exp_id, crit.exp_title
+		  from competencies c
+		  left join crit on crit.competency_id = c.id
+		 where c.subject_id = (select subject_id from cls)
+		   and c.is_active and c.deleted_at is null
+		 order by c.sort_order, c.code, crit.exp_starts_on nulls last, crit.exp_id,
+		          crit.sort_order nulls last, crit.created_at
+	`, classID, termID)
+	if err != nil {
+		return nil, err
+	}
+	return scanCompetencyCriteria(rows)
+}
+
+// scanCompetencyCriteria folds one row per (competencia, criterio) into one
+// entry per competencia, in the order the query returned them.
+func scanCompetencyCriteria(rows pgx.Rows) ([]CompetencyCriteriaRow, error) {
 	defer rows.Close()
 
 	var out []CompetencyCriteriaRow
@@ -130,7 +188,8 @@ func ListClassCriteria(ctx context.Context, tx pgx.Tx, classID uuid.UUID) ([]Com
 		var sortOrder *int16
 		var description *string
 		if err := rows.Scan(&comp.CompetencyID, &comp.Code, &comp.Name, &comp.Kind,
-			&critID, &capabilityID, &crit.Code, &description, &sortOrder); err != nil {
+			&critID, &capabilityID, &crit.Code, &description, &sortOrder,
+			&crit.ExperienceID, &crit.ExperienceTitle); err != nil {
 			return nil, err
 		}
 		idx, ok := byCompetency[comp.CompetencyID]

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import {
+		Action,
 		Button,
 		Checkbox,
 		EmptyState,
@@ -8,8 +9,9 @@
 		LoadingState,
 		Segmented,
 	} from '$lib/design-system';
-	// Registering a piece of evidencia: a prueba calificada, an examen de
-	// recuperación, a tarea — for the whole class, or for one student.
+	// Registering a piece of evidencia: a producción (an informe, a prueba
+	// escrita) or an actuación (an exposición, a debate) — for the whole class,
+	// or for one student.
 	//
 	// This was a 360px dialog. It became a screen for one reason: the decision
 	// that makes evidence usable later is which competencia and which criterios
@@ -24,10 +26,16 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { ApiError, list } from '$lib/api/client';
-	import type { AssessmentKind, CompetencyCriteriaDto, ValueScale } from '$lib/api/dto';
+	import type {
+		AssessmentKind,
+		CompetencyCriteriaDto,
+		CriterionDto,
+		ValueScale,
+	} from '$lib/api/dto';
 	import { createAssessment } from '$lib/api/endpoints/classes';
-	import { getClassCriteria } from '$lib/api/endpoints/criteria';
+	import { getEvidenceCriteria } from '$lib/api/endpoints/criteria';
 	import TopBar from '$lib/components/TopBar.svelte';
+	import { EVIDENCE_KIND_LABEL, EVIDENCE_KINDS } from '$lib/evidence';
 	import { hapticTap } from '$lib/haptics';
 	import { showToast } from '$lib/toast';
 
@@ -47,7 +55,7 @@
 		ready = false;
 		loadError = false;
 		try {
-			const crits = await getClassCriteria(courseId);
+			const crits = await getEvidenceCriteria(courseId);
 			comps = list(crits.competencies);
 			if (competencyId === '' && comps.length > 0) competencyId = comps[0].competency_id;
 			ready = true;
@@ -60,18 +68,8 @@
 
 	// ---- the form ----
 
-	const KINDS: { value: AssessmentKind; label: string }[] = [
-		{ value: 'examen', label: 'Examen' },
-		{ value: 'practica', label: 'Práctica' },
-		{ value: 'tarea', label: 'Tarea' },
-		{ value: 'proyecto', label: 'Proyecto' },
-		{ value: 'exposicion', label: 'Exposición' },
-		{ value: 'participacion', label: 'Participación' },
-		{ value: 'otro', label: 'Otro' },
-	];
-
 	let title = $state('');
-	let kind = $state<AssessmentKind>('practica');
+	let kind = $state<AssessmentKind>('produccion');
 	let dueAt = $state('');
 	let maxScore = $state('20');
 	let competencyId = $state('');
@@ -92,6 +90,23 @@
 	);
 	const current = $derived(comps.find((c) => c.competency_id === competencyId) ?? null);
 	const others = $derived(comps.filter((c) => c.competency_id !== competencyId));
+
+	// The criterios come from the experiencias planned this period (RVM 094-2020,
+	// 5.1.1.1: a criterio is written for a situation), so they are shown under the
+	// experiencia they belong to — the same sentence can exist in two of them.
+	const groups = $derived.by(() => {
+		const out: { id: string; title: string; criteria: CriterionDto[] }[] = [];
+		for (const c of list(current?.criteria ?? null)) {
+			const id = c.experience_id ?? '';
+			let g = out.find((x) => x.id === id);
+			if (!g) {
+				g = { id, title: c.experience_title ?? 'Criterios generales', criteria: [] };
+				out.push(g);
+			}
+			g.criteria.push(c);
+		}
+		return out;
+	});
 
 	// At least one criterio: that is how the evidence reaches a competencia.
 	const canSubmit = $derived(
@@ -158,8 +173,8 @@
 			{#if courseName}<span class="sub">{courseName}</span>{/if}
 			<p class="lede">
 				{#if scopeStudentId === null}
-					Registras una evaluación para toda la clase — una prueba calificada, un examen de
-					recuperación, una tarea. Queda en la pantalla de cada alumno.
+					Registras una evidencia para toda la clase: una producción (un informe, una prueba
+					escrita) o una actuación (una exposición, un debate). Queda en la pantalla de cada alumno.
 				{:else}
 					Solo para {scopeStudentName}. No aparece en la lista de los demás.
 				{/if}
@@ -171,8 +186,8 @@
 				<Field label="Título" type="text" bind:value={title} placeholder="Práctica calificada" />
 
 				<Field kind="select" label="Tipo" bind:value={kind}>
-					{#each KINDS as k (k.value)}
-						<option value={k.value}>{k.label}</option>
+					{#each EVIDENCE_KINDS as k (k)}
+						<option value={k}>{EVIDENCE_KIND_LABEL[k]}</option>
 					{/each}
 				</Field>
 
@@ -233,21 +248,28 @@
 							</span>
 						</div>
 
-						{#if list(current.criteria).length === 0}
+						{#if groups.length === 0}
 							<EmptyState
-								title="Esta competencia todavía no tiene criterios. Escríbelos en «Criterios de evaluación» y
-							vuelve."
-							/>
+								title="Esta competencia no tiene una experiencia planificada este periodo."
+								description="Los criterios se escriben para una situación: planifica una experiencia para tener criterios."
+							>
+								{#snippet actions()}
+									<Action href="/class/{courseId}/plan">Ir al plan del trimestre</Action>
+								{/snippet}
+							</EmptyState>
 						{:else}
-							<div class="crits">
-								{#each list(current.criteria) as c (c.criterion_id)}
-									<Checkbox
-										label={`${c.code ?? 'CRIT'} · ${c.description}`}
-										checked={picked.has(c.criterion_id)}
-										onchange={() => toggleCriterion(c.criterion_id)}
-									/>
-								{/each}
-							</div>
+							{#each groups as g (g.id)}
+								<p class="exp">{g.title}</p>
+								<div class="crits">
+									{#each g.criteria as c (c.criterion_id)}
+										<Checkbox
+											label={c.code ? `${c.code} · ${c.description}` : c.description}
+											checked={picked.has(c.criterion_id)}
+											onchange={() => toggleCriterion(c.criterion_id)}
+										/>
+									{/each}
+								</div>
+							{/each}
 						{/if}
 					</div>
 
@@ -409,10 +431,19 @@
 		text-wrap: pretty;
 	}
 
+	.exp {
+		margin: 14px 0 0;
+		font-size: var(--mw-type-label-size);
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--mw-ink-muted);
+	}
+
 	.crits {
 		display: flex;
 		flex-direction: column;
-		margin-top: 12px;
+		margin-top: 6px;
 	}
 
 	.rest {

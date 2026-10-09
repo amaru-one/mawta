@@ -73,6 +73,7 @@ func (a *API) Router() http.Handler {
 			// writes a nivel de logro for a criterio, and none may be added. A
 			// student is valued once per evidence, on the scores routes below.
 			r.Get("/classes/{classID}/criteria", a.handleClassCriteria)
+			r.Get("/classes/{classID}/evidence-criteria", a.handleEvidenceCriteria)
 			r.Get("/competencies/{competencyID}/capabilities", a.handleCompetencyCapabilities)
 			r.Post("/competencies/{competencyID}/capabilities", a.handleCreateCapability)
 			r.Post("/classes/{classID}/competencies/{competencyID}/criteria", a.handleCreateCriterion)

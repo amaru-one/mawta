@@ -41,6 +41,7 @@
 	import LevelSelector from '$lib/components/LevelSelector.svelte';
 	import ScoreRuler from '$lib/components/ScoreRuler.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
+	import { EVIDENCE_KIND_LABEL } from '$lib/evidence';
 	import type { Tier } from '$lib/levels';
 	import { hapticTap } from '$lib/haptics';
 	import { showToast } from '$lib/toast';
@@ -318,7 +319,7 @@
 	// Kind and date, mono: what the piece was and when it was due. Read as
 	// metadata, which is why it is not part of the title line's weight.
 	const metaLine = (e: EvaluationDto): string => {
-		const kind = e.kind.toUpperCase();
+		const kind = (EVIDENCE_KIND_LABEL[e.kind] ?? e.kind).toUpperCase();
 		if (e.due_at === null) return kind;
 		return `${kind} · ${dateFmt.format(new Date(e.due_at)).toUpperCase()}`;
 	};

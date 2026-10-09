@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"mawta-server/internal/db"
+	"mawta-server/internal/domain"
 )
 
 // Term planning (docs/api-planificacion.md): a teacher plans one class's term
@@ -1539,8 +1540,6 @@ func GetPlannedCriterion(ctx context.Context, tx pgx.Tx, criterionID uuid.UUID) 
 
 // ------------------------------------------------------------- evidences --
 
-var evidenceKinds = map[string]bool{"produccion": true, "actuacion": true, "prueba_escrita": true}
-
 type EvidenceInput struct {
 	Name string
 	Kind string
@@ -1583,8 +1582,8 @@ func resolveEvidenceScale(valueScale string, maxScore *float64) (string, *float6
 }
 
 func checkEvidenceKind(kind string) error {
-	if !evidenceKinds[kind] {
-		return badInput("bad_request", "kind debe ser produccion, actuacion o prueba_escrita")
+	if !domain.IsEvidenceKind(kind) {
+		return badInput("bad_request", "kind debe ser produccion o actuacion")
 	}
 	return nil
 }

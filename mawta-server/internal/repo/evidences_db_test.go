@@ -359,7 +359,7 @@ func TestCreateAssessmentRequiresACriterion(t *testing.T) {
 	inTx(t, env, func(ctx context.Context, tx pgx.Tx) {
 		_, err := repo.CreateAssessment(ctx, tx, repo.NewAssessment{
 			ClassID: env.Fx.ClassMat5B, TermID: env.Fx.TermII, TeacherID: env.Fx.TeacherQuispe,
-			Title: "Sin criterio", Kind: "tarea", ValueScale: "numeric", MaxScore: f64(18),
+			Title: "Sin criterio", Kind: "produccion", ValueScale: "numeric", MaxScore: f64(18),
 		})
 		requireCode(t, err, 400, "criteria_required")
 	})
@@ -371,7 +371,7 @@ func TestCreateAssessmentKeepsItsOwnMaximum(t *testing.T) {
 	inTx(t, env, func(ctx context.Context, tx pgx.Tx) {
 		id, err := repo.CreateAssessment(ctx, tx, repo.NewAssessment{
 			ClassID: env.Fx.ClassMat5B, TermID: env.Fx.TermII, TeacherID: env.Fx.TeacherQuispe,
-			Title: "Control", Kind: "tarea", ValueScale: "numeric", MaxScore: f64(18),
+			Title: "Control", Kind: "produccion", ValueScale: "numeric", MaxScore: f64(18),
 			CriterionIDs: []uuid.UUID{env.Fx.CriterionOne},
 		})
 		if err != nil {

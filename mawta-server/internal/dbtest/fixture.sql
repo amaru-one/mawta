@@ -136,11 +136,11 @@ insert into class_sessions (id, tenant_id, academic_year_id, class_id, term_id, 
 insert into assessments (id, tenant_id, class_id, term_id, session_id, title, kind, value_scale, max_score, status, published_at, created_by_id) values
   ('a0000000-0000-4000-8000-000000000120', 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000052',
    'a0000000-0000-4000-8000-000000000032',
-   'a0000000-0000-4000-8000-000000000110', 'Práctica 1', 'practica', 'numeric', 20, 'published', '2026-05-18T13:00:00Z',
+   'a0000000-0000-4000-8000-000000000110', 'Práctica 1', 'produccion', 'numeric', 20, 'published', '2026-05-18T13:00:00Z',
    'a0000000-0000-4000-8000-000000000011'),
   ('a0000000-0000-4000-8000-000000000121', 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000052',
    'a0000000-0000-4000-8000-000000000032',
-   null, 'Proyecto de modelación', 'proyecto', 'ordinal', null, 'published', '2026-05-18T13:00:00Z',
+   null, 'Proyecto de modelación', 'produccion', 'ordinal', null, 'published', '2026-05-18T13:00:00Z',
    'a0000000-0000-4000-8000-000000000011');
 
 insert into assessment_criteria (tenant_id, assessment_id, criterion_id) values

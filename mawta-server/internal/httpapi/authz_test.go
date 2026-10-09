@@ -101,7 +101,7 @@ func TestClassScopedWritesRequireAnAssignment(t *testing.T) {
 			"/api/v1/classes/" + class + "/students/" + student + "/conclusions",
 			fmt.Sprintf(`{"competency_id":%q,"body":"texto","status":"draft"}`, fx.CompetencyC2)},
 		{"create an assessment", "POST", "/api/v1/classes/" + class + "/assessments",
-			fmt.Sprintf(`{"title":"Suplantada","value_scale":"numeric","max_score":20,"criterion_ids":[%q]}`, fx.CriterionOne)},
+			fmt.Sprintf(`{"title":"Suplantada","kind":"produccion","value_scale":"numeric","max_score":20,"criterion_ids":[%q]}`, fx.CriterionOne)},
 		{"delete someone else's assessment", "POST",
 			"/api/v1/assessments/" + fx.AssessmentNumeric.String() + "/delete", ""},
 		{"score against someone else's assessment", "POST",

@@ -239,7 +239,7 @@ func TestGenerateEvidencesAndSessions(t *testing.T) {
 	g := requestGeneration(t, h, quispe.token, "/api/v1/experiences/"+exp.ID.String()+"/evidences/generate", "")
 	model := &llm.Fake{Replies: []llm.FakeReply{reply(map[string]any{"evidences": []map[string]any{
 		{"name": "Lista de precios de la feria", "kind": "produccion", "criterion_ids": []string{c1.ID.String(), c2.ID.String()}},
-		{"name": "Examen sorpresa", "kind": "examen", "criterion_ids": []string{c1.ID.String()}},
+		{"name": "Examen sorpresa", "kind": "prueba_escrita", "criterion_ids": []string{c1.ID.String()}},
 	}})}}
 	runner := newRunner(env, model)
 	mustRun(t, env, runner, g.ID)

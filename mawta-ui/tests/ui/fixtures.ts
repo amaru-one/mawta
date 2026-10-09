@@ -85,7 +85,7 @@ export function seed() {
 		{
 			assessment_id: 'numeric-1',
 			title: 'Problemas de compras',
-			kind: 'practica',
+			kind: 'produccion',
 			value_scale: 'numeric',
 			max_score: 20,
 			due_at: null,
@@ -102,7 +102,7 @@ export function seed() {
 		{
 			assessment_id: 'ordinal-1',
 			title: 'Explicación de estrategias',
-			kind: 'exposicion',
+			kind: 'actuacion',
 			value_scale: 'ordinal',
 			max_score: null,
 			due_at: null,
@@ -180,6 +180,26 @@ export async function mockApi(page: Page, state: ApiState) {
 				city: 'Lima',
 				timezone: 'America/Lima',
 			},
+		};
+		// What "Añadir evidencia" offers: the criterios of a planned experiencia.
+		const evidenceCriteria = {
+			competencies: [
+				{
+					competency_id: 'comp-1',
+					code: 'MAT-1',
+					name: competency.name,
+					kind: 'area',
+					criteria: [
+						{
+							criterion_id: 'criterion-1',
+							code: null,
+							description: 'Explica cómo calcula el cambio.',
+							experience_id: 'experience-1',
+							experience_title: 'La tiendita escolar',
+						},
+					],
+				},
+			],
 		};
 		const classCriteria = {
 			competencies: [
@@ -455,6 +475,7 @@ export async function mockApi(page: Page, state: ApiState) {
 				past: [],
 			});
 		if (path === '/classes/class-1/criteria') return send(classCriteria);
+		if (path === '/classes/class-1/evidence-criteria') return send(evidenceCriteria);
 		if (path === '/classes/class-1/students')
 			return send({
 				students: [

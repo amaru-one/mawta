@@ -13,14 +13,13 @@ import (
 	"mawta-server/internal/agent"
 	"mawta-server/internal/agent/llm"
 	"mawta-server/internal/db"
+	"mawta-server/internal/domain"
 	"mawta-server/internal/repo"
 )
 
 type evidencesState struct {
 	ExperienceID uuid.UUID
 }
-
-var evidenceKinds = map[string]bool{"produccion": true, "actuacion": true, "prueba_escrita": true}
 
 var evidencesTool = llm.Tool{
 	Name:        "proponer_evidencias",
@@ -32,7 +31,7 @@ var evidencesTool = llm.Tool{
 				"type": "object",
 				"properties": map[string]any{
 					"name":          map[string]any{"type": "string", "description": "Nombre corto y concreto de la evidencia."},
-					"kind":          map[string]any{"type": "string", "enum": []string{"produccion", "actuacion", "prueba_escrita"}},
+					"kind":          map[string]any{"type": "string", "enum": []string{domain.EvidenceProduccion, domain.EvidenceActuacion}},
 					"criterion_ids": map[string]any{"type": "array", "items": map[string]any{"type": "string"}, "description": "Ids de los criterios que observa."},
 				},
 				"required": []string{"name", "kind", "criterion_ids"},
@@ -145,8 +144,8 @@ func applyEvidences(ctx context.Context, tx pgx.Tx, gen repo.AgentGeneration, p 
 			reasons = append(reasons, fmt.Sprintf("evidencia %d: nombre vacío o repetido", i+1))
 			continue
 		}
-		if !evidenceKinds[kind] {
-			reasons = append(reasons, fmt.Sprintf("evidencia %d: kind debe ser produccion, actuacion o prueba_escrita", i+1))
+		if !domain.IsEvidenceKind(kind) {
+			reasons = append(reasons, fmt.Sprintf("evidencia %d: kind debe ser produccion o actuacion", i+1))
 			continue
 		}
 		var criterionIDs []uuid.UUID

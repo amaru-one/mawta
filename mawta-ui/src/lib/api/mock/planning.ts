@@ -639,7 +639,7 @@ function seedExperience(): void {
 			id: 'ev-tiendita-prueba',
 			experience_id: experience.id,
 			name: 'Prueba escrita: vueltos y descuentos',
-			kind: 'prueba_escrita',
+			kind: 'produccion',
 			value_scale: 'numeric',
 			max_score: 20,
 			criterion_ids: ['crit-tiendita-2', 'crit-tiendita-3'],
@@ -877,7 +877,7 @@ function requireEvidenceCriteria(experience: Experience, criterionIds: string[])
 	}
 }
 
-const EVIDENCE_KINDS: EvidenceKind[] = ['produccion', 'actuacion', 'prueba_escrita'];
+const EVIDENCE_KINDS: EvidenceKind[] = ['produccion', 'actuacion'];
 
 function requireEvidenceKind(kind: string): void {
 	if (!EVIDENCE_KINDS.includes(kind as EvidenceKind)) {

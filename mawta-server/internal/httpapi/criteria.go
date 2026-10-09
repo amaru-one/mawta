@@ -44,6 +44,40 @@ func (a *API) handleClassCriteria(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"competencies": rows})
 }
 
+// GET /classes/{classID}/evidence-criteria?term_id=
+//
+// The criterios "Añadir evidencia" offers: for every competencia of the
+// class's área, the accepted criterios of the class's planned experiencias in
+// the term (the current one when term_id is absent), each carrying the
+// experiencia it was written for. General criterios are not offered: under
+// RVM 094-2020 a criterio is written for a situation.
+func (a *API) handleEvidenceCriteria(w http.ResponseWriter, r *http.Request) {
+	tc := tenantCtxFrom(r)
+	classID, err := pathUUID(r, "classID")
+	if err != nil {
+		badRequest(w, "invalid classID")
+		return
+	}
+	termIDParam := queryUUID(r, "term_id")
+	var rows []repo.CompetencyCriteriaRow
+	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireClassAccess(r.Context(), tx, tc, classID); err != nil {
+			return err
+		}
+		term, err := repo.ResolveTerm(r.Context(), tx, classID, termIDParam)
+		if err != nil {
+			return err
+		}
+		rows, err = repo.ListEvidenceCriteria(r.Context(), tx, classID, term.ID)
+		return err
+	})
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"competencies": rows})
+}
+
 type createCriterionRequest struct {
 	CapabilityID string  `json:"capability_id"`
 	Description  string  `json:"description"`

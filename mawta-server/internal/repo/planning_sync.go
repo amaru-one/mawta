@@ -10,13 +10,6 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-// plannedEvidenceKinds maps planned_evidences.kind to assessments.kind.
-var plannedEvidenceKinds = map[string]string{
-	"produccion":     "proyecto",
-	"actuacion":      "exposicion",
-	"prueba_escrita": "examen",
-}
-
 // SyncClassPlan runs SyncExperience for every planned experience of a class.
 // It is idempotent, so screens that show the class calendar or the plan call
 // it to bring experiences planned before the bridge existed up to date.
@@ -156,7 +149,8 @@ func SyncExperience(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID) erro
 				sessionID, dueAt = &sid, &end
 			}
 		}
-		kind := plannedEvidenceKinds[p.kind]
+		// Both tables share the evidencia kinds, so the kind carries over as is.
+		kind := p.kind
 
 		assessmentID := uuid.Nil
 		if p.assessmentID != nil {

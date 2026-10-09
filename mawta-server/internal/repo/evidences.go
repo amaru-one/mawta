@@ -120,7 +120,7 @@ func CreateAssessment(ctx context.Context, tx pgx.Tx, a NewAssessment) (uuid.UUI
 		return uuid.Nil, err
 	}
 
-	if err := linkAssessmentCriteria(ctx, tx, a.ClassID, id, a.CriterionIDs); err != nil {
+	if err := linkAssessmentCriteria(ctx, tx, a.ClassID, a.TermID, id, a.CriterionIDs); err != nil {
 		return uuid.Nil, err
 	}
 	return id, nil
@@ -128,8 +128,12 @@ func CreateAssessment(ctx context.Context, tx pgx.Tx, a NewAssessment) (uuid.UUI
 
 // linkAssessmentCriteria records which criterios de evaluación an assessment
 // evidences. Every criterio must belong to a competencia of the class's área
-// — the same guard CreateCriterion applies when the criterio is written.
-func linkAssessmentCriteria(ctx context.Context, tx pgx.Tx, classID, assessmentID uuid.UUID, criterionIDs []uuid.UUID) error {
+// — the same guard CreateCriterion applies when the criterio is written. A
+// criterio of an experiencia must also be one ListEvidenceCriteria offers:
+// accepted, of a planned experiencia of this class and term. Without this a
+// teacher could tag evidence with another class's criterio, which shares the
+// área, or with a draft the plan never committed to.
+func linkAssessmentCriteria(ctx context.Context, tx pgx.Tx, classID, termID, assessmentID uuid.UUID, criterionIDs []uuid.UUID) error {
 	var inClass int
 	if err := tx.QueryRow(ctx, `
 		select count(*)
@@ -139,12 +143,17 @@ func linkAssessmentCriteria(ctx context.Context, tx pgx.Tx, classID, assessmentI
 		  join classes cl on cl.course_id = co.id
 		 where cl.id = $1 and ec.id = any($2::uuid[])
 		   and ec.deleted_at is null and c.deleted_at is null and cl.deleted_at is null
-	`, classID, criterionIDs).Scan(&inClass); err != nil {
+		   and (ec.experience_id is null or (
+		         ec.accepted_at is not null and exists (
+		           select 1 from learning_experiences le
+		            where le.id = ec.experience_id and le.class_id = $1 and le.term_id = $3
+		              and le.status = 'planificada' and le.deleted_at is null)))
+	`, classID, criterionIDs, termID).Scan(&inClass); err != nil {
 		return err
 	}
 	if inClass != len(criterionIDs) {
 		return db.NewAppError(http.StatusBadRequest, "criterion_not_in_class",
-			"one of those criterios does not belong to this class's área")
+			"one of those criterios does not belong to this class's área or to a planned experiencia of this class and period")
 	}
 
 	_, err := tx.Exec(ctx, `

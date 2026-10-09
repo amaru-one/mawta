@@ -1236,9 +1236,8 @@ create table assessments (
   title                     text not null,
   description               text,
   student_id                uuid,
-  kind                      text not null default 'otro'
-                              check (kind in ('examen', 'practica', 'tarea', 'proyecto',
-                                              'exposicion', 'participacion', 'otro')),
+  kind                      text not null default 'produccion'
+                              check (kind in ('produccion', 'actuacion')),
   value_scale               text not null default 'numeric'
                               check (value_scale in ('numeric', 'ordinal')),
   max_score                 numeric(8, 4) check (max_score > 0),
@@ -1273,6 +1272,8 @@ create table assessments (
 comment on table assessments is 'Una evidencia de una class: lo que los estudiantes producen o actúan y que el docente valora contra criterios de evaluación. Nace de una evidencia planificada (planned_evidence_id) o la crea el docente con "Añadir evidencia". Se valora en una sola escala (value_scale) y nunca lleva peso: informa el juicio del docente sobre el nivel de logro de la competencia y no lo calcula.';
 comment on column assessments.term_id is 'El term al que pertenece esta evidencia. Nulable: una recuperación pedagógica o evaluación de subsanación suele ocurrir fuera del periodo lectivo regular, así que no tiene term que cerrar.';
 comment on column assessments.student_id is 'Null significa que la evidencia aplica a toda la class, que es el caso original y sigue siendo el más común. Si está definido, es evidencia solo para ese estudiante, ej. una tarea de recuperación dada a uno solo.';
+comment on column assessments.kind is
+  'Producción (algo que los estudiantes elaboran) o actuación (algo que hacen frente a otros): los dos tipos de evidencia que nombra la RVM 094-2020 (glosario p.9). Mismo vocabulario que planned_evidences.kind.';
 comment on column assessments.value_scale is
   'Cómo se valora esta evidencia, y es una propiedad de la evidencia, no de la pantalla. ''numeric'': una nota cruda sobre max_score (el máximo lo fija el docente), que la interfaz presenta como porcentaje. ''ordinal'': un nivel AD/A/B/C sobre esa evidencia. Ninguno de los dos es un nivel de logro: el nivel de una competencia se afirma en competency_term_levels por un docente que ha leído todo el periodo, y nada puede derivarlo de estos valores.';
 comment on column assessments.max_score is 'El denominador sobre el que se mide cada score de esta evidencia, ej. 20 o 18. Solo aplica a value_scale = ''numeric''; null cuando es ''ordinal''.';
@@ -2852,7 +2853,7 @@ create table planned_evidences (
   tenant_id        uuid not null references tenants (id),
   experience_id    uuid not null,
   name             text not null,
-  kind             text not null check (kind in ('produccion', 'actuacion', 'prueba_escrita')),
+  kind             text not null check (kind in ('produccion', 'actuacion')),
   value_scale      text not null default 'numeric' check (value_scale in ('numeric', 'ordinal')),
   max_score        numeric(8, 4) default 20 check (max_score > 0),
   session_entry_id uuid,
@@ -2872,7 +2873,7 @@ create table planned_evidences (
 comment on table planned_evidences is
   'Una evidencia planificada dentro de una experiencia: qué se va a observar (name), de qué tipo (kind) y contra qué criterios (planned_evidence_criteria). Es una PROMESA, no la evidencia real: la evidencia valorable es la assessment en la que se materializa al planificar la experiencia (assessments.planned_evidence_id).';
 comment on column planned_evidences.kind is
-  'produccion: un producto (maqueta, informe, portafolio). actuacion: una actuación (exposición, debate, demostración). prueba_escrita: una prueba escrita. La norma (RVM 094-2020) pide evidencias de distinto tipo por competencia; el tipo se restringe aquí para que el conteo por tipo sea confiable.';
+  'Los dos tipos que nombra la norma: "Evidencias. Producciones y/o actuaciones realizadas por los estudiantes" (RVM 094-2020, glosario p.9). produccion: algo que los estudiantes elaboran (maqueta, informe, portafolio, una prueba escrita). actuacion: algo que hacen frente a otros (exposición, debate, demostración). Es el mismo vocabulario que assessments.kind, así que la evidencia planificada se materializa con su tipo sin traducirlo.';
 comment on column planned_evidences.session_entry_id is
   'La entrada del esquema de sesiones donde se planea recoger esta evidencia. Null cuando aún no se ha ubicado en una sesión. La FK es compuesta (tenant_id, experience_id, session_entry_id), así que la evidencia no puede ubicarse en una sesión de otra experiencia.';
 comment on column planned_evidences.proposed_by is

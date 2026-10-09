@@ -45,8 +45,9 @@ func (a *API) handleCreateAssessment(w http.ResponseWriter, r *http.Request) {
 		badRequest(w, "title is required")
 		return
 	}
-	if req.Kind == "" {
-		req.Kind = "otro"
+	if !domain.IsEvidenceKind(req.Kind) {
+		badRequest(w, "kind must be produccion or actuacion")
+		return
 	}
 	if req.ValueScale == "" {
 		req.ValueScale = domain.ValueScaleNumeric

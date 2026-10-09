@@ -38,7 +38,7 @@ func TestEvidenceIsFiledAndValued(t *testing.T) {
 	file := func(extra string) string {
 		t.Helper()
 		w := mustDo(t, h, token, "POST", "/api/v1/classes/"+class+"/assessments", fmt.Sprintf(
-			`{"kind":"tarea","term_id":%q,"criterion_ids":[%q]%s}`, fx.TermII, fx.CriterionOne, extra), http.StatusCreated)
+			`{"kind":"produccion","term_id":%q,"criterion_ids":[%q]%s}`, fx.TermII, fx.CriterionOne, extra), http.StatusCreated)
 		var out struct {
 			ID string `json:"id"`
 		}
@@ -109,16 +109,22 @@ func TestEvidenceIsFiledAndValued(t *testing.T) {
 			`{"student_id":%q,"raw_value":11}`, student)), http.StatusBadRequest, "mark_out_of_range")
 	})
 
-	t.Run("an evidence needs a criterio and a coherent scale", func(t *testing.T) {
+	t.Run("an evidence needs a kind, a criterio and a coherent scale", func(t *testing.T) {
 		base := "/api/v1/classes/" + class + "/assessments"
+		// Only the two kinds the norm names: a production or a performance.
+		for _, kind := range []string{"", "examen", "prueba_escrita"} {
+			wantError(t, do(t, h, token, "POST", base, fmt.Sprintf(
+				`{"title":"T-eval-x","kind":%q,"term_id":%q,"value_scale":"numeric","max_score":20,"criterion_ids":[%q]}`,
+				kind, fx.TermII, fx.CriterionOne)), http.StatusBadRequest, "bad_request")
+		}
 		wantError(t, do(t, h, token, "POST", base, fmt.Sprintf(
-			`{"title":"T-eval-x","term_id":%q,"value_scale":"numeric","max_score":20}`, fx.TermII)),
+			`{"title":"T-eval-x","kind":"produccion","term_id":%q,"value_scale":"numeric","max_score":20}`, fx.TermII)),
 			http.StatusBadRequest, "bad_request")
 		wantError(t, do(t, h, token, "POST", base, fmt.Sprintf(
-			`{"title":"T-eval-x","term_id":%q,"value_scale":"ordinal","max_score":20,"criterion_ids":[%q]}`,
+			`{"title":"T-eval-x","kind":"produccion","term_id":%q,"value_scale":"ordinal","max_score":20,"criterion_ids":[%q]}`,
 			fx.TermII, fx.CriterionOne)), http.StatusBadRequest, "bad_request")
 		wantError(t, do(t, h, token, "POST", base, fmt.Sprintf(
-			`{"title":"T-eval-x","term_id":%q,"value_scale":"numeric","criterion_ids":[%q]}`,
+			`{"title":"T-eval-x","kind":"produccion","term_id":%q,"value_scale":"numeric","criterion_ids":[%q]}`,
 			fx.TermII, fx.CriterionOne)), http.StatusBadRequest, "bad_request")
 	})
 }

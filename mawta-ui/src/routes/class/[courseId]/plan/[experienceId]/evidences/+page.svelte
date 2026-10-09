@@ -20,6 +20,7 @@
 	import { list } from '$lib/api/client';
 	import { agentUnavailable, GenerationAborted, waitForGeneration } from '$lib/api/generation';
 	import { isAgentUnavailable, planningErrorText } from '$lib/api/planningErrors';
+	import { EVIDENCE_KIND_LABEL, EVIDENCE_KINDS } from '$lib/evidence';
 	import type {
 		EvidenceKind,
 		ExperienceCompetencyRefDto,
@@ -85,13 +86,6 @@
 	function isProposal(evidence: PlannedEvidenceDto): boolean {
 		return evidence.proposed_by === 'mawta' && evidence.accepted_at === null;
 	}
-
-	// The contract's kinds, in the screen's own words.
-	const KIND_WORDS: Record<EvidenceKind, string> = {
-		produccion: 'Producción',
-		actuacion: 'Actuación',
-		prueba_escrita: 'Prueba escrita',
-	};
 
 	// How an evidencia will be valued, in the teacher's words.
 	function scaleWords(evidence: PlannedEvidenceDto): string {
@@ -379,7 +373,7 @@
 							<Card>
 								<p class="ev-name">{evidence.name}</p>
 								<p class="meta ev-kind">
-									{KIND_WORDS[evidence.kind]} · {scaleWords(evidence)}
+									{EVIDENCE_KIND_LABEL[evidence.kind]} · {scaleWords(evidence)}
 								</p>
 								{#if groupsOf(evidence).length > 0}
 									<ul class="ev-crit">
@@ -468,9 +462,9 @@
 				/>
 
 				<Field kind="select" label="Tipo" bind:value={form.kind}>
-					<option value="produccion">Producción</option>
-					<option value="actuacion">Actuación</option>
-					<option value="prueba_escrita">Prueba escrita</option>
+					{#each EVIDENCE_KINDS as k (k)}
+						<option value={k}>{EVIDENCE_KIND_LABEL[k]}</option>
+					{/each}
 				</Field>
 
 				<p class="f-label spaced">Cómo la valorarás</p>

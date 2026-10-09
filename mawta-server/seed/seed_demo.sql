@@ -190,36 +190,36 @@ select md5('asm:' || v.code)::uuid,
        v.created_by::uuid
   from (values
     -- ============================ MATEMÁTICA — T-I (cerrado) =============
-    ('MAT-T1-P1',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Práctica 1 — Números enteros','practica','numeric','closed','2026-03-20','2026-03-16','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T1-P2',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Práctica 2 — Operaciones con racionales','practica','numeric','closed','2026-04-17','2026-04-13','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T1-P3',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Práctica 3 — Ecuaciones lineales','practica','numeric','closed','2026-05-15','2026-05-11','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T1-EX',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Examen de Trimestre I','examen','numeric','closed','2026-05-26','2026-05-18','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T1-PR',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Proyecto — Presupuesto familiar','proyecto','numeric','closed','2026-05-22','2026-04-20','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T1-RU',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Argumentación matemática','proyecto','ordinal','closed','2026-05-22','2026-04-20','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T1-P1',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Práctica 1 — Números enteros','produccion','numeric','closed','2026-03-20','2026-03-16','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T1-P2',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Práctica 2 — Operaciones con racionales','produccion','numeric','closed','2026-04-17','2026-04-13','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T1-P3',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Práctica 3 — Ecuaciones lineales','produccion','numeric','closed','2026-05-15','2026-05-11','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T1-EX',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Examen de Trimestre I','produccion','numeric','closed','2026-05-26','2026-05-18','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T1-PR',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Proyecto — Presupuesto familiar','produccion','numeric','closed','2026-05-22','2026-04-20','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T1-RU',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Argumentación matemática','produccion','ordinal','closed','2026-05-22','2026-04-20','2026-06-08',md5('teacher:0723519:jeffrey')::uuid),
     -- ============================ MATEMÁTICA — T-II (cerrado) ============
-    ('MAT-T2-P1',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Práctica 4 — Sistemas de ecuaciones','practica','numeric','closed','2026-06-19','2026-06-15','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T2-P2',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Práctica 5 — Proporcionalidad','practica','numeric','closed','2026-07-17','2026-07-13','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T2-P3',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Práctica 6 — Polígonos y perímetros','practica','numeric','closed','2026-08-14','2026-08-10','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T2-EX',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Examen de Trimestre II','examen','numeric','closed','2026-08-25','2026-08-17','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T2-PR',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Proyecto — Maqueta a escala','proyecto','numeric','closed','2026-08-21','2026-07-20','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T2-P1',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Práctica 4 — Sistemas de ecuaciones','produccion','numeric','closed','2026-06-19','2026-06-15','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T2-P2',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Práctica 5 — Proporcionalidad','produccion','numeric','closed','2026-07-17','2026-07-13','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T2-P3',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Práctica 6 — Polígonos y perímetros','produccion','numeric','closed','2026-08-14','2026-08-10','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T2-EX',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Examen de Trimestre II','produccion','numeric','closed','2026-08-25','2026-08-17','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T2-PR',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Proyecto — Maqueta a escala','produccion','numeric','closed','2026-08-21','2026-07-20','2026-09-07',md5('teacher:0723519:jeffrey')::uuid),
     -- ============================ MATEMÁTICA — T-III (EN VIVO) ===========
-    ('MAT-T3-P1',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:3')::uuid,'Práctica 7 — Área y volumen','practica','numeric','published','2026-09-11','2026-09-07',null,md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T3-P2',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:3')::uuid,'Práctica 8 — Tablas y gráficos estadísticos','practica','numeric','published','2026-09-18','2026-09-14',null,md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T3-P3',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:3')::uuid,'Práctica 9 — Medidas de tendencia central','practica','numeric','published','2026-10-09','2026-09-21',null,md5('teacher:0723519:jeffrey')::uuid),
-    ('MAT-T3-EX',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:3')::uuid,'Examen de Trimestre III','examen','numeric','published','2026-12-04','2026-09-21',null,md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T3-P1',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:3')::uuid,'Práctica 7 — Área y volumen','produccion','numeric','published','2026-09-11','2026-09-07',null,md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T3-P2',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:3')::uuid,'Práctica 8 — Tablas y gráficos estadísticos','produccion','numeric','published','2026-09-18','2026-09-14',null,md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T3-P3',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:3')::uuid,'Práctica 9 — Medidas de tendencia central','produccion','numeric','published','2026-10-09','2026-09-21',null,md5('teacher:0723519:jeffrey')::uuid),
+    ('MAT-T3-EX',md5('class:0723519:2026:MAT-1A')::uuid,md5('term:0723519:2026:3')::uuid,'Examen de Trimestre III','produccion','numeric','published','2026-12-04','2026-09-21',null,md5('teacher:0723519:jeffrey')::uuid),
     -- ============================ CC.SS. — T-I (cerrado) =================
-    ('CCS-T1-F1',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Análisis de fuentes — Poblamiento americano','tarea','numeric','closed','2026-03-26','2026-03-19','2026-06-08',md5('teacher:0723519:gonzalo')::uuid),
-    ('CCS-T1-F2',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Análisis de fuentes — Culturas preincas','tarea','numeric','closed','2026-04-30','2026-04-23','2026-06-08',md5('teacher:0723519:gonzalo')::uuid),
-    ('CCS-T1-EX',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Examen de Trimestre I','examen','numeric','closed','2026-05-28','2026-05-19','2026-06-08',md5('teacher:0723519:gonzalo')::uuid),
-    ('CCS-T1-PR',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Proyecto — Línea de tiempo del Tahuantinsuyo','proyecto','numeric','closed','2026-05-21','2026-04-16','2026-06-08',md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T1-F1',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Análisis de fuentes — Poblamiento americano','produccion','numeric','closed','2026-03-26','2026-03-19','2026-06-08',md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T1-F2',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Análisis de fuentes — Culturas preincas','produccion','numeric','closed','2026-04-30','2026-04-23','2026-06-08',md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T1-EX',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Examen de Trimestre I','produccion','numeric','closed','2026-05-28','2026-05-19','2026-06-08',md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T1-PR',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:1')::uuid,'Proyecto — Línea de tiempo del Tahuantinsuyo','produccion','numeric','closed','2026-05-21','2026-04-16','2026-06-08',md5('teacher:0723519:gonzalo')::uuid),
     -- ============================ CC.SS. — T-II (cerrado) ================
-    ('CCS-T2-F1',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Análisis de fuentes — Conquista y virreinato','tarea','numeric','closed','2026-06-25','2026-06-18','2026-09-07',md5('teacher:0723519:gonzalo')::uuid),
-    ('CCS-T2-F2',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Análisis de fuentes — Cartografía del Perú','tarea','numeric','closed','2026-07-30','2026-07-23','2026-09-07',md5('teacher:0723519:gonzalo')::uuid),
-    ('CCS-T2-EX',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Examen de Trimestre II','examen','numeric','closed','2026-08-27','2026-08-18','2026-09-07',md5('teacher:0723519:gonzalo')::uuid),
-    ('CCS-T2-RU',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Exposición sobre el espacio geográfico','exposicion','ordinal','closed','2026-08-20','2026-07-16','2026-09-07',md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T2-F1',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Análisis de fuentes — Conquista y virreinato','produccion','numeric','closed','2026-06-25','2026-06-18','2026-09-07',md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T2-F2',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Análisis de fuentes — Cartografía del Perú','produccion','numeric','closed','2026-07-30','2026-07-23','2026-09-07',md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T2-EX',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Examen de Trimestre II','produccion','numeric','closed','2026-08-27','2026-08-18','2026-09-07',md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T2-RU',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:2')::uuid,'Exposición sobre el espacio geográfico','actuacion','ordinal','closed','2026-08-20','2026-07-16','2026-09-07',md5('teacher:0723519:gonzalo')::uuid),
     -- ============================ CC.SS. — T-III (EN VIVO) ===============
-    ('CCS-T3-F1',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:3')::uuid,'Análisis de fuentes — Cuencas y regiones naturales','tarea','numeric','published','2026-09-17','2026-09-10',null,md5('teacher:0723519:gonzalo')::uuid),
-    ('CCS-T3-EX',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:3')::uuid,'Examen de Trimestre III','examen','numeric','published','2026-12-03','2026-09-21',null,md5('teacher:0723519:gonzalo')::uuid)
+    ('CCS-T3-F1',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:3')::uuid,'Análisis de fuentes — Cuencas y regiones naturales','produccion','numeric','published','2026-09-17','2026-09-10',null,md5('teacher:0723519:gonzalo')::uuid),
+    ('CCS-T3-EX',md5('class:0723519:2026:CCSS-1A')::uuid,md5('term:0723519:2026:3')::uuid,'Examen de Trimestre III','produccion','numeric','published','2026-12-03','2026-09-21',null,md5('teacher:0723519:gonzalo')::uuid)
   ) as v(code, class_id, term_id, title, kind,
          value_scale, status, due, published, closed, created_by);
 

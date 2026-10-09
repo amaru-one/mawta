@@ -727,7 +727,7 @@ func TestPlanningDomainErrors(t *testing.T) {
 	critA := createCriterion(t, h, token, a.ID, fx.CompetencyC1, planPerfC1a, planCapC1a)
 	mustDo(t, h, token, "PUT", aPath+"/sessions/2026-06-03", `{"title":"Inicio"}`, http.StatusOK)
 	w := mustDo(t, h, token, "POST", bPath+"/evidences", fmt.Sprintf(
-		`{"name":"Otra","kind":"prueba_escrita","criterion_ids":[%q]}`,
+		`{"name":"Otra","kind":"actuacion","criterion_ids":[%q]}`,
 		createCriterion(t, h, token, b.ID, fx.CompetencyC2, planPerfC2, fx.CapabilityC2).ID), http.StatusCreated)
 	var evB repo.ExperienceEvidence
 	decodeInto(t, w, &evB)
@@ -795,7 +795,7 @@ func TestPlanningDomainErrors(t *testing.T) {
 		{"an experience without competencies", "POST", classPath, experienceBody(env, "2026-07-01", "2026-07-10"),
 			http.StatusBadRequest, "missing_competencies"},
 		{"an evidence of an unknown kind", "POST", aPath + "/evidences",
-			fmt.Sprintf(`{"name":"Rara","kind":"examen","criterion_ids":[%q]}`, critA.ID), http.StatusBadRequest, "bad_request"},
+			fmt.Sprintf(`{"name":"Rara","kind":"prueba_escrita","criterion_ids":[%q]}`, critA.ID), http.StatusBadRequest, "bad_request"},
 		{"an evidence without criteria", "POST", aPath + "/evidences", `{"name":"Sola","kind":"produccion","criterion_ids":[]}`,
 			http.StatusBadRequest, "missing_criteria"},
 		{"a term of another year", "POST", classPath, strings.Replace(experienceBody(env, "2026-07-01", "2026-07-10", fx.CompetencyC1),
@@ -910,7 +910,7 @@ func TestConfirmedExperienceReachesCalendarAndStudents(t *testing.T) {
 	`, ev.ID, crit.ID).Scan(&title, &kind, &scale, &sessionID, &criteria); err != nil {
 		t.Fatal(err)
 	}
-	if title != "Lista de precios" || kind != "proyecto" || scale != "numeric" || sessionID == nil || criteria != 1 {
+	if title != "Lista de precios" || kind != "produccion" || scale != "numeric" || sessionID == nil || criteria != 1 {
 		t.Errorf("assessment = %q %q %q session=%v criteria=%d", title, kind, scale, sessionID, criteria)
 	}
 
@@ -947,8 +947,8 @@ func TestConfirmedExperienceReachesCalendarAndStudents(t *testing.T) {
 	}
 	if err := env.Admin.Pool.QueryRow(ctx, `
 		select title, kind, session_id from assessments where planned_evidence_id = $1 and deleted_at is null
-	`, ev.ID).Scan(&title, &kind, &sessionID); err != nil || title != "Lista de precios final" || kind != "exposicion" || sessionID != nil {
-		t.Errorf("edited assessment = %q %q session=%v (%v), want renamed, exposicion, unplaced", title, kind, sessionID, err)
+	`, ev.ID).Scan(&title, &kind, &sessionID); err != nil || title != "Lista de precios final" || kind != "actuacion" || sessionID != nil {
+		t.Errorf("edited assessment = %q %q session=%v (%v), want renamed, actuacion, unplaced", title, kind, sessionID, err)
 	}
 
 	// Deleting the evidence takes the assessment off the students' screens.
@@ -982,7 +982,7 @@ func TestStudentsWithoutAnActiveTermReadTheLatestClosedOne(t *testing.T) {
 	adminScript(t, env, "an assessment in Bimestre II", `
 		insert into assessments (tenant_id, class_id, term_id, title, kind, value_scale, max_score,
 		                         status, published_at)
-		values ({{tenant}}, {{class}}, {{term}}, 'Evidencia del bimestre', 'tarea', 'numeric', 20,
+		values ({{tenant}}, {{class}}, {{term}}, 'Evidencia del bimestre', 'produccion', 'numeric', 20,
 		        'published', now());
 	`, map[string]any{"tenant": fx.TenantA, "class": classID, "term": fx.TermII})
 	t.Cleanup(func() {
@@ -1071,7 +1071,7 @@ func TestExplicitTermOfAnotherYearIsNotFound(t *testing.T) {
 	wantError(t, do(t, h, token, "GET", base+"/students?term_id="+term.String(), ""), http.StatusNotFound, "not_found")
 	wantError(t, do(t, h, token, "GET", base+"/dashboard?term_id="+term.String(), ""), http.StatusNotFound, "not_found")
 	wantError(t, do(t, h, token, "POST", base+"/assessments", fmt.Sprintf(
-		`{"title":"x","value_scale":"ordinal","criterion_ids":[%q],"term_id":%q}`, fx.CriterionOne, term)), http.StatusNotFound, "not_found")
+		`{"title":"x","kind":"produccion","value_scale":"ordinal","criterion_ids":[%q],"term_id":%q}`, fx.CriterionOne, term)), http.StatusNotFound, "not_found")
 	// A term of the class's own year still works.
 	mustDo(t, h, token, "GET", base+"/students?term_id="+fx.TermII.String(), "", http.StatusOK)
 }
@@ -1139,4 +1139,94 @@ func TestPlannedEvidenceScale(t *testing.T) {
 		t.Errorf("after PUT ordinal = %s/%v, want ordinal with no maximum", ev.ValueScale, ev.MaxScore)
 	}
 	wantError(t, do(t, h, token, "PUT", evPath, `{"max_score":9}`), http.StatusBadRequest, "bad_request")
+}
+
+// "Añadir evidencia" offers the criterios of the class's planned experiencias
+// in the term, and only those (RVM 094-2020, 5.1.1.1: a criterio is written for
+// a situation). A draft's criterios, the área's general criterios and another
+// class's criterios are not offered, and the server refuses the ones it does
+// not offer when they belong to an experiencia.
+func TestEvidenceCriteriaComeFromPlannedExperiences(t *testing.T) {
+	env := dbtest.Setup(t)
+	h := newAPI(t, env)
+	classID := planClass(t, env)
+	token := login(t, env, env.Fx.UserQuispe, env.Fx.TenantA)
+	ctx := context.Background()
+	fx := env.Fx
+	t.Cleanup(func() {
+		for _, q := range []string{
+			`delete from assessment_criteria where assessment_id in (select id from assessments where title like 'T-crit-%')`,
+			`delete from assessments where title like 'T-crit-%'`,
+		} {
+			if _, err := env.Admin.Pool.Exec(ctx, q); err != nil {
+				t.Errorf("clean up: %v", err)
+			}
+		}
+	})
+
+	draft := createExperience(t, h, token, env, classID, "2026-06-01", "2026-06-12", fx.CompetencyC1)
+	critDraft := createCriterion(t, h, token, draft.ID, fx.CompetencyC1, planPerfC1a, planCapC1a)
+
+	planned := createExperience(t, h, token, env, classID, "2026-06-15", "2026-06-30", fx.CompetencyC1)
+	plannedPath := "/api/v1/experiences/" + planned.ID.String()
+	critPlanned := createCriterion(t, h, token, planned.ID, fx.CompetencyC1, planPerfC1a, planCapC1a)
+	w := mustDo(t, h, token, "POST", plannedPath+"/evidences", fmt.Sprintf(
+		`{"name":"Lista de precios","kind":"produccion","criterion_ids":[%q]}`, critPlanned.ID), http.StatusCreated)
+	var ev repo.ExperienceEvidence
+	decodeInto(t, w, &ev)
+	mustDo(t, h, token, "PUT", plannedPath+"/sessions/2026-06-17", fmt.Sprintf(
+		`{"title":"¿Qué vendemos?","planned_evidence_id":%q}`, ev.ID), http.StatusOK)
+	mustDo(t, h, token, "POST", plannedPath+"/confirm", "", http.StatusOK)
+
+	read := func(path string) map[uuid.UUID]repo.CriterionRow {
+		t.Helper()
+		w := mustDo(t, h, token, "GET", path, "", http.StatusOK)
+		var got struct {
+			Competencies []repo.CompetencyCriteriaRow `json:"competencies"`
+		}
+		decodeInto(t, w, &got)
+		out := map[uuid.UUID]repo.CriterionRow{}
+		for _, c := range got.Competencies {
+			for _, cr := range c.Criteria {
+				out[cr.CriterionID] = cr
+			}
+		}
+		return out
+	}
+
+	offered := read(fmt.Sprintf("/api/v1/classes/%s/evidence-criteria?term_id=%s", classID, fx.TermII))
+	if cr, ok := offered[critPlanned.ID]; !ok || cr.ExperienceID == nil || *cr.ExperienceID != planned.ID ||
+		cr.ExperienceTitle == nil || *cr.ExperienceTitle != planned.Title {
+		t.Errorf("planned criterio = %+v (offered %v), want it with its experiencia", cr, ok)
+	}
+	if _, ok := offered[critDraft.ID]; ok {
+		t.Error("a draft experiencia's criterio is offered")
+	}
+	if _, ok := offered[fx.CriterionOne]; ok {
+		t.Error("a general criterio is offered")
+	}
+	if len(offered) != 1 {
+		t.Errorf("offered %d criterios, want only the planned one", len(offered))
+	}
+
+	// The área's list keeps the general criterios and nothing of an experiencia:
+	// the área is shared by every class that teaches it.
+	general := read(fmt.Sprintf("/api/v1/classes/%s/criteria", fx.ClassMat5B))
+	if _, ok := general[critPlanned.ID]; ok {
+		t.Error("another class's experiencia criterio leaks into the área's list")
+	}
+	if _, ok := general[fx.CriterionOne]; !ok {
+		t.Error("the área's list lost its general criterio")
+	}
+
+	file := func(class uuid.UUID, crit uuid.UUID) *httptest.ResponseRecorder {
+		return do(t, h, token, "POST", "/api/v1/classes/"+class.String()+"/assessments", fmt.Sprintf(
+			`{"title":"T-crit-x","kind":"actuacion","term_id":%q,"value_scale":"ordinal","criterion_ids":[%q]}`,
+			fx.TermII, crit))
+	}
+	if w := file(classID, critPlanned.ID); w.Code != http.StatusCreated {
+		t.Errorf("filing with the planned criterio: %d %s", w.Code, w.Body.String())
+	}
+	wantError(t, file(classID, critDraft.ID), http.StatusBadRequest, "criterion_not_in_class")
+	wantError(t, file(fx.ClassMat5B, critPlanned.ID), http.StatusBadRequest, "criterion_not_in_class")
 }

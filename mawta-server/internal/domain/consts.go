@@ -38,6 +38,20 @@ const (
 	ValueScaleOrdinal = "ordinal"
 )
 
+// assessments.kind and planned_evidences.kind — the two kinds of evidencia the
+// norm names: "producciones y/o actuaciones realizadas por los estudiantes"
+// (RVM 094-2020, glosario p.9). Both tables share the vocabulary, so a planned
+// evidence becomes an assessment of the same kind.
+const (
+	EvidenceProduccion = "produccion"
+	EvidenceActuacion  = "actuacion"
+)
+
+// IsEvidenceKind reports whether kind is one of the two evidencia kinds.
+func IsEvidenceKind(kind string) bool {
+	return kind == EvidenceProduccion || kind == EvidenceActuacion
+}
+
 // grade_scale_levels.code on the MINEDU ordinal scale. Ordered C < B < A < AD.
 // These are only the wire/database spellings: nothing in the codebase compares
 // them, and nothing should compare them as numbers — under RVM 094-2020 a

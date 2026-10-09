@@ -305,7 +305,9 @@ test('a new evidence needs a criterio and carries its own maximum', async ({ pag
 	await page.getByLabel('Nota máxima', { exact: true }).fill('18');
 	const save = page.getByRole('button', { name: 'Guardar evidencia', exact: true });
 	await expect(save).toBeDisabled();
-	await page.getByRole('checkbox', { name: /CR1/ }).check();
+	// The criterio is offered under the experiencia it was written for.
+	await expect(page.getByText('La tiendita escolar', { exact: true })).toBeVisible();
+	await page.getByRole('checkbox', { name: /calcula el cambio/ }).check();
 	await expect(save).toBeEnabled();
 	await save.click();
 	await expect
@@ -324,7 +326,7 @@ test('a new evidence can be valued with letters, without a maximum', async ({ pa
 	await page.getByLabel('Título', { exact: true }).fill('Exposición oral');
 	await page.getByRole('button', { name: 'Literal · AD–C' }).click();
 	await expect(page.getByLabel('Nota máxima', { exact: true })).toHaveCount(0);
-	await page.getByRole('checkbox', { name: /CR1/ }).check();
+	await page.getByRole('checkbox', { name: /calcula el cambio/ }).check();
 	await page.getByRole('button', { name: 'Guardar evidencia', exact: true }).click();
 	await expect
 		.poll(() => api.writes.some((w) => w.path === '/classes/class-1/assessments'))

@@ -12,6 +12,16 @@ export function getClassCriteria(classId: string): Promise<ClassCriteriaDto> {
 	return apiGet<ClassCriteriaDto>(`/classes/${classId}/criteria`);
 }
 
+// The criterios "Añadir evidencia" offers: for every competencia of the class's
+// área, the accepted criterios of the class's planned experiencias in the term
+// (the current one when termId is omitted), each with its experiencia. Under
+// RVM 094-2020 a criterio is written for a situation, so general criterios and
+// drafts are not offered.
+export function getEvidenceCriteria(classId: string, termId?: string): Promise<ClassCriteriaDto> {
+	const qs = termId ? `?term_id=${encodeURIComponent(termId)}` : '';
+	return apiGet<ClassCriteriaDto>(`/classes/${classId}/evidence-criteria${qs}`);
+}
+
 // The teacher writes a criterio for one competencia. The text is theirs; the
 // server rejects a blank description and a competencia outside the class's área.
 export function createCriterion(

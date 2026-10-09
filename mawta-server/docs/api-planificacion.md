@@ -48,8 +48,9 @@ Same as the rest of the API:
    of its maximum, or ordinal AD/A/B/C), tagged with the evidence's criteria and
    linked to the class session of its date (which is also its `due_at`). The
    scale of an assessment follows the planned evidence until someone has been
-   valued on it. Kinds map `produccion` →
-   `proyecto`, `actuacion` → `exposicion`, `prueba_escrita` → `examen`. The sync
+   valued on it. The kind carries over unchanged: planned evidences and
+   assessments share the two kinds the norm names, `produccion` and
+   `actuacion` (RVM 094-2020, glosario p.9). The sync
    (`repo.SyncExperience`) is idempotent and runs on confirm, on every later edit
    of sessions and evidences, and when the plan or the class dashboard is read,
    which also catches up experiences planned before the bridge existed. Pending
@@ -220,7 +221,7 @@ included); a global one still through its area.
 
 | Route | Body |
 |---|---|
-| `POST /experiences/{experienceID}/evidences` | `name`, `kind` (`produccion` \| `actuacion` \| `prueba_escrita`), `criterion_ids` (≥1, of this experience, any of its competencies), optional `session_date`, optional `value_scale` (`numeric` \| `ordinal`, default `numeric`) and `max_score` (numeric only, any value above 0, default 20; an ordinal evidence has none) |
+| `POST /experiences/{experienceID}/evidences` | `name`, `kind` (`produccion` \| `actuacion`), `criterion_ids` (≥1, of this experience, any of its competencies), optional `session_date`, optional `value_scale` (`numeric` \| `ordinal`, default `numeric`) and `max_score` (numeric only, any value above 0, default 20; an ordinal evidence has none) |
 | `PUT /evidences/{evidenceID}` | any of the above (switching `value_scale` to `ordinal` clears `max_score`); `"session_date": null` takes it out of its session, leaving the key out keeps it; editing a proposal also accepts it |
 | `POST /evidences/{evidenceID}/accept` | — |
 | `POST /evidences/{evidenceID}/delete` | — |

@@ -6,8 +6,9 @@
 
 export type SessionStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'rescheduled';
 export type ScoreStatus = 'graded' | 'excused' | 'absent' | 'not_submitted';
-export type AssessmentKind =
-	'examen' | 'practica' | 'tarea' | 'proyecto' | 'exposicion' | 'participacion' | 'otro';
+// The two kinds of evidencia the norm names (RVM 094-2020, glosario p.9),
+// shared by assessments and planned evidences.
+export type AssessmentKind = 'produccion' | 'actuacion';
 export type VoiceNoteStatus = 'draft' | 'saved' | 'discarded';
 export type NotificationKind = 'alert' | 'reminder';
 // memberships.role / user_sessions.role — mirrors internal/domain/consts.go.
@@ -322,6 +323,10 @@ export type CriterionDto = {
 	criterion_id: string;
 	code: string | null;
 	description: string;
+	// The experiencia the criterio was written for. Only the evidence-criteria
+	// route sends it; a general criterio has none.
+	experience_id?: string;
+	experience_title?: string;
 };
 
 export type CompetencyCriteriaDto = {
@@ -378,8 +383,8 @@ export type ExperienceStatus = 'borrador' | 'planificada';
 // included) are no more than it needs; 'puede_esperar' otherwise.
 export type CompetencyPlanStatus = 'planificada' | 'toca' | 'puede_esperar';
 
-// The three kinds of planned evidencia.
-export type EvidenceKind = 'produccion' | 'actuacion' | 'prueba_escrita';
+// A planned evidencia has the same two kinds as the assessment it becomes.
+export type EvidenceKind = AssessmentKind;
 
 // What a background generation produces. 'experience' proposes a whole
 // experience from the teacher's idea without saving it; the other three fill
