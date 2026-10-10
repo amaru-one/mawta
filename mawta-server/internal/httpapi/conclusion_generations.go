@@ -27,10 +27,10 @@ type conclusionGenerateRequest struct {
 	TermID       *string `json:"term_id"`
 }
 
-// insufficientEvidence is the 422 body when the material is too thin. In the
-// worst case — notes the sweep discarded were all there was, or the evidence
-// is below the minimum — the discarded notes come along so the teacher can
-// move them to the right student or confirm they belong here.
+// insufficientEvidence is the 422 body when the material is too thin. When
+// the sweep discarded every voice note of the student (the worst case), the
+// discarded notes come along so the teacher can move them to the right
+// student or confirm they belong here.
 type insufficientEvidence struct {
 	Error    errorBody                 `json:"error"`
 	Evidence insufficientEvidenceStats `json:"evidence"`
@@ -107,7 +107,7 @@ func (a *API) handleGenerateConclusion(w http.ResponseWriter, r *http.Request) {
 					UsableVoiceNotes: len(m.VoiceNotes), DiscardedVoiceNotes: []repo.DiscardedVoiceNote{},
 				},
 			}
-			if m.NoteCounts.Discarded > 0 {
+			if m.OnlyDiscardedNotes() {
 				if thin.Evidence.DiscardedVoiceNotes, err = repo.ListDiscardedVoiceNotes(r.Context(), tx, classID, studentID, scope.TermID); err != nil {
 					return err
 				}
@@ -183,6 +183,56 @@ func (a *API) handleLatestConclusionGeneration(w http.ResponseWriter, r *http.Re
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"generation": out})
+}
+
+// GET /classes/{classID}/students/{studentID}/voice-notes/discarded?term_id=
+//
+// The notes the sweep discarded for this student in the term, only when they
+// are all the student has: that is the one case the teacher is asked to look
+// at them (move or confirm). Otherwise {"voice_notes": []}.
+func (a *API) handleDiscardedVoiceNotes(w http.ResponseWriter, r *http.Request) {
+	tc := tenantCtxFrom(r)
+	classID, err := pathUUID(r, "classID")
+	if err != nil {
+		badRequest(w, "invalid classID")
+		return
+	}
+	studentID, err := pathUUID(r, "studentID")
+	if err != nil {
+		badRequest(w, "invalid studentID")
+		return
+	}
+	termIDParam := queryUUID(r, "term_id")
+
+	notes := []repo.DiscardedVoiceNote{}
+	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if err := a.requireClassAccess(r.Context(), tx, tc, classID); err != nil {
+			return err
+		}
+		if err := a.requireStudentOnRoster(r.Context(), tx, tc, classID, studentID); err != nil {
+			return err
+		}
+		term, err := repo.ResolveTerm(r.Context(), tx, classID, termIDParam)
+		if err != nil {
+			return err
+		}
+		usable, counts, err := repo.ListConclusionVoiceNotes(r.Context(), tx, classID, studentID, term.ID)
+		if err != nil {
+			return err
+		}
+		if len(usable) > 0 || counts.Discarded == 0 {
+			return nil
+		}
+		if notes, err = repo.ListDiscardedVoiceNotes(r.Context(), tx, classID, studentID, term.ID); err != nil {
+			return err
+		}
+		return repo.LogStudentReads(r.Context(), tx, []uuid.UUID{studentID}, tc.TeacherID, &classID, nil)
+	})
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"voice_notes": notes})
 }
 
 // conclusionScope authorizes a conclusion request and resolves its term: the

@@ -108,6 +108,7 @@ func (a *API) Router() http.Handler {
 			// (docs/api-conclusiones.md).
 			r.Post("/classes/{classID}/students/{studentID}/conclusions/generate", a.handleGenerateConclusion)
 			r.Get("/classes/{classID}/students/{studentID}/conclusions/generation", a.handleLatestConclusionGeneration)
+			r.Get("/classes/{classID}/students/{studentID}/voice-notes/discarded", a.handleDiscardedVoiceNotes)
 
 			r.Post("/sessions/{sessionID}/start", a.handleSessionStart)
 			r.Get("/sessions/{sessionID}", a.handleSessionRoster)

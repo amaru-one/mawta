@@ -274,7 +274,14 @@ export type CompetencyKind = 'area' | 'transversal' | 'adicional_area' | 'adicio
 
 // Why a conclusión descriptiva exists. Anything but 'optional' is mandatory
 // and blocks closing the period. Decided server-side, never sent by the client.
-export type ConclusionRequirement = 'level_c' | 'consecutive_c' | 'inclusion_support' | 'optional';
+export type ConclusionRequirement =
+	| 'level_c'
+	| 'level_b'
+	| 'level_a'
+	| 'cycle_i_mandatory'
+	| 'consecutive_c'
+	| 'inclusion_support'
+	| 'optional';
 export type ConclusionStatus = 'draft' | 'final';
 
 export type CompetencyLevelDto = {
@@ -310,6 +317,67 @@ export type ConclusionCreateDto = {
 	includes_recommendations: boolean;
 	status: ConclusionStatus;
 	term_id?: string;
+	// The Mawta proposal the teacher started from, if any. The text is still
+	// the teacher's; this only keeps it traceable.
+	generation_id?: string;
+};
+
+// --- Conclusión descriptiva con Mawta (mawta-server/docs/api-conclusiones.md) ---
+
+// One sentence of a proposal and what it rests on.
+export type ConclusionPointDto = {
+	text: string;
+	evidence_ids: string[] | null;
+	voice_note_ids: string[] | null;
+};
+
+export type ConclusionWarningCode =
+	'voice_notes_discarded' | 'all_voice_notes_discarded' | 'voice_notes_pending' | 'no_voice_notes';
+
+export type ConclusionWarningDto = { code: ConclusionWarningCode; count?: number };
+
+// A completed conclusion generation's proposal. Lives on the generation until
+// the teacher saves (and usually edits) it as their own conclusion.
+export type ConclusionProposalDto = {
+	body: string;
+	level: NivelLogro;
+	requirement: ConclusionRequirement;
+	progress: ConclusionPointDto[] | null;
+	difficulties: ConclusionPointDto[] | null;
+	recommendations: ConclusionPointDto[] | null;
+	no_progress_justification?: string;
+	supports_provided?: string;
+	used_voice_note_ids: string[] | null;
+	unused_voice_notes: { voice_note_id: string; reason: string }[] | null;
+	warnings: ConclusionWarningDto[] | null;
+};
+
+export type LatestConclusionGenerationDto = { generation: GenerationDto | null };
+
+// A voice note the name sweep discarded: it named only classmates, or could
+// not be read. Shown only when every note of the student was discarded.
+export type DiscardedVoiceNoteDto = {
+	id: string;
+	recorded_at: string;
+	duration_ms: number;
+	transcript: string | null;
+	discard_reason: 'mentions_other_student' | 'unreadable';
+};
+
+export type DiscardedVoiceNotesDto = { voice_notes: DiscardedVoiceNoteDto[] | null };
+
+// The body of a 422 insufficient_evidence on "Generar con Mawta".
+export type InsufficientEvidenceDto = {
+	graded_count: number;
+	minimum: number;
+	usable_voice_notes: number;
+	discarded_voice_notes: DiscardedVoiceNoteDto[] | null;
+};
+
+export type VoiceNoteAttributionDto = {
+	id: string;
+	student_id: string;
+	attribution_status: 'pending' | 'ok' | 'discarded' | 'confirmed' | 'reassigned';
 };
 
 // --- Criterios de evaluación ------------------------------------------------
@@ -382,9 +450,10 @@ export type CompetencyPlanStatus = 'planificada' | 'toca' | 'puede_esperar';
 export type EvidenceKind = AssessmentKind;
 
 // What a background generation produces. 'experience' proposes a whole
-// experience from the teacher's idea without saving it; the other three fill
-// gaps inside an existing one.
-export type GenerationKind = 'experience' | 'criteria' | 'evidences' | 'sessions';
+// experience from the teacher's idea without saving it; criteria, evidences
+// and sessions fill gaps inside an existing one; 'conclusion' proposes a
+// student's conclusión descriptiva for one competency.
+export type GenerationKind = 'experience' | 'criteria' | 'evidences' | 'sessions' | 'conclusion';
 
 export type GenerationStatus = 'pending' | 'running' | 'completed' | 'failed';
 
@@ -693,7 +762,8 @@ export type GenerationResultDto =
 	| { proposal: ExperienceProposalDto }
 	| { criteria_ids: string[] | null }
 	| { evidence_ids: string[] | null }
-	| { session_dates: string[] | null };
+	| { session_dates: string[] | null }
+	| ConclusionProposalDto;
 
 export type GenerationDto = {
 	id: string;

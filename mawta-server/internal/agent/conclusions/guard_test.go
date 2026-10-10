@@ -53,15 +53,29 @@ func TestComposeOrdersSectionsAndClosesSentences(t *testing.T) {
 }
 
 func TestWarnings(t *testing.T) {
-	m := Material{NoteCounts: repo.VoiceNoteCounts{Discarded: 2, Pending: 1}}
-	got := m.Warnings()
-	if len(got) != 3 || got[0].Code != WarnVoiceNotesDiscarded || got[0].Count != 2 ||
-		got[1].Code != WarnVoiceNotesPending || got[2].Code != WarnNoVoiceNotes {
-		t.Fatalf("warnings = %+v", got)
+	codes := func(ws []Warning) []string {
+		var out []string
+		for _, w := range ws {
+			out = append(out, w.Code)
+		}
+		return out
 	}
-	m.VoiceNotes = []repo.ConclusionVoiceNote{{}}
-	m.NoteCounts = repo.VoiceNoteCounts{}
-	if got := m.Warnings(); len(got) != 0 {
-		t.Fatalf("no warnings expected, got %+v", got)
+	usable := []repo.ConclusionVoiceNote{{}}
+	cases := []struct {
+		name  string
+		m     Material
+		codes []string
+	}{
+		{"every note discarded (worst case)", Material{NoteCounts: repo.VoiceNoteCounts{Discarded: 2, Pending: 1}},
+			[]string{WarnAllVoiceNotesDiscarded, WarnVoiceNotesPending}},
+		{"some discarded, some used", Material{VoiceNotes: usable, NoteCounts: repo.VoiceNoteCounts{Discarded: 1}},
+			[]string{WarnVoiceNotesDiscarded}},
+		{"no notes at all", Material{}, []string{WarnNoVoiceNotes}},
+		{"all good", Material{VoiceNotes: usable}, nil},
+	}
+	for _, c := range cases {
+		if got := codes(c.m.Warnings()); strings.Join(got, ",") != strings.Join(c.codes, ",") {
+			t.Errorf("%s: warnings = %v, want %v", c.name, got, c.codes)
+		}
 	}
 }

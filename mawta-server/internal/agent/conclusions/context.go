@@ -100,21 +100,36 @@ type Warning struct {
 
 // Warning codes.
 const (
+	// Some notes were discarded but others were used: the teacher is told
+	// how many, and does not see them.
 	WarnVoiceNotesDiscarded = "voice_notes_discarded"
-	WarnVoiceNotesPending   = "voice_notes_pending"
-	WarnNoVoiceNotes        = "no_voice_notes"
+	// Every note of the student was discarded: the worst case, the only one
+	// where the teacher is shown the discarded notes to move or confirm.
+	WarnAllVoiceNotesDiscarded = "all_voice_notes_discarded"
+	WarnVoiceNotesPending      = "voice_notes_pending"
+	// No note at all: the proposal is less precise.
+	WarnNoVoiceNotes = "no_voice_notes"
 )
+
+// OnlyDiscardedNotes reports the worst case: the student has voice notes in
+// the term, and the sweep discarded every one of them.
+func (m Material) OnlyDiscardedNotes() bool {
+	return len(m.VoiceNotes) == 0 && m.NoteCounts.Discarded > 0
+}
 
 // Warnings lists what the teacher should know about this material.
 func (m Material) Warnings() []Warning {
 	out := []Warning{}
-	if m.NoteCounts.Discarded > 0 {
+	switch {
+	case m.OnlyDiscardedNotes():
+		out = append(out, Warning{Code: WarnAllVoiceNotesDiscarded, Count: m.NoteCounts.Discarded})
+	case m.NoteCounts.Discarded > 0:
 		out = append(out, Warning{Code: WarnVoiceNotesDiscarded, Count: m.NoteCounts.Discarded})
 	}
 	if m.NoteCounts.Pending > 0 {
 		out = append(out, Warning{Code: WarnVoiceNotesPending, Count: m.NoteCounts.Pending})
 	}
-	if len(m.VoiceNotes) == 0 {
+	if len(m.VoiceNotes) == 0 && m.NoteCounts.Discarded == 0 {
 		out = append(out, Warning{Code: WarnNoVoiceNotes})
 	}
 	return out

@@ -57,7 +57,16 @@ context.
   | Noise, no meaning (or a blank transcript) | `discarded` / `unreadable` |
 
   There is no quarantine: a discarded note is simply left out of conclusions.
-  The teacher only sees it in the worst case (below).
+  The teacher only sees discarded notes in the worst case: **every** voice
+  note of the student in the term was discarded. Otherwise they are only
+  counted (`voice_notes_discarded`).
+
+### `GET /classes/{classID}/students/{studentID}/voice-notes/discarded?term_id=`
+
+The student's discarded notes in the term (`id`, `recorded_at`,
+`duration_ms`, original `transcript`, `discard_reason`), **only in the worst
+case**; `{"voice_notes": []}` otherwise. The UI loads it when a proposal
+carries the warning `all_voice_notes_discarded`.
 
 - The sweep is queued by the transcription job when `ANTHROPIC_API_KEY` is
   set. Notes left `pending` (recorded before the sweep existed, or while no key
@@ -108,8 +117,8 @@ Before queueing, the server sweeps any pending notes and checks the minimum:
 - `503 agent_unavailable` — no model configured.
 - `422 level_required` — no level asserted yet.
 - `422 insufficient_evidence` — fewer graded evidences than the minimum. The
-  body carries the numbers and, when the sweep discarded notes, those notes
-  (the worst case), so the teacher can reassign or confirm them and try again:
+  body carries the numbers and, in the worst case (every note discarded),
+  those notes, so the teacher can reassign or confirm them:
 
   ```json
   {
@@ -148,14 +157,20 @@ A generation can still fail with `level_required`, `insufficient_evidence` or
   "unused_voice_notes": [{ "voice_note_id": "…", "reason": "…" }],
   "warnings": [
     { "code": "voice_notes_discarded", "count": 2 },
-    { "code": "voice_notes_pending", "count": 1 },
-    { "code": "no_voice_notes" }
+    { "code": "voice_notes_pending", "count": 1 }
   ]
 }
 ```
 
 Warnings are frozen at generation time, so they describe what the agent
-actually read. `body` is progress, difficulties, the justification or supports
+actually read:
+
+| Code | Meaning | UI |
+|---|---|---|
+| `voice_notes_discarded` | Some notes were discarded, others used | Count only |
+| `all_voice_notes_discarded` | Every note was discarded (worst case) | Shows the notes to move or confirm |
+| `voice_notes_pending` | Notes still transcribing or waiting for the sweep | Count only |
+| `no_voice_notes` | The student has no notes this term | "Less precise" | `body` is progress, difficulties, the justification or supports
 when the norm asks for them, and recommendations, one paragraph each.
 
 What the server enforces on the model's answer (otherwise one repair round,
