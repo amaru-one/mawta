@@ -7,6 +7,7 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"mawta-server/internal/agent"
+	"mawta-server/internal/agent/conclusions"
 	"mawta-server/internal/agent/llm"
 	"mawta-server/internal/agent/planning"
 	"mawta-server/internal/agent/redaction"
@@ -54,6 +55,9 @@ func defaultRegistry(cfg config.Config, database *db.DB, logger *slog.Logger) Re
 	runner.Bind(redaction.New(),
 		llm.NewAnthropic(cfg.AnthropicAPIKey, cfg.RedactionAgentModel, cfg.AgentTimeout),
 		llm.Prices(cfg.RedactionAgentPrices))
+	runner.Bind(conclusions.New(),
+		llm.NewAnthropic(cfg.AnthropicAPIKey, cfg.ConclusionsAgentModel, cfg.AgentTimeout),
+		llm.Prices(cfg.ConclusionsAgentPrices))
 
 	return Registry{
 		InTx: map[string]HandlerFunc{

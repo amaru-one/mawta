@@ -104,6 +104,10 @@ func (a *API) Router() http.Handler {
 			r.Post("/experiences/{experienceID}/evidences/generate", a.handleGenerateEvidences)
 			r.Post("/experiences/{experienceID}/sessions/generate", a.handleGenerateSessions)
 			r.Get("/generations/{generationID}", a.handleGetGeneration)
+			// "✦ Generar con Mawta" for a conclusión descriptiva
+			// (docs/api-conclusiones.md).
+			r.Post("/classes/{classID}/students/{studentID}/conclusions/generate", a.handleGenerateConclusion)
+			r.Get("/classes/{classID}/students/{studentID}/conclusions/generation", a.handleLatestConclusionGeneration)
 
 			r.Post("/sessions/{sessionID}/start", a.handleSessionStart)
 			r.Get("/sessions/{sessionID}", a.handleSessionRoster)
