@@ -30,11 +30,12 @@ func TestMigrationProducedTheWholeSchema(t *testing.T) {
 		t.Fatalf("count tables: %v", err)
 	}
 	// 35 core tables (events counted once, as the partitioned parent), the 10
-	// planning tables, agent_generations and goose_db_version. Partitions are
+	// planning tables, agent_generations, voice_note_redactions (00002) and
+	// goose_db_version. Partitions are
 	// excluded by relispartition, so the monthly events_* children do not
 	// inflate this.
-	if tables != 47 {
-		t.Errorf("top-level tables = %d, want 47", tables)
+	if tables != 48 {
+		t.Errorf("top-level tables = %d, want 48", tables)
 	}
 
 	var forced int
@@ -47,8 +48,8 @@ func TestMigrationProducedTheWholeSchema(t *testing.T) {
 	}
 	// Every tenant-scoped table: all of them but goose_db_version, events
 	// (RLS lives on its partitions) and the shared catalogues.
-	if forced != 44 {
-		t.Errorf("tables with FORCE ROW LEVEL SECURITY = %d, want 44", forced)
+	if forced != 45 {
+		t.Errorf("tables with FORCE ROW LEVEL SECURITY = %d, want 45", forced)
 	}
 }
 

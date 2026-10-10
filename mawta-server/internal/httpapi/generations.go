@@ -22,10 +22,6 @@ import (
 // The planning agent (internal/agent/planning) does the work; what it
 // proposes is saved pending, never accepted on the teacher's behalf.
 
-// generationDeadline is how long a generation may take before it is shown
-// as failed (agent_generations.deadline_at).
-const generationDeadline = 5 * time.Minute
-
 type generationResponse struct {
 	ID     uuid.UUID       `json:"id"`
 	Kind   string          `json:"kind"`
@@ -57,24 +53,12 @@ func (a *API) agentAvailable(w http.ResponseWriter) bool {
 	return false
 }
 
-// startGeneration records the generation and queues its job, or returns the
-// one already running for the same target.
+// startGeneration records a generation for the requesting teacher and
+// queues its job, or returns the one already running for the same target.
+// in.Agent says which agent serves it.
 func startGeneration(ctx context.Context, tx pgx.Tx, tc db.TenantCtx, in repo.NewGeneration) (repo.AgentGeneration, error) {
-	in.Agent = planning.Name
 	in.RequestedBy = tc.TeacherID
-	in.Deadline = generationDeadline
-	g, created, err := repo.CreateGeneration(ctx, tx, in)
-	if err != nil || !created {
-		return g, err
-	}
-	payload, _ := json.Marshal(agent.JobPayload{GenerationID: g.ID})
-	if err := repo.EnqueueJobWithAttempts(ctx, tx, tc.TenantID, agent.JobKind, 2, payload,
-		agent.JobKind+":"+g.ID.String(), agent.MaxAttempts); err != nil {
-		return g, err
-	}
-	eventPayload, _ := json.Marshal(map[string]string{"agent": g.Agent, "kind": g.Kind})
-	id, classID := g.ID, g.ClassID
-	return g, repo.LogEvent(ctx, tx, "agent.generation.requested", "agent_generation", &id, eventPayload, nil, &classID, nil)
+	return agent.Enqueue(ctx, tx, tc.TenantID, in)
 }
 
 func writeGeneration(w http.ResponseWriter, g repo.AgentGeneration) {
@@ -135,6 +119,7 @@ func (a *API) handleCreateExperienceProposal(w http.ResponseWriter, r *http.Requ
 		}
 		input, _ := json.Marshal(in)
 		g, err = startGeneration(r.Context(), tx, tc, repo.NewGeneration{
+			Agent:     planning.Name,
 			Kind:      planning.KindExperience,
 			ClassID:   classID,
 			TargetKey: planning.TargetKey(planning.KindExperience, classID, nil, uuid.Nil),
@@ -215,6 +200,7 @@ func (a *API) handleGenerateCriteria(w http.ResponseWriter, r *http.Request) {
 		}
 		input, _ := json.Marshal(planning.CriteriaInput{CompetencyID: competencyID})
 		g, err = startGeneration(r.Context(), tx, tc, repo.NewGeneration{
+			Agent:        planning.Name,
 			Kind:         planning.KindCriteria,
 			ClassID:      classID,
 			ExperienceID: &experienceID,
@@ -261,6 +247,7 @@ func (a *API) generateForExperience(w http.ResponseWriter, r *http.Request, kind
 			return err
 		}
 		g, err = startGeneration(r.Context(), tx, tc, repo.NewGeneration{
+			Agent:        planning.Name,
 			Kind:         kind,
 			ClassID:      classID,
 			ExperienceID: &experienceID,
