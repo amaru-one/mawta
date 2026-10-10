@@ -114,6 +114,8 @@ func (a *API) Router() http.Handler {
 			r.Get("/voice-notes/{voiceNoteID}/audio", a.handleVoiceNoteAudio)
 			r.Post("/voice-notes/{voiceNoteID}/save", a.handleVoiceNoteSave)
 			r.Post("/voice-notes/{voiceNoteID}/discard", a.handleVoiceNoteDiscard)
+			r.Post("/voice-notes/{voiceNoteID}/reassign", a.handleVoiceNoteReassign)
+			r.Post("/voice-notes/{voiceNoteID}/confirm", a.handleVoiceNoteConfirm)
 
 			r.Post("/assessments/{assessmentID}/scores", a.handleCreateScore)
 			r.Post("/scores/{scoreID}/correct", a.handleCorrectScore)
