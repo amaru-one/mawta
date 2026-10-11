@@ -363,12 +363,10 @@
 	// The criterios an evidence declares, as the teacher wrote them: the codes
 	// first for scanning, then the text — this is the "what to look at" line, and
 	// it is read-only. The criterio is the ruler, never the thing being marked.
-	const critLine = (e: EvaluationDto): string => {
-		const cs = list(e.criteria);
-		if (cs.length === 0) return 'Sin criterios declarados.';
-		const codes = cs.map((c) => c.code ?? 'CRIT').join(' ');
-		return `${codes} · ${cs.map((c) => c.description).join(' ')}`;
-	};
+	// One criterio reads as a sentence; two or more read as a list, one per line,
+	// with the code leading when the criterio has one.
+	const critItems = (e: EvaluationDto): string[] =>
+		list(e.criteria).map((c) => (c.code ? `${c.code} · ${c.description}` : c.description));
 </script>
 
 <svelte:head>
@@ -410,7 +408,17 @@
 									<span class="grow etitle">{e.title}</span>
 									<span class="emeta">{metaLine(e)}</span>
 								</div>
-								<p class="crit">{critLine(e)}</p>
+								{#if critItems(e).length === 0}
+									<p class="crit">Sin criterios declarados.</p>
+								{:else if critItems(e).length === 1}
+									<p class="crit">{critItems(e)[0]}</p>
+								{:else}
+									<ul class="crit-list">
+										{#each critItems(e) as item, i (i)}
+											<li>{item}</li>
+										{/each}
+									</ul>
+								{/if}
 
 								<!-- The scale is a property of the evidence, so the control is
 							     chosen by the work rather than by the screen: a ruler out of
@@ -609,6 +617,19 @@
 		letter-spacing: 0.04em;
 		color: var(--mw-ink-muted);
 		font-family: var(--mw-font-sans);
+	}
+
+	.crit-list {
+		margin: 8px 0 0;
+		padding-left: 18px;
+		font-size: var(--mw-type-caption-size);
+		line-height: 1.4;
+		color: var(--mw-ink-secondary);
+		text-wrap: pretty;
+	}
+
+	.crit-list li + li {
+		margin-top: 4px;
 	}
 
 	.crit {
