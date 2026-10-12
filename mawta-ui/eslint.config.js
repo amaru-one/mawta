@@ -61,7 +61,6 @@ export default [
 			'.svelte-kit/',
 			'.output/',
 			'test-results/',
-			'playwright-report/',
 		],
 	},
 ];

@@ -183,9 +183,9 @@ func TestGenerateCriteriaFillsOnlyGaps(t *testing.T) {
 	g := requestGeneration(t, h, quispe.token, path, body)
 
 	model := &llm.Fake{Replies: []llm.FakeReply{reply(map[string]any{"criteria": []map[string]any{
-		{"description": "Expresa con números enteros las ganancias y pérdidas de la feria.", "capability_ids": []string{planCapC1b.String()}, "performance_id": planPerfC1b.String()},
-		{"description": "Traduce las ventas a expresiones numéricas.", "capability_ids": []string{planCapC1a.String()}, "performance_id": planPerfC1a.String()},
-		{"description": "Inventa un desempeño.", "capability_ids": []string{planCapC1b.String()}, "performance_id": uuid.NewString()},
+		{"description": "Expresa con números enteros las ganancias y pérdidas de la feria.", "capability_ids": []string{planCapC1b.String()}},
+		{"description": "Traduce las ventas a expresiones numéricas.", "capability_ids": []string{planCapC1a.String()}},
+		{"description": "Explica con sus palabras qué significa cada número de la feria.", "capability_ids": []string{planCapC1b.String()}},
 	}})}}
 	runner := newRunner(env, model)
 	mustRun(t, env, runner, g.ID)
@@ -306,7 +306,7 @@ func TestGenerationFailures(t *testing.T) {
 	criteriaPath := "/api/v1/experiences/" + exp.ID.String() + "/criteria/generate"
 	criteriaBody := fmt.Sprintf(`{"competency_id":%q}`, fx.CompetencyC1)
 	bad := reply(map[string]any{"criteria": []map[string]any{
-		{"description": "Inventado", "capability_ids": []string{uuid.NewString()}, "performance_id": uuid.NewString()},
+		{"description": "Inventado", "capability_ids": []string{uuid.NewString()}},
 	}})
 
 	t.Run("an invalid answer gets one repair, then fails", func(t *testing.T) {
