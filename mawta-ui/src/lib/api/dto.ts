@@ -505,11 +505,18 @@ export type CurriculumPerformanceDto = {
 	suggested_capability_id: string | null;
 };
 
+export type CurriculumStandardDto = {
+	level: number;
+	text: string;
+};
+
 export type CurriculumCompetencyDto = {
 	id: string;
 	code: string;
 	name: string;
 	kind: CompetencyKind;
+	/** The standard this competencia reaches at the end of the class's cycle, verbatim from the CNEB. */
+	standard: CurriculumStandardDto | null;
 	capabilities: CurriculumCapabilityDto[] | null;
 	/** The class's grade-level desempeños of this competencia. */
 	performances: CurriculumPerformanceDto[] | null;
@@ -548,7 +555,7 @@ export type ExperienceCriterionDto = {
 	competency_id: string;
 	description: string;
 	capability_ids: string[] | null;
-	/** Always set for criteria written in the planning flow; nullable in the schema. */
+	/** Optional: the cycle standard is the main source of a criterio. */
 	performance_id: string | null;
 	/** 'mawta' while it is only a proposal the teacher has not accepted or edited yet. */
 	proposed_by: string;
@@ -632,14 +639,15 @@ export type CreateCriterionBody = {
 	description: string;
 	/** At least one, of that competencia. */
 	capability_ids: string[];
-	/** A desempeño of that competencia for the class's grade. */
-	performance_id: string;
+	/** Optional: a desempeño of that competencia for the class's grade. */
+	performance_id?: string;
 };
 
 export type UpdateCriterionBody = {
 	description?: string;
 	capability_ids?: string[];
-	performance_id?: string;
+	/** A desempeño to set, or null to remove it; omitted keeps it. */
+	performance_id?: string | null;
 };
 
 export type CreateEvidenceBody = {

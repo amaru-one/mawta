@@ -14,9 +14,10 @@
 	// The criteria step of a saved experience. One competencia at a time, with
 	// ‹ › between them: its capacidades say in words which ones a criterio
 	// already looks at, and the criterios are the protagonists. A criterio is a
-	// grade desempeño landed on the situation; it can look at several
-	// capacidades of its competencia and is listed once. Mawta only fills gaps
-	// when asked, and "Continuar" waits until every competencia was seen.
+	// cycle standard landed on the situation (a grade desempeño is optional
+	// support); it can look at several capacidades of its competencia and is
+	// listed once. Mawta only fills gaps when asked, and "Continuar" waits until
+	// every competencia was seen.
 	import { onDestroy, onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
@@ -94,6 +95,8 @@
 	);
 	const capabilities = $derived(list(currentCurriculum?.capabilities));
 	const performances = $derived(list(currentCurriculum?.performances));
+	const standard = $derived(currentCurriculum?.standard ?? null);
+	let standardOpen = $state(false);
 	const criteria = $derived(
 		list(experience?.criteria).filter((criterion) => criterion.competency_id === current?.id)
 	);
@@ -115,7 +118,14 @@
 		if (next < 0 || next >= comps.length) return;
 		hapticTap();
 		form = null;
+		standardOpen = false;
 		compIdx = next;
+	}
+
+	// "ciclo_vi" -> "ciclo VI"
+	function cycleLabel(cycle: string | null | undefined): string {
+		if (!cycle) return 'ciclo';
+		return cycle.startsWith('ciclo_') ? `ciclo ${cycle.slice(6).toUpperCase()}` : cycle;
 	}
 
 	function isProposal(criterion: ExperienceCriterionDto): boolean {
@@ -201,10 +211,7 @@
 	}
 
 	const canSave = $derived(
-		!!form &&
-			form.performanceId !== '' &&
-			form.capabilityIds.length > 0 &&
-			form.description.trim() !== ''
+		!!form && form.capabilityIds.length > 0 && form.description.trim() !== ''
 	);
 
 	async function save(): Promise<void> {
@@ -214,11 +221,17 @@
 		const body = {
 			description: form.description.trim(),
 			capability_ids: form.capabilityIds,
-			performance_id: form.performanceId,
 		};
 		try {
-			if (form.id) await updateCriterion(form.id, body);
-			else await createCriterion(experienceId, { competency_id: current.id, ...body });
+			if (form.id) {
+				await updateCriterion(form.id, { ...body, performance_id: form.performanceId || null });
+			} else {
+				await createCriterion(experienceId, {
+					competency_id: current.id,
+					...body,
+					...(form.performanceId ? { performance_id: form.performanceId } : {}),
+				});
+			}
 			form = null;
 			await reload();
 			showToast('Criterio guardado');
@@ -321,6 +334,24 @@
 				}))}
 			/>
 
+			{#if standard}
+				<div class="standard">
+					<p class="eyebrow">Estándar · nivel esperado {cycleLabel(curriculum?.grade.cycle)}</p>
+					<p id="standard-text" class="standard-text" class:clamped={!standardOpen}>
+						{standard.text}
+					</p>
+					<button
+						type="button"
+						class="standard-toggle"
+						aria-expanded={standardOpen}
+						aria-controls="standard-text"
+						onclick={() => (standardOpen = !standardOpen)}
+					>
+						{standardOpen ? 'Ver menos' : 'Ver completo'}
+					</button>
+				</div>
+			{/if}
+
 			<div class="section">
 				<p class="eyebrow">Criterios · {criteria.length}</p>
 				{#if pending}
@@ -331,7 +362,7 @@
 					<Card>
 						<p class="empty-title">Aún no hay criterios para esta competencia.</p>
 						<p class="meta">
-							Mawta puede proponerlos a partir de los desempeños del grado, o puedes crearlos tú.
+							Mawta puede proponerlos a partir del estándar del ciclo, o puedes crearlos tú.
 						</p>
 					</Card>
 				{/if}
@@ -434,19 +465,7 @@
 	{#snippet editor()}
 		{#if form}
 			<Card>
-				<Field
-					kind="select"
-					label="Desempeño del grado"
-					value={form.performanceId}
-					onchange={(event) => choosePerformance(event.currentTarget.value)}
-				>
-					<option value="" disabled>Elige un desempeño</option>
-					{#each performances as performance (performance.id)}
-						<option value={performance.id}>{shortText(performance.text, 110)}</option>
-					{/each}
-				</Field>
-
-				<p class="f-label spaced">Capacidades que mira</p>
+				<p class="f-label">Capacidades que mira</p>
 				<div class="cap-options">
 					{#each capabilities as capability (capability.id)}
 						<Checkbox
@@ -462,9 +481,24 @@
 					kind="textarea"
 					label="Criterio"
 					rows={3}
-					placeholder="Aterriza el desempeño a tu situación"
+					placeholder="Concreta el estándar en tu situación"
 					bind:value={form.description}
 				/>
+
+				{#if performances.length > 0}
+					<Field
+						kind="select"
+						label="Desempeño del grado (opcional)"
+						help="Úsalo si quieres anclar el criterio a un desempeño concreto."
+						value={form.performanceId}
+						onchange={(event) => choosePerformance(event.currentTarget.value)}
+					>
+						<option value="">Sin desempeño</option>
+						{#each performances as performance (performance.id)}
+							<option value={performance.id}>{shortText(performance.text, 110)}</option>
+						{/each}
+					</Field>
+				{/if}
 
 				{#if formError}
 					<p class="form-error"><Icon name="alert" size={14} /> {formError}</p>
@@ -495,6 +529,40 @@
 	.comp-title {
 		font-size: var(--mw-type-title-size);
 		line-height: 1.2;
+	}
+
+	.standard {
+		margin-top: var(--mw-space-4);
+	}
+
+	.standard-text {
+		margin: 0;
+		max-width: 68ch;
+		font-size: var(--mw-type-small-size);
+		line-height: 1.5;
+		color: var(--mw-ink-secondary);
+	}
+
+	.standard-text.clamped {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 3;
+		line-clamp: 3;
+		overflow: hidden;
+	}
+
+	.standard-toggle {
+		margin: 4px 0 0;
+		padding: 8px 0;
+		min-height: 44px;
+		border: 0;
+		background: none;
+		font: inherit;
+		font-size: var(--mw-type-caption-size);
+		font-weight: 700;
+		color: var(--mw-ink);
+		text-decoration: underline;
+		cursor: pointer;
 	}
 
 	.section {
@@ -557,9 +625,6 @@
 		color: var(--mw-ink-secondary);
 	}
 
-	.f-label.spaced {
-		margin-top: 14px;
-	}
 	.view :global(.field) {
 		width: 100%;
 	}

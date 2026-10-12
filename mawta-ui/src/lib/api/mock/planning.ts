@@ -154,7 +154,7 @@ interface Criterion {
 	competency_id: string;
 	description: string;
 	capability_ids: string[];
-	performance_id: string;
+	performance_id: string | null;
 	proposed_by: string;
 	accepted_at: string | null;
 	deleted: boolean;
@@ -856,7 +856,10 @@ function requireCriterionBody(experience: Experience, body: CreateCriterionBody)
 			);
 		}
 	}
-	if (!competency.performances.some((performance) => performance.id === body.performance_id)) {
+	if (
+		body.performance_id !== undefined &&
+		!competency.performances.some((performance) => performance.id === body.performance_id)
+	) {
 		fail(
 			422,
 			'performance_not_in_grade',
@@ -973,72 +976,56 @@ function toGenerationDto(generation: Generation): GenerationDto {
 
 // ---------- the agent's banks (only gaps, only from the loaded curriculum) ----------
 
-// One criterio per capability, each grounded in one of the grade's desempeños.
-// The agent only cites curriculum rows that exist.
-const CRITERIA_BANK: Record<string, { text: string; performance_id: string }> = {
+// One criterio per capability, written from the cycle standard. The agent
+// never cites a desempeño.
+const CRITERIA_BANK: Record<string, { text: string }> = {
 	'mat-c1-cap1': {
 		text: 'Plantea la expresión numérica que modela la situación y comprueba que refleja sus datos y condiciones.',
-		performance_id: 'mat-c1-perf1',
 	},
 	'mat-c1-cap2': {
 		text: 'Expresa con representaciones y lenguaje numérico el valor posicional y el significado de los datos de la situación.',
-		performance_id: 'mat-c1-perf2',
 	},
 	'mat-c1-cap3': {
 		text: 'Emplea estrategias de cálculo y estimación con enteros, fracciones, decimales o porcentajes según la situación.',
-		performance_id: 'mat-c1-perf3',
 	},
 	'mat-c1-cap4': {
 		text: 'Justifica con ejemplos y propiedades de las operaciones el procedimiento y los resultados obtenidos.',
-		performance_id: 'mat-c1-perf4',
 	},
 	'mat-c2-cap1': {
 		text: 'Traduce la regularidad o la relación de equivalencia a una expresión algebraica o gráfica que la modele.',
-		performance_id: 'mat-c2-perf1',
 	},
 	'mat-c2-cap2': {
 		text: 'Expresa con representaciones tabulares, gráficas y simbólicas la regla de formación del patrón.',
-		performance_id: 'mat-c2-perf2',
 	},
 	'mat-c2-cap3': {
 		text: 'Emplea estrategias y procedimientos para hallar términos desconocidos o resolver la ecuación planteada.',
-		performance_id: 'mat-c2-perf3',
 	},
 	'mat-c2-cap4': {
 		text: 'Plantea y justifica afirmaciones sobre las relaciones de cambio y equivalencia que descubre.',
-		performance_id: 'mat-c2-perf4',
 	},
 	'mat-c3-cap1': {
 		text: 'Modela el objeto o la situación con formas geométricas y sus transformaciones, guardando sus propiedades.',
-		performance_id: 'mat-c3-perf1',
 	},
 	'mat-c3-cap2': {
 		text: 'Expresa con lenguaje geométrico y construcciones su comprensión de las formas y sus propiedades.',
-		performance_id: 'mat-c3-perf2',
 	},
 	'mat-c3-cap3': {
 		text: 'Emplea estrategias y unidades pertinentes para medir, ubicar o describir el espacio.',
-		performance_id: 'mat-c3-perf3',
 	},
 	'mat-c3-cap4': {
 		text: 'Justifica con ejemplos y conocimientos geométricos las relaciones que descubre entre las formas.',
-		performance_id: 'mat-c3-perf4',
 	},
 	'mat-c4-cap1': {
 		text: 'Representa los datos de la situación con gráficos y medidas de tendencia central pertinentes.',
-		performance_id: 'mat-c4-perf1',
 	},
 	'mat-c4-cap2': {
 		text: 'Expresa con lenguaje matemático su comprensión de la media, la mediana y la moda en el contexto.',
-		performance_id: 'mat-c4-perf2',
 	},
 	'mat-c4-cap3': {
 		text: 'Recopila y organiza en tablas los datos que la situación necesita, con procedimientos adecuados.',
-		performance_id: 'mat-c4-perf3',
 	},
 	'mat-c4-cap4': {
 		text: 'Sustenta con la información obtenida las conclusiones o decisiones que propone.',
-		performance_id: 'mat-c4-perf4',
 	},
 };
 
@@ -1171,6 +1158,27 @@ export async function getClassPlan(_classId: string, termId?: string): Promise<C
 	});
 }
 
+// The cycle-VI standard of each competencia, verbatim from the Programa
+// Curricular de Educación Secundaria (Matemática), level 6.
+const STANDARDS: Record<string, { level: number; text: string }> = {
+	'mat-c1': {
+		level: 6,
+		text: 'Resuelve problemas referidos a las relaciones entre cantidades o magnitudes, traduciéndolas a expresiones numéricas y operativas con números naturales, enteros y racionales, aumentos y descuentos porcentuales sucesivos, verificando si estas expresiones cumplen con las condiciones iniciales del problema. Expresa su comprensión de la relación entre los órdenes del sistema de numeración decimal con las potencias de base diez, y entre las operaciones con números enteros y racionales; y las usa para interpretar enunciados o textos diversos de contenido matemático. Representa relaciones de equivalencia entre expresiones decimales, fraccionarias y porcentuales, entre unidades de masa, tiempo y monetarias; empleando lenguaje matemático. Selecciona, emplea y combina recursos, estrategias, procedimientos, y propiedades de las operaciones y de los números para estimar o calcular con enteros y racionales; y realizar conversiones entre unidades de masa, tiempo y temperatura; verificando su eficacia. Plantea afirmaciones sobre los números enteros y racionales, sus propiedades y relaciones, y las justifica mediante ejemplos y sus conocimientos de las operaciones, e identifica errores o vacíos en las argumentaciones propias o de otros y las corrige.',
+	},
+	'mat-c2': {
+		level: 6,
+		text: 'Resuelve problemas referidos a interpretar cambios constantes o regularidades entre magnitudes, valores o entre expresiones; traduciéndolas a patrones numéricos y gráficos, progresiones aritméticas, ecuaciones e inecuaciones con una incógnita, funciones lineales y afín, y relaciones de proporcionalidad directa e inversa. Comprueba si la expresión algebraica usada expresó o reprodujo las condiciones del problema. Expresa su comprensión de: la relación entre función lineal y proporcionalidad directa; las diferencias entre una ecuación e inecuación lineal y sus propiedades; la variable como un valor que cambia; el conjunto de valores que puede tomar un término desconocido para verificar una inecuación; y las usa para interpretar enunciados, expresiones algebraicas o textos diversos de contenido matemático. Selecciona, emplea y combina recursos, estrategias, métodos gráficos y procedimientos matemáticos para determinar el valor de términos desconocidos en una progresión aritmética, simplificar expresiones algebraicas y dar solución a ecuaciones e inecuaciones lineales, y evaluar funciones lineales. Plantea afirmaciones sobre propiedades de las progresiones aritméticas, ecuaciones e inecuaciones así como de una función lineal, lineal afín con base a sus experiencias, y las justifica mediante ejemplos y propiedades matemáticas; encuentra errores o vacíos en las argumentaciones propias y las de otros y las corrige.',
+	},
+	'mat-c3': {
+		level: 6,
+		text: 'Resuelve problemas en los que modela características de objetos mediante prismas, pirámides y polígonos, sus elementos y propiedades, y la semejanza y congruencia de formas geométricas; así como la ubicación y movimiento mediante coordenadas en el plano cartesiano, mapas y planos a escala, y transformaciones. Expresa su comprensión de las formas congruentes y semejantes, la relación entre una forma geométrica y sus diferentes perspectivas; usando dibujos y construcciones. Clasifica prismas, pirámides y polígonos, según sus propiedades. Selecciona y emplea estrategias, procedimientos y recursos para determinar la longitud, área o volumen de formas geométricas en unidades convencionales y para construir formas geométricas a escala. Plantea afirmaciones sobre la semejanza y congruencia de formas, relaciones entre áreas de formas geométricas; las justifica mediante ejemplos y propiedades geométricas.',
+	},
+	'mat-c4': {
+		level: 6,
+		text: 'Resuelve problemas en los que plantea temas de estudio, identificando la población pertinente y las variables cuantitativas continuas, así como cualitativas nominales y ordinales. Recolecta datos mediante encuestas y los registra en tablas de datos agrupados, así también determina la media aritmética y mediana de datos discretos; representa su comportamiento en histogramas, polígonos de frecuencia, gráficos circulares, tablas de frecuencia y medidas de tendencia central; usa el significado de las medidas de tendencia central para interpretar y comparar la información contenida en estos. Basado en ello, plantea y contrasta conclusiones, sobre las características de una población. Expresa la probabilidad de un evento aleatorio como decimal o fracción, así como su espacio muestral; e interpreta que un suceso seguro, probable e imposible, se asocia a los valores entre 0 y 1. Hace predicciones sobre la ocurrencia de eventos y las justifica.',
+	},
+};
+
 // The mock answers for any class id: screens pass the real course id and the
 // seed ignores it, so the flow can be walked from any class panel.
 export async function getClassCurriculum(classId: string): Promise<CurriculumDto> {
@@ -1183,6 +1191,7 @@ export async function getClassCurriculum(classId: string): Promise<CurriculumDto
 			code: competency.code,
 			name: competency.name,
 			kind: 'area',
+			standard: STANDARDS[competency.id] ?? null,
 			capabilities: competency.capabilities,
 			performances: competency.performances,
 		})),
@@ -1415,7 +1424,7 @@ export async function createCriterion(
 		competency_id: body.competency_id,
 		description: body.description,
 		capability_ids: [...body.capability_ids],
-		performance_id: body.performance_id,
+		performance_id: body.performance_id ?? null,
 		proposed_by: 'teacher',
 		accepted_at: nowISO(),
 		deleted: false,
@@ -1450,7 +1459,9 @@ export async function updateCriterion(
 		}
 		criterion.capability_ids = [...body.capability_ids];
 	}
-	if (body.performance_id !== undefined) {
+	if (body.performance_id === null) {
+		criterion.performance_id = null;
+	} else if (body.performance_id !== undefined) {
 		const competency = competencyById(criterion.competency_id);
 		if (!competency || !competency.performances.some((item) => item.id === body.performance_id)) {
 			fail(
@@ -1776,7 +1787,7 @@ export async function generateCriteria(
 				competency_id: competencyId,
 				description: bank.text,
 				capability_ids: [capability.id],
-				performance_id: bank.performance_id,
+				performance_id: null,
 				proposed_by: 'mawta',
 				accepted_at: null,
 				deleted: false,
