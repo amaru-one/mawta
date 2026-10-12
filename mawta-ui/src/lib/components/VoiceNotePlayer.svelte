@@ -154,7 +154,7 @@
 		flex: 1;
 		min-width: 0;
 		text-align: left;
-		min-height: 40px;
+		min-height: var(--mw-touch-target);
 	}
 	.duration {
 		font-size: var(--mw-type-small-size);

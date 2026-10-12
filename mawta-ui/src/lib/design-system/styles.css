@@ -44,6 +44,7 @@
 	--mw-ease: ease;
 	--mw-z-raised: 1;
 	--mw-z-overlay: 2;
+	--mw-touch-target: 44px;
 	--mw-type-display-size: 30px;
 	--mw-type-display-line: 34px;
 	--mw-type-title-size: 24px;
@@ -145,8 +146,8 @@
 	flex: 1 1 120px;
 }
 .mw-root .mw-action {
-	min-width: 40px;
-	min-height: 40px;
+	min-width: var(--mw-touch-target);
+	min-height: var(--mw-touch-target);
 	padding: var(--mw-space-2) var(--mw-space-1);
 	border: 0;
 	border-radius: 0;
@@ -175,10 +176,10 @@
 	text-underline-offset: 3px;
 }
 .mw-root .mw-icon-button {
-	width: 40px;
-	height: 40px;
+	width: var(--mw-touch-target);
+	height: var(--mw-touch-target);
 	padding: 0;
-	flex: 0 0 40px;
+	flex: 0 0 var(--mw-touch-target);
 	border: 0;
 	border-radius: var(--mw-radius-full);
 	background: transparent;
@@ -407,7 +408,7 @@
 .mw-root .mw-seg button {
 	flex: 1 1 0;
 	min-width: 0;
-	min-height: 40px;
+	min-height: var(--mw-touch-target);
 	border: 0;
 	border-radius: var(--mw-radius-md);
 	padding: var(--mw-space-2);
@@ -572,7 +573,7 @@
 	overflow-wrap: anywhere;
 }
 .mw-root .mw-toast button {
-	min-height: 40px;
+	min-height: var(--mw-touch-target);
 	flex-shrink: 0;
 	padding: var(--mw-space-2) 0;
 	border: 0;
@@ -596,7 +597,7 @@
 	gap: var(--mw-space-2);
 	flex: 1;
 	min-width: 0;
-	min-height: 40px;
+	min-height: var(--mw-touch-target);
 	border: 0;
 	padding: 0;
 	background: transparent;
@@ -698,7 +699,7 @@
 	overflow-wrap: anywhere;
 }
 .mw-root a.mw-session__evidence {
-	min-height: 40px;
+	min-height: var(--mw-touch-target);
 }
 .mw-root .mw-session__actions {
 	display: flex;

@@ -248,7 +248,9 @@
 	}
 	dd > a {
 		padding: var(--mw-space-2) 0;
-		min-height: 40px;
+		display: flex;
+		align-items: center;
+		min-height: var(--mw-touch-target);
 	}
 	dd > a:first-child {
 		margin-top: calc(-1 * var(--mw-space-2));
