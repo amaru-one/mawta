@@ -87,7 +87,7 @@ func prepareSessions(ctx context.Context, tx pgx.Tx, gen repo.AgentGeneration) (
 
 	var pr strings.Builder
 	fmt.Fprintf(&pr, "Experiencia: %s (del %s al %s)\nSituación: %s\n\n", exp.Title, exp.StartsOn, exp.EndsOn, deref(exp.SituationText))
-	pr.WriteString("Criterios y los desempeños que aterrizan (fuente de los temas):\n")
+	pr.WriteString("Criterios de la experiencia, con su desempeño cuando lo tienen (fuente de los temas):\n")
 	for _, c := range exp.Criteria {
 		fmt.Fprintf(&pr, "- %s", c.Description)
 		if c.PerformanceID != nil && performances[*c.PerformanceID] != "" {

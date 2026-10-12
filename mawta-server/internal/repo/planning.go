@@ -490,11 +490,19 @@ type CurriculumPerformance struct {
 	SuggestedCapabilityID *uuid.UUID `json:"suggested_capability_id"`
 }
 
+// CurriculumStandard is the learning standard a competency reaches at the end
+// of the class's cycle, verbatim from the CNEB.
+type CurriculumStandard struct {
+	Level int16  `json:"level"`
+	Text  string `json:"text"`
+}
+
 type CurriculumCompetency struct {
 	ID           uuid.UUID               `json:"id"`
 	Code         string                  `json:"code"`
 	Name         string                  `json:"name"`
 	Kind         string                  `json:"kind"`
+	Standard     *CurriculumStandard     `json:"standard"`
 	Capabilities []CurriculumCapability  `json:"capabilities"`
 	Performances []CurriculumPerformance `json:"performances"`
 }
@@ -505,8 +513,9 @@ type Curriculum struct {
 }
 
 // GetCurriculum returns the competencies of the class's área with their
-// capabilities and the performances of the class's grade. No standards: they
-// are not a source of criteria (decision 5 of the contract).
+// capabilities, the standard of the class's cycle and the performances of the
+// class's grade. The standard is the main source of criteria; performances are
+// optional support.
 func GetCurriculum(ctx context.Context, tx pgx.Tx, classID uuid.UUID) (Curriculum, error) {
 	cc, err := loadClassContext(ctx, tx, classID)
 	if err != nil {
@@ -549,6 +558,33 @@ func GetCurriculum(ctx context.Context, tx pgx.Tx, classID uuid.UUID) (Curriculu
 	rows.Close()
 	if err := rows.Err(); err != nil {
 		return out, err
+	}
+
+	if out.Grade.ExpectedLevel != nil {
+		rows, err = tx.Query(ctx, `
+			select s.competency_id, s.level, s.official_text
+			  from learning_standards s
+			  join competencies c on c.id = s.competency_id
+			 where c.subject_id = $1 and s.level = $2 and s.deleted_at is null
+		`, cc.SubjectID, *out.Grade.ExpectedLevel)
+		if err != nil {
+			return out, err
+		}
+		for rows.Next() {
+			var compID uuid.UUID
+			var st CurriculumStandard
+			if err := rows.Scan(&compID, &st.Level, &st.Text); err != nil {
+				rows.Close()
+				return out, err
+			}
+			if i, ok := index[compID]; ok {
+				out.Competencies[i].Standard = &st
+			}
+		}
+		rows.Close()
+		if err := rows.Err(); err != nil {
+			return out, err
+		}
 	}
 
 	rows, err = tx.Query(ctx, `
@@ -1295,7 +1331,8 @@ type CriterionInput struct {
 	CompetencyID  uuid.UUID
 	Description   string
 	CapabilityIDs []uuid.UUID
-	PerformanceID uuid.UUID
+	// PerformanceID is optional: the standard is the main source of a criterion.
+	PerformanceID *uuid.UUID
 }
 
 // checkCriterionCompetency requires the competency to be one the experience
@@ -1404,8 +1441,10 @@ func createPlannedCriterion(ctx context.Context, tx pgx.Tx, experienceID uuid.UU
 	if err := checkCriterionCapabilities(ctx, tx, in.CompetencyID, capabilityIDs); err != nil {
 		return uuid.Nil, err
 	}
-	if err := checkCriterionPerformance(ctx, tx, h.ClassID, in.CompetencyID, in.PerformanceID); err != nil {
-		return uuid.Nil, err
+	if in.PerformanceID != nil {
+		if err := checkCriterionPerformance(ctx, tx, h.ClassID, in.CompetencyID, *in.PerformanceID); err != nil {
+			return uuid.Nil, err
+		}
 	}
 
 	var id uuid.UUID
@@ -1444,10 +1483,13 @@ func setCriterionCapabilities(ctx context.Context, tx pgx.Tx, criterionID, compe
 	return err
 }
 
+// CriterionPatch changes the fields that are set. PerformanceIDSet with a nil
+// PerformanceID removes the criterion's performance.
 type CriterionPatch struct {
-	Description   *string
-	CapabilityIDs *[]uuid.UUID
-	PerformanceID *uuid.UUID
+	Description      *string
+	CapabilityIDs    *[]uuid.UUID
+	PerformanceID    *uuid.UUID
+	PerformanceIDSet bool
 }
 
 // lockPlannedCriterion reads a criterion of an experience and locks its
@@ -1483,7 +1525,7 @@ func UpdatePlannedCriterion(ctx context.Context, tx pgx.Tx, criterionID uuid.UUI
 		}
 		description = &d
 	}
-	if p.PerformanceID != nil {
+	if p.PerformanceIDSet && p.PerformanceID != nil {
 		if err := checkCriterionPerformance(ctx, tx, h.ClassID, competencyID, *p.PerformanceID); err != nil {
 			return err
 		}
@@ -1500,10 +1542,10 @@ func UpdatePlannedCriterion(ctx context.Context, tx pgx.Tx, criterionID uuid.UUI
 	_, err = tx.Exec(ctx, `
 		update evaluation_criteria
 		   set description = coalesce($2, description),
-		       performance_id = coalesce($3, performance_id),
+		       performance_id = case when $4 then $3 else performance_id end,
 		       accepted_at = coalesce(accepted_at, now())
 		 where id = $1
-	`, criterionID, description, p.PerformanceID)
+	`, criterionID, description, p.PerformanceID, p.PerformanceIDSet)
 	return err
 }
 
