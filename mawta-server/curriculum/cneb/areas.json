@@ -114,6 +114,137 @@
           "numero_cneb": 4
         }
       ]
+    },
+    {
+      "codigo": "ARTE",
+      "nombre": "Arte y Cultura",
+      "niveles": [
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "ARTE-C1",
+          "numero_cneb": 5
+        },
+        {
+          "codigo": "ARTE-C2",
+          "numero_cneb": 6
+        }
+      ]
+    },
+    {
+      "codigo": "COM",
+      "nombre": "Comunicación",
+      "niveles": [
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "COM-C1",
+          "numero_cneb": 7
+        },
+        {
+          "codigo": "COM-C2",
+          "numero_cneb": 8
+        },
+        {
+          "codigo": "COM-C3",
+          "numero_cneb": 9
+        }
+      ]
+    },
+    {
+      "codigo": "CSL",
+      "nombre": "Castellano como Segunda Lengua",
+      "niveles": [
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "CSL-C1",
+          "numero_cneb": 10
+        },
+        {
+          "codigo": "CSL-C2",
+          "numero_cneb": 11
+        },
+        {
+          "codigo": "CSL-C3",
+          "numero_cneb": 12
+        }
+      ]
+    },
+    {
+      "codigo": "ING",
+      "nombre": "Inglés como Lengua Extranjera",
+      "niveles": [
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "ING-C1",
+          "numero_cneb": 13
+        },
+        {
+          "codigo": "ING-C2",
+          "numero_cneb": 14
+        },
+        {
+          "codigo": "ING-C3",
+          "numero_cneb": 15
+        }
+      ]
+    },
+    {
+      "codigo": "CYT",
+      "nombre": "Ciencia y Tecnología",
+      "niveles": [
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "CYT-C1",
+          "numero_cneb": 20
+        },
+        {
+          "codigo": "CYT-C2",
+          "numero_cneb": 21
+        },
+        {
+          "codigo": "CYT-C3",
+          "numero_cneb": 22
+        }
+      ]
+    },
+    {
+      "codigo": "EPT",
+      "nombre": "Educación para el Trabajo",
+      "niveles": [
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "EPT-C1",
+          "numero_cneb": 27
+        }
+      ]
+    },
+    {
+      "codigo": "ER",
+      "nombre": "Educación Religiosa",
+      "niveles": [
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "ER-C1",
+          "numero_cneb": 30
+        },
+        {
+          "codigo": "ER-C2",
+          "numero_cneb": 31
+        }
+      ]
     }
   ],
   "transversales": [

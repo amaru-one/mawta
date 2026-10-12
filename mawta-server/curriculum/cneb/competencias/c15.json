@@ -1,0 +1,158 @@
+{
+  "numero_cneb": 15,
+  "nombre": "Escribe diversos tipos de textos en inglés como lengua extranjera",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Adecúa el texto a la situación comunicativa"
+    },
+    {
+      "numero": 2,
+      "nombre": "Organiza y desarrolla las ideas de forma coherente y cohesionada"
+    },
+    {
+      "numero": 3,
+      "nombre": "Utiliza convenciones del lenguaje escrito de forma pertinente"
+    },
+    {
+      "numero": 4,
+      "nombre": "Reflexiona y evalúa la forma, el contenido y el contexto del texto escrito"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Se comunica oralmente en su lengua materna”."
+    },
+    {
+      "nivel": 2,
+      "texto": "Este nivel tiene como base el nivel 2 de la competencia “Se comunica oralmente en su lengua materna”."
+    },
+    {
+      "nivel": 3,
+      "texto": "Este nivel tiene como base el nivel 3 de la competencia “Se comunica oralmente en inglés como lengua extranjera”."
+    },
+    {
+      "nivel": 4,
+      "texto": "Escribe diversos tipos de textos breves y sencillos en inglés. Adecúa su texto al propósito del texto a partir de su experiencia previa. Organiza y desarrolla sus ideas en torno a un tema. Relaciona sus ideas a través del uso de algunos conectores básicos con vocabulario de uso frecuente y construcciones gramaticales simples. Utiliza recursos ortográficos básicos que permiten claridad en sus textos. Reflexiona y evalúa sobre su texto escrito."
+    },
+    {
+      "nivel": 5,
+      "texto": "Escribe diversos tipos de textos de extensión breve en inglés. Adecúa su texto al destinatario y propósito a partir de su experiencia previa. Organiza y desarrolla sus ideas en torno a un tema central y los estructura en un párrafo. Relaciona sus ideas a través del uso de algunos recursos cohesivos (sinónimos, pronominalización y conectores aditivos, adversativos y temporales) con vocabulario cotidiano y pertinente y construcciones gramaticales simples. Utiliza algunos recursos ortográficos que permiten claridad en sus textos. Reflexiona y evalúa sobre su texto escrito."
+    },
+    {
+      "nivel": 6,
+      "texto": "Escribe diversos tipos de textos de mediana extensión en inglés. Adecúa su texto al destinatario, propósito y registro a partir de su experiencia previa y fuentes de información básica. Organiza y desarrolla sus ideas en torno a un tema central y los estructura en uno o dos párrafos. Relaciona sus ideas a través del uso de algunos recursos cohesivos (sinónimos, pronominalización y conectores aditivos, adversativos, temporales y causales) con vocabulario cotidiano y pertinente y construcciones gramaticales simples y de mediana complejidad. Utiliza recursos ortográficos que permiten claridad en sus textos. Reflexiona sobre el contenido del texto y evalúa el uso de algunos recursos formales."
+    },
+    {
+      "nivel": 7,
+      "texto": "Escribe diversos tipos de textos de amplia extensión de forma reflexiva en inglés. Adecúa su texto al destinatario, propósito y registro a partir de su experiencia previa y fuentes de información variada. Organiza y desarrolla sus ideas alrededor de un tema central y las estructura en párrafos y subtítulos. Relaciona sus ideas a través del uso de algunos recursos cohesivos (sinónimos, antónimos, pronominalización y conectores aditivos, adversativos, temporales, condicionales, disyuntivos y causales) con vocabulario variado y pertinente a la temática tratada y construcciones gramaticales de mediana complejidad. Utiliza recursos ortográficos que permiten claridad en sus textos. Reflexiona sobre el texto que escribe y evalúa los usos del lenguaje con la finalidad de mejorar el texto que escribe en inglés."
+    },
+    {
+      "nivel": 8,
+      "texto": "Escribe diversos tipos de textos en inglés de forma reflexiva. Adecúa su texto al destinatario, propósito y registro a partir de su experiencia previa, fuentes de información variada y de su contexto sociocultural. Organiza y desarrolla sus ideas en forma lógica sobre un tema central evitando digresiones, contradicciones y repeticiones. Relaciona sus ideas a través del uso de diversos recursos cohesivos con vocabulario variado y preciso a la temática tratada y construcciones gramaticales variadas. Utiliza recursos ortográficos que permiten claridad y variedad en sus textos. Reflexiona sobre el texto que escribe y evalúa los usos del lenguaje con la finalidad de mejorar el texto que escribe en inglés."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Adecúa el texto que escribe en inglés a la situación comunicativa considerando el tipo textual, algunas características del género discursivo, el formato, el soporte y el propósito. Ejemplo: Intercambiar información personal; hablar sobre habilidades, posesiones, preferencias, deportes y lugares; hablar acerca de actividades en curso, pasadas y diarias; describir el trabajo, la escuela; identificar accidentes geográficos y comprar comida."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Produce textos escritos en inglés en torno a un tema con coherencia, cohesión y fluidez de acuerdo con su nivel. Los organiza estableciendo relaciones lógicas (adición, contraste, secuencia, semejanza-diferencia y causa) y ampliando información de forma pertinente con vocabulario apropiado."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Emplea convenciones del lenguaje escrito como recursos ortográficos y gramaticales de mediana complejidad que le dan claridad y sentido al texto. Ejemplo: Verb to be; wh-questions —what, how, where, what, when, what time, how often, whose, how many, how much; possessive adjectives and nouns; personal and object pronouns; demonstrative pronouns; adverbs of frequency; can; present simple and continuous; quantifiers; comparative and superlative adjectives. Usa recursos textuales para aclarar y reforzar sentidos en el texto."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Evalúa su texto en inglés para mejorarlo considerando aspectos gramaticales y ortográficos, y las características de tipos textuales y géneros discursivos, así como otras convenciones vinculadas con el lenguaje escrito."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Adecúa el texto que escribe en inglés a la situación comunicativa considerando el tipo textual, algunas características del género discursivo, el formato, el soporte y el propósito. Ejemplo: Hablar sobre personas, lugares, accidentes; expresar sentimientos y estados de ánimo; describir posibilidades futuras, obligaciones, tecnología, eventos, noticias, actividades en curso y pasadas; realizar pedidos, sugerencias y planes; pedir y dar consejo; sugerir y planificar una actividad; expresar causa y efecto; discutir acerca de preferencias propias y de otros; describir y recomendar películas; brindar instrucciones para llegar a algún punto."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Produce textos escritos en inglés en torno a un tema con coherencia, cohesión y fluidez de acuerdo con su nivel. Los organiza estableciendo relaciones lógicas (adición, contraste, secuencia, semejanza-diferencia, causa y consecuencia) y ampliando información de forma pertinente con vocabulario apropiado."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Emplea convenciones del lenguaje escrito como recursos ortográficos y gramaticales de mediana complejidad que le dan claridad y sentido al texto. Ejemplo: Present simple and continuous, past simple and continuous, prepositions of time and place —in, on, at; modals —can, could, should, have to; connectors and, or, so, because; future with going to, adverb clauses of time —after, before, as soon as, when; zero conditional, would like to, want to, like + ing, future with will, first conditional. Usa recursos textuales para aclarar y reforzar sentidos en el texto."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Evalúa su texto en inglés para mejorarlo considerando aspectos gramaticales y ortográficos, y las características de tipos textuales y géneros discursivos, así como otras convenciones vinculadas con el lenguaje escrito."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Adecúa el texto que escribe en inglés a la situación comunicativa considerando el tipo textual, algunas características del género discursivo, el formato, el soporte y el propósito. Ejemplo: Intercambiar información personal al presentar a alguien y a sí mismo; hablar sobre personas, medios de transporte, deportes, entretenimiento; discutir acerca de costumbres, hábitos, noticias, viajes y experiencias; describir acontecimientos históricos, accidentes vehiculares, condiciones de viaje, noticias; intercambiar información personal; comparar estilos de vida; hacer planes; quejarse y disculparse."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Produce textos escritos en inglés en torno a un tema con coherencia, cohesión y fluidez de acuerdo con su nivel. Los jerarquiza estableciendo relaciones lógicas (adición, contraste, secuencia, semejanza-diferencia, causa y consecuencia) y ampliando información de forma pertinente con vocabulario apropiado."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Emplea convenciones del lenguaje escrito como recursos ortográficos y gramaticales complejos que le dan claridad y sentido al texto. Ejemplo: Present simple; past simple; past continuous; subordinating conjunctions: when, while, so, as, because; past participle verbs —regular, irregular; present perfect, past participle verbs (regular and irregular); comparative and superlative adjectives; future with will and going to, adverbs —ever, twice, once, already, yet, just, too, enough, so, such; prepositions —for, since. Usa recursos textuales para aclarar y reforzar sentidos en el texto."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Evalúa su texto en inglés para mejorarlo considerando aspectos gramaticales y ortográficos, y las características de tipos textuales y géneros discursivos, así como otras convenciones vinculadas con el lenguaje escrito usadas con pertinencia para dar sentido al texto."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Adecúa el texto que escribe en inglés a la situación comunicativa considerando el tipo textual, algunas características del género discursivo, el formato, el soporte y el propósito. Ejemplo: Hablar acerca de actividades en curso, temporales y habituales; discutir acerca de situaciones imaginarias, obligaciones y reglas en la casa, actitudes y comportamientos, preferencias, hábitos pasados, problemas y soluciones, productos fabricados, inventos, planes y predicciones; expresar deducción, imposibilidad, posibilidad, obligación y necesidad; secuenciar eventos; compartir intereses personales."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Produce textos escritos en inglés en torno a un tema con coherencia, cohesión y fluidez de acuerdo con su nivel. Los jerarquiza estableciendo diferentes relaciones lógicas (adición, contraste, secuencia, semejanza-diferencia, causa y consecuencia) y ampliando información de forma pertinente con vocabulario apropiado."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Emplea convenciones del lenguaje escrito como recursos ortográficos y gramaticales complejos que le dan claridad y sentido al texto. Ejemplo: Present continuous, simple present, frequency adverbs, present perfect, past simple, used to, second conditional, phrasal verbs, present simple passive, question tags, modals - must/can't (deduction), might, may (possibility), must/have to (obligation), future continuous. Usa recursos textuales para aclarar y reforzar sentidos en el texto."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Evalúa su texto en inglés para mejorarlo considerando aspectos gramaticales y ortográficos, y las características de tipos textuales y géneros discursivos, así como otras convenciones vinculadas con el lenguaje escrito usadas con pertinencia para dar sentido al texto."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Adecúa el texto que escribe en inglés a la situación comunicativa considerando el tipo textual, algunas características del género discursivo, el formato, el soporte y el propósito. Ejemplo: Discutir acerca de modales, libros, lenguaje corporal, inventos, competencias para el trabajo, desastres naturales y emergencias; reportar una emergencia; expresar arrepentimiento; reportar noticias."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Produce textos escritos en inglés en torno a un tema con coherencia, cohesión y fluidez de acuerdo con su nivel. Los jerarquiza estableciendo diferentes relaciones lógicas (adición, contraste, secuencia, semejanza-diferencia, causa y consecuencia) y ampliando información de forma pertinente con vocabulario apropiado."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Emplea convenciones del lenguaje escrito como recursos ortográficos y gramaticales complejos que le dan claridad y sentido al texto. Ejemplo: Embedded questions; present perfect continuous; past perfect, connecting words; reported speech —range of tenses; perfect modals —should, might, may, could; conditionals 2nd and 3rd. Usa recursos textuales para aclarar y reforzar sentidos en el texto con el fin de producir efectos en el lector."
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Evalúa su texto en inglés para mejorarlo considerando aspectos gramaticales y ortográficos, y las características de tipos textuales y géneros discursivos, así como otras convenciones vinculadas con el lenguaje escrito usadas con pertinencia y precisión para dar sentido al texto."
+    }
+  ]
+}

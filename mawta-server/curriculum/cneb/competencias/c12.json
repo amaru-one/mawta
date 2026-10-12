@@ -1,0 +1,208 @@
+{
+  "numero_cneb": 12,
+  "nombre": "Escribe diversos tipos de textos en castellano como segunda lengua",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Adecúa el texto a la situación comunicativa"
+    },
+    {
+      "numero": 2,
+      "nombre": "Organiza y desarrolla las ideas de forma coherente y cohesionada"
+    },
+    {
+      "numero": 3,
+      "nombre": "Utiliza convenciones del lenguaje escrito de forma pertinente"
+    },
+    {
+      "numero": 4,
+      "nombre": "Reflexiona y evalúa la forma, el contenido y contexto del texto escrito"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Se comunica oralmente en su lengua materna”."
+    },
+    {
+      "nivel": 2,
+      "texto": "Este nivel tiene como base el nivel 2 de la competencia “Se comunica oralmente en su lengua materna”."
+    },
+    {
+      "nivel": 3,
+      "texto": "Escribe frases y oraciones para formar un texto sobre temas cotidianos respondiendo a su propósito a partir de su experiencia previa. Relaciona ideas vinculadas a un tema y utiliza vocabulario de uso frecuente. Establece relaciones entre ideas mediante el uso de algunos conectores para añadir información puntual y utiliza algunos recursos ortográficos."
+    },
+    {
+      "nivel": 4,
+      "texto": "Escribe diversos tipos de textos sobre temas cotidianos respondiendo a su propósito a partir de su experiencia previa y una fuente de información. Organiza y desarrolla ideas en párrafos en torno a un tema y utiliza vocabulario de uso frecuente. Establece relaciones entre ideas mediante el uso de algunos conectores para añadir información específica, utiliza y algunos recursos ortográficos. Reflexiona y evalúa su texto escrito."
+    },
+    {
+      "nivel": 5,
+      "texto": "Escribe diversos tipos de textos de forma reflexiva sobre temas variados. Adecúa su texto al destinatario, propósito y el registro, a partir de diversas fuentes de información. Organiza y desarrolla sus ideas en párrafos en torno a un tema y utiliza vocabulario variado. Establece relaciones entre ideas mediante el uso de diferentes recursos (conectores, pronombres), usando diversos recursos ortográficos para darle claridad al sentido del texto. Reflexiona y evalúa su texto escrito."
+    },
+    {
+      "nivel": 6,
+      "texto": "Escribe diversos tipos de textos de forma reflexiva sobre temas variados. Adecúa su texto al destinatario, propósito y registro, utiliza diversas fuentes de información complementaria y/o divergente entre sí, que provienen de diversos contextos socioculturales. Organiza y desarrolla sus ideas en párrafos en torno a diversos temas y usa vocabulario variado y especializado. Relaciona ideas del texto mediante el uso de diversos referentes gramaticales, usando diferentes recursos ortográficos para darle claridad al texto. Reflexiona sobre el contenido del texto, la organización y el contexto donde se desarrolla, y evalúa comparando su texto con otros textos similares."
+    },
+    {
+      "nivel": 7,
+      "texto": "Escribe diversos tipos de textos de forma reflexiva sobre temas variados. Adecúa su texto a su destinatario, propósito y registro; utiliza diversas fuentes de información complementaria y/o divergente entre sí, que provienen de diversos contextos socioculturales e históricos. Organiza y desarrolla sus ideas en torno al género discursivo y al tema, usando vocabulario variado y especializado. Relaciona ideas del texto a través del uso de recursos gramaticales y recursos ortográficos para darle claridad y sentido. Reflexiona sobre el contenido del texto, la organización y el contexto donde se desarrolla, evalúa los usos del lenguaje justificando su posición."
+    },
+    {
+      "nivel": 8,
+      "texto": "Escribe diversos tipos de texto de forma reflexiva. Adecúa su texto al destinatario, propósito y registro utilizando fuentes de información complementaria y/o divergente entre sí y en relación con otros contextos socioculturales e históricos. Organiza y desarrolla sus ideas en torno al género discursivo y al tema, usando vocabulario especializado. Relaciona ideas del texto a través de recursos gramaticales y recursos ortográficos para darle claridad y sentido. Reflexiona sobre el contenido del texto, la organización y el contexto donde se desarrolla; evalúa los usos del lenguaje para persuadir e influir."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Adecúa su texto al destinatario, el registro formal e informal, y el propósito comunicativo sobre temas variados considerando diversas fuentes de información, complementarias a la idea que se desea defender en el texto, o divergentes, es decir, contrarias a la idea que se debe defender."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Escribe textos en torno a un tema. Ordena las ideas mediante el uso de diferentes conectores y referentes gramaticales."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Organiza su texto en párrafos en torno a diversos temas y presenta eventualmente alguna digresión."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Utiliza diferentes recursos ortográficos, expresiones formulaicas y vocabulario variado para que su texto sea claro."
+    },
+    {
+      "grado": "1S",
+      "orden": 5,
+      "texto": "Evalúa si el texto que escribe se adecúa, en lo que respecta tanto a su contenido como a su forma, a la situación comunicativa."
+    },
+    {
+      "grado": "1S",
+      "orden": 6,
+      "texto": "Evalúa el efecto de su texto en los lectores. Compara su texto producido con otros para ver la eficacia de los recursos empleados en cada uno de los textos."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Adecúa su texto al destinatario, el registro formal e informal, y el propósito comunicativo sobre temas variados considerando diversas fuentes de información, complementarias a la idea que se desea defender en el texto, o divergentes, es decir, contrarias a la idea que se debe defender."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Escribe textos en torno a un tema. Ordena las ideas mediante el uso variado de conectores y referentes gramaticales."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Organiza su texto en párrafos en torno a diversos temas."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Utiliza diferentes recursos ortográficos, expresiones formulaicas, y vocabulario variado y especializado para que su texto sea claro."
+    },
+    {
+      "grado": "2S",
+      "orden": 5,
+      "texto": "Evalúa si el texto que escribe se adecúa, en lo que respecta tanto a su contenido como a su organización, a la situación comunicativa."
+    },
+    {
+      "grado": "2S",
+      "orden": 6,
+      "texto": "Evalúa el efecto de su texto en los lectores. Compara su texto producido con otros para ver la eficacia de los recursos empleados en cada uno de los textos."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Adecúa su texto al destinatario, el registro formal e informal, y el propósito comunicativo sobre temas variados, utilizando diversas fuentes con información opuesta oral o escrita, que provienen de diversos contextos socioculturales."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Escribe textos en torno a un tema. Ordena las ideas mediante el uso variado de conectores y referentes gramaticales."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Organiza su texto en párrafos en torno a diversos temas."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Utiliza diferentes recursos ortográficos y diversas expresiones formulaicas para que su texto sea claro."
+    },
+    {
+      "grado": "3S",
+      "orden": 5,
+      "texto": "Evalúa si el texto que escribe se adecúa, en lo que respecta tanto a su contenido como a su organización, a la situación comunicativa."
+    },
+    {
+      "grado": "3S",
+      "orden": 6,
+      "texto": "Evalúa los usos del lenguaje del texto al comparar y contrastar aspectos gramaticales y ortográficos, además de las características de los tipos textuales y géneros discursivos usados."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Adecúa su texto al destinatario, el registro formal e informal, y el propósito comunicativo sobre temas variados, utilizando estratégicamente diversas fuentes con información opuesta oral o escrita, que provienen de diversos contextos socioculturales."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Escribe textos en torno a un tema. Ordena las ideas mediante el uso variado de conectores y referentes gramaticales."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Organiza su texto en párrafos en torno a diversos temas."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Utiliza diferentes recursos ortográficos y diversas expresiones formulaicas para que su texto sea claro."
+    },
+    {
+      "grado": "4S",
+      "orden": 5,
+      "texto": "Evalúa si el texto que escribe se adecúa, en lo que respecta tanto a su contenido como a su organización, a la situación comunicativa."
+    },
+    {
+      "grado": "4S",
+      "orden": 6,
+      "texto": "Evalúa los usos del lenguaje del texto al comparar y contrastar aspectos gramaticales y ortográficos, además de las características de los tipos textuales y géneros discursivos usados."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Adecúa su texto al destinatario, el registro formal e informal, y el propósito comunicativo sobre temas variados, utilizando estratégicamente diversas fuentes con información opuesta oral o escrita, que provienen de diversos contextos socioculturales."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Escribe textos en torno a un tema. Ordena las ideas mediante el uso variado de conectores y referentes gramaticales."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Organiza su texto en párrafos en torno a diversos temas."
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Utiliza diferentes recursos gramaticales y ortográficos para darle claridad y sentido al texto que escribe."
+    },
+    {
+      "grado": "5S",
+      "orden": 5,
+      "texto": "Evalúa si el texto que escribe se adecúa, en lo que respecta tanto a su contenido como a su organización, a la situación comunicativa."
+    },
+    {
+      "grado": "5S",
+      "orden": 6,
+      "texto": "Evalúa los usos del lenguaje del texto al comparar y contrastar aspectos gramaticales y ortográficos, además de las características de los tipos textuales y géneros discursivos usados."
+    }
+  ]
+}

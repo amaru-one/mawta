@@ -1,0 +1,129 @@
+{
+  "numero_cneb": 6,
+  "nombre": "Crea proyectos desde los lenguajes artísticos",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Explora y experimenta los lenguajes artísticos"
+    },
+    {
+      "numero": 2,
+      "nombre": "Aplica procesos creativos"
+    },
+    {
+      "numero": 3,
+      "nombre": "Evalúa y comunica sus procesos y proyectos"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene principalmente como base el nivel 1 de la competencia de indagación."
+    },
+    {
+      "nivel": 2,
+      "texto": "Crea proyectos artísticos al experimentar y manipular libremente diversos medios y materiales para descubrir sus propiedades expresivas. Explora los elementos básicos de los lenguajes del arte como el sonido, los colores y el movimiento. Explora sus propias ideas imaginativas que construye a partir de sus vivencias y las transforma en algo nuevo mediante el juego simbólico, el dibujo, la pintura, la construcción, la música y el movimiento creativo. Comparte espontáneamente sus experiencias y creaciones."
+    },
+    {
+      "nivel": 3,
+      "texto": "Crea proyectos artísticos que demuestran habilidades artísticas iniciales para comunicar ideas, sentimientos, observaciones y experiencias. Experimenta, selecciona y explora libremente las posibilidades expresivas de los elementos, medios, materiales y técnicas de los diversos lenguajes del arte. Explora ideas que surgen de su imaginación, sus experiencias o de sus observaciones y las concretiza en trabajos de artes visuales, música, teatro o danza. Comparte sus experiencias y creaciones con sus compañeros y su familia. Describe y dialoga sobre las características de sus propios trabajos y los de sus compañeros y responde a preguntas sobre ellos."
+    },
+    {
+      "nivel": 4,
+      "texto": "Crea proyectos artísticos en una variedad de lenguajes que comunican experiencias, ideas, sentimientos y observaciones. Explora, selecciona y combina los elementos del arte y utiliza medios, materiales, herramientas y técnicas de los diversos lenguajes del arte para expresar de diferentes maneras sus ideas y resolver problemas creativos. Demuestra habilidad para planificar trabajos usando sus conocimientos del arte y adecúa sus procesos para ajustarse a diferentes intenciones, que se basan en observaciones o problemas del entorno natural, artístico y cultural. Comunica sus hallazgos, identificando elementos o técnicas o procesos que ha usado para enriquecer sus creaciones y mejora sus trabajos a partir de retroalimentaciones. Planifica cómo y qué necesita para compartir sus experiencias y descubrimientos hacia la comunidad educativa."
+    },
+    {
+      "nivel": 5,
+      "texto": "Crea proyectos artísticos individuales o colaborativos explorando formas alternativas de combinar y usar elementos, medios, materiales y técnicas artísticas y tecnologías para la resolución de problemas creativos. Genera ideas investigando una variedad de fuentes y manipulando los elementos de los diversos lenguajes de las artes (danza, música, teatro, artes visuales) para evaluar cuáles se ajustan mejor a sus intenciones. Planifica y produce trabajos que comunican ideas y experiencias personales y sociales e incorpora influencias de su propia comunidad y de otras culturas. Registra sus procesos, identifica los aspectos esenciales de sus trabajos y los va modificando para mejorarlos. Planifica los espacios de presentación considerando sus intenciones y presenta sus descubrimientos y creaciones a una variedad de audiencias. Evalúa si logra sus intenciones de manera efectiva."
+    },
+    {
+      "nivel": 6,
+      "texto": "Crea proyectos artísticos individuales o colaborativos que representan y comunican ideas e intenciones específicas. Selecciona, experimenta y usa los elementos del arte, los medios, materiales, herramientas, técnicas y procedimientos apropiados para sus necesidades de expresión y comunicación. Genera o desarrolla ideas investigando una serie de recursos asociados a conceptos, técnicas o problemas específicos personales o sociales. Planifica, diseña, improvisa y manipula elementos de los diversos lenguajes del arte para explorar el potencial de sus ideas e incorpora influencias de su propia cultura y de otras. Registra las etapas de sus procesos de creación y reflexiona sobre la efectividad de sus proyectos, modificándolos de manera continua para lograr sus intenciones. Establece estrategias de mejora para que sus proyectos tengan un mayor impacto a futuro. Planifica la presentación de sus proyectos considerando su intención y el público al que se dirige."
+    },
+    {
+      "nivel": 7,
+      "texto": "Crea proyectos artísticos que comunican de manera efectiva ideas o asuntos pertinentes a su realidad y a audiencias en particular. Selecciona y prueba nuevas maneras de combinar elementos de los diversos lenguajes artísticos para lograr sus propósitos comunicativos y expresivos. Experimenta con medios convencionales y no convencionales, materiales y técnicas de acuerdo a sus intenciones y muestra dominio en su uso y el desarrollo inicial de un estilo personal. Innova y toma riesgos para concretizar sus ideas y va modificando sus trabajos de acuerdo a descubrimientos que surgen en el proceso de creación artística. Genera ideas de manera interdisciplinaria y planifica proyectos artísticos de manera individual o colaborativa. Utiliza una variedad de referentes culturales, tomando en cuenta tanto prácticas tradicionales como nuevas tecnologías. Toma decisiones al combinar y manipular los elementos del arte para encontrar la manera más efectiva de comunicar mensajes, experiencias, ideas y sentimientos. Registra de manera visual y escrita los procesos usados en el desarrollo de sus propios trabajos. Planifica y adecúa sus presentaciones de acuerdo al público. Evalúa la efectividad de su proyecto, describiendo el impacto del proyecto para él mismo y para la comunidad."
+    },
+    {
+      "nivel": 8,
+      "texto": "Crea proyectos que integran las artes o disciplinas para encontrar la manera más efectiva de desarrollar sus ideas y demuestra el desarrollo de un estilo personal. Selecciona y combina elementos y códigos de los diversos lenguajes del arte con el fin de potenciar sus recursos comunicativos y expresivos. Investiga y muestra creciente dominio al usar medios, materiales, herramientas, técnicas y procedimientos artísticos tradicionales y contemporáneos. Genera ideas innovadoras y las concretiza en producciones creativas interdisciplinarias que proponen soluciones transformadoras para problemas culturales, sociales y ambientales específicos. Durante el proceso de creación, innova y toma riesgos para comunicar sus ideas de manera más eficaz considerando diferentes perspectivas y contextos. Mantiene un registro de cómo se han formado y desarrollado sus ideas y cómo ha elegido y aplicado medios, materiales y técnicas para lograr sus intenciones. Presenta sus proyectos usando estrategias de circulación y articulando a distintos actores de su comunidad."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Utiliza los elementos de los lenguajes artísticos para explorar sus posibilidades expresivas y ensaya distintas maneras de utilizar materiales, herramientas y técnicas para obtener diversos efectos."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Elabora un plan para desarrollar un proyecto artístico y lo ejecuta incorporando elementos de los lenguajes artísticos para comunicar sus ideas con mayor claridad. Selecciona información de diversos referentes artístico-culturales relacionados con su proyecto e incluye recursos tecnológicos cuando lo considera necesario. Ejemplo: Un grupo de estudiantes crea una cumbia amazónica en la que incorporan elementos constructivos y expresivos propios de la música amazónica del Perú."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Registra las fuentes de sus ideas (por ejemplo, bocetos o imágenes) y comunica cómo fue su proceso creativo reflexionando con sus pares sobre las cualidades estéticas de su proyecto, el manejo de las herramientas y técnicas, y su rol en el proceso creativo."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Utiliza y combina elementos de los lenguajes artísticos, materiales, herramientas, procedimientos y técnicas, para explorar sus posibilidades expresivas y lograr intenciones específicas."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Elabora y ejecuta un plan para desarrollar un proyecto artístico: obtiene y selecciona información de diversos referentes artístico-culturales o de otros tipos. Utiliza elementos, materiales, herramientas y procedimientos para comunicar mensajes e ideas con mayor claridad. Incluye recursos tecnológicos cuando lo considera necesario."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Registra de manera visual o escrita las fuentes de sus ideas. Comunica las decisiones que tomó en su proceso creativo en relación con su intención, y reflexionando sobre las cualidades estéticas de su proyecto, el manejo de las herramientas y técnicas, y su rol en el proceso creativo. Explica las posibilidades de mejora para próximas creaciones. Ejemplo: El estudiante describe los movimientos y elementos que ha usado en la creación de una danza. Explica el motivo de sus decisiones, el significado de la danza, e identifica las danzas estudiadas que inspiraron su creación. Explica lo que le gusta de su creación y lo que podría mejorar."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Utiliza y combina de diferentes maneras elementos de los lenguajes artísticos para potenciar sus intenciones comunicativas o expresivas. Ensaya las posibilidades expresivas de los medios, las técnicas y las tecnologías, y practica con aquellos que no le son familiares, con el fin de aplicarlos en sus creaciones."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Elabora y ejecuta un plan para desarrollar un proyecto artístico con un propósito específico (por ejemplo, para resolver un problema de violencia de género). Obtiene, selecciona y usa información que le es significativa de diversos referentes artístico-culturales, o de otros tipos. Aplica técnicas y medios para comunicar de manera efectiva el mensaje o idea."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Registra las diversas fuentes de información que ha usado para generar ideas, así como las imágenes y documentos que ilustran el proceso de desarrollo de su proyecto artístico. Asume diversos roles en la presentación de sus proyectos y participa de algunas estrategias de difusión para convocar al público al que se dirige."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Utiliza y combina de diferentes maneras elementos, medios, herramientas y técnicas convencionales y no convencionales para potenciar sus intenciones comunicativas o expresivas y para enriquecer sus formas de representación. Ejemplo: El estudiante experimenta formas de manipular fotografías y combinarlas con técnicas de pintura que usará para crear un paisaje con técnica mixta."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Elabora y ejecuta un plan para desarrollar un proyecto artístico interdisciplinario que brinde soluciones innovadoras para resolver problemas planteados colectivamente. Recoge información relevante y de diversas fuentes con un propósito específico. Aplica técnicas y medios tradicionales y no tradicionales para comunicar de manera efectiva el mensaje o la idea."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Mantiene un registro visual o escrito de los procesos usados para crear sus proyectos a lo largo del año. Asume diferentes roles en la organización y la presentación de su proyectos tomando en cuenta sus propósitos, el público al que se dirige y el contexto, para potenciar el efecto que espera generar. Evalúa el impacto de sus proyectos en él mismo y en los demás."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Propone nuevas maneras de combinar elementos del arte, y practica con una variedad de medios, materiales y técnicas para seguir desarrollando y potenciando sus habilidades comunicativas y expresivas, con lo cual empieza a desarrollar un estilo personal."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Desarrolla ideas que reflejan conocimiento de los lenguajes artísticos que va a utilizar, y selecciona referentes artísticos y culturales particulares de acuerdo con sus intenciones. Realiza proyectos artísticos interdisciplinarios donde combina elementos y principios del arte para lograr sus intenciones, y los va mejorando en respuesta a la autoevaluación y retroalimentación que recibe durante el proceso de creación."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Mantiene un registro visual o escrito de los procesos demostrando cómo ha seleccionado elementos, medios, materiales y técnicas para desarrollar sus ideas. Selecciona los formatos de presentación de sus proyectos tomando en cuenta sus propósitos, el público al que se dirige y el contexto, para potenciar el efecto que espera generar. Evalúa el impacto de sus proyectos en él mismo y en los demás. Registra lo aprendido en el proceso y en la presentación de sus proyectos para aplicarlo en nuevos emprendimientos."
+    }
+  ]
+}

@@ -1,0 +1,203 @@
+{
+  "numero_cneb": 27,
+  "nombre": "Gestiona proyectos de emprendimiento económico o social",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Crea propuestas de valor"
+    },
+    {
+      "numero": 2,
+      "nombre": "Aplica habilidades técnicas"
+    },
+    {
+      "numero": 3,
+      "nombre": "Trabaja cooperativamente para lograr objetivos y metas"
+    },
+    {
+      "numero": 4,
+      "nombre": "Evalúa los resultados del proyecto de emprendimiento"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 6,
+      "texto": "Gestiona proyectos de emprendimiento económico o social cuando se cuestiona sobre una situación que afecta a un grupo de usuarios y explora sus necesidades y expectativas para crear una alternativa de solución viable y reconoce aspectos éticos y culturales así como los posibles resultados sociales y ambientales que implica. Implementa sus ideas empleando habilidades técnicas, anticipa las acciones y recursos que necesitará y trabaja cooperativamente cumpliendo sus roles y responsabilidades individuales para el logro de una meta común, propone actividades y facilita a la iniciativa y perseverancia colectiva. Evalúa el logro de resultados parciales relacionando la cantidad de insumos empleados con los beneficios sociales y ambientales generados; realiza mejoras considerando además las opiniones de los usuarios y las lecciones aprendidas."
+    },
+    {
+      "nivel": 7,
+      "texto": "Gestiona proyectos de emprendimiento económico o social cuando integra activamente información sobre una situación que afecta a un grupo de usuarios, genera explicaciones y define patrones sobre sus necesidades y expectativas para crear una alternativa de solución viable que considera aspectos éticos y culturales y redefine sus ideas para generar resultados sociales y ambientales positivos. Implementa sus ideas combinando habilidades técnicas, proyecta en función a escenarios las acciones y recursos que necesitará y trabaja cooperativamente recombinado sus roles y responsabilidades individuales para el logro de una meta común, coordina actividades y colabora a la iniciativa y perseverancia colectiva resolviendo los conflictos a través de métodos constructivos. Evalúa los procesos y resultados parciales, analizando el equilibrio entre inversión y beneficio, la satisfacción de usuarios, y los beneficios sociales y ambientales generados. Incorpora mejoras en el proyecto para aumentar la calidad del producto o servicio y la eficiencia de procesos."
+    },
+    {
+      "nivel": 8,
+      "texto": "Gestiona proyectos de emprendimiento económico o social cuando empatiza con las necesidades y expectativas de un grupo de usuarios reinterpretando la situación desde diferentes perspectivas para crear una alternativa de solución innovadora que integra aspectos éticos y culturales y optimiza su diseño para generar resultados sociales y ambientales positivos. Implementa sus ideas innovando habilidades técnicas, diseña estratégicamente y en función a escenarios complejos las acciones y recursos que necesitará y trabaja cooperativamente al alinear sus esfuerzos y acciones individuales para el logro de una meta común, lidera actividades y fomenta la iniciativa y la perseverancia colectiva generando acciones de negociación en función de los distintos intereses. Evalúa las diferentes etapas del proyecto optimizando la relación inversión-beneficio, interpreta los resultados, realiza ajustes e incorpora innovaciones al proyecto para lograr su sostenibilidad."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Realiza observaciones o entrevistas individuales para explorar en equipo necesidades o problemas de un grupo de usuarios, para satisfacerlos o resolverlos desde su campo de interés."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Plantea alternativas de propuesta de valor creativas y las representa a través de prototipos para su validación con posibles usuarios. Selecciona una propuesta de valor en función de su implicancia ética, ambiental y social, y de su resultado económico."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Selecciona los insumos y materiales necesarios, y organiza actividades para su obtención. Planifica las acciones que debe ejecutar para elaborar la propuesta de valor y prevé alternativas de solución ante situaciones imprevistas o accidentes."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Emplea habilidades técnicas para producir un bien o brindar servicios siendo responsable con el ambiente y teniendo en cuenta normas de seguridad en el trabajo."
+    },
+    {
+      "grado": "1S",
+      "orden": 5,
+      "texto": "Propone acciones que debe realizar el equipo explicando sus puntos de vista y definiendo los roles. Promueve la perseverancia por lograr el objetivo común a pesar de las dificultades y cumple con responsabilidad las tareas asignadas a su rol."
+    },
+    {
+      "grado": "1S",
+      "orden": 6,
+      "texto": "Formula indicadores que le permitan evaluar los procesos de su proyecto y tomar decisiones oportunas para ejecutar las acciones correctivas pertinentes."
+    },
+    {
+      "grado": "1S",
+      "orden": 7,
+      "texto": "Formula indicadores para evaluar el impacto social, ambiental y económico generado para incorporar mejoras al proyecto."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Realiza observaciones o entrevistas estructuradas para indagar los posibles factores que originan las necesidades o problemas de un grupo de usuarios, para satisfacerlos o resolverlos desde su campo de interés."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Formula alternativas de propuesta de valor creativas representándolas a través de prototipos para su validación con posibles usuarios. Incorpora sugerencias de mejora y selecciona una propuesta de valor en función de su implicancia ética, ambiental y social, y de su resultado económico."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Selecciona los insumos y materiales necesarios, y organiza actividades para su obtención. Planifica las acciones que debe ejecutar para elaborar la propuesta de valor y prevé alternativas de solución ante situaciones imprevistas o accidentes."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Emplea habilidades técnicas para producir un bien o brindar servicios siendo responsable con el ambiente, usando sosteniblemente los recursos naturales y aplicando normas de seguridad en el trabajo."
+    },
+    {
+      "grado": "2S",
+      "orden": 5,
+      "texto": "Propone acciones que debe realizar el equipo explicando cómo integra los distintos puntos de vista y definiendo los roles asociados a sus propuestas. Promueve la perseverancia por lograr el objetivo común a pesar de las dificultades y cumple con responsabilidad las tareas asignadas a su rol."
+    },
+    {
+      "grado": "2S",
+      "orden": 6,
+      "texto": "Formula indicadores que le permitan evaluar los procesos de su proyecto y tomar decisiones oportunas para ejecutar las acciones correctivas pertinentes."
+    },
+    {
+      "grado": "2S",
+      "orden": 7,
+      "texto": "Formula indicadores para evaluar el impacto social, ambiental y económico generado para incorporar mejoras al proyecto."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Selecciona en equipo necesidades o problemas de un grupo de usuarios de su entorno para mejorarlo o resolverlo a partir de su campo de interés. Determina los principales factores que los originan utilizando información obtenida a través de la observación y entrevistas grupales estructuradas."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Diseña alternativas de propuesta de valor creativas e innovadoras que representa a través de prototipos, y las valida con posibles usuarios incorporando sugerencias de mejora. Determina la propuesta de valor en función de sus implicancias éticas, sociales, ambientales y económicas."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Determina los recursos que se requiere para elaborar una propuesta de valor y genera acciones para adquirirlos. Formula un plan de acción para elaborar la propuesta de valor considerando alternativas de solución ante contingencias o situaciones imprevistas."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Selecciona procesos de producción de un bien o servicio, y emplea habilidades técnicas pertinentes y las implementa siendo responsable con el ambiente, usando sosteniblemente los recursos naturales y aplicando normas de seguridad en el trabajo."
+    },
+    {
+      "grado": "3S",
+      "orden": 5,
+      "texto": "Planifica las actividades de su equipo en un clima de diálogo y respeto hacia las ideas y opiniones de los demás. Asume con responsabilidad su rol y colabora con las tareas de sus compañeros compartiendo información, estrategias y recursos para el logro del objetivo común."
+    },
+    {
+      "grado": "3S",
+      "orden": 6,
+      "texto": "Elabora y aplica instrumentos de recojo de información en función de indicadores que le permitan mejorar la calidad del producto o servicio, y la eficiencia de los procesos."
+    },
+    {
+      "grado": "3S",
+      "orden": 7,
+      "texto": "Elabora y aplica instrumentos de recojo de información para determinar los beneficios o pérdidas económicas, y el impacto social y ambiental generado por el proyecto para incorporar mejoras."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Recoge en equipo información sobre necesidades o problemas de un grupo de usuarios de su entorno a partir de su campo de interés empleando entrevistas grupales estructuradas y otras técnicas. Organiza e integra información, y propone conclusiones sobre los factores que los originan."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Diseña alternativas de propuesta de valor creativas e innovadoras que representa a través de prototipos, y las valida con posibles usuarios. Define una de estas integrando sugerencias de mejora y sus implicancias éticas, sociales, ambientales y económicas."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Realiza acciones para adquirir los recursos necesarios para elaborar la propuesta de valor. Planifica las actividades que debe ejecutar para elaborar la propuesta de valor integrando alternativas de solución ante contingencias o situaciones imprevistas."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Selecciona procesos de producción de un bien o servicio pertinentes, y emplea con pericia habilidades técnicas, siendo responsable con el ambiente, usando sosteniblemente los recursos naturales y aplicando normas de seguridad en el trabajo."
+    },
+    {
+      "grado": "4S",
+      "orden": 5,
+      "texto": "Planifica las actividades de su equipo consiguiendo que las personas establezcan, según sus roles, prioridades y objetivos. Acompaña y orienta a sus compañeros para que mejoren en sus desempeños asumiendo con responsabilidad distintos roles dentro del equipo y propone alternativas de solución a posibles conflictos."
+    },
+    {
+      "grado": "4S",
+      "orden": 6,
+      "texto": "Elabora instrumentos de recojo de información para evaluar el proceso y el resultado del proyecto. Clasifica la información recogida. Analiza la relación entre inversión y beneficio obtenido, la satisfacción de los usuarios, y los beneficios sociales y ambientales generados, incorporando mejoras para aumentar la calidad del producto o servicio y la eficiencia de los procesos."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Recoge en equipo información sobre necesidades o problemas de un grupo de usuarios de su entorno a partir de su campo de interés empleando técnicas como entrevistas grupales estructuradas y otras. Organiza e integra información reconociendo patrones entre los factores de esas necesidades y problemas."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Diseña alternativas de propuesta de valor creativas e innovadoras. Las representa a través de prototipos y la valida con posibles usuarios. Define una de estas integrando sugerencias de mejora y sus implicancias éticas, sociales, ambientales y económicas."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Realiza acciones para adquirir los recursos necesarios para elaborar la propuesta de valor. Programa las actividades que debe ejecutar para elaborar la propuesta de valor integrando alternativas de solución ante contingencias o situaciones imprevistas."
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Selecciona procesos de producción de un bien o servicio pertinentes, y emplea con pericia habilidades técnicas. Es responsable con el ambiente, usando sosteniblemente los recursos naturales y aplica normas de seguridad en el trabajo."
+    },
+    {
+      "grado": "5S",
+      "orden": 5,
+      "texto": "Planifica las actividades de su equipo consiguiendo que las personas establezcan, según sus roles, prioridades y objetivos. Acompaña y orienta a sus compañeros para que mejoren sus desempeños asumiendo con responsabilidad distintos roles dentro del equipo y propone alternativas de solución a conflictos inesperados."
+    },
+    {
+      "grado": "5S",
+      "orden": 6,
+      "texto": "Elabora instrumentos de recojo de información para evaluar el proceso y el resultado del proyecto. Clasifica la información que recoge y analiza la relación entre inversión y beneficio, la satisfacción de los usuarios, y los beneficios sociales y ambientales generados, e incorpora mejoras para garantizar la sostenibilidad de su proyecto en el tiempo."
+    }
+  ]
+}

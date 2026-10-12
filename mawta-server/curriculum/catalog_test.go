@@ -47,15 +47,16 @@ func TestShippedCatalogFacts(t *testing.T) {
 		}
 	}
 
-	// The transversals have no performances: their performances are per
-	// cycle, not per grade, and are deferred.
+	// The transversals are in the catalog. The secundaria programme prints
+	// their performances per grade, so the data carries them; the onboarding
+	// loader and sync only read a transversal's standards and ignore them.
 	for _, code := range []string{"TR-C1", "TR-C2"} {
 		comp, ok := c.CompetenciaByCode(code)
 		if !ok {
 			t.Fatalf("%s is missing from the catalog", code)
 		}
-		if len(comp.Desempenos) != 0 {
-			t.Errorf("%s has %d performances, want 0 (transversal performances are deferred)", code, len(comp.Desempenos))
+		if len(comp.Estandares) == 0 {
+			t.Errorf("%s has no standards", code)
 		}
 	}
 

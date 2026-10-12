@@ -8,7 +8,7 @@
     },
     {
       "numero": 2,
-      "nombre": "Organiza acciones estratégicas para alcanzar sus metas"
+      "nombre": "Organiza acciones estratégicas para alcanzar sus metas de aprendizaje"
     },
     {
       "numero": 3,
@@ -47,6 +47,93 @@
     {
       "nivel": 8,
       "texto": "Gestiona su aprendizaje de manera autónoma y sistemática al darse cuenta lo que debe aprender, al establecer prioridades en la realización de un conjunto de tareas tomando en cuenta su viabilidad y sostenibilidad en el tiempo, y por ende, definir metas personales respaldándose en este análisis, considerando sus potencialidades y oportunidades de aprendizaje. Comprende que debe organizarse lo más realista y específicamente posible, considerar los tiempos; y que lo planteado sea alcanzable, medible y considere variadas estrategias, procedimientos, recursos y escenarios que le permitan alcanzar sus metas, tomando en cuenta sus experiencias exitosas, previendo posibles cambios de cursos de acción y la vinculación de otros agentes para la realización de la meta. Monitorea de manera permanente sus avances respecto a las metas de aprendizaje previamente establecidas al evaluar el nivel de logro de sus resultados y la viabilidad de la meta a alcanzar, además de la consulta a otros pares con mayor experiencia, ajustando los planes y acciones, considerando el todo y las partes de su organización, a partir de sus avances mostrando confianza en sí mismo, disposición y flexibilidad a los posibles cambios."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Determina metas de aprendizaje viables asociadas a sus conocimientos, estilos de aprendizaje, habilidades y actitudes para el logro de la tarea, formulándose preguntas de manera reflexiva."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Organiza un conjunto de estrategias y procedimientos en función del tiempo y de los recursos de que dispone para lograr las metas de aprendizaje de acuerdo con sus posibilidades."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Revisa la aplicación de estrategias, procedimientos, recursos y aportes de sus pares para realizar ajustes o cambios en sus acciones que permitan llegar a los resultados esperados."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Explica las acciones realizadas y los recursos movilizados en función de su pertinencia al logro de las metas de aprendizaje."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Determina metas de aprendizaje viables asociadas a sus potencialidades, conocimientos, estilos de aprendizaje, habilidades, limitaciones personales y actitudes para el logro de la tarea, formulándose preguntas de manera reflexiva."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Organiza un conjunto de estrategias y acciones en función del tiempo y de los recursos de que dispone, para lo cual establece un orden y una prioridad para alcanzar las metas de aprendizaje."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Revisa los avances de las acciones propuestas, la elección de las estrategias y considera la opinión de sus pares para llegar a los resultados esperados."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Explica los resultados obtenidos de acuerdo con sus posibilidades y en función de su pertinencia para el logro de las metas de aprendizaje."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Determina metas de aprendizaje viables sobre la base de sus potencialidades, conocimientos, estilos de aprendizaje, habilidades y actitudes para el logro de la tarea simple o compleja, formulándose preguntas de manera reflexiva y de forma constante."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Organiza un conjunto de acciones en función del tiempo y de los recursos de que dispone para lograr las metas de aprendizaje, para lo cual establece un orden y una prioridad en las acciones de manera secuenciada y articulada."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Revisa de manera permanente las estrategias, los avances de las acciones propuestas, su experiencia previa y la priorización de sus actividades para llegar a los resultados esperados. Evalúa los resultados y los aportes que le brindan sus pares para el logro de las metas de aprendizaje."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Determina metas de aprendizaje viables sobre la base de sus experiencias asociadas, necesidades, prioridades de aprendizaje, habilidades y actitudes para el logro de la tarea simple o compleja, formulándose preguntas de manera reflexiva y de forma constante."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Organiza un conjunto de acciones en función del tiempo y de los recursos de que dispone, para lo cual establece un orden y una prioridad que le permitan alcanzar la meta en el tiempo determinado con un considerable grado de calidad en las acciones de manera secuenciada y articulada."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Revisa de manera permanente la aplicación de estrategias, los avances de las acciones propuestas, su experiencia previa, y la secuencia y la priorización de actividades que hacen posible el logro de la meta de aprendizaje. Evalúa los resultados y los aportes que le brindan los demás para decidir si realizará o no cambios en las estrategias para el éxito de la meta de aprendizaje."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Determina metas de aprendizaje viables sobre la base de sus potencialidades, conocimientos, estilos de aprendizaje, habilidades, limitaciones personales y actitudes para el logro de la tarea simple o compleja con destreza, formulándose preguntas de manera reflexiva y de forma constante."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Organiza un conjunto de acciones en función del tiempo y de los recursos de que dispone, para lo cual establece una elevada precisión en el orden y prioridad, y considera las exigencias que enfrenta en las acciones de manera secuenciada y articulada."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Evalúa de manera permanente los avances de las acciones propuestas en relación con su eficacia y la eficiencia de las estrategias usadas para alcanzar la meta de aprendizaje, en función de los resultados, el tiempo y el uso de los recursos. Evalúa con precisión y rapidez los resultados y si los aportes que le brindan los demás le ayudarán a decidir si realizará o no cambios en las estrategias para el éxito de la meta de aprendizaje."
     }
   ]
 }
