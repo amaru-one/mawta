@@ -4,7 +4,7 @@
   "capacidades": [
     {
       "numero": 1,
-      "nombre": "Traduce datos y condiciones a expresiones algebraicas"
+      "nombre": "Traduce datos y condiciones a expresiones algebraicas y gráficas"
     },
     {
       "numero": 2,
@@ -12,7 +12,7 @@
     },
     {
       "numero": 3,
-      "nombre": "Usa estrategias y procedimientos para encontrar reglas generales"
+      "nombre": "Usa estrategias y procedimientos para encontrar equivalencias y reglas generales"
     },
     {
       "numero": 4,
@@ -42,7 +42,7 @@
     },
     {
       "nivel": 6,
-      "texto": "Resuelve problemas referidos a interpretar cambios constantes o regularidades entre magnitudes, valores o entre expresiones; traduciéndolas a patrones numéricos y gráficos⁴¹, progresiones aritméticas, ecuaciones e inecuaciones con una incógnita, funciones lineales y afín, y relaciones de proporcionalidad directa e inversa. Comprueba si la expresión algebraica usada expresó o reprodujo las condiciones del problema. Expresa su comprensión de: la relación entre función lineal y proporcionalidad directa; las diferencias entre una ecuación e inecuación lineal y sus propiedades; la variable como un valor que cambia; el conjunto de valores que puede tomar un término desconocido para verificar una inecuación; las usa para interpretar enunciados, expresiones algebraicas o textos diversos de contenido matemático. Selecciona, emplea y combina recursos, estrategias, métodos gráficos y procedimientos matemáticos para determinar el valor de términos desconocidos en una progresión aritmética, simplificar expresiones algebraicas y dar solución a ecuaciones e inecuaciones lineales, y evaluar funciones lineales. Plantea afirmaciones sobre propiedades de las progresiones aritméticas, ecuaciones e inecuaciones así como de una función lineal, lineal afín con base a sus experiencias, y las justifica mediante ejemplos y propiedades matemáticas; encuentra errores o vacíos en las argumentaciones propias y las de otros y las corrige."
+      "texto": "Resuelve problemas referidos a interpretar cambios constantes o regularidades entre magnitudes, valores o entre expresiones; traduciéndolas a patrones numéricos y gráficos, progresiones aritméticas, ecuaciones e inecuaciones con una incógnita, funciones lineales y afín, y relaciones de proporcionalidad directa e inversa. Comprueba si la expresión algebraica usada expresó o reprodujo las condiciones del problema. Expresa su comprensión de: la relación entre función lineal y proporcionalidad directa; las diferencias entre una ecuación e inecuación lineal y sus propiedades; la variable como un valor que cambia; el conjunto de valores que puede tomar un término desconocido para verificar una inecuación; las usa para interpretar enunciados, expresiones algebraicas o textos diversos de contenido matemático. Selecciona, emplea y combina recursos, estrategias, métodos gráficos y procedimientos matemáticos para determinar el valor de términos desconocidos en una progresión aritmética, simplificar expresiones algebraicas y dar solución a ecuaciones e inecuaciones lineales, y evaluar funciones lineales. Plantea afirmaciones sobre propiedades de las progresiones aritméticas, ecuaciones e inecuaciones así como de una función lineal, lineal afín con base a sus experiencias, y las justifica mediante ejemplos y propiedades matemáticas; encuentra errores o vacíos en las argumentaciones propias y las de otros y las corrige."
     },
     {
       "nivel": 7,
@@ -367,7 +367,7 @@
     {
       "grado": "4S",
       "orden": 1,
-      "texto": "Establece relaciones entre datos, valores desconocidos, regularidades, y condiciones de equivalencia o variación entre magnitudes. Transforma esas relaciones a expresiones algebraicas o gráficas (modelos) que incluyen la regla de formación de una progresión geométrica, a sistemas de ecuaciones lineales con dos incógnitas, a inecuaciones (ax + b < cx + d, ax + b > cx + d, ax + b ≤ cx + d y ax + b ≥ cx + d, ∀ a y c ≠ 0), a ecuaciones cuadráticas (ax² + bx + c = 0, a ≠ 0 y a, b y c ∈ Q) y a funciones cuadráticas (f(x)= ax²+ bx +c, ∀ a ≠ 0 y a ∈ Q). También las transforma a repartos proporcionales⁴⁴."
+      "texto": "Establece relaciones entre datos, valores desconocidos, regularidades, y condiciones de equivalencia o variación entre magnitudes. Transforma esas relaciones a expresiones algebraicas o gráficas (modelos) que incluyen la regla de formación de una progresión geométrica, a sistemas de ecuaciones lineales con dos incógnitas, a inecuaciones (ax + b < cx + d, ax + b > cx + d, ax + b ≤ cx + d y ax + b ≥ cx + d, ∀ a y c ≠ 0), a ecuaciones cuadráticas (ax² + bx + c = 0, a ≠ 0 y a, b y c ∈ Q) y a funciones cuadráticas (f(x) = ax² + bx +c, ∀ a ≠ 0 y a ∈ Q). También las transforma a repartos proporcionales."
     },
     {
       "grado": "4S",

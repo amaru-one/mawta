@@ -18,11 +18,11 @@
   "estandares": [
     {
       "nivel": 1,
-      "texto": "Este nivel tiene como base el nivel 1 de las competencias “Convive y participa” y “Resuelve problemas de forma movimiento y localización”."
+      "texto": "Este nivel tiene como base el nivel 1 de las competencias “Convive y participa” y “Resuelve problemas de forma, movimiento y localización”."
     },
     {
       "nivel": 2,
-      "texto": "Este nivel tiene como base el nivel 2 de las competencias “Convive y participa” y “Resuelve problemas de forma movimiento y localización”."
+      "texto": "Este nivel tiene como base el nivel 2 de las competencias “Convive y participa” y “Resuelve problemas de forma, movimiento y localización”."
     },
     {
       "nivel": 3,
@@ -30,15 +30,15 @@
     },
     {
       "nivel": 4,
-      "texto": "Gestiona responsablemente el espacio y ambiente al realizar actividades específicas para su cuidado a partir de reconocer las causas y consecuencias de los problemas ambientales. Reconoce cómo sus acciones cotidianas impactan en el ambiente, en el calentamiento global y en su bienestar, e identifica los lugares vulnerables y seguros de su escuela, frente a desastres. Describe las características de los espacios geográficos y el ambiente de su localidad o región. Utiliza representaciones cartográficas sencillas, tomando en cuenta los puntos cardinales y otros elementos cartográficos, para ubicar elementos del espacio."
+      "texto": "Gestiona responsablemente el espacio y ambiente al realizar actividades específicas para su cuidado a partir de reconocer las causas y consecuencias de los problemas ambientales. Reconoce cómo sus acciones cotidianas impactan en el ambiente, en el calentamiento global y en su bienestar, e identifica los lugares vulnerables y seguros de su escuela, frente a riesgos de desastres. Describe las características de los espacios geográficos y el ambiente de su localidad o región. Utiliza representaciones cartográficas sencillas, tomando en cuenta los puntos cardinales y otros elementos cartográficos, para ubicar elementos del espacio."
     },
     {
       "nivel": 5,
-      "texto": "Gestiona responsablemente el espacio y ambiente al realizar frecuentemente actividades para su cuidado y al disminuir los factores de vulnerabilidad frente al cambio climático y a los desastres en su escuela. Utiliza distintas fuentes y herramientas cartográficas y socioculturales para ubicar elementos en el espacio geográfico y el ambiente, y compara estos espacios a diferentes escalas considerando la acción de los actores sociales. Explica las problemáticas ambientales y territoriales a partir de sus causas, consecuencias y sus manifestaciones a diversas escalas."
+      "texto": "Gestiona responsablemente el espacio y ambiente al realizar frecuentemente actividades para su cuidado y al disminuir los factores de vulnerabilidad frente al cambio climático y a los riesgos de desastres en su escuela. Utiliza distintas fuentes y herramientas cartográficas y socioculturales para ubicar elementos en el espacio geográfico y el ambiente, y compara estos espacios a diferentes escalas considerando la acción de los actores sociales. Explica las problemáticas ambientales y territoriales a partir de sus causas, consecuencias y sus manifestaciones a diversas escalas."
     },
     {
       "nivel": 6,
-      "texto": "Gestiona responsablemente el espacio y ambiente al realizar actividades orientadas al cuidado de su localidad, considerando el cuidado del planeta. Compara las causas y consecuencias de diversas situaciones de riesgo a diversas escalas para proponer medidas de prevención. Explica cambios y permanencias en el espacio geográfico a diferentes escalas. Explica conflictos socioambientales y territoriales reconociendo sus múltiples dimensiones. Utiliza información y diversas herramientas cartográficas y socioculturales para ubicar y orientar distintos elementos del espacio geográfico y el ambiente, incluyéndose."
+      "texto": "Gestiona responsablemente el espacio y ambiente al realizar actividades orientadas al cuidado de su localidad, considerando el cuidado del planeta. Compara las causas y consecuencias de diversas situaciones a diversas escalas para proponer medidas de gestión de riesgos. Explica cambios y permanencias en el espacio geográfico a diferentes escalas. Explica conflictos socioambientales y territoriales reconociendo sus múltiples dimensiones. Utiliza información y diversas herramientas cartográficas y socioculturales para ubicar y orientar distintos elementos del espacio geográfico y el ambiente, incluyéndose."
     },
     {
       "nivel": 7,
@@ -46,7 +46,7 @@
     },
     {
       "nivel": 8,
-      "texto": "Gestiona responsablemente el espacio y el ambiente al proponer acciones relacionadas con políticas públicas orientadas a solucionar las problemáticas ambientales y territoriales. Elabora y comunica medidas de mitigación y adaptación al cambio climático, incluyendo un plan de contingencia frente a posibles desastres. Explica el espacio geográfico como un sistema complejo y reconoce su importancia para el desarrollo de la sociedad. Utiliza diversas fuentes de información disponibles para el análisis integral del espacio geográfico y el ambiente."
+      "texto": "Gestiona responsablemente el espacio y el ambiente al proponer acciones relacionadas con políticas públicas orientadas a solucionar las problemáticas ambientales y territoriales. Elabora y comunica medidas de mitigación y adaptación al cambio climático, y un plan de gestión de riesgos de desastres. Explica el espacio geográfico como un sistema complejo y reconoce su importancia para el desarrollo de la sociedad. Utiliza diversas fuentes de información disponibles para el análisis integral del espacio geográfico y el ambiente."
     }
   ],
   "desempenos": [
@@ -268,7 +268,7 @@
     {
       "grado": "3S",
       "orden": 3,
-      "texto": "Explica cómo las acciones de los actores sociales pueden generar problemáticas ambientales, o territoriales y de la condición de cambio climático (degradación o agotamiento del suelo, del agua y los recursos naturales, depredación de los recursos naturales, patrones de consumo de la sociedad, desertificación y fragmentación del territorio peruano, entre otras) que vulneran y afectan las condiciones de vida de la población y el desarrollo sostenible."
+      "texto": "Explica cómo las acciones de los actores sociales pueden generar problemáticas ambientales, territoriales y de la condición de cambio climático (degradación o agotamiento del suelo, del agua y los recursos naturales, depredación de los recursos naturales, patrones de consumo de la sociedad, desertificación y fragmentación del territorio peruano, entre otras) que vulneran y afectan las condiciones de vida de la población y el desarrollo sostenible."
     },
     {
       "grado": "3S",
@@ -318,7 +318,7 @@
     {
       "grado": "5S",
       "orden": 3,
-      "texto": "Explica el impacto de las problemáticas ambientales, territoriales y de la condición de cambio climático (patrones de consumo de la sociedad, transporte en las grandes ciudades, emanaciones de gases, derrames de petróleo, manejo de cuencas, entre otras) en la calidad de vida de la población y cómo estas problemáticas pueden derivar en un conflicto socioambiental.-"
+      "texto": "Explica el impacto de las problemáticas ambientales, territoriales y de la condición de cambio climático (patrones de consumo de la sociedad, transporte en las grandes ciudades, emanaciones de gases, derrames de petróleo, manejo de cuencas, entre otras) en la calidad de vida de la población y cómo estas problemáticas pueden derivar en un conflicto socioambiental."
     },
     {
       "grado": "5S",

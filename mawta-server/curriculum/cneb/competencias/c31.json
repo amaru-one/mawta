@@ -1,0 +1,150 @@
+{
+  "numero_cneb": 31,
+  "nombre": "Asume la experiencia del encuentro personal y comunitario con Dios en su proyecto de vida en coherencia con su creencia religiosa",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Transforma su entorno desde el encuentro personal y comunitario con Dios y desde la fe que profesa"
+    },
+    {
+      "numero": 2,
+      "nombre": "Actúa coherentemente en razón de su fe según los principios de su conciencia moral en situaciones concretas de la vida"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Construye su identidad”."
+    },
+    {
+      "nivel": 2,
+      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Construye su identidad”."
+    },
+    {
+      "nivel": 3,
+      "texto": "Expresa coherencia en sus acciones cotidianas descubriendo el amor de Dios. Comprende su dimensión religiosa, espiritual y trascendente que le permita poner en practicar actitudes evangélicas. Interioriza la presencia de Dios en su entorno más cercano desarrollando virtudes evangélicas. Asume actitudes de agradecimiento a Dios respetando lo creado."
+    },
+    {
+      "nivel": 4,
+      "texto": "Expresa coherencia entre lo que cree, dice y hace en su diario vivir a la luz de las enseñanzas bíblicas y de los santos. Comprende su dimensión religiosa, espiritual y trascendente que le permita establecer propósitos de cambio a la luz del Evangelio. Interioriza la presencia de Dios en su vida personal y en su entorno más cercano, celebrando su fe con gratitud. Asume su rol protagónico respetando y cuidando lo creado."
+    },
+    {
+      "nivel": 5,
+      "texto": "Expresa coherencia entre lo que cree, dice y hace en su compromiso personal a la luz de textos bíblicos. Comprende su dimensión religiosa, espiritual y trascendente que le permita asumir cambios de comportamiento en diversos contextos a la luz del Evangelio. Interioriza la presencia de Dios viviendo el encuentro personal y comunitario, para colaborar en la construcción de una comunidad de fe guiada por las enseñanzas de Jesucristo. Asume su rol protagónico mediante actitudes concretas a imagen de Jesucristo colaborando en el cambio que necesita la sociedad."
+    },
+    {
+      "nivel": 6,
+      "texto": "Expresa coherencia entre lo que cree, dice y hace en su proyecto de vida personal, a la luz del mensaje bíblico. Comprende su dimensión espiritual y religiosa que le permita cooperar en la transformación de sí mismo y de su entorno a la luz del Evangelio. Reflexiona el encuentro personal y comunitario con Dios en diversos contextos, con acciones orientadas a la construcción de una comunidad de fe guiada por las enseñanzas de Jesucristo. Asume las enseñanzas de Jesucristo y de la Iglesia desempeñando su rol protagónico en la transformación de la sociedad."
+    },
+    {
+      "nivel": 7,
+      "texto": "Demuestra coherencia entre lo que cree, dice y hace en su proyecto de vida personal, a la luz del mensaje bíblico y los documentos del Magisterio de la Iglesia. Vivencia su dimensión religiosa, espiritual y trascendente, que le permita cooperar en la transformación de sí mismo y de su entorno a la luz del Evangelio buscando soluciones a los desafíos actuales. Promueve el encuentro personal y comunitario con Dios en diversos contextos desde un discernimiento espiritual, con acciones orientadas a la construcción de una comunidad de fe guiada por las enseñanzas de Jesucristo y de la Iglesia. Asume su rol protagónico en la transformación de la sociedad a partir de las enseñanzas de Jesucristo en un marco ético y moral cristiano."
+    },
+    {
+      "nivel": 8,
+      "texto": "Actúa dando testimonio de su fe en las diversas situaciones de la vida, buscando el bien común en coherencia con su fe y proyecto de vida. Asume un rol protagónico para proponer, organizar y ejecutar acciones que transformen su entorno comunitario y social a la luz del Evangelio y las enseñanzas de la Iglesia."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Plantea un proyecto de vida personal y comunitario de acuerdo al plan de Dios."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Reconoce su dimensión espiritual y religiosa que le permita cooperar en la transformación personal, de su familia y de su escuela a la luz del Evangelio."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Cultiva el encuentro personal y comunitario con Dios valorando momentos de oración y celebraciones propias de su Iglesia y comunidad de fe."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Actúa de manera coherente con la fe según las enseñanzas de Jesucristo para la transformación de la sociedad."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Expresa en su proyecto de vida personal y comunitaria coherencia entre lo que cree, dice y hace a la luz del mensaje bíblico."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Comprende su dimensión espiritual y religiosa que le permita cooperar en la transformación personal, de su familia, de su escuela y de su comunidad a la luz del Evangelio."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Interioriza el encuentro personal y comunitario con Dios valorando momentos de silencio, oración y celebraciones propias de su Iglesia y comunidad de fe."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Asume su rol protagónico en la transformación de la sociedad según las enseñanzas de Jesucristo y de la Iglesia."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Expresa en su proyecto de vida personal coherencia entre lo que cree, dice y hace a la luz del mensaje bíblico y los documentos del Magisterio de la Iglesia."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Cultiva su dimensión religiosa, espiritual y trascendente que le permita cooperar en la transformación de sí mismo y de su entorno a la luz del Evangelio."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Discierne los acontecimientos de la vida desde el encuentro personal con Dios en su familia y en su escuela, con acciones orientadas a la construcción de una comunidad de fe, inspirada en Jesucristo."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Acepta su rol en la transformación de la sociedad a partir de las enseñanzas de Jesucristo."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Expresa en su proyecto de vida personal y comunitario coherencia entre lo que cree, dice y hace, contrastándolo con la realidad a la luz del mensaje bíblico y los documentos del Magisterio de la Iglesia."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Cultiva su dimensión religiosa, espiritual y trascendente a partir de la celebración de su fe, que le permita cooperar en la transformación de sí mismo y de su entorno a la luz del Evangelio buscando soluciones a los desafíos actuales."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Propone situaciones de encuentro personal con Dios, en su familia, en su escuela y en su comunidad desde un discernimiento espiritual, con acciones orientadas a la construcción de una comunidad de fe guiada por las enseñanzas de Jesucristo y de la Iglesia."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Ejerce, desde la ética y la moral cristiana, su rol protagónico en la transformación de la sociedad a partir de las enseñanzas de Jesucristo y de la Iglesia."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Demuestra coherencia entre lo que cree, dice y hace en su proyecto de vida personal y comunitario, respondiendo a los desafíos de la realidad a la luz del mensaje bíblico y los documentos del Magisterio de la Iglesia."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Vive su dimensión religiosa, espiritual y trascendente a partir de la celebración comunitaria de su fe, que le permita cooperar en la transformación de sí mismo y de su entorno a la luz del Evangelio y de las enseñanzas de la Iglesia proponiendo soluciones a los desafíos actuales."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Promueve el encuentro personal y comunitario con Dios en diversos contextos desde un discernimiento espiritual, con acciones orientadas a la construcción de una comunidad de fe guiada por las enseñanzas de Jesucristo y de la Iglesia."
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Asume su rol protagónico comprometiéndose ética y moralmente en la transformación de una sociedad pacífica, justa, fraterna y solidaria, a partir de las enseñanzas de Jesucristo y de la Iglesia."
+    }
+  ]
+}

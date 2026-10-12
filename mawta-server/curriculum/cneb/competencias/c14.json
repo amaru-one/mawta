@@ -1,0 +1,154 @@
+{
+  "numero_cneb": 14,
+  "nombre": "Lee diversos tipos de textos en inglés como lengua extranjera",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Obtiene información del texto escrito"
+    },
+    {
+      "numero": 2,
+      "nombre": "Infiere e interpreta información del texto escrito"
+    },
+    {
+      "numero": 3,
+      "nombre": "Reflexiona y evalúa la forma, el contenido y el contexto del texto escrito"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Se comunica oralmente en su lengua materna”."
+    },
+    {
+      "nivel": 2,
+      "texto": "Este nivel tiene como base el nivel 2 de la competencia “Se comunica oralmente en su lengua materna”."
+    },
+    {
+      "nivel": 3,
+      "texto": "Este nivel tiene como base el nivel 3 de la competencia “Se comunica oralmente en inglés como lengua extranjera”."
+    },
+    {
+      "nivel": 4,
+      "texto": "Lee diversos tipos de texto en inglés que presentan estructura simple en los que predominan expresiones conocidas e ilustraciones que apoyan las ideas centrales. Obtiene información explícita y relevante ubicada en lugares evidentes del texto. Realiza inferencias locales partir de información explícita e interpreta el texto relacionando información recurrente. Opina sobre lo que más le gustó del texto leído."
+    },
+    {
+      "nivel": 5,
+      "texto": "Lee diversos tipos de textos en inglés que presentan estructura simple con vocabulario de uso frecuente. Obtiene información poco evidente distinguiéndola de otras próximas y semejantes. Realiza inferencias locales a partir de información explícita e implícita interpreta el texto relacionando información relevante para construir su sentido global. Opina sobre sucesos e ideas importantes del texto a partir de su propia experiencia."
+    },
+    {
+      "nivel": 6,
+      "texto": "Lee diversos tipos de texto en inglés que presentan estructuras simples y algunos elementos complejos con vocabulario cotidiano. Obtiene información e integra datos que están en distintas partes del texto. Realiza inferencias locales partir de información explícita e implícita e interpreta el texto seleccionando información relevante y complementaria. Reflexiona sobre aspectos variados del texto evaluando el uso del lenguaje y la intención de los recursos textuales más comunes a partir de su conocimiento y experiencia."
+    },
+    {
+      "nivel": 7,
+      "texto": "Lee diversos tipos de texto en inglés con algunas estructuras complejas y vocabulario variado y especializado. Integra información contrapuesta ubicada en distintas partes del texto. Interpreta el texto integrando la idea principal con información específica para construir su sentido global. Reflexiona sobre las formas y contenidos del texto. Evalúa el uso del lenguaje y los recursos textuales así como el efecto del texto en el lector a partir de su conocimiento y del contexto sociocultural."
+    },
+    {
+      "nivel": 8,
+      "texto": "Lee diversos tipos de texto en inglés con estructuras complejas y vocabulario variado y especializado. Integra información ambigua o contrapuesta ubicada en distintas partes del texto. Interpreta el texto para construir su sentido global a partir de información relevante y complementaria. Reflexiona sobre las formas y el contenido del texto asumiendo una posición; evalúa el uso del lenguaje, los recursos textuales, así como el efecto del texto a partir de su conocimiento y del contexto socio cultural en el que fue escrito."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Identifica información explícita, relevante y complementaria distinguiendo detalles dispersos en el texto que contienen algunos elementos complejos en su estructura y vocabulario cotidiano, en diversos tipos de textos escritos en inglés."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Deduce diversas relaciones lógicas (adición, contraste, secuencia, semejanza-diferencia y causa) y jerárquicas (ideas principales y complementarias) en textos escritos en inglés a partir de información explícita e implícita. Señala las características de seres, objetos, lugares y hechos, y el significado de palabras, frases y expresiones en contexto."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Explica el tema y el propósito comunicativo. Ejemplo: Intercambiar información personal; hablar sobre habilidades, posesiones, preferencias, deportes y lugares; hablar acerca de actividades en curso, pasadas y diarias; describir el trabajo, la escuela; identificar accidentes geográficos y comprar comida. Distingue lo relevante de lo complementario vinculando el texto con su experiencia para construir el sentido del texto escrito en inglés y relacionándolo con su experiencia y sus conocimientos, y con otros textos."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Opina en inglés de manera oral o escrita sobre el contenido y organización del texto escrito en inglés, así como sobre el propósito comunicativo y la intención del autor a partir de su experiencia y contexto."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Identifica información explícita, relevante y complementaria distinguiendo detalles dispersos en el texto que contienen algunos elementos complejos en su estructura y vocabulario cotidiano, en diversos tipos de textos escritos en inglés."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Deduce diversas relaciones lógicas (adición, contraste, secuencia, semejanza-diferencia, causa y consecuencia) y jerárquicas (ideas principales y complementarias) en textos escritos en inglés a partir de información explícita e implícita. Señala las características de seres, objetos, lugares y hechos, y el significado de palabras, frases y expresiones en contexto."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Explica el tema y el propósito comunicativo. Ejemplo: Hablar sobre personas, lugares, accidentes; expresar sentimientos y estados de ánimo; describir posibilidades futuras, obligaciones, tecnología, eventos, noticias, actividades en curso y pasadas, realizar pedidos, sugerencias y planes; pedir y dar consejo; sugerir y planificar una actividad; expresar causa y efecto; discutir acerca de preferencias propias y de otros; describir y recomendar películas y brindar instrucciones para llegar a algún punto. Distingue lo relevante de lo complementario vinculando el texto con su experiencia para construir el sentido del texto escrito en inglés y relacionándolo con su experiencia y sus conocimientos, y con otros textos."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Opina en inglés de manera oral o escrita sobre el contenido y organización del texto escrito en inglés, así como sobre el propósito comunicativo y la intención del autor a partir de su experiencia y contexto."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Identifica información explícita, relevante y complementaria integrando datos que se encuentran en distintas partes del texto que contienen varios elementos complejos en su estructura y vocabulario variado, en diversos tipos de textos escritos en inglés."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Deduce diversas relaciones lógicas (adición, contraste, secuencia, semejanza-diferencia, causa y consecuencia) y jerárquicas (ideas principales y complementarias) en textos escritos en inglés a partir de información explícita e implícita. Señala las características de seres, objetos, lugares y hechos, y el significado de palabras, frases y expresiones en contexto."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Explica el tema y el propósito comunicativo. Ejemplo: Intercambiar información personal al presentar a alguien y a sí mismo; hablar sobre personas, medios de transporte, deportes, entretenimiento; discutir acerca de costumbres, hábitos, noticias, viajes y experiencias; describir acontecimientos históricos, accidentes vehiculares, condiciones de viaje, noticias; intercambiar información personal; comparar estilos de vida; hacer planes; quejarse y disculparse. Distingue lo relevante de lo complementario clasificando y sintetizando la información, vinculando el texto con su experiencia para construir el sentido del texto escrito en inglés, y relacionándolo con su experiencia y sus conocimientos, y con otros textos y lenguajes."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Opina en inglés de manera oral o escrita sobre el contenido y organización del texto escrito en inglés, así como sobre el propósito comunicativo y la intención del autor a partir de su experiencia y contexto. Compara textos entre sí para señalar características comunes de tipos textuales y géneros discursivos."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Identifica información explícita, relevante y complementaria integrando datos que se encuentran en distintas partes del texto o en distintos textos al realizar una lectura intertextual, que contienen varios elementos complejos en su estructura y vocabulario variado, en diversos tipos de textos escritos en inglés."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Deduce diversas relaciones lógicas (adición, contraste, secuencia, semejanza-diferencia, causa y consecuencia) y jerárquicas (ideas principales y complementarias, y conclusiones) en textos escritos en inglés a partir de información explícita e implícita. Señala las características de seres, objetos, lugares y hechos, y el significado de palabras, frases y expresiones en contexto."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Explica el tema y el propósito comunicativo. Ejemplo: Hablar acerca de actividades en curso, temporales y habituales; discutir acerca de situaciones imaginarias, obligaciones y reglas en la casa, actitudes y comportamientos, preferencias, hábitos pasados, problemas y soluciones, productos fabricados, inventos, planes y predicciones; expresar deducción, imposibilidad, posibilidad, obligación y necesidad; secuenciar eventos y compartir intereses personales. Distingue lo relevante de lo complementario clasificando y sintetizando la información vinculando el texto con su experiencia para construir el sentido del texto escrito en inglés, y relacionándolo con su experiencia y sus conocimientos, y con otros textos, lenguajes y contextos."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Opina en inglés de manera oral o escrita sobre el contenido y organización del texto escrito en inglés, así como sobre el propósito comunicativo y la intención del autor a partir de su experiencia y contexto. Compara textos entre sí para señalar características comunes de tipos textuales y géneros discursivos."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Identifica información explícita, relevante, complementaria y contrapuesta integrando datos que se encuentran en distintas partes del texto o en distintos textos al realizar una lectura intertextual, que contienen elementos complejos en su estructura y vocabulario especializado, en diversos tipos de textos escritos en inglés."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Deduce diversas relaciones lógicas (adición, contraste, secuencia, semejanza-diferencia, causa y consecuencia) y jerárquicas (ideas principales y complementarias, y conclusiones) en textos escritos en inglés a partir de información explícita e implícita. Señala las características de seres, objetos, lugares y hechos, y el significado de palabras, frases y expresiones en contexto."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Explica el tema y el propósito comunicativo. Ejemplo: Discutir acerca de modales, libros, lenguaje corporal, inventos, competencias para el trabajo, desastres naturales y emergencias; reportar una emergencia; expresar arrepentimiento; reportar noticias. Distingue lo relevante de lo complementario clasificando y sintetizando la información, vinculando el texto con su experiencia para construir el sentido del texto escrito en inglés, y relacionándolo con su experiencia y sus conocimientos, y con otros textos, lenguajes y contextos."
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Opina en inglés de manera oral o escrita sobre el contenido, recursos textuales y organización del texto escrito en inglés, así como sobre el propósito comunicativo y la intención del autor a partir de su experiencia y contexto. Compara textos entre sí para señalar características comunes de tipos textuales y géneros discursivos."
+    }
+  ]
+}

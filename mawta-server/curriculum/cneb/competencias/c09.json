@@ -1,0 +1,183 @@
+{
+  "numero_cneb": 9,
+  "nombre": "Escribe diversos tipos de textos en lengua materna",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Adecúa el texto a la situación comunicativa"
+    },
+    {
+      "numero": 2,
+      "nombre": "Organiza y desarrolla las ideas de forma coherente y cohesionada"
+    },
+    {
+      "numero": 3,
+      "nombre": "Utiliza convenciones del lenguaje escrito de forma pertinente"
+    },
+    {
+      "numero": 4,
+      "nombre": "Reflexiona y evalúa la forma, el contenido y contexto del texto escrito"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene como base principalmente el nivel 1 de la competencia “Se comunica oralmente en su lengua materna”."
+    },
+    {
+      "nivel": 2,
+      "texto": "Escribe a partir de sus hipótesis de escritura diversos tipos de textos sobre temas variados considerando el propósito y el destinatario a partir de su experiencia previa. Desarrolla sus ideas en torno a un tema con la intención de transmitir ideas o emociones. Sigue la linealidad y direccionalidad de la escritura."
+    },
+    {
+      "nivel": 3,
+      "texto": "Escribe diversos tipos de textos de forma reflexiva. Adecúa al propósito y el destinatario a partir de su experiencia previa. Organiza y desarrolla lógicamente las ideas en torno a un tema. Establece relaciones entre ideas a través del uso adecuado de algunos tipos de conectores y emplea vocabulario de uso frecuente. Separa adecuadamente las palabras y utiliza algunos recursos ortográficos básicos para darle claridad y sentido a su texto. Reflexiona sobre las ideas más importantes en el texto que escribe y explica el uso de algunos recursos ortográficos según la situación comunicativa."
+    },
+    {
+      "nivel": 4,
+      "texto": "Escribe diversos tipos de textos de forma reflexiva. Adecúa su texto al destinatario, propósito y el registro, a partir de su experiencia previa y de alguna fuente de información. Organiza y desarrolla lógicamente las ideas en torno a un tema. Establece relaciones entre ideas a través del uso adecuado de algunos tipos de conectores y de referentes; emplea vocabulario variado. Utiliza recursos ortográficos básicos para darle claridad y sentido a su texto. Reflexiona sobre la coherencia y cohesión de las ideas en el texto que escribe, y explica el uso de algunos recursos textuales para reforzar sentidos y producir efectos en el lector según la situación comunicativa."
+    },
+    {
+      "nivel": 5,
+      "texto": "Escribe diversos tipos de textos de forma reflexiva. Adecúa su texto al destinatario, propósito y el registro, a partir de su experiencia previa y de algunas fuentes de información complementarias. Organiza y desarrolla lógicamente las ideas en torno a un tema y las estructura en párrafos. Establece relaciones entre ideas a través del uso adecuado de algunos tipos de conectores y de referentes; emplea vocabulario variado. Utiliza recursos ortográficos para separar expresiones, ideas y párrafos con la intención de darle claridad y sentido a su texto. Reflexiona y evalúa de manera permanente la coherencia y cohesión de las ideas en el texto que escribe, así como el uso del lenguaje para argumentar o reforzar sentidos y producir efectos en el lector según la situación comunicativa."
+    },
+    {
+      "nivel": 6,
+      "texto": "Escribe diversos tipos de textos de forma reflexiva. Adecúa su texto al destinatario, propósito y el registro a partir de su experiencia previa y de fuentes de información complementarias. Organiza y desarrolla lógicamente las ideas en torno a un tema, y las estructura en párrafos y subtítulos de acuerdo a algunos géneros discursivos. Establece relaciones entre ideas a través del uso adecuado de varios tipos de conectores, referentes y emplea vocabulario variado. Utiliza recursos ortográficos y textuales para separar y aclarar expresiones e ideas, así como diferenciar el significado de las palabras con la intención de darle claridad y sentido a su texto. Reflexiona y evalúa de manera permanente la coherencia y cohesión de las ideas en el texto que escribe, así como el uso del lenguaje para argumentar, reforzar o sugerir sentidos y producir diversos efectos en el lector según la situación comunicativa."
+    },
+    {
+      "nivel": 7,
+      "texto": "Escribe diversos tipos de textos de forma reflexiva. Adecúa su texto al destinatario, propósito y el registro a partir de su experiencia previa, de fuentes de información complementarias y divergentes, y de su conocimiento del contexto histórico y sociocultural. Organiza y desarrolla lógicamente las ideas en torno a un tema, y las estructura en párrafos, capítulos o apartados de acuerdo a distintos géneros discursivos. Establece relaciones entre ideas a través del uso preciso de diversos recursos cohesivos. Emplea vocabulario variado, especializado y preciso, así como una variedad de recursos ortográficos y textuales para darle claridad y sentido a su texto. Reflexiona y evalúa de manera permanente la validez de la información, la coherencia y cohesión de las ideas en el texto que escribe; controla el lenguaje para contraargumentar, reforzar o sugerir sentidos y producir diversos efectos en el lector según la situación comunicativa."
+    },
+    {
+      "nivel": 8,
+      "texto": "Escribe diversos tipos de textos de forma reflexiva. Adecúa su texto al destinatario, propósito, el registro y el estilo a partir de su experiencia previa, de fuentes de información complementarias y divergentes, y de su conocimiento del contexto histórico y sociocultural. Organiza y desarrolla lógicamente las ideas en torno a un tema, y las estructura en párrafos, capítulos y apartados, de acuerdo a distintos géneros discursivos. Establece relaciones entre ideas a través del uso preciso de diversos recursos cohesivos. Emplea vocabulario variado, especializado y preciso, así como una variedad de recursos ortográficos y textuales para darle claridad y sentido a su texto. Reflexiona y evalúa de manera permanente la validez de la información, el uso de estructuras sintácticas con fines comunicativos y el estilo en el texto que escribe; controla el lenguaje para analizar críticamente diversas posturas, posicionar ideas, contraargumentar, reforzar, matizar o sugerir sentidos y producir diversos efectos en el lector según la situación comunicativa."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Adecúa el texto a la situación comunicativa considerando el propósito comunicativo, el tipo textual y algunas características del género discursivo, así como el formato y el soporte. Mantiene el registro formal o informal adaptándose a los destinatarios y seleccionando diversas fuentes de información complementaria."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Escribe textos de forma coherente y cohesionada. Ordena las ideas en torno a un tema, las jerarquiza en subtemas e ideas principales, y las desarrolla para ampliar o precisar la información sin digresiones o vacíos. Establece relaciones lógicas entre las ideas, como consecuencia, contraste, comparación o disyunción, a través de algunos referentes y conectores. Incorpora de forma pertinente vocabulario que incluye sinónimos y diversos términos propios de los campos del saber."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Utiliza recursos gramaticales y ortográficos (por ejemplo, el punto y aparte para separar párrafos) que contribuyen al sentido de su texto. Emplea algunos recursos textuales y figuras retóricas (por ejemplo, la hipérbole) con distintos propósitos: para aclarar ideas, y reforzar o sugerir sentidos en el texto; para caracterizar personas, personajes y escenarios; y para elaborar patrones rítmicos y versos libres, con el fin de producir efectos en el lector, como el entretenimiento o el suspenso."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Evalúa de manera permanente el texto determinando si se ajusta a la situación comunicativa; si existen contradicciones, digresiones o vacíos que afectan la coherencia entre las ideas; o si el uso de conectores y referentes asegura la cohesión entre estas. Determina la eficacia de los recursos ortográficos utilizados y la pertinencia del vocabulario para mejorar el texto y garantizar su sentido."
+    },
+    {
+      "grado": "1S",
+      "orden": 5,
+      "texto": "Evalúa el efecto de su texto en los lectores a partir de los recursos textuales y estilísticos utilizados considerando su propósito al momento de escribirlo. Compara y contrasta aspectos gramaticales y ortográficos, algunas características de tipos textuales y géneros discursivos, así como otras convenciones vinculadas con el lenguaje escrito, cuando evalúa el texto."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Adecúa el texto a la situación comunicativa considerando el propósito comunicativo, el tipo textual y algunas características del género discursivo, así como el formato y el soporte. Mantiene el registro formal o informal adaptándose a los destinatarios y seleccionando diversas fuentes de información complementaria."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Escribe textos de forma coherente y cohesionada. Ordena las ideas en torno a un tema, las jerarquiza en subtemas e ideas principales, y las desarrolla para ampliar o precisar la información sin digresiones o vacíos. Establece relaciones lógicas entre las ideas, como comparación, simultaneidad y disyunción, a través de varios tipos de referentes y conectores. Incorpora de forma pertinente un vocabulario que incluye sinónimos y diversos términos propios de los campos del saber."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Utiliza recursos gramaticales y ortográficos (por ejemplo, tildación diacrítica) que contribuyen al sentido de su texto. Emplea algunos recursos textuales y figuras retóricas (por ejemplo, el símil) con distintos propósitos: para aclarar ideas, y reforzar o sugerir sentidos en el texto; para caracterizar personas, personajes y escenarios; y para elaborar patrones rítmicos y versos libres, con el fin de producir efectos en el lector, como el entretenimiento o el suspenso."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Evalúa de manera permanente el texto determinando si se ajusta a la situación comunicativa; si existen contradicciones, digresiones o vacíos que afectan la coherencia entre las ideas; o si el uso de conectores y referentes asegura la cohesión entre estas. Determina la eficacia de los recursos ortográficos utilizados y la pertinencia del vocabulario para mejorar el texto y garantizar su sentido."
+    },
+    {
+      "grado": "2S",
+      "orden": 5,
+      "texto": "Evalúa el efecto de su texto en los lectores a partir de los recursos textuales y estilísticos utilizados considerando su propósito al momento de escribirlo. Compara y contrasta aspectos gramaticales y ortográficos, algunas características de tipos textuales y géneros discursivos, así como otras convenciones vinculadas con el lenguaje escrito, cuando evalúa el texto."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Adecúa el texto a la situación comunicativa considerando el propósito comunicativo, el tipo textual y las características del género discursivo, así como el formato y el soporte. Elige estratégicamente el registro formal o informal adaptándose a los destinatarios y seleccionando diversas fuentes de información complementaria."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Escribe textos de forma coherente y cohesionada. Ordena las ideas en torno a un tema, las jerarquiza en subtemas e ideas principales, y las desarrolla para ampliar o precisar la información sin digresiones o vacíos. Establece diversas relaciones lógicas entre las ideas a través de varios tipos de referentes, conectores y otros marcadores textuales. Incorpora de forma pertinente un vocabulario que incluye sinónimos y algunos términos especializados."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Utiliza recursos gramaticales y ortográficos (por ejemplo, tildación diacrítica) que contribuyen al sentido de su texto. Emplea algunas figuras retóricas (por ejemplo, la metáfora) para caracterizar personas, personajes y escenarios, así como para elaborar patrones rítmicos y versos libres. Emplea algunas estrategias discursivas (paratextos, diseño visual del texto, entre otros) para aclarar ideas, reforzar o sugerir sentidos en el texto, con el fin de producir efectos en el lector, como el suspenso o la persuasión, entre otros."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Evalúa de manera permanente el texto determinando si se ajusta a la situación comunicativa; si existen contradicciones, digresiones o vacíos que afectan la coherencia entre las ideas; o si el uso de varios tipos de conectores, referentes y otros marcadores textuales asegura la cohesión entre ellas. Determina la eficacia de los recursos ortográficos utilizados y la pertinencia del vocabulario para mejorar el texto y garantizar su sentido."
+    },
+    {
+      "grado": "3S",
+      "orden": 5,
+      "texto": "Evalúa el modo en que el lenguaje refuerza o sugiere sentidos en su texto y produce efectos en los lectores considerando su propósito al momento de escribirlo. Compara y contrasta aspectos gramaticales y ortográficos, diversas características de tipos textuales y géneros discursivos, así como otras convenciones vinculadas con el lenguaje escrito, cuando evalúa el texto."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Adecúa el texto a la situación comunicativa considerando el propósito comunicativo, el tipo textual y las características del género discursivo, así como el formato y el soporte. Elige estratégicamente el registro formal o informal adaptándose a los destinatarios y seleccionando fuentes de información complementaria y divergente."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Escribe textos de forma coherente y cohesionada. Ordena las ideas en torno a un tema, las jerarquiza en subtemas e ideas principales, y las desarrolla para contrargumentar o precisar la información sin digresiones o vacíos. Establece diversas relaciones lógicas entre las ideas a través del uso preciso de referentes, conectores y otros marcadores textuales. Incorpora de forma pertinente vocabulario que incluye sinónimos y algunos términos especializados."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Utiliza recursos gramaticales y ortográficos (por ejemplo, tiempos verbales) que contribuyen al sentido de su texto. Emplea diversas figuras retóricas para caracterizar personas, personajes, escenarios y mundos representados, así como para elaborar patrones rítmicos y versos libres. Emplea diversas estrategias discursivas (retórica, paratextos, diseño visual del texto entre otros) para contrargumentar, reforzar o sugerir sentidos en el texto, con el fin de producir efectos en el lector, como la persuasión o la verosimilitud, entre otros."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Evalúa de manera permanente el texto determinando si se ajusta a la situación comunicativa; si existen contradicciones, digresiones o vacíos que afectan la coherencia entre las ideas; o si el uso preciso de varios tipos de conectores, referentes y otros marcadores textuales asegura la cohesión entre ellas. Determina la eficacia de los recursos ortográficos utilizados, así como la pertinencia del vocabulario y de los términos especializados para mejorar el texto y garantizar su sentido."
+    },
+    {
+      "grado": "4S",
+      "orden": 5,
+      "texto": "Evalúa el modo en que el lenguaje refuerza o sugiere sentidos en su texto y produce efectos en los lectores considerando su propósito al momento de escribirlo. Compara y contrasta aspectos gramaticales y ortográficos, diversas características de tipos textuales y géneros discursivos, así como otras convenciones vinculadas con el lenguaje escrito, cuando evalúa el texto."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Adecúa el texto a la situación comunicativa considerando el propósito comunicativo, el tipo textual y las características del género discursivo, así como el formato y el soporte. Elige estratégicamente el registro formal o informal adaptándose a los destinatarios y seleccionando fuentes de información complementaria y divergente."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Escribe textos de forma coherente y cohesionada. Ordena las ideas en torno a un tema, las jerarquiza en subtemas e ideas principales, y las desarrolla para contrargumentar o precisar la información sin digresiones o vacíos. Establece diversas relaciones lógicas entre las ideas a través del uso preciso de referentes, conectores y otros marcadores textuales. Incorpora de forma pertinente vocabulario que incluye sinónimos y términos especializados."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Utiliza recursos gramaticales y ortográficos (por ejemplo, tiempos verbales) que contribuyen al sentido de su texto. Emplea diversas figuras retóricas para caracterizar personas, personajes y escenarios, así como para elaborar patrones rítmicos y versos libres. Emplea diversas estrategias discursivas (retórica, paratextos, diseño visual del texto entre otros) para contrargumentar, y reforzar o sugerir sentidos en el texto, con el fin de producir efectos en el lector, como la persuasión o la verosimilitud, entre otros."
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Evalúa de manera permanente el texto determinando si se ajusta a la situación comunicativa; si existen contradicciones, digresiones o vacíos que afectan la coherencia entre las ideas; o si el uso preciso de conectores y referentes asegura la cohesión entre estas. Determina la eficacia de los recursos ortográficos utilizados, así como la pertinencia del vocabulario y de los términos especializados para mejorar el texto y garantizar su sentido."
+    },
+    {
+      "grado": "5S",
+      "orden": 5,
+      "texto": "Evalúa el modo en que el lenguaje refuerza o sugiere sentidos en su texto y produce efectos en los lectores considerando su propósito al momento de escribirlo. Compara y contrasta aspectos gramaticales y ortográficos, diversas características de tipos textuales y géneros discursivos, así como otras convenciones vinculadas con el lenguaje escrito, cuando evalúa el texto."
+    }
+  ]
+}

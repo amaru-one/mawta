@@ -1,0 +1,360 @@
+{
+  "numero_cneb": 21,
+  "nombre": "Explica el mundo físico basándose en conocimientos sobre los seres vivos, materia y energía, biodiversidad, Tierra y universo",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Comprende y usa conocimientos sobre los seres vivos, materia y energía, biodiversidad, Tierra y universo"
+    },
+    {
+      "numero": 2,
+      "nombre": "Evalúa las implicancias del saber y del quehacer científico y tecnológico"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Indaga mediante métodos científicos”."
+    },
+    {
+      "nivel": 2,
+      "texto": "Este nivel tiene como base el nivel 2 de la competencia “Indaga mediante métodos científicos”."
+    },
+    {
+      "nivel": 3,
+      "texto": "Explica, con base en sus observaciones y experiencias previas, las relaciones entre: las características de los materiales con los cambios que sufren por acción de la luz, del calor y del movimiento; la estructura de los seres vivos con sus funciones y su desarrollo; la Tierra, sus componentes y movimientos con los seres que lo habitan. Opina sobre los impactos del uso de objetos tecnológicos en relación a sus necesidades y estilo de vida."
+    },
+    {
+      "nivel": 4,
+      "texto": "Explica, con base en evidencias documentadas con respaldo científico, las relaciones que establece entre: las fuentes de energía o sus manifestaciones con los tipos de cambio que producen en los materiales; entre las fuerzas con el movimiento de los cuerpos; la estructura de los sistemas vivos con sus funciones y su agrupación en especies; la radiación del sol con las zonas climáticas de la Tierra y las adaptaciones de los seres vivos. Opina sobre los impactos de diversas tecnologías en la solución de problemas relacionados a necesidades y estilos de vida colectivas."
+    },
+    {
+      "nivel": 5,
+      "texto": "Explica, con base en evidencia con respaldo científico, las relaciones entre: propiedades o funciones macroscópicas de los cuerpos, materiales o seres vivos con su estructura y movimiento microscópico; la reproducción sexual con la diversidad genética; los ecosistemas con la diversidad de especies; el relieve con la actividad interna de la Tierra. Relaciona el descubrimiento científico o la innovación tecnológica con sus impactos. Justifica su posición frente a situaciones controversiales sobre el uso de la tecnología y el saber científico."
+    },
+    {
+      "nivel": 6,
+      "texto": "Explica, con base en evidencia con respaldo científico, las relaciones cualitativas y las cuantificables entre: el campo eléctrico con la estructura del átomo, la energía con el trabajo o el movimiento, las funciones de la célula con sus requerimientos de energía y materia, la selección natural o artificial con el origen y evolución de especies, los flujos de materia y energía en la Tierra o los fenómenos meteorológicos con el funcionamiento de la biosfera. Argumenta su posición frente a las implicancias sociales y ambientales de situaciones sociocientíficas o frente a cambios en la cosmovisión suscitados por el desarrollo de la ciencia y tecnología."
+    },
+    {
+      "nivel": 7,
+      "texto": "Explica, con base en evidencias con respaldo científico, las relaciones cualitativas y las cuantificables entre: la estructura microscópica de un material y su reactividad con otros materiales o con campos y ondas; la información genética, las funciones de las células con las funciones de los sistemas (homeostasis); el origen de la Tierra, su composición, su evolución física, química y biológica con los registros fósiles. Argumenta su posición frente a las implicancias éticas, sociales y ambientales de situaciones sociocientíficas o frente a cambios en la cosmovisión suscitados por el desarrollo de la ciencia y tecnología."
+    },
+    {
+      "nivel": 8,
+      "texto": "Explica, con base en evidencia con respaldo científico, las relaciones cualitativas y las cuantificables que establece entre: las cuatro fuerzas fundamentales, las interconversiones de la energía con la organización del universo; entre el ADN, la expresión regulada de los genes con las funciones bioquímicas; los cambios físico-químicos de la Tierra con los cambios en la biodiversidad. Argumenta su posición frente a las implicancias sociales y ambientales de situaciones sociocientíficas o frente a cambios en la cosmovisión suscitados por el desarrollo de la ciencia y tecnología."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Describe las propiedades de la materia, y explica los cambios físicos y químicos a partir de sus interacciones con transferencia de energía."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Sustenta que la luz visible es una región del espectro electromagnético compuesta por ondas de distinta longitud y frecuencia."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Explica el modelo actual de la estructura del átomo, a partir de la comparación y evolución de los modelos precedentes. Evalúa el rol de la ciencia y la tecnología en ese proceso."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Describe cualitativa y cuantitativamente el movimiento de un cuerpo a partir de la aplicación de fuerzas por contacto o a distancia. Ejemplo: El estudiante describe el movimiento de un ciclista sobre una pista horizontal: “La fuerza de contacto que inicia el movimiento de la bicicleta es aplicada al pedal. La bicicleta se desplaza en línea recta con dirección norte-sur. Recorre 2 m cada segundo”."
+    },
+    {
+      "grado": "1S",
+      "orden": 5,
+      "texto": "Explica que las sustancias inorgánicas y biomoléculas que conforman la estructura de la célula le permiten cumplir funciones de nutrición, relación y reproducción para su propia supervivencia o la del organismo del que forma parte. Ejemplo: El estudiante explica que las proteínas del citoesqueleto de la ameba pueden ensamblarse y reorganizarse rápidamente para formar seudópodos que estiran su membrana para moverse y atrapar su alimento, rodeándolo y fagocitándolo."
+    },
+    {
+      "grado": "1S",
+      "orden": 6,
+      "texto": "Explica que la dinámica y sostenibilidad de un ecosistema depende del flujo de la materia y la energía a través de las cadenas o redes tróficas."
+    },
+    {
+      "grado": "1S",
+      "orden": 7,
+      "texto": "Describe las áreas naturales protegidas como ecosistemas donde se conserva la biodiversidad y sus interrelaciones, y describe los diversos servicios ecosistémicos que brinda a la sociedad."
+    },
+    {
+      "grado": "1S",
+      "orden": 8,
+      "texto": "Explica cómo los organismos actuales de los diversos reinos se originan a partir de ancestros comunes mediante la selección natural."
+    },
+    {
+      "grado": "1S",
+      "orden": 9,
+      "texto": "Explica cómo se generaron las condiciones que se consideran favorables para la vida en la Tierra, a partir de la evolución del universo. Describe las modificaciones de la hidrósfera, litósfera y atmósfera hace aproximadamente 4500 millones de años. Ejemplo: El estudiante explica que las plantas hicieron que se incremente el oxígeno en la atmósfera. El CO₂ atmosférico causa efecto invernadero y aumenta la temperatura. El efecto invernadero y el vapor de agua en la atmósfera hace que la temperatura sea más regular, es decir, menos cambiante, y, por tanto, se produjo la meteorización de las rocas hasta convertirlas en partículas, lo que dio lugar al suelo que pudo ofrecer soporte y nutrientes para el desarrollo de las plantas."
+    },
+    {
+      "grado": "1S",
+      "orden": 10,
+      "texto": "Explica cómo se relacionan los factores y elementos que generan la variedad climática que influye en el desarrollo de la diversidad de la vida en la Tierra."
+    },
+    {
+      "grado": "1S",
+      "orden": 11,
+      "texto": "Explica cómo el desarrollo científico y tecnológico ha contribuido a cambiar las ideas sobre el universo y la vida de las personas en distintos momentos históricos."
+    },
+    {
+      "grado": "1S",
+      "orden": 12,
+      "texto": "Fundamenta su posición respecto a situaciones donde la ciencia y la tecnología son cuestionadas por su impacto en la sociedad y el ambiente."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Explica cualitativa y cuantitativamente el salto cuántico como una manifestación de la interacción entre materia y energía en la nube electrónica del átomo."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Explica las propiedades periódicas de los elementos químicos a partir de la organización de sus electrones. Ejemplo: El estudiante explica que los metales como el hierro, cobre y otros conducen el calor y la electricidad debido a que cada átomo del metal cede uno o más de sus electrones de valencia formando un mar de electrones libres que tienen la posibilidad de trasladarse por todo el material ante un estímulo como el voltaje."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Describe cómo se produce la reflexión, la refracción y la dispersión de las ondas."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Explica que el calor se puede cuantificar y transferir de un cuerpo con mayor temperatura a otro de menor temperatura. Ejemplo: El estudiante explica que el termómetro clínico al contacto con el cuerpo recibe calor y este provoca la agitación de las moléculas de mercurio, lo que aumenta la fuerza de repulsión entre ellas, y genera que se dilate y ascienda por el capilar del termómetro hasta 39 °C, que es un signo de fiebre."
+    },
+    {
+      "grado": "2S",
+      "orden": 5,
+      "texto": "Describe el movimiento cualitativa y cuantitativamente relacionando la distancia, el tiempo y la velocidad."
+    },
+    {
+      "grado": "2S",
+      "orden": 6,
+      "texto": "Explica cualitativa y cuantitativamente la relación entre energía, trabajo y movimiento. Ejemplo: El estudiante explica que el uso de las máquinas simples (plano inclinado, poleas y palancas) modifica la fuerza aplicada para realizar un trabajo."
+    },
+    {
+      "grado": "2S",
+      "orden": 7,
+      "texto": "Describe cómo a través de los procesos de fotosíntesis y respiración se produce la energía que la célula utiliza para producir sustancias orgánicas."
+    },
+    {
+      "grado": "2S",
+      "orden": 8,
+      "texto": "Establece semejanzas y diferencias entre las estructuras que han desarrollado los seres unicelulares y pluricelulares para realizar la función de nutrición."
+    },
+    {
+      "grado": "2S",
+      "orden": 9,
+      "texto": "Establece semejanzas y diferencias entre las estructuras reproductivas que han desarrollado seres unicelulares y pluricelulares para la perpetuación de la especie."
+    },
+    {
+      "grado": "2S",
+      "orden": 10,
+      "texto": "Establece semejanzas y diferencias entre las estructuras que han desarrollado los diversos seres unicelulares y pluricelulares que les permiten cumplir funciones de coordinación o relación para la supervivencia."
+    },
+    {
+      "grado": "2S",
+      "orden": 11,
+      "texto": "Explica cómo la selección natural da lugar a diferentes especies a partir de un ancestro común y cómo la selección artificial aprovecha la diversidad al interior de cada especie para modificar los organismos con diferentes fines."
+    },
+    {
+      "grado": "2S",
+      "orden": 12,
+      "texto": "Justifica que la vida en la biósfera depende del flujo de la energía y de los ciclos biogeoquímicos. Ejemplo: El estudiante explica que la destrucción de los bosques amazónicos altera el ciclo del carbono al aumentar su concentración en la atmósfera y contribuye al calentamiento global y a los cambios climáticos que amenazan la sostenibilidad."
+    },
+    {
+      "grado": "2S",
+      "orden": 13,
+      "texto": "Justifica cómo las causas del cambio climático pueden ser mitigadas a partir del uso de fuentes de energía limpia en la generación de energía eléctrica."
+    },
+    {
+      "grado": "2S",
+      "orden": 14,
+      "texto": "Explica cómo el desarrollo científico y tecnológico ha contribuido a cambiar las ideas sobre el universo y la vida de las personas en distintos momentos históricos."
+    },
+    {
+      "grado": "2S",
+      "orden": 15,
+      "texto": "Fundamenta su posición respecto a situaciones donde la ciencia y la tecnología son cuestionadas por su impacto en la sociedad y el ambiente, y explica cómo son una oportunidad para superar determinadas problemáticas sociales y ambientales."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Explica cualitativa y cuantitativamente que las sustancias se generan al formarse o romperse enlaces entre átomos, que absorben o liberan energía conservando su masa. Evalúa las implicancias ambientales y sociales del uso de las sustancias inorgánicas."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Explica cualitativa y cuantitativamente que la degradación de los materiales depende de su composición química y de las condiciones ambientales."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Explica la generación de campos eléctricos a partir de la existencia de cargas positivas o negativas, y de la generación de campos magnéticos a partir del movimiento de estas cargas eléctricas."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Explica cuantitativamente que, en las reacciones nucleares de fisión y fusión, se producen elementos con intercambio de grandes cantidades de energía. Analiza las implicancias de la energía nuclear en la generación de energía eléctrica."
+    },
+    {
+      "grado": "3S",
+      "orden": 5,
+      "texto": "Sustenta cualitativa y cuantitativamente las propiedades de los gases según la teoría cinética molecular."
+    },
+    {
+      "grado": "3S",
+      "orden": 6,
+      "texto": "Explica cualitativa y cuantitativamente el comportamiento de los líquidos en reposo por acción de la presión."
+    },
+    {
+      "grado": "3S",
+      "orden": 7,
+      "texto": "Establece semejanzas y diferencias entre las estructuras que han desarrollado los diversos seres unicelulares y pluricelulares para realizar la función de locomoción."
+    },
+    {
+      "grado": "3S",
+      "orden": 8,
+      "texto": "Explica el crecimiento y la reproducción de la célula a partir del ciclo celular."
+    },
+    {
+      "grado": "3S",
+      "orden": 9,
+      "texto": "Explica la transmisión de caracteres de progenitores a descendientes mediante los genes."
+    },
+    {
+      "grado": "3S",
+      "orden": 10,
+      "texto": "Justifica que el relieve de la Tierra se debe a los movimientos sísmicos, al vulcanismo y a la formación de rocas producidos por la energía interna de la Tierra."
+    },
+    {
+      "grado": "3S",
+      "orden": 11,
+      "texto": "Establece relaciones entre el desarrollo científico y tecnológico con las demandas de la sociedad en distintos momentos históricos."
+    },
+    {
+      "grado": "3S",
+      "orden": 12,
+      "texto": "Fundamenta su posición, empleando evidencia científica, respecto de eventos paradigmáticos y de situaciones donde la ciencia y la tecnología son cuestionadas por su impacto en la sociedad y el ambiente."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Explica la formación y degradación de las sustancias naturales y sintéticas a partir de las propiedades de tetravalencia y autosaturación del átomo de carbono. Describe la estructura y las condiciones ambientales que posibilitan la degradación de esas sustancias."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Sustenta cualitativa y cuantitativamente que la energía térmica se conserva, transfiere o degrada en sólidos y fluidos."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Explica cómo la célula, a través de reacciones químicas, transforma los nutrientes y obtiene energía necesaria para realizar las funciones vitales del ser humano."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Justifica los mecanismos de regulación en los sistemas (regulación de temperatura, glucosa, hormonas, líquidos y sales) para conservar la homeostasis del organismo humano."
+    },
+    {
+      "grado": "4S",
+      "orden": 5,
+      "texto": "Explica que la síntesis de proteínas, que cumplen diversas funciones en el organismo, es producto de la transcripción y traducción de la secuencia de nucleótidos de los ácidos nucleicos."
+    },
+    {
+      "grado": "4S",
+      "orden": 6,
+      "texto": "Explica que la conservación del número de cromosomas haploides de cada especie se mantiene mediante la producción de células sexuales (gametogénesis) y relaciona este proceso con la herencia, la diversidad y las enfermedades genéticas."
+    },
+    {
+      "grado": "4S",
+      "orden": 7,
+      "texto": "Explica que la evolución de las especies fue influenciada por los cambios ambientales ocurridos en el pasado."
+    },
+    {
+      "grado": "4S",
+      "orden": 8,
+      "texto": "Sustenta que la especiación de los seres vivos puede estar influenciada por aislamiento geográfico o reducción del flujo génico."
+    },
+    {
+      "grado": "4S",
+      "orden": 9,
+      "texto": "Fundamenta su posición ética, empleando evidencia científica, frente a eventos paradigmáticos y situaciones donde la ciencia y la tecnología son cuestionadas por su impacto en la sociedad y el ambiente."
+    },
+    {
+      "grado": "4S",
+      "orden": 10,
+      "texto": "Fundamenta respecto de situaciones en las que se pone en juego las demandas sociales e intereses particulares sobre el quehacer científico y tecnológico que impactan en la sociedad y el ambiente."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Explica la propiedad de conservación de la materia y la energía a partir de la conversión materia-energía y viceversa, como en las reacciones de fisión y fusión nuclear. Evalúa las implicancias del uso de la radiación nuclear en la industria alimentaria, agrícola, de salud, entre otras."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Explica cualitativa y cuantitativamente que los flujos magnéticos variables en una espira conductora producen corriente eléctrica continua o alterna siguiendo las leyes de la inducción electromagnética."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Explica cualitativa y cuantitativamente la relación entre trabajo mecánico (plano inclinado, poleas y palancas), energía y potencia, y las condiciones de equilibrio en los sistemas físicos."
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Explica cualitativa y cuantitativamente el comportamiento de las ondas mecánicas y electromagnéticas a partir del movimiento vibratorio armónico simple."
+    },
+    {
+      "grado": "5S",
+      "orden": 5,
+      "texto": "Sustenta cualitativa y cuantitativamente la actuación independiente y simultánea de dos movimientos en un movimiento compuesto de un móvil."
+    },
+    {
+      "grado": "5S",
+      "orden": 6,
+      "texto": "Explica cualitativa y cuantitativamente que, cuando la fuerza total que actúa sobre un cuerpo es cero, este cuerpo permanece en reposo o se mueve con velocidad constante."
+    },
+    {
+      "grado": "5S",
+      "orden": 7,
+      "texto": "Sustenta que el material genético de una especie puede ser aislado y transferido para la expresión de determinados caracteres. Fundamenta su posición considerando las implicancias éticas, sociales y ambientales."
+    },
+    {
+      "grado": "5S",
+      "orden": 8,
+      "texto": "Fundamenta que la universalidad del código genético permite la transferencia de genes entre especies de manera natural y artificial."
+    },
+    {
+      "grado": "5S",
+      "orden": 9,
+      "texto": "Explica que las enfermedades genéticas tienen su origen en anomalías en el ADN que pueden afectar la funcionalidad de genes específicos o su regulación."
+    },
+    {
+      "grado": "5S",
+      "orden": 10,
+      "texto": "Fundamenta las relaciones entre los factores físicos y químicos que intervienen en los fenómenos y situaciones que amenazan la sostenibilidad de la biósfera, y evalúa la pertinencia científica de los acuerdos y mecanismos de conservación y lucha contra el cambio climático para el desarrollo sostenible."
+    },
+    {
+      "grado": "5S",
+      "orden": 11,
+      "texto": "Sustenta que, poco después del origen del universo, las partículas elementales dieron origen al H y He, a partir de los cuales, y con la acción de las fuerzas fundamentales (gravedad y fuerza de atracción nuclear), se originó la diversidad de elementos químicos presentes en la Tierra y el universo."
+    },
+    {
+      "grado": "5S",
+      "orden": 12,
+      "texto": "Fundamenta las implicancias éticas, sociales y ambientales del conocimiento científico y de las tecnologías en la cosmovisión y en la forma de vida de las personas."
+    },
+    {
+      "grado": "5S",
+      "orden": 13,
+      "texto": "Fundamenta una visión de sí mismo, del ser humano y del mundo frente a eventos paradigmáticos, empleando diversas evidencias."
+    }
+  ]
+}

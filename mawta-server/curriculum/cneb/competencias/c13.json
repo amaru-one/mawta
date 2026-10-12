@@ -1,0 +1,266 @@
+{
+  "numero_cneb": 13,
+  "nombre": "Se comunica oralmente en inglés como lengua extranjera",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Obtiene información de textos orales"
+    },
+    {
+      "numero": 2,
+      "nombre": "Infiere e interpreta información de textos orales"
+    },
+    {
+      "numero": 3,
+      "nombre": "Adecúa, organiza y desarrolla las ideas de forma coherente y cohesionada"
+    },
+    {
+      "numero": 4,
+      "nombre": "Utiliza recursos no verbales y paraverbales de forma estratégica"
+    },
+    {
+      "numero": 5,
+      "nombre": "Interactúa estratégicamente con distintos interlocutores"
+    },
+    {
+      "numero": 6,
+      "nombre": "Reflexiona y evalúa la forma, el contenido y el contexto del texto oral"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Se comunica oralmente en su lengua materna”."
+    },
+    {
+      "nivel": 2,
+      "texto": "Este nivel tiene como base el nivel 2 de la competencia “Se comunica oralmente en su lengua materna”."
+    },
+    {
+      "nivel": 3,
+      "texto": "Se comunica oralmente mediante textos orales breves en inglés. Obtiene información explícita con ayuda audiovisual y expresiones corporales del emisor. Realiza inferencias sencillas e interpreta información explícita del interlocutor. Se expresa espontáneamente organizando sus ideas acerca de sí mismo, su familia y su entorno inmediato usando vocabulario y construcciones gramaticales simples. Utiliza recursos no verbales como gestos y expresiones corporales. Opina sobre el texto oral que escucha en inglés dando a conocer sus preferencias a través del uso de ilustraciones según el contexto. En un intercambio, responde usando palabras, frases u oraciones simples en inglés."
+    },
+    {
+      "nivel": 4,
+      "texto": "Se comunica oralmente mediante textos orales sencillos en inglés. Obtiene información explícita con ayuda audiovisual y expresiones corporales del emisor. Realiza inferencias sencillas e interpreta la intención del interlocutor. Se expresa organizando sus ideas acerca de sí mismo, actividades diarias, preferencias y entorno inmediato usando vocabulario y construcciones gramaticales sencillas. Utiliza recursos no verbales como gestos y expresiones corporales tono y volumen de voz apropiados. Opina sobre el texto oral que escucha en inglés expresando su posición con oraciones simples. En un intercambio, formula y responde preguntas usando frases y oraciones cotidianas en inglés de forma pertinente."
+    },
+    {
+      "nivel": 5,
+      "texto": "Se comunica oralmente mediante textos orales sencillos en inglés. Obtiene información explícita del texto que escucha. Infiere hechos, tema y propósito e interpreta la intención del interlocutor. Se expresa adecuando el texto a situaciones comunicativas cotidianas usando pronunciación adecuada; organiza y desarrolla ideas en torno a un tema haciendo uso de algunos conectores coordinados incluyendo vocabulario de uso frecuente y construcciones gramaticales determinadas. Utiliza recursos no verbales como gestos y expresiones corporales tono y volumen de voz apropiado. Opina sobre el texto oral que escucha en inglés expresando su posición con oraciones sencillas. En un intercambio, formula y responde preguntas usando frases y oraciones de uso frecuente sobre temas familiares, de interés personal y de la vida cotidiana de forma pertinente."
+    },
+    {
+      "nivel": 6,
+      "texto": "Se comunica oralmente mediante diversos tipos de textos en inglés. Infiere el tema, propósito, hechos y conclusiones a partir de información explícita e interpreta la intención del interlocutor. Se expresa adecuando el texto a situaciones comunicativas cotidianas usando pronunciación y entonación adecuadas; organiza y desarrolla ideas en torno a un tema central haciendo uso de algunos conectores coordinados y subordinados incluyendo vocabulario cotidiano y construcciones gramaticales determinadas y pertinentes. Utiliza recursos no verbales y paraverbales para dar énfasis a su texto. Opina sobre lo escuchado haciendo uso de sus conocimientos del tema. En un intercambio, participa formulando y respondiendo preguntas sobre actividades diarias, eventos pasados y temas de interés personal."
+    },
+    {
+      "nivel": 7,
+      "texto": "Se comunica oralmente mediante diversos tipos de textos en inglés. Infiere el tema, propósito, hechos y conclusiones a partir de información implícita y explícita e interpreta la intención del interlocutor. Se expresa adecuando el texto a situaciones comunicativas formales e informales usando pronunciación y entonación inteligibles; organiza y desarrolla ideas en torno a un tema y las relaciona haciendo uso de algunos recursos cohesivos, vocabulario variado y construcciones gramaticales determinadas y pertinentes. Utiliza recursos no verbales y paraverbales para garantizar la pertinencia del mensaje. Reflexiona y evalúa sobre lo escuchado haciendo uso de sus conocimientos sobre el tema. En un intercambio, participa formulando y respondiendo preguntas sobre temas que le son conocidos o habituales y evalúa las respuestas escuchadas para dar sus aportes tomando en cuenta los puntos de vista de otros."
+    },
+    {
+      "nivel": 8,
+      "texto": "Se comunica oralmente mediante diversos tipos de textos en inglés. Interpreta la intención del interlocutor. Se expresa adecuando el texto a situaciones comunicativas formales e informales con pronunciación y entonación inteligible; organiza y desarrolla ideas en torno a un tema y las relaciona haciendo uso de recursos cohesivos, vocabulario especializado y construcciones gramaticales variadas y pertinentes. Utiliza recursos no verbales y paraverbales para enfatizar el mensaje. Reflexiona y evalúa sobre lo escuchado justificando su posición de acuerdo a sus conocimientos del tema y al contexto. En un intercambio, participa de forma activa y pertinente acerca de temas variados y evalúa las ideas de los otros para contra argumentar cuando se requiera."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Recupera información explícita y relevante seleccionando datos específicos en los textos orales que escucha en inglés, con vocabulario cotidiano y pertinente. Reconoce el propósito comunicativo apoyándose en el contexto. Integra la información cuando es dicha en distintos momentos."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Deduce información señalando características de seres, objetos, lugares y hechos. Deduce el significado de palabras, frases y expresiones de mediana complejidad en contexto. Ejemplo: Verb to be; wh-questions —what, how, where, what, when, what time, how often, whose, how many, how much; possessive adjectives and nouns; personal and object pronouns; demonstrative pronouns; adverbs of frequency; can; present simple and continuous; quantifiers; comparative and superlative adjectives. Deduce, también, el significado de las relaciones lógicas (adición, contraste, secuencia, semejanza-diferencia, causa) y jerárquicas (ideas principales) en textos orales en inglés."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Explica el tema y el propósito comunicativo. Distingue lo relevante de lo complementario vinculando el texto con su experiencia a partir de recursos verbales, no verbales y paraverbales para construir el sentido del texto oral en inglés."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Adapta el texto oral a la situación comunicativa manteniendo el registro y los modos culturales, y considerando el tipo de texto, el contexto y el propósito. Ejemplo: Intercambiar información personal; hablar sobre habilidades, posesiones, preferencias, deportes y lugares; hablar acerca de actividades en curso, pasadas y diarias; describir el trabajo, la escuela; identificar accidentes geográficos; comprar comida."
+    },
+    {
+      "grado": "1S",
+      "orden": 5,
+      "texto": "Expresa sus ideas y emociones en torno a un tema con coherencia, cohesión y fluidez de acuerdo con su nivel, organizándolas para establecer relaciones lógicas (adición, contraste, secuencia, semejanza-diferencia y causa) y ampliando la información de forma pertinente con vocabulario apropiado."
+    },
+    {
+      "grado": "1S",
+      "orden": 6,
+      "texto": "Emplea estratégicamente gestos, movimientos corporales y contacto visual para enfatizar lo que dice. Ajusta el volumen y la entonación con pronunciación adecuada apoyándose en material concreto y audiovisual."
+    },
+    {
+      "grado": "1S",
+      "orden": 7,
+      "texto": "Participa en diversas situaciones comunicativas alternando los roles de hablante y oyente para preguntar, responder y explicar, y para complementar ideas y hacer comentarios relevantes en inglés con vocabulario cotidiano y pertinente. Respeta los modos de cortesía según el contexto."
+    },
+    {
+      "grado": "1S",
+      "orden": 8,
+      "texto": "Opina en inglés como hablante y oyente sobre el contenido y el propósito comunicativo del texto oral, y sobre las intenciones de los interlocutores a partir de su experiencia y el contexto en el que se desenvuelve."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Recupera información explícita y relevante seleccionando datos específicos en los textos orales que escucha en inglés, con vocabulario cotidiano y pertinente. Reconoce el propósito comunicativo apoyándose en el contexto. Integra la información cuando es dicha en distintos momentos."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Deduce información señalando características de seres, objetos, lugares y hechos. Deduce el significado de palabras, frases y expresiones de mediana complejidad en contexto. Ejemplo: Present simple and continuous, past simple and continuous, prepositions of time and place —in, on, at; modals —can, could, should, have to; connectors and, or, so, because; future with going to, adverb clauses of time —after, before, as soon as, when; zero conditional, would like to, want to, like + ing, future with will, first conditional. Deduce, también, el significado de las relaciones lógicas (adición, contraste, secuencia, semejanza-diferencia, causa y consecuencia) y jerárquicas (ideas principales) de estructura simple en textos orales en inglés."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Explica el tema y el propósito comunicativo. Distingue lo relevante de lo complementario vinculando el texto con su experiencia a partir de recursos verbales, no verbales y paraverbales para construir el sentido del texto oral en inglés."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Adapta el texto oral a la situación comunicativa manteniendo el registro y los modos culturales, y considerando el tipo de texto, el contexto y el propósito. Ejemplo: Hablar sobre personas, lugares, accidentes; expresar sentimientos y estados de ánimo; describir posibilidades futuras, obligaciones, tecnología, eventos, noticias, actividades en curso y pasadas; realizar pedidos, sugerencias y planes; pedir y dar consejo; sugerir y planificar una actividad; expresar causa y efecto; discutir acerca de preferencias propias y de otros; describir y recomendar películas; brindar instrucciones para llegar a algún punto."
+    },
+    {
+      "grado": "2S",
+      "orden": 5,
+      "texto": "Expresa sus ideas y emociones en torno a un tema con coherencia, cohesión y fluidez de acuerdo con su nivel, organizándolas para establecer relaciones lógicas (adición, contraste, secuencia, semejanza-diferencia, causa y consecuencia) y ampliando la información de forma pertinente con vocabulario apropiado."
+    },
+    {
+      "grado": "2S",
+      "orden": 6,
+      "texto": "Emplea estratégicamente gestos, movimientos corporales y contacto visual para enfatizar lo que dice. Ajusta el volumen y la entonación con pronunciación adecuada apoyándose en material concreto y audiovisual."
+    },
+    {
+      "grado": "2S",
+      "orden": 7,
+      "texto": "Participa en diversas situaciones comunicativas alternando los roles de hablante y oyente para preguntar, responder y explicar, y para complementar ideas, hacer comentarios relevantes y adaptar sus respuestas al interlocutor en inglés, con vocabulario cotidiano y pertinente. Respeta las normas y modos de cortesía según el contexto."
+    },
+    {
+      "grado": "2S",
+      "orden": 8,
+      "texto": "Opina en inglés como hablante y oyente sobre el contenido y el propósito comunicativo del texto oral, y sobre las intenciones de los interlocutores a partir de su experiencia y el contexto en el que se desenvuelve."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Recupera información explícita, relevante y complementaria seleccionando datos específicos en los textos orales que escucha en inglés, con vocabulario variado y pertinente, reconociendo el propósito comunicativo y apoyándose en el contexto. Integra la información cuando es dicha en distintos momentos o por distintos interlocutores."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Deduce información señalando características de seres, objetos, lugares y hechos. Deduce el significado de palabras, frases y expresiones complejas en contexto. Ejemplo: Present simple, past simple; past continuous; subordinating conjunctions: when, while, so, as, because; past participle verbs —regular, irregular; present perfect, past participle verbs —regular and irregular; comparative and superlative adjectives; future with will and going to, adverbs —ever, twice, once, already, yet, just, too, enough, so, such; prepositions —for, since. Deduce, también, el significado de relaciones lógicas (adición, contraste, secuencia, semejanza-diferencia, causa y consecuencia) y jerárquicas (ideas principales y complementarias) en textos orales en inglés."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Explica el tema y el propósito comunicativo. Distingue lo relevante de lo complementario clasificando y sintetizando la información, y vinculando el texto con su experiencia a partir de recursos verbales, no verbales y paraverbales para construir el sentido del texto oral en inglés."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Adapta el texto oral a la situación comunicativa manteniendo el registro y los modos culturales, y considerando el tipo de texto, el contexto y el propósito. Ejemplo: Intercambiar información personal al presentar a alguien y a sí mismo; hablar sobre personas, medios de transporte, deportes, entretenimiento; discutir acerca de costumbres, hábitos, noticias, viajes y experiencias; describir acontecimientos históricos, accidentes vehiculares, condiciones de viaje, noticias; intercambiar información personal; comparar estilos de vida; hacer planes; quejarse y disculparse."
+    },
+    {
+      "grado": "3S",
+      "orden": 5,
+      "texto": "Expresa sus ideas y emociones en torno a un tema con coherencia, cohesión y fluidez de acuerdo con su nivel, organizándolas para establecer relaciones lógicas (adición, contraste, secuencia, semejanza-diferencia, causa y consecuencia) y ampliando la información de forma pertinente con vocabulario apropiado."
+    },
+    {
+      "grado": "3S",
+      "orden": 6,
+      "texto": "Emplea estratégicamente gestos, movimientos corporales y contacto visual para enfatizar lo que dice. Ajusta el volumen y entonación con pronunciación adecuada apoyándose en material concreto y audiovisual."
+    },
+    {
+      "grado": "3S",
+      "orden": 7,
+      "texto": "Participa en diversas situaciones comunicativas alternando los roles de hablante y oyente para preguntar, responder, aclarar, contrastar, y para complementar ideas, hacer comentarios relevantes, adaptar sus respuestas a las necesidades del interlocutor en inglés, con vocabulario variado y pertinente. Respeta las normas y modos de cortesía según el contexto."
+    },
+    {
+      "grado": "3S",
+      "orden": 8,
+      "texto": "Opina en inglés como hablante y oyente sobre el contenido y el propósito comunicativo del texto oral, y sobre las intenciones de los interlocutores y el efecto de lo dicho en ellos a partir de su experiencia y el contexto en el que se desenvuelve."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Recupera información explícita, relevante y complementaria seleccionando datos específicos en los textos orales que escucha en inglés, con vocabulario variado y pertinente, reconociendo el propósito comunicativo y apoyándose en el contexto. Integra la información cuando es dicha en distintos momentos o por distintos interlocutores."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Deduce información señalando características de seres, objetos, lugares y hechos. Deduce el significado de palabras, frases y expresiones complejas en contexto. Ejemplo: Present continuous, simple present, frequency adverbs, present perfect, past simple, used to, second conditional, phrasal verbs, present simple passive, question tags, modals —must/can't (deduction), might, may (possibility), must/have to (obligation), future continuous. Deduce, también el significado de relaciones lógicas (adición, contraste, secuencia, semejanza-diferencia, causa y consecuencia) y jerárquicas (ideas principales y complementarias) en textos orales en inglés."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Explica el tema y el propósito comunicativo. Distingue lo relevante de lo complementario clasificando y sintetizando la información y vinculando el texto con su experiencia a partir de recursos verbales, no verbales y paraverbales para construir el sentido del texto oral en inglés."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Adapta el texto oral a la situación comunicativa manteniendo el registro y los modos culturales, y considerando el tipo de texto, el contexto y el propósito. Ejemplo: Hablar acerca de actividades en curso, temporales y habituales; discutir acerca de situaciones imaginarias, obligaciones y reglas en la casa, actitudes y comportamientos, preferencias, hábitos pasados, problemas y soluciones, productos fabricados, inventos, planes y predicciones; expresar deducción, imposibilidad, posibilidad, obligación y necesidad; secuenciar eventos; compartir intereses personales."
+    },
+    {
+      "grado": "4S",
+      "orden": 5,
+      "texto": "Expresa sus ideas, emociones y experiencias en torno a un tema con coherencia, cohesión y fluidez de acuerdo con su nivel, jerarquizándolas para establecer relaciones lógicas (adición, contraste, secuencia, semejanza-diferencia, causa y consecuencia) y ampliando la información de forma pertinente con vocabulario apropiado."
+    },
+    {
+      "grado": "4S",
+      "orden": 6,
+      "texto": "Emplea estratégicamente gestos, movimientos corporales, contacto visual y desplazamiento para enfatizar lo que dice y mantener el interés del oyente. Ajusta el volumen y entonación con pronunciación adecuada apoyándose en material concreto y audiovisual."
+    },
+    {
+      "grado": "4S",
+      "orden": 7,
+      "texto": "Participa en diversas situaciones comunicativas alternando los roles de hablante y oyente para preguntar, responder, aclarar, contrastar, y para complementar ideas, hacer comentarios relevantes, adaptar sus respuestas a las necesidades del interlocutor en inglés, con vocabulario variado y pertinente. Respeta las normas y modos de cortesía según el contexto."
+    },
+    {
+      "grado": "4S",
+      "orden": 8,
+      "texto": "Opina en inglés como hablante y oyente sobre el contenido y el propósito comunicativo del texto oral, y sobre las intenciones de los interlocutores y el efecto de lo dicho en ellos a partir de su experiencia y el contexto en el que se desenvuelve."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Recupera información explícita, relevante y complementaria seleccionando datos específicos en los textos orales que escucha en inglés, con vocabulario variado, pertinente y preciso, reconociendo el propósito comunicativo y apoyándose en el contexto. Integra la información cuando es dicha en distintos momentos o por distintos interlocutores."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Deduce información señalando características de seres, objetos, lugares y hechos. Deduce el significado de palabras, frases y expresiones complejas en contexto. Ejemplo: Embedded questions; present perfect continuous; past perfect, connecting words; reported speech —range of tenses; perfect modals —should, might, may, could; conditionals 2nd and 3rd. Deduce, también, el significado de relaciones lógicas (adición, contraste, secuencia, semejanza-diferencia, causa y consecuencia) y jerárquicas (ideas principales y complementarias, y conclusiones) en textos orales en inglés."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Explica el tema y el propósito comunicativo. Distingue lo relevante de lo complementario clasificando y sintetizando la información y vinculando el texto con su experiencia a partir de recursos verbales, no verbales y paraverbales para construir el sentido del texto oral en inglés."
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Adapta el texto oral a la situación comunicativa manteniendo el registro y los modos culturales, y considerando el tipo de texto, el contexto y el propósito. Ejemplo: Discutir acerca de modales, libros, lenguaje corporal, inventos, competencias para el trabajo, desastres naturales y emergencias; reportar una emergencia; expresar arrepentimiento; reportar noticias."
+    },
+    {
+      "grado": "5S",
+      "orden": 5,
+      "texto": "Expresa sus ideas, emociones y experiencias en torno a un tema con coherencia, cohesión y fluidez de acuerdo con su nivel, jerarquizándolas para establecer diferentes relaciones lógicas (adición, contraste, secuencia, semejanza-diferencia, causa y consecuencia) y ampliando la información de forma pertinente con vocabulario (campos de trabajo, habilidades, verbos frasales, géneros literarios, adjetivos calificativos, secciones del periódico, emergencias, desastres naturales, inventos, y expresiones de empatía, sorpresa e interacción social)."
+    },
+    {
+      "grado": "5S",
+      "orden": 6,
+      "texto": "Emplea estratégicamente gestos, movimientos corporales, contacto visual y desplazamiento para enfatizar o atenuar lo que dice y mantener el interés del oyente. Ajusta el ritmo, el volumen y la entonación con pronunciación adecuada apoyándose en material concreto y audiovisual."
+    },
+    {
+      "grado": "5S",
+      "orden": 7,
+      "texto": "Participa en diversas situaciones comunicativas alternando los roles de hablante y oyente para preguntar, responder, aclarar, contrastar, y para complementar ideas, hacer comentarios relevantes, adaptar sus respuestas a las necesidades del interlocutor y persuadir en inglés, con vocabulario variado y pertinente. Respeta las normas y modos de cortesía según el contexto."
+    },
+    {
+      "grado": "5S",
+      "orden": 8,
+      "texto": "Opina en inglés como hablante y oyente sobre el contenido y el propósito comunicativo del texto oral, y sobre las intenciones de los interlocutores y el efecto de lo dicho en ellos. Justifica su posición sobre lo que dice el texto a partir de su experiencia y el contexto en el que se desenvuelve."
+    }
+  ]
+}

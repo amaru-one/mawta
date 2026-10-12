@@ -42,7 +42,7 @@
     },
     {
       "nivel": 6,
-      "texto": "Resuelve problemas referidos a las relaciones entre cantidades o magnitudes, traduciéndolas a expresiones numéricas y operativas con números naturales, enteros y racionales, y descuentos porcentuales sucesivos, verificando si estas expresiones cumplen con las condiciones iniciales del problema. Expresa su comprensión de la relación entre los órdenes del sistema de numeración decimal con las potencias de base diez, y entre las operaciones con números enteros y racionales; y las usa para interpretar enunciados o textos diversos de contenido matemático. Representa relaciones de equivalencia entre expresiones decimales, fraccionarias y porcentuales, entre unidades de masa, tiempo y monetarias; empleando lenguaje matemático. Selecciona, emplea y combina recursos, estrategias, procedimientos, y propiedades de las operaciones y de los números para estimar o calcular con enteros y racionales; y realizar conversiones entre unidades de masa, tiempo y temperatura; verificando su eficacia. Plantea afirmaciones sobre los números enteros y racionales, sus propiedades y relaciones, y las justifica mediante ejemplos y sus conocimientos de las operaciones, e identifica errores o vacíos en las argumentaciones propias o de otros y las corrige."
+      "texto": "Resuelve problemas referidos a las relaciones entre cantidades o magnitudes, traduciéndolas a expresiones numéricas y operativas con números naturales, enteros y racionales, aumentos y descuentos porcentuales sucesivos, verificando si estas expresiones cumplen con las condiciones iniciales del problema. Expresa su comprensión de la relación entre los órdenes del sistema de numeración decimal con las potencias de base diez, y entre las operaciones con números enteros y racionales; y las usa para interpretar enunciados o textos diversos de contenido matemático. Representa relaciones de equivalencia entre expresiones decimales, fraccionarias y porcentuales, entre unidades de masa, tiempo y monetarias; empleando lenguaje matemático. Selecciona, emplea y combina recursos, estrategias, procedimientos, y propiedades de las operaciones y de los números para estimar o calcular con enteros y racionales; y realizar conversiones entre unidades de masa, tiempo y temperatura; verificando su eficacia. Plantea afirmaciones sobre los números enteros y racionales, sus propiedades y relaciones, y las justifica mediante ejemplos y sus conocimientos de las operaciones, e identifica errores o vacíos en las argumentaciones propias o de otros y las corrige."
     },
     {
       "nivel": 7,
@@ -337,7 +337,7 @@
     {
       "grado": "2S",
       "orden": 6,
-      "texto": "Expresa con diversas representaciones y lenguaje numérico su comprensión sobre las propiedades de la potenciación de exponente entero, la relación inversa entre la radicación y potenciación con números enteros, y las expresiones racionales y fraccionarias y sus propiedades. Usa este entendimiento para asociar o secuenciar operaciones."
+      "texto": "Expresa con diversas representaciones y lenguaje numérico su comprensión sobre las propiedades de la potenciación de exponente entero, la relación inversa entre la radiación y potenciación con números enteros, y las expresiones racionales y fraccionarias y sus propiedades. Usa este entendimiento para asociar o secuenciar operaciones."
     },
     {
       "grado": "2S",
@@ -392,7 +392,7 @@
     {
       "grado": "3S",
       "orden": 7,
-      "texto": "Selecciona, emplea y combina estrategias de cálculo y estimación, recursos y procedimientos diversos para realizar operaciones con números racionales; para determinar tasas de interés y el valor de impuesto a las transacciones financieras (ITF); y para simplificar procesos usando las propiedades de los números y las operaciones, según se adecúen a las condiciones de la situación."
+      "texto": "Selecciona, emplea y combina estrategias de cálculo y estimación, recursos, y procedimientos diversos para realizar operaciones con números racionales; para determinar tasas de interés y el valor de impuesto a las transacciones financieras (ITF); y para simplificar procesos usando las propiedades de los números y las operaciones, según se adecúen a las condiciones de la situación."
     },
     {
       "grado": "3S",

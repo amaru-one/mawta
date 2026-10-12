@@ -14,7 +14,7 @@
   "estandares": [
     {
       "nivel": 1,
-      "texto": "Se desenvuelve de manera autónoma a través de su motricidad cuando explora y descubre sus posibilidades de movimientos las partes de su cuerpo y su imagen corporal. Realiza acciones motrices básicas en las que coordina movimientos para desplazarse y manipular objetos. Expresa corporalmente a través del gesto, el tono, las posturas y movimientos sus sensaciones y emociones en situaciones cotidianas.²¹"
+      "texto": "Se desenvuelve de manera autónoma a través de su motricidad cuando explora y descubre sus posibilidades de movimiento y las partes de su cuerpo. Realiza acciones motrices básicas en las que coordina movimientos para desplazarse y manipular objetos. Expresa corporalmente a través del gesto, el tono, las posturas y movimientos sus sensaciones y emociones en situaciones cotidianas."
     },
     {
       "nivel": 2,
@@ -22,7 +22,7 @@
     },
     {
       "nivel": 3,
-      "texto": "Se desenvuelve de manera autónoma a través de su motricidad cuando comprende cómo usar su cuerpo en las diferentes acciones que realiza utilizando su lado dominante y realiza movimientos coordinados que le ayudan a sentirse seguro en la práctica de actividades físicas. Se orienta espacialmente en relación a sí mismo y a otros puntos de referencia. Se expresa corporalmente con sus pares de diferentes utilizando el ritmo, gestos y movimientos como recursos para comunicar."
+      "texto": "Se desenvuelve de manera autónoma a través de su motricidad cuando comprende cómo usar su cuerpo en las diferentes acciones que realiza utilizando su lado dominante y realiza movimientos coordinados que le ayudan a sentirse seguro en la práctica de actividades físicas. Se orienta espacialmente en relación a sí mismo y a otros puntos de referencia. Se expresa corporalmente con sus pares utilizando el ritmo, gestos y movimientos como recursos para comunicar."
     },
     {
       "nivel": 4,
@@ -30,7 +30,7 @@
     },
     {
       "nivel": 5,
-      "texto": "Se desenvuelve de manera autónoma a través de su motricidad cuando acepta sus posibilidades y limitaciones según su desarrollo e imagen corporal. Realiza secuencias de movimientos coordinados aplicando la alternancia de sus lados corporales de acuerdo a su utilidad. Produce con sus pares secuencias de movimientos corporales, expresivos²⁰ o rítmicos en relación a una intención."
+      "texto": "Se desenvuelve de manera autónoma a través de su motricidad cuando acepta sus posibilidades y limitaciones según su desarrollo e imagen corporal. Realiza secuencias de movimientos coordinados aplicando la alternancia de sus lados corporales de acuerdo a su utilidad. Produce con sus pares secuencias de movimientos corporales, expresivos o rítmicos en relación a una intención."
     },
     {
       "nivel": 6,
@@ -38,7 +38,7 @@
     },
     {
       "nivel": 7,
-      "texto": "Se desenvuelve de manera autónoma a través de su motricidad cuando toma conciencia de cómo su imagen corporal contribuye a la construcción de su identidad y autoestima. Organiza su cuerpo en relación a las acciones y habilidades motrices según la práctica de actividad física que quiere realizar. Produce con sus compañeros diálogos corporales¹⁹ que combinan movimientos en los que expresan emociones, sentimientos y pensamientos sobre temas de su interés en un determinado contexto."
+      "texto": "Se desenvuelve de manera autónoma a través de su motricidad cuando toma conciencia de cómo su imagen corporal contribuye a la construcción de su identidad y autoestima. Organiza su cuerpo en relación a las acciones y habilidades motrices según la práctica de actividad física que quiere realizar. Produce con sus compañeros diálogos corporales que combinan movimientos en los que expresan emociones, sentimientos y pensamientos sobre temas de su interés en un determinado contexto."
     },
     {
       "nivel": 8,
@@ -174,7 +174,7 @@
     {
       "grado": "1S",
       "orden": 2,
-      "texto": "Resuelve situaciones motrices¹³ a través del dominio y alternancia de sus lados orientándose en un espacio y un tiempo determinados, en interacción con los objetos y los otros, tomando conciencia de su cuerpo en la acción."
+      "texto": "Resuelve situaciones motrices a través del dominio y alternancia de sus lados orientándose en un espacio y un tiempo determinados, en interacción con los objetos y los otros, tomando conciencia de su cuerpo en la acción."
     },
     {
       "grado": "1S",
@@ -209,7 +209,7 @@
     {
       "grado": "3S",
       "orden": 1,
-      "texto": "Combina con eficacia¹⁵ las habilidades motrices específicas y regula su cuerpo en situaciones predeportivas y deportivas. Toma como referencia la trayectoria de objetos y a sus compañeros."
+      "texto": "Combina con eficacia las habilidades motrices específicas y regula su cuerpo en situaciones predeportivas y deportivas. Toma como referencia la trayectoria de objetos y a sus compañeros."
     },
     {
       "grado": "3S",
