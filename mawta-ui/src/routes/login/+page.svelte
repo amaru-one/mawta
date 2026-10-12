@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { Button, Field } from '$lib/design-system';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
+	import { safeNext } from '$lib/auth';
 	import { ApiError } from '$lib/api/client';
 	import { login } from '$lib/api/endpoints/auth';
 	import { session, teacher } from '$lib/stores';
@@ -50,7 +52,7 @@
 				school: me.tenant.name,
 			});
 			session.set({ status: 'authenticated', role: me.role });
-			await goto('/', { replaceState: true });
+			await goto(safeNext(page.url.searchParams.get('next')) ?? '/', { replaceState: true });
 		} catch (err) {
 			error = messageFor(err);
 			submitting = false;

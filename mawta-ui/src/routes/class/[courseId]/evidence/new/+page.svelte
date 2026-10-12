@@ -3,6 +3,7 @@
 		Action,
 		Button,
 		Checkbox,
+		ConfirmDialog,
 		EmptyState,
 		Field,
 		Icon,
@@ -38,6 +39,7 @@
 	import { EVIDENCE_KIND_LABEL, EVIDENCE_KINDS } from '$lib/evidence';
 	import { hapticTap } from '$lib/haptics';
 	import { showToast } from '$lib/toast';
+	import { guardUnsaved } from '$lib/unsaved.svelte';
 
 	const courseId = $derived(page.params.courseId ?? '');
 	// Set, and the evidence belongs to that student alone. The scope is fixed by
@@ -75,6 +77,9 @@
 	let competencyId = $state('');
 	let picked = $state<Set<string>>(new Set());
 	let submitting = $state(false);
+	// Set only after a save succeeds, so the guard doesn't prompt on the way out.
+	let saved = false;
+	const leave = guardUnsaved(() => !saved && (title.trim() !== '' || picked.size > 0));
 
 	// Which scale values this evidence. It is a property of the work, not of the
 	// app: the same teacher runs a numeric practice and a lettered exposición in
@@ -153,6 +158,7 @@
 					? 'Evidencia añadida para toda la clase'
 					: `Evidencia añadida para ${scopeStudentName}`
 			);
+			saved = true;
 			await goto(`/class/${courseId}`);
 		} catch (err) {
 			showToast(err instanceof ApiError ? err.message : 'No se pudo añadir la evidencia');
@@ -166,6 +172,15 @@
 </svelte:head>
 <div class="view">
 	<TopBar back="/class/{courseId}" />
+	<ConfirmDialog
+		bind:open={leave.state.open}
+		tone="danger"
+		title="¿Salir sin guardar?"
+		description="Se perderá la evidencia que estás preparando."
+		confirmLabel="Descartar"
+		cancelLabel="Seguir editando"
+		onconfirm={leave.confirmLeave}
+	/>
 
 	<div class="body">
 		{#if ready}

@@ -150,6 +150,8 @@ export function seed() {
 		notifications,
 		unavailable: false,
 		loginError: false,
+		// Status returned by GET /me. 401 mimics an expired session, 5xx a server failure.
+		meStatus: 200 as number,
 		failures: new Set<string>(),
 		writes: [] as { method: string; path: string; body: Record<string, unknown> }[],
 		unexpected: [] as string[],
@@ -248,6 +250,7 @@ export async function mockApi(page: Page, state: ApiState) {
 						),
 					};
 			state.writes.push({ method, path, body });
+			if (path === '/auth/login' && !state.loginError) state.meStatus = 200;
 			if (path === '/auth/login')
 				return state.loginError
 					? send({ error: { code: 'invalid_credentials', message: 'Invalid credentials' } }, 401)
@@ -391,7 +394,18 @@ export async function mockApi(page: Page, state: ApiState) {
 			state.unexpected.push(method + ' ' + path);
 			return send({ error: { code: 'unmocked', message: path } }, 500);
 		}
-		if (path === '/me') return send(me);
+		if (path === '/me')
+			return state.meStatus === 200
+				? send(me)
+				: send(
+						{
+							error: {
+								code: state.meStatus === 401 ? 'unauthenticated' : 'unavailable',
+								message: 'No disponible',
+							},
+						},
+						state.meStatus
+					);
 		if (path === '/home')
 			return send({
 				date: '2026-10-06',

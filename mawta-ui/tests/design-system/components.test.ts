@@ -5,6 +5,7 @@ import Fixture from './Fixture.svelte';
 import { tick } from 'svelte';
 import { get } from 'svelte/store';
 import { dismissToast, showError, toast } from '../../src/lib/toast';
+import { safeNext } from '../../src/lib/auth';
 
 declare module 'vitest/browser' {
 	interface BrowserCommands {
@@ -274,6 +275,13 @@ test('numeric fields start empty, bind numbers, and preserve native empty values
 	await expect
 		.element(screen.getByRole('status', { name: 'Nota actual' }))
 		.toHaveTextContent('null:');
+});
+
+test('safeNext keeps same-origin paths and rejects off-site or login targets', () => {
+	expect(safeNext('/class/class-1')).toBe('/class/class-1');
+	for (const unsafe of ['//evil.test', '/\\evil.test', 'https://evil.test', '/login', null]) {
+		expect(safeNext(unsafe)).toBeNull();
+	}
 });
 
 test('showError stores an error tone with a retry action and a longer hold', () => {
