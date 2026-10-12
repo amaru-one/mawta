@@ -1,0 +1,456 @@
+{
+  "numero_cneb": 10,
+  "nombre": "Se comunica oralmente en castellano como segunda lengua",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Obtiene información del texto oral"
+    },
+    {
+      "numero": 2,
+      "nombre": "Infiere e interpreta información del texto oral"
+    },
+    {
+      "numero": 3,
+      "nombre": "Adecúa, organiza y desarrolla las ideas de forma coherente y cohesionada"
+    },
+    {
+      "numero": 4,
+      "nombre": "Utiliza recursos no verbales y paraverbales de forma estratégica"
+    },
+    {
+      "numero": 5,
+      "nombre": "Interactúa estratégicamente con distintos interlocutores"
+    },
+    {
+      "numero": 6,
+      "nombre": "Reflexiona y evalúa la forma, el contenido y contexto del texto oral"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene como base principalmente el nivel 1 de la competencia “Se comunica oralmente en su lengua materna”."
+    },
+    {
+      "nivel": 2,
+      "texto": "Se comunica oralmente mediante palabras o frases breves. Obtiene información de textos acompañados de expresiones corporales, gestos y tono de voz de su interlocutor. Responde a través de algunas palabras aisladas, con apoyo de gestos y expresiones corporales y de su lengua materna."
+    },
+    {
+      "nivel": 3,
+      "texto": "Se comunica oralmente mediante textos breves y sencillos de vocabulario frecuente. Infiere el propósito comunicativo y reconoce los recursos no verbales y paraverbales del interlocutor. Se expresa brevemente organizando la información mediante frases cotidianas para comunicar gustos, necesidades básicas, emociones y acciones concretas. Utiliza recursos no verbales, gestuales y corporales para hacer efectiva la situación comunicativa. Indica qué le gusta o le disgusta de lo escuchado. En un intercambio, formula preguntas (a partir de la toma de turnos de su entorno cultural) y responde de forma básica a su interlocutor usando algunas frases de su lengua materna si fuera necesario."
+    },
+    {
+      "nivel": 4,
+      "texto": "Se comunica oralmente mediante textos orales sencillos de vocabulario variado. Interpreta el propósito comunicativo del interlocutor, reconoce y relaciona información relevante. Se expresa brevemente organizando la información en torno a un tema usando vocabulario cotidiano. Utiliza recursos no verbales y paraverbales. Opina brevemente sobre un texto. En un intercambio, formula y responde preguntas a su interlocutor."
+    },
+    {
+      "nivel": 5,
+      "texto": "Se comunica oralmente mediante diversos tipos de textos en registros formales e informales. Infiere el tema e interpreta el propósito comunicativo del interlocutor y reconoce información relevante. Se expresa adecuando su texto oral a situaciones comunicativas formales e informales usando vocabulario variado. Organiza y desarrolla ideas en torno a un tema relacionándolas mediante el uso de algunos conectores y referentes. Utiliza recursos no verbales y paraverbales. Opina sobre un texto justificando su posición. En un intercambio con sus pares expresa sus ideas ampliándolas y vinculándolas a un tema."
+    },
+    {
+      "nivel": 6,
+      "texto": "Se comunica oralmente mediante diversos tipos de textos. Infiere el tema e interpreta el propósito reconociendo la intención comunicativa del interlocutor. Se expresa adecuando su texto oral a situaciones comunicativas formales e informales; usa vocabulario variado. Organiza y desarrolla sus ideas en torno a un tema incorporando diversas fuentes de información. Utiliza recursos no verbales y paraverbales en diferentes contextos. Evalúa y opina sobre un texto justificando su posición. En un intercambio, participa espontáneamente para contribuir eficazmente al tema."
+    },
+    {
+      "nivel": 7,
+      "texto": "Se comunica oralmente mediante diversos tipos de textos. Interpreta las intenciones del interlocutor. Se expresa adecuándose al propósito, a su interlocutor, al género discursivo y a los registros; usa vocabulario especializado. Organiza y desarrolla ideas en torno a un tema y las relaciona mediante recursos cohesivos. Utiliza recursos no verbales y paraverbales para producir efecto en el interlocutor. Reflexiona y evalúa sobre lo que escucha de acuerdo a sus conocimientos del tema y del contexto sociocultural. En un intercambio, participa sustentando sus ideas."
+    },
+    {
+      "nivel": 8,
+      "texto": "Se comunica oralmente mediante diversos tipos de textos. Interpreta las intenciones del interlocutor. Se expresa adecuándose al propósito, a su interlocutor, al género discursivo y a los registros; usa lenguaje figurado y vocabulario especializado. Organiza y desarrolla ideas en torno a un tema y las relaciona mediante recursos cohesivos. Utiliza recursos no verbales y paraverbales para asegurar el sentido del texto con la intención de producir efecto en el interlocutor. Reflexiona y evalúa sobre lo que escucha de acuerdo a sus conocimientos del tema y del contexto sociocultural. En un intercambio aporta con información relevante."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Recupera información explícita de textos orales tanto de los que usan registro formal como informal, seleccionando datos específicos del texto que escucha. Integra información dicha por distintos interlocutores."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Deduce relaciones lógicas entre las ideas del texto oral, como las secuencias temporales, y las relaciones de semejanza y diferencia y de causa-efecto."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Señala las características implícitas de personas, personajes, animales, objetos, lugares, así como el significado de las palabras a partir de información explícita en el texto oral."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Explica el tema y propósito comunicativo del texto oral a partir de su contexto sociocultural distinguiendo lo relevante de lo complementario."
+    },
+    {
+      "grado": "1S",
+      "orden": 5,
+      "texto": "Opina sobre el contenido, el propósito comunicativo del texto oral y las intenciones de los interlocutores a partir de su experiencia y los contextos socioculturales de los interlocutores."
+    },
+    {
+      "grado": "1S",
+      "orden": 6,
+      "texto": "Justifica su posición sobre lo que escucha, su experiencia y los contextos socioculturales en que se desenvuelve."
+    },
+    {
+      "grado": "1S",
+      "orden": 7,
+      "texto": "Adecúa el texto oral a la situación comunicativa considerando a sus interlocutores y el propósito. Usa un registro formal o informal de acuerdo con la situación."
+    },
+    {
+      "grado": "1S",
+      "orden": 8,
+      "texto": "Expresa ideas en torno a un tema y se mantiene en este."
+    },
+    {
+      "grado": "1S",
+      "orden": 9,
+      "texto": "Ordena las ideas relacionándolas mediante diversos recursos cohesivos, como conectores, referentes, entre otros."
+    },
+    {
+      "grado": "1S",
+      "orden": 10,
+      "texto": "Incorpora un vocabulario variado."
+    },
+    {
+      "grado": "1S",
+      "orden": 11,
+      "texto": "Incluye en su producción oral diversas fuentes de información, tanto orales como escritas."
+    },
+    {
+      "grado": "1S",
+      "orden": 12,
+      "texto": "Emplea estratégicamente recursos no verbales (gestos y movimientos corporales) y paraverbales (entonación) para enfatizar información en diversos contextos socioculturales."
+    },
+    {
+      "grado": "1S",
+      "orden": 13,
+      "texto": "Participa en intercambios orales con hablantes nativos de castellano respetando sus puntos de vista y necesidades, los turnos de conversación, y agregando información pertinente y relevante al tema."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Recupera información explícita de textos orales tanto de los que usan registro formal como informal, seleccionando datos específicos del texto que escucha. Integra información dicha por distintos interlocutores."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Deduce relaciones lógicas entre las ideas del texto oral, como las secuencias temporales, las relaciones de semejanza y diferencia y de causa-efecto, entre otras."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Señala las características implícitas de personas, personajes, animales, objetos, lugares, así como el significado de las palabras a partir de información explícita en el texto oral."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Explica el tema y propósito comunicativo del texto oral a partir de su contexto sociocultural distinguiendo lo relevante de lo complementario."
+    },
+    {
+      "grado": "2S",
+      "orden": 5,
+      "texto": "Opina sobre el contenido, el propósito comunicativo del texto oral y las intenciones de los interlocutores a partir de su experiencia y los contextos socioculturales de los interlocutores."
+    },
+    {
+      "grado": "2S",
+      "orden": 6,
+      "texto": "Justifica su posición sobre lo que escucha, su experiencia y los contextos socioculturales en que se desenvuelve."
+    },
+    {
+      "grado": "2S",
+      "orden": 7,
+      "texto": "Adecúa el texto oral a la situación comunicativa considerando a sus interlocutores y el propósito. Usa un registro formal o informal de acuerdo con la situación."
+    },
+    {
+      "grado": "2S",
+      "orden": 8,
+      "texto": "Expresa ideas en torno a un tema y se mantiene en este."
+    },
+    {
+      "grado": "2S",
+      "orden": 9,
+      "texto": "Ordena las ideas relacionándolas mediante diversos recursos cohesivos, como conectores, referentes y marcadores textuales."
+    },
+    {
+      "grado": "2S",
+      "orden": 10,
+      "texto": "Incorpora un vocabulario variado."
+    },
+    {
+      "grado": "2S",
+      "orden": 11,
+      "texto": "Incluye en su producción oral diversas fuentes de información, tanto orales como escritas."
+    },
+    {
+      "grado": "2S",
+      "orden": 12,
+      "texto": "Emplea estratégicamente recursos no verbales (gestos y movimientos corporales) y paraverbales (entonación) para enfatizar o matizar información en diversos contextos socioculturales."
+    },
+    {
+      "grado": "2S",
+      "orden": 13,
+      "texto": "Participa en intercambios orales con hablantes nativos de castellano respetando sus puntos de vista y necesidades, los turnos de conversación, y agregando información pertinente y relevante al tema."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Recupera información explícita de textos orales seleccionando datos específicos del texto que escucha. Integra información dicha por distintos interlocutores."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Deduce relaciones lógicas entre las ideas del texto oral, como las secuencias temporales, las relaciones de semejanza y diferencia y de causa-efecto, entre otras."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Señala las características implícitas de personas, personajes, animales, objetos, lugares, así como el significado de las palabras a partir de información explícita en el texto oral."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Deduce información implícita en el texto al relacionar información explícita y sus saberes de su contexto sociocultural."
+    },
+    {
+      "grado": "3S",
+      "orden": 5,
+      "texto": "Explica el tema y el propósito comunicativo del texto oral a partir de su contexto sociocultural distinguiendo lo relevante de lo complementario y sintetizando la información."
+    },
+    {
+      "grado": "3S",
+      "orden": 6,
+      "texto": "Opina sobre el contenido, el propósito comunicativo del texto oral y las intenciones de los interlocutores a partir de su experiencia y los contextos socioculturales de los interlocutores."
+    },
+    {
+      "grado": "3S",
+      "orden": 7,
+      "texto": "Justifica su posición sobre lo que escucha, su experiencia y los contextos socioculturales en que se desenvuelve."
+    },
+    {
+      "grado": "3S",
+      "orden": 8,
+      "texto": "Determina si es confiable la información proporcionada considerando los recursos no verbales (gestos y expresión corporal) y paraverbales (ritmo, entonación, volumen de voz, pausas)."
+    },
+    {
+      "grado": "3S",
+      "orden": 9,
+      "texto": "Evalúa la adecuación del texto a la situación comunicativa a partir de su experiencia, de la relación con otros textos y de los contextos socioculturales."
+    },
+    {
+      "grado": "3S",
+      "orden": 10,
+      "texto": "Adecúa el texto oral a la situación comunicativa considerando a sus interlocutores y el propósito. Mantiene un registro formal o informal de acuerdo con la situación."
+    },
+    {
+      "grado": "3S",
+      "orden": 11,
+      "texto": "Expresa ideas manteniéndose dentro del tema."
+    },
+    {
+      "grado": "3S",
+      "orden": 12,
+      "texto": "Ordena y jerarquiza las ideas relacionándolas mediante diversos recursos cohesivos, como conectores, referentes y recursos textuales."
+    },
+    {
+      "grado": "3S",
+      "orden": 13,
+      "texto": "Incorpora un vocabulario variado."
+    },
+    {
+      "grado": "3S",
+      "orden": 14,
+      "texto": "Incluye en su producción oral diversas fuentes de información, tanto orales como escritas."
+    },
+    {
+      "grado": "3S",
+      "orden": 15,
+      "texto": "Emplea estratégicamente recursos no verbales (gestos y movimientos corporales) y paraverbales (entonación) para mantener la atención del interlocutor en diversos contextos socioculturales."
+    },
+    {
+      "grado": "3S",
+      "orden": 16,
+      "texto": "Participa en intercambios orales con diversos interlocutores en debates y conversaciones aportando información relevante y oportuna, las cuales son desarrolladas en el texto oral."
+    },
+    {
+      "grado": "3S",
+      "orden": 17,
+      "texto": "Respeta los puntos de vista y las necesidades de su interlocutor. Respeta los turnos de la conversación."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Recupera información explícita de textos orales seleccionando datos específicos del texto que escucha. Integra información dicha por distintos interlocutores."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Deduce relaciones lógicas entre las ideas del texto oral, como las secuencias temporales, las relaciones de semejanza y diferencia y de causa-efecto, entre otras."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Señala las características implícitas de personas, personajes, animales, objetos, lugares, así como el significado de las palabras a partir de información explícita en el texto oral."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Deduce información implícita en el texto al relacionar información explícita y sus saberes de su contexto sociocultural."
+    },
+    {
+      "grado": "4S",
+      "orden": 5,
+      "texto": "Explica el tema y el propósito comunicativo del texto oral a partir de su contexto sociocultural distinguiendo lo relevante de lo complementario y sintetizando la información."
+    },
+    {
+      "grado": "4S",
+      "orden": 6,
+      "texto": "Opina sobre el contenido, el propósito comunicativo del texto oral y las intenciones de los interlocutores a partir de su experiencia y los contextos socioculturales de los interlocutores."
+    },
+    {
+      "grado": "4S",
+      "orden": 7,
+      "texto": "Justifica su posición sobre lo que escucha, su experiencia y los contextos socioculturales en que se desenvuelve."
+    },
+    {
+      "grado": "4S",
+      "orden": 8,
+      "texto": "Determina si es confiable la información proporcionada considerando los recursos no verbales (gestos y expresión corporal) y paraverbales (ritmo, entonación, volumen de voz, pausas)."
+    },
+    {
+      "grado": "4S",
+      "orden": 9,
+      "texto": "Evalúa la adecuación del texto a la situación comunicativa a partir de su experiencia, de la relación con otros textos y de los contextos socioculturales."
+    },
+    {
+      "grado": "4S",
+      "orden": 10,
+      "texto": "Adecúa el texto oral a la situación comunicativa considerando a sus interlocutores, el propósito y las características del género discursivo. Mantiene un registro formal o informal de acuerdo con la situación."
+    },
+    {
+      "grado": "4S",
+      "orden": 11,
+      "texto": "Expresa ideas manteniéndose dentro del tema."
+    },
+    {
+      "grado": "4S",
+      "orden": 12,
+      "texto": "Ordena y jerarquiza las ideas relacionándolas mediante diversos recursos cohesivos, como conectores, referentes y recursos textuales."
+    },
+    {
+      "grado": "4S",
+      "orden": 13,
+      "texto": "Incorpora un vocabulario variado y especializado."
+    },
+    {
+      "grado": "4S",
+      "orden": 14,
+      "texto": "Incluye en su producción oral diversas fuentes de información, tanto orales como escritas."
+    },
+    {
+      "grado": "4S",
+      "orden": 15,
+      "texto": "Emplea estratégicamente recursos no verbales (gestos y movimientos corporales) y paraverbales (entonación) para mantener la atención del interlocutor en diversos contextos socioculturales."
+    },
+    {
+      "grado": "4S",
+      "orden": 16,
+      "texto": "Participa en intercambios orales con diversos interlocutores en debates y conversaciones aportando información relevante y oportuna, las cuales son desarrolladas en el texto oral."
+    },
+    {
+      "grado": "4S",
+      "orden": 17,
+      "texto": "Respeta los puntos de vista y las necesidades de su interlocutor. Respeta los turnos de la conversación para presentar oportunamente su posición."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Recupera información explícita de textos orales seleccionando datos específicos del texto que escucha. Integra información dicha por distintos interlocutores."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Deduce relaciones lógicas entre las ideas del texto oral, como las secuencias temporales, las relaciones de semejanza y diferencia y de causa-efecto, entre otras."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Señala las características implícitas de personas, personajes, animales, objetos, lugares, así como el significado de las palabras a partir de información explícita en el texto oral."
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Deduce información implícita en el texto al relacionar información explícita y sus saberes de su contexto sociocultural."
+    },
+    {
+      "grado": "5S",
+      "orden": 5,
+      "texto": "Explica el tema y el propósito comunicativo del texto oral a partir de su contexto sociocultural distinguiendo lo relevante de lo complementario y sintetizando la información."
+    },
+    {
+      "grado": "5S",
+      "orden": 6,
+      "texto": "Opina sobre el contenido, el propósito comunicativo del texto oral y las intenciones de los interlocutores a partir de su experiencia y los contextos socioculturales de los interlocutores."
+    },
+    {
+      "grado": "5S",
+      "orden": 7,
+      "texto": "Justifica su posición sobre las relaciones de poder y las ideologías presentes en la interacción o en los textos que escucha."
+    },
+    {
+      "grado": "5S",
+      "orden": 8,
+      "texto": "Determina si es confiable la información proporcionada considerando los recursos no verbales (gestos y expresión corporal) y paraverbales (ritmo, entonación, volumen de voz, pausas)."
+    },
+    {
+      "grado": "5S",
+      "orden": 9,
+      "texto": "Evalúa la adecuación del texto a la situación comunicativa a partir de su experiencia, de la relación con otros textos y de los contextos socioculturales, para asumir y justificar una posición frente a ideologías y relaciones de poder presentes en el texto."
+    },
+    {
+      "grado": "5S",
+      "orden": 10,
+      "texto": "Adecúa el texto oral a la situación comunicativa considerando a sus interlocutores, el propósito y las características del género discursivo. Mantiene un registro formal o informal de acuerdo con la situación."
+    },
+    {
+      "grado": "5S",
+      "orden": 11,
+      "texto": "Expresa ideas manteniéndose dentro del tema."
+    },
+    {
+      "grado": "5S",
+      "orden": 12,
+      "texto": "Ordena y jerarquiza las ideas relacionándolas mediante diversos recursos cohesivos, como conectores, referentes y recursos textuales."
+    },
+    {
+      "grado": "5S",
+      "orden": 13,
+      "texto": "Incorpora un vocabulario especializado."
+    },
+    {
+      "grado": "5S",
+      "orden": 14,
+      "texto": "Incluye en su producción oral diversas fuentes de información, tanto orales como escritas."
+    },
+    {
+      "grado": "5S",
+      "orden": 15,
+      "texto": "Emplea estratégicamente recursos no verbales (gestos y movimientos corporales) y paraverbales (entonación) para mantener la atención del interlocutor en diversos contextos socioculturales."
+    },
+    {
+      "grado": "5S",
+      "orden": 16,
+      "texto": "Participa en intercambios orales con diversos interlocutores en debates y conversaciones aportando información relevante y oportuna, las cuales son desarrolladas en el texto oral."
+    },
+    {
+      "grado": "5S",
+      "orden": 17,
+      "texto": "Respeta los puntos de vista y las necesidades de su interlocutor."
+    },
+    {
+      "grado": "5S",
+      "orden": 18,
+      "texto": "Respeta los turnos de la conversación para contrargumentar la posición de sus interlocutores."
+    }
+  ]
+}

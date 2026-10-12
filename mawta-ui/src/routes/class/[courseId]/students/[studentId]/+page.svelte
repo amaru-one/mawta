@@ -4,6 +4,7 @@
 		Button,
 		Card,
 		Checkbox,
+		ConfirmDialog,
 		EmptyState,
 		Field,
 		Icon,
@@ -37,6 +38,7 @@
 	import { correctScore, createScore } from '$lib/api/endpoints/scores';
 	import { getStudentEvidence } from '$lib/api/endpoints/students';
 	import CompetencyIndex from '$lib/components/CompetencyIndex.svelte';
+	import ConclusionAssistant from '$lib/components/ConclusionAssistant.svelte';
 	import LevelScale from '$lib/components/LevelScale.svelte';
 	import LevelSelector from '$lib/components/LevelSelector.svelte';
 	import ScoreRuler from '$lib/components/ScoreRuler.svelte';
@@ -265,6 +267,11 @@
 	let draft = $state('');
 	let withRecs = $state(false);
 	let savingConclusion = $state(false);
+	// The Mawta proposal the draft started from, sent along when it is saved
+	// so the conclusion stays traceable to what the agent read.
+	let generationId = $state<string | null>(null);
+	let pendingProposal = $state<{ body: string; generationId: string } | null>(null);
+	let replaceOpen = $state(false);
 
 	// Re-seed the draft when the competencia changes, from whatever is on the
 	// server. `untrack` so typing does not re-seed it on every keystroke.
@@ -276,8 +283,33 @@
 		untrack(() => {
 			draft = currentLevel?.conclusion_body ?? '';
 			withRecs = false;
+			generationId = null;
 		});
 	});
+
+	// Copying a proposal into the draft must not silently throw away text the
+	// teacher typed and has not saved.
+	function useProposal(body: string, fromGeneration: string): void {
+		const saved = (currentLevel?.conclusion_body ?? '').trim();
+		if (draft.trim() !== '' && draft.trim() !== saved) {
+			pendingProposal = { body, generationId: fromGeneration };
+			replaceOpen = true;
+			return;
+		}
+		applyProposal(body, fromGeneration);
+	}
+
+	function applyProposal(body: string, fromGeneration: string): void {
+		draft = body;
+		generationId = fromGeneration;
+		// Every Mawta proposal carries at least one recommendation.
+		withRecs = true;
+		pendingProposal = null;
+		showToast('Propuesta copiada al borrador: revísala antes de guardar');
+	}
+
+	const evidenceTitle = (assessmentId: string): string | undefined =>
+		evidence.find((e) => e.assessment_id === assessmentId)?.title;
 
 	async function saveConclusion(status: 'draft' | 'final'): Promise<void> {
 		if (savingConclusion || selected === '' || draft.trim() === '') return;
@@ -294,6 +326,7 @@
 				body: draft.trim(),
 				includes_recommendations: withRecs,
 				status,
+				generation_id: generationId ?? undefined,
 			});
 			levels = levels.map((l) =>
 				l.competency_id === selected
@@ -310,6 +343,9 @@
 
 	const REQUIREMENT_TEXT: Record<string, string> = {
 		level_c: 'Obligatoria: el nivel de esta competencia es C.',
+		level_b: 'Obligatoria: el nivel de esta competencia es B.',
+		level_a: 'Obligatoria: el nivel de esta competencia es A.',
+		cycle_i_mandatory: 'Obligatoria en todas las competencias de este ciclo.',
 		consecutive_c: 'Obligatoria: es el segundo periodo consecutivo en C.',
 		inclusion_support: 'Obligatoria: el alumno tiene medidas de inclusión.',
 	};
@@ -327,12 +363,10 @@
 	// The criterios an evidence declares, as the teacher wrote them: the codes
 	// first for scanning, then the text — this is the "what to look at" line, and
 	// it is read-only. The criterio is the ruler, never the thing being marked.
-	const critLine = (e: EvaluationDto): string => {
-		const cs = list(e.criteria);
-		if (cs.length === 0) return 'Sin criterios declarados.';
-		const codes = cs.map((c) => c.code ?? 'CRIT').join(' ');
-		return `${codes} · ${cs.map((c) => c.description).join(' ')}`;
-	};
+	// One criterio reads as a sentence; two or more read as a list, one per line,
+	// with the code leading when the criterio has one.
+	const critItems = (e: EvaluationDto): string[] =>
+		list(e.criteria).map((c) => (c.code ? `${c.code} · ${c.description}` : c.description));
 </script>
 
 <svelte:head>
@@ -374,7 +408,17 @@
 									<span class="grow etitle">{e.title}</span>
 									<span class="emeta">{metaLine(e)}</span>
 								</div>
-								<p class="crit">{critLine(e)}</p>
+								{#if critItems(e).length === 0}
+									<p class="crit">Sin criterios declarados.</p>
+								{:else if critItems(e).length === 1}
+									<p class="crit">{critItems(e)[0]}</p>
+								{:else}
+									<ul class="crit-list">
+										{#each critItems(e) as item, i (i)}
+											<li>{item}</li>
+										{/each}
+									</ul>
+								{/if}
 
 								<!-- The scale is a property of the evidence, so the control is
 							     chosen by the work rather than by the screen: a ruler out of
@@ -429,6 +473,15 @@
 				{:else}
 					<p class="hint">Opcional en esta competencia.</p>
 				{/if}
+				<ConclusionAssistant
+					classId={courseId}
+					{studentId}
+					{studentName}
+					competencyId={selected}
+					level={currentLevel?.level ?? null}
+					{evidenceTitle}
+					onuse={useProposal}
+				/>
 				<Field
 					kind="textarea"
 					label="Conclusión descriptiva"
@@ -462,6 +515,17 @@
 		{:else}<LoadingState label="Cargando…" />{/if}
 	</div>
 </div>
+
+<ConfirmDialog
+	bind:open={replaceOpen}
+	title="¿Reemplazar tu borrador?"
+	description="Tienes texto sin guardar. La propuesta de Mawta lo reemplazará."
+	confirmLabel="Reemplazar"
+	onconfirm={() => {
+		if (pendingProposal) applyProposal(pendingProposal.body, pendingProposal.generationId);
+	}}
+	oncancel={() => (pendingProposal = null)}
+/>
 
 <style>
 	.body {
@@ -553,6 +617,19 @@
 		letter-spacing: 0.04em;
 		color: var(--mw-ink-muted);
 		font-family: var(--mw-font-sans);
+	}
+
+	.crit-list {
+		margin: 8px 0 0;
+		padding-left: 18px;
+		font-size: var(--mw-type-caption-size);
+		line-height: 1.4;
+		color: var(--mw-ink-secondary);
+		text-wrap: pretty;
+	}
+
+	.crit-list li + li {
+		margin-top: 4px;
 	}
 
 	.crit {

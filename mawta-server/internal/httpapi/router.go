@@ -104,6 +104,11 @@ func (a *API) Router() http.Handler {
 			r.Post("/experiences/{experienceID}/evidences/generate", a.handleGenerateEvidences)
 			r.Post("/experiences/{experienceID}/sessions/generate", a.handleGenerateSessions)
 			r.Get("/generations/{generationID}", a.handleGetGeneration)
+			// "✦ Generar con Mawta" for a conclusión descriptiva
+			// (docs/api-conclusiones.md).
+			r.Post("/classes/{classID}/students/{studentID}/conclusions/generate", a.handleGenerateConclusion)
+			r.Get("/classes/{classID}/students/{studentID}/conclusions/generation", a.handleLatestConclusionGeneration)
+			r.Get("/classes/{classID}/students/{studentID}/voice-notes/discarded", a.handleDiscardedVoiceNotes)
 
 			r.Post("/sessions/{sessionID}/start", a.handleSessionStart)
 			r.Get("/sessions/{sessionID}", a.handleSessionRoster)
@@ -114,6 +119,8 @@ func (a *API) Router() http.Handler {
 			r.Get("/voice-notes/{voiceNoteID}/audio", a.handleVoiceNoteAudio)
 			r.Post("/voice-notes/{voiceNoteID}/save", a.handleVoiceNoteSave)
 			r.Post("/voice-notes/{voiceNoteID}/discard", a.handleVoiceNoteDiscard)
+			r.Post("/voice-notes/{voiceNoteID}/reassign", a.handleVoiceNoteReassign)
+			r.Post("/voice-notes/{voiceNoteID}/confirm", a.handleVoiceNoteConfirm)
 
 			r.Post("/assessments/{assessmentID}/scores", a.handleCreateScore)
 			r.Post("/scores/{scoreID}/correct", a.handleCorrectScore)

@@ -7,8 +7,10 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"mawta-server/internal/agent"
+	"mawta-server/internal/agent/conclusions"
 	"mawta-server/internal/agent/llm"
 	"mawta-server/internal/agent/planning"
+	"mawta-server/internal/agent/redaction"
 	"mawta-server/internal/config"
 	"mawta-server/internal/db"
 	"mawta-server/internal/domain"
@@ -32,7 +34,15 @@ import (
 // open while it waits.
 func defaultRegistry(cfg config.Config, database *db.DB, logger *slog.Logger) Registry {
 	sttClient := stt.NewClient(cfg.TranscribeAPIKey, cfg.TranscribeModel)
-	transcribe := handlers.VoiceNoteTranscribe(sttClient)
+	// A saved transcript queues its name sweep, but only when the agents can
+	// run: without a key every sweep would fail, and the note simply stays
+	// pending until one is configured (the conclusions endpoint queues
+	// pending notes again).
+	var afterTranscript []handlers.AfterTranscript
+	if cfg.AnthropicAPIKey != "" {
+		afterTranscript = append(afterTranscript, redaction.QueueAfterTranscript)
+	}
+	transcribe := handlers.VoiceNoteTranscribe(sttClient, afterTranscript...)
 
 	model := llm.NewAnthropic(cfg.AnthropicAPIKey, cfg.PlanningAgentModel, cfg.AgentTimeout)
 	prices := llm.Prices{
@@ -42,6 +52,12 @@ func defaultRegistry(cfg config.Config, database *db.DB, logger *slog.Logger) Re
 		CacheWritePerMTok: cfg.AgentPriceCacheWritePerMTok,
 	}
 	runner := agent.NewRunner(database, model, prices, logger, planning.New())
+	runner.Bind(redaction.New(),
+		llm.NewAnthropic(cfg.AnthropicAPIKey, cfg.RedactionAgentModel, cfg.AgentTimeout),
+		llm.Prices(cfg.RedactionAgentPrices))
+	runner.Bind(conclusions.New(),
+		llm.NewAnthropic(cfg.AnthropicAPIKey, cfg.ConclusionsAgentModel, cfg.AgentTimeout),
+		llm.Prices(cfg.ConclusionsAgentPrices))
 
 	return Registry{
 		InTx: map[string]HandlerFunc{

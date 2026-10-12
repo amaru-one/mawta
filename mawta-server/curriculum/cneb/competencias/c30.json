@@ -1,0 +1,175 @@
+{
+  "numero_cneb": 30,
+  "nombre": "Construye su identidad como persona humana, amada por Dios, digna, libre y trascendente, comprendiendo la doctrina de su propia religión, abierto al diálogo con las que le son cercanas",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Conoce a Dios y asume su identidad religiosa y espiritual como persona digna, libre y trascendente"
+    },
+    {
+      "numero": 2,
+      "nombre": "Cultiva y valora las manifestaciones religiosas de su entorno argumentando su fe de manera comprensible y respetuosa"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Construye su identidad”."
+    },
+    {
+      "nivel": 2,
+      "texto": "Experimenta la adhesión y amor a Dios mediante el cuidado de la creación, la bondad hacia su familia y su entorno, de acuerdo a los relatos bíblicos. Se expresa espontáneamente con gestos, palabras, oraciones y otras formas relacionadas con su vivencia religiosa. Agradece espontáneamente a Dios por la vida y por todo lo que recibe de Él. Practica la tolerancia consigo mismo y con el prójimo pidiendo disculpas espontáneamente cuando se equivoca o provoca algún daño a otras personas. Expresa libremente su amor al prójimo a través de acciones concretas."
+    },
+    {
+      "nivel": 3,
+      "texto": "Descubre el amor de Dios en la creación y lo relaciona con el amor que recibe de las personas que lo rodean. Explica la presencia de Dios en el Plan de Salvación y la relación que Él establece con el ser humano. Convive de manera fraterna con el prójimo respetando las diferentes expresiones religiosas. Asume las consecuencias de sus acciones con responsabilidad, comprometiéndose a ser mejor persona, a ejemplo de Jesucristo."
+    },
+    {
+      "nivel": 4,
+      "texto": "Describe el amor de Dios presente en la creación y en el Plan de Salvación. Construye su identidad como hijo de Dios desde el mensaje de Jesús presente en el Evangelio. Participa en la Iglesia como comunidad de fe y de amor, respetando la dignidad humana y las diversas manifestaciones religiosas. Fomenta una convivencia armónica basada en el diálogo, el respeto, la tolerancia y el amor fraterno."
+    },
+    {
+      "nivel": 5,
+      "texto": "Comprende el amor de Dios desde la creación respetando la dignidad y la libertad de la persona humana. Explica la acción de Dios presente en el Plan de Salvación. Demuestra su amor a Dios y al prójimo participando en su comunidad y realizando obras de caridad que le ayudan en su crecimiento personal y espiritual. Fomenta una convivencia cristiana basada en el diálogo, el respeto, la tolerancia y el amor fraterno fortaleciendo su identidad como hijo de Dios."
+    },
+    {
+      "nivel": 6,
+      "texto": "Argumenta la presencia de Dios en la creación y su manifestación en el Plan de Salvación descritos en la Biblia, como alguien cercano al ser humano, que lo busca, interpela y acoge. Comprende el cumplimiento de la promesa de salvación y la plenitud de la revelación desde las enseñanzas del Evangelio. Propone acciones que favorecen el respeto por la vida humana y la práctica del bien común en la sociedad. Participa en las diferentes manifestaciones de fe propias de su comunidad en diálogo con otras creencias religiosas. Demuestra sensibilidad ante las necesidades del prójimo desde las enseñanzas del Evangelio y de la Iglesia."
+    },
+    {
+      "nivel": 7,
+      "texto": "Fundamenta la presencia de Dios en la creación, en el Plan de Salvación y en la vida de la Iglesia. Asume a Jesucristo como Redentor y modelo de hombre que le enseña a vivir bajo la acción del Espíritu Santo, participando en la misión evangelizadora en coherencia con su creencia religiosa. Argumenta su fe en diálogo crítico con la cultura, la ciencia, otras manifestaciones religiosas y espirituales. Propone alternativas de solución a problemas y necesidades de su comunidad, del país y del mundo, que expresen los valores propios de su tradición cristiana y católica, el bien común, la promoción de la dignidad de la persona y el respeto a la vida humana. Interioriza el mensaje de Jesucristo y las enseñanzas de la Iglesia para actuar en coherencia con su fe."
+    },
+    {
+      "nivel": 8,
+      "texto": "Sustenta con convicción que Dios es el principio y fin de todo lo creado y que da sentido y plenitud a la existencia humana, desarrollando una relación personal con Él. Argumenta su fe de manera comprensible y respetuosa en diálogo crítico con la cultura, la ciencia y otras manifestaciones religiosas. Actúa con libertad, autonomía y responsabilidad, promoviendo la práctica del bien común, el respeto por la vida en todas sus formas y las diferentes expresiones culturales y religiosas."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Explica que Dios se revela en la Historia de la Salvación descrita en la Biblia comprendiendo que la dignidad de la persona humana reside en el conocimiento y amor a Dios, a sí mismo, a los demás y a la naturaleza."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Analiza en las enseñanzas de Jesucristo el cumplimiento de la promesa de salvación y la plenitud de la revelación."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Promueve la práctica de acciones que fomentan el respeto por la vida humana y el bien común."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Acoge expresiones de fe propias de su identidad cristiana y católica presentes en su comunidad y respetando las diversas creencias religiosas."
+    },
+    {
+      "grado": "1S",
+      "orden": 5,
+      "texto": "Toma conciencia de las necesidades del prójimo para actuar de acuerdo con las enseñanzas del Evangelio y de la Iglesia."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Argumenta que Dios se revela en la Historia de la Salvación descrita en la Biblia y en su historia personal comprendiendo que la dignidad de la persona humana reside en el conocimiento y amor a Dios, a sí mismo, a los demás y a la naturaleza."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Comprende que Jesucristo es la plenitud de la revelación y el cumplimiento de las promesas de salvación, a la luz del Evangelio."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Propone alternativas de solución a los diferentes problemas y necesidades que afectan la vida y el bien común."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Expresa su fe participando en las celebraciones propias de su comunidad con una actitud de diálogo y respeto mutuo entre las diversas creencias religiosas."
+    },
+    {
+      "grado": "2S",
+      "orden": 5,
+      "texto": "Actúa de acuerdo con las enseñanzas del Evangelio y de la Iglesia ante las necesidades del prójimo y de su entorno."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Analiza la intervención de Dios en el Plan de Salvación y en la historia de la Iglesia y su presencia en la creación con lo cual encuentra sentido a su vida y a la de la humanidad."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Reflexiona sobre el mensaje de Jesucristo y las enseñanzas de la Iglesia para un cambio de vida personal."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Acepta a Jesucristo como Redentor y modelo de hombre para vivir coherentemente con los principios cristianos."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Da razones de su fe con gestos y acciones que demuestran una convivencia crítica con la cultura, la ciencia y otras manifestaciones religiosas y espirituales."
+    },
+    {
+      "grado": "3S",
+      "orden": 5,
+      "texto": "Analiza la realidad de su entorno a la luz del mensaje del Evangelio que lo lleve a plantear alternativas de cambio coherentes con los valores propios de la tradición religiosa."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Argumenta la acción de Dios en la historia y en la vida de la Iglesia y de la humanidad confrontando hechos y acontecimientos presentes en su entorno que permitan su participación en la misión de la Iglesia."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Confronta el mensaje de Jesucristo y las enseñanzas de la Iglesia con sus vivencias personales y comunitarias demostrando una actitud de permanente conversión."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Acoge a Jesucristo como Redentor y modelo de hombre que enseña a vivir bajo la acción del Espíritu Santo, para expresar en su vida diaria los principios y las enseñanzas de la Iglesia."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Explica, con argumentos coherentes, su fe en relación armónica entre cultura y ciencia, y valorando las diversas manifestaciones religiosas más cercanas a su entorno."
+    },
+    {
+      "grado": "4S",
+      "orden": 5,
+      "texto": "Interpreta la realidad de su entorno local y nacional a la luz del mensaje del Evangelio y la Tradición de la Iglesia."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Fundamenta la presencia de Dios en la historia y vida de la Iglesia y de la humanidad para actuar con responsabilidad frente a todo lo creado."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Interioriza el mensaje de Jesucristo y las enseñanzas de la Iglesia con sus vivencias personales y comunitarias, actuando en coherencia con su fe."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Asume en su vida a Jesucristo como Redentor y modelo de hombre que enseña a vivir bajo la acción del Espíritu Santo en la misión evangelizadora."
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Demuestra con convicción su fe en diálogo crítico entre cultura y ciencia frente a otras manifestaciones religiosas y espirituales."
+    },
+    {
+      "grado": "5S",
+      "orden": 5,
+      "texto": "Propone alternativas de solución a los problemas locales, nacionales y mundiales a la luz del mensaje del Evangelio y la Tradición de la Iglesia."
+    }
+  ]
+}

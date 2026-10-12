@@ -1,0 +1,158 @@
+{
+  "numero_cneb": 22,
+  "nombre": "Diseña y construye soluciones tecnológicas para resolver problemas de su entorno",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Determina una alternativa de solución tecnológica"
+    },
+    {
+      "numero": 2,
+      "nombre": "Diseña la alternativa de solución tecnológica"
+    },
+    {
+      "numero": 3,
+      "nombre": "Implementa y valida la alternativa de solución tecnológica"
+    },
+    {
+      "numero": 4,
+      "nombre": "Evalúa y comunica el funcionamiento y los impactos de su alternativa de solución tecnológica"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Indaga mediante métodos científicos”."
+    },
+    {
+      "nivel": 2,
+      "texto": "Este nivel tiene como base el nivel 2 de la competencia “Indaga mediante métodos científicos”."
+    },
+    {
+      "nivel": 3,
+      "texto": "Diseña y construye soluciones tecnológicas al establecer las causas de un problema tecnológico y proponer alternativas de solución, representa una, incluyendo sus partes, a través de esquemas o dibujos y describe la secuencia de pasos para implementarla, usando herramientas y materiales seleccionados. Realiza ajustes en el proceso de construcción de la solución tecnológica. Describe el procedimiento y beneficios de la solución tecnológica, evalúa su funcionamiento según los requerimientos establecidos, y propone mejoras."
+    },
+    {
+      "nivel": 4,
+      "texto": "Diseña y construye soluciones tecnológicas al establecer las posibles causas que generan problemas tecnológicos, propone alternativas de solución con conocimientos científicos. Representa una de ellas, incluyendo las partes o etapas, a través de esquemas o dibujos, establece características de forma, estructura y función y explica una secuencia de pasos para implementarla usando herramientas y materiales, verifica el funcionamiento de la solución tecnológica y realizar ajustes. Explica el procedimiento, conocimiento científico aplicado y beneficios de la solución tecnológica, evalúa su funcionamiento considerando los requerimientos establecidos y proponer mejoras."
+    },
+    {
+      "nivel": 5,
+      "texto": "Diseña y construye soluciones tecnológicas al identificar las causas que generan problemas tecnológicos, y propone alternativas de solución basado en conocimientos científicos. Representa una de ellas incluyendo sus partes o etapas a través de esquemas o dibujos estructurados. Establece características de forma, estructura y función y explica el procedimiento, los recursos de implementación, los ejecuta usando herramientas y materiales seleccionados, verifica el funcionamiento de la solución tecnológica detectando imprecisiones y realiza ajustes para mejorarlo. Explica el procedimiento, conocimiento científico aplicado y limitaciones de la solución tecnológica, Evalúa su funcionamiento a través de pruebas considerando los requerimientos establecidos y propone mejoras. Infiere impactos de la solución tecnológica."
+    },
+    {
+      "nivel": 6,
+      "texto": "Diseña y construye soluciones tecnológicas al delimitar el alcance del problema tecnológico y las causas que lo generan, y propone alternativas de solución basado en conocimientos científicos. Representa la alternativa de solución, a través de esquemas o dibujos incluyendo sus partes o etapas. Establece características de forma, estructura, función y explica el procedimiento, los recursos para implementarlas, así como las herramientas y materiales seleccionados; verifica el funcionamiento de la solución tecnológica, considerando los requerimientos, detecta errores en la selección de materiales, imprecisiones en las dimensiones, procedimientos y realiza ajustes. Explica el procedimiento, conocimiento científico aplicado, así como las dificultades en el diseño e implementación, evalúa el alcance de su funcionamiento a través de pruebas considerando los requerimientos establecidos y propone mejoras. Infiere impactos de la solución tecnológica."
+    },
+    {
+      "nivel": 7,
+      "texto": "Diseña y construye soluciones tecnológicas al justificar el alcance del problema tecnológico, determinar la interrelación de los factores involucrados en él y justificar su alternativa de solución basado en conocimientos científicos. Representa la alternativa de solución a través de esquemas o dibujos estructurados a escala, con vistas y perspectivas, incluyendo sus partes o etapas. Establece características de forma, estructura, función y explica el procedimiento, los recursos para implementarlas, así como las herramientas y materiales seleccionados. Verifica el funcionamiento de la solución tecnológica considerando los requerimientos, detecta errores en la selección de materiales, imprecisiones en las dimensiones y procedimientos y realiza ajustes o rediseña su alternativa de solución. Explica el conocimiento científico y el procedimiento aplicado, así como las dificultades del diseño y la implementación, evalúa su funcionamiento, la eficiencia y propone estrategias para mejorarlo. Infiere impactos de la solución tecnológica y elabora estrategias para reducir los posibles efectos negativos."
+    },
+    {
+      "nivel": 8,
+      "texto": "Diseña y construye soluciones tecnológicas al justificar el alcance del problema tecnológico y sus alternativas de solución basado en conocimientos científicos. Propone una expresión matemática para estimar la eficiencia y confiabilidad de su alternativa de solución, la representa a través de esquemas o dibujos estructurados a escala, con vistas y perspectivas, que incluyen aspectos de funcionamiento o mantenimiento. Explica las características de forma, estructura, función y explica el procedimiento, así como los recursos, herramientas y materiales seleccionados. Verifica el funcionamiento de la solución tecnológica considerando los requerimientos, detecta imprecisiones en la construcción de la solución tecnológica y realiza ajustes o rediseña su alternativa. Explica el conocimiento científico, procedimiento aplicado y funcionamiento, así como las dificultades del diseño y la implementación, realiza pruebas para verificar el rango de funcionamiento y eficiencia de la solución tecnológica. Infiere impactos de la solución tecnológica, así como estrategias o métodos de mitigación."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Describe el problema tecnológico y las causas que lo generan. Explica su alternativa de solución tecnológica sobre la base de conocimientos científicos o prácticas locales. Da a conocer los requerimientos que debe cumplir esa alternativa de solución y los recursos disponibles para construirla."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Representa su alternativa de solución con dibujos estructurados. Describe sus partes o etapas, la secuencia de pasos, sus características de forma y estructura, y su función. Selecciona instrumentos, herramientas, recursos y materiales considerando su impacto ambiental y seguridad. Prevé posibles costos y tiempo de ejecución."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Ejecuta la secuencia de pasos de su alternativa de solución manipulando materiales, herramientas e instrumentos, considerando normas de seguridad. Verifica el funcionamiento de cada parte o etapa de la solución tecnológica, detecta errores en los procedimientos o en la selección de materiales, y realiza ajustes o cambios según los requerimientos establecidos."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Comprueba el funcionamiento de su solución tecnológica según los requerimientos establecidos. Explica su construcción, y los cambios o ajustes realizados sobre la base de conocimientos científicos o en prácticas locales, y determina el impacto ambiental durante su implementación y uso."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Describe el problema tecnológico y las causas que lo generan. Explica su alternativa de solución tecnológica sobre la base de conocimientos científicos o prácticas locales. Da a conocer los requerimientos que debe cumplir esa alternativa de solución, los recursos disponibles para construirla, y sus beneficios directos e indirectos."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Representa su alternativa de solución con dibujos estructurados. Describe sus partes o etapas, la secuencia de pasos, sus características de forma y estructura, y su función. Selecciona instrumentos, herramientas, recursos y materiales considerando su impacto ambiental y seguridad. Prevé posibles costos y tiempo de ejecución."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Ejecuta la secuencia de pasos de su alternativa de solución manipulando materiales, herramientas e instrumentos, considerando normas de seguridad. Verifica el funcionamiento de cada parte o etapa de la solución tecnológica, detecta errores en los procedimientos o en la selección de materiales, y realiza ajustes o cambios según los requerimientos establecidos."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Comprueba el funcionamiento de su solución tecnológica según los requerimientos establecidos y propone mejoras. Explica su construcción y los cambios o ajustes realizados sobre la base de conocimientos científicos o en prácticas locales, y determina el impacto ambiental durante su implementación y uso."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Describe el problema tecnológico y las causas que lo generan. Explica su alternativa de solución tecnológica sobre la base de conocimientos científicos o prácticas locales. Da a conocer los requerimientos que debe cumplir esa alternativa de solución, los recursos disponibles para construirla, y sus beneficios directos e indirectos."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Representa su alternativa de solución con dibujos estructurados a escala. Describe sus partes o etapas, la secuencia de pasos, sus características de forma y estructura, y su función. Selecciona instrumentos, herramientas, recursos y materiales considerando su impacto ambiental y seguridad. Prevé posibles costos y tiempo de ejecución. Propone maneras de probar el funcionamiento de la solución tecnológica."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Ejecuta la secuencia de pasos de su alternativa de solución manipulando materiales, herramientas e instrumentos considerando su grado de precisión y normas de seguridad. Verifica el funcionamiento de cada parte o etapa de la solución tecnológica, detecta errores en los procedimientos o en la selección de materiales, y realiza ajustes o cambios según los requerimientos establecidos."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Realiza pruebas repetitivas para verificar el funcionamiento de la solución tecnológica según los requerimientos establecidos y fundamenta su propuesta de mejora. Explica su construcción, y los cambios o ajustes realizados sobre la base de conocimientos científicos o en prácticas locales, y determina el impacto ambiental y social."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Describe el problema tecnológico y las causas que lo generan. Explica su alternativa de solución tecnológica sobre la base de conocimientos científicos o prácticas locales. Da a conocer los requerimientos que debe cumplir esa alternativa de solución, los recursos disponibles para construirla, y sus beneficios directos e indirectos."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Representa su alternativa de solución con dibujos a escala incluyendo vistas y perspectivas, o diagramas de flujo. Describe sus partes o etapas, la secuencia de pasos, sus características de forma y estructura, y su función. Selecciona instrumentos según su margen de error, herramientas, recursos y materiales considerando su impacto ambiental y seguridad. Prevé posibles costos y tiempo de ejecución. Propone maneras de probar el funcionamiento de la solución tecnológica tomando en cuenta su eficiencia y confiabilidad."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Ejecuta la secuencia de pasos de su alternativa de solución manipulando materiales, herramientas e instrumentos considerando su grado de precisión y normas de seguridad. Verifica el rango de funcionamiento de cada parte o etapa de la solución tecnológica, detecta errores en los procedimientos o en la selección de materiales, y realiza ajustes o cambios según los requerimientos establecidos."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Realiza pruebas repetitivas para verificar el funcionamiento de la solución tecnológica según los requerimientos establecidos y fundamenta su propuesta de mejora para incrementar la eficiencia y reducir el impacto ambiental. Explica su construcción, y los cambios o ajustes realizados sobre la base de conocimientos científicos o en prácticas locales."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Describe el problema tecnológico y las causas que lo generan. Explica su alternativa de solución tecnológica sobre la base de conocimientos científicos o prácticas locales. Da a conocer los requerimientos que debe cumplir esa alternativa de solución, los recursos disponibles para construirla, y sus beneficios directos e indirectos en comparación con soluciones tecnológicas similares."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Representa su alternativa de solución con dibujos a escala, incluyendo vistas y perspectivas o diagramas de flujo. Describe sus partes o etapas, la secuencia de pasos, sus características de forma y estructura, y su función. Selecciona materiales, herramientas e instrumentos considerando su margen de error, recursos, posibles costos y tiempo de ejecución. Propone maneras de probar el funcionamiento de la solución tecnológica considerando su eficiencia y confiabilidad."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Ejecuta la secuencia de pasos de su alternativa de solución manipulando materiales, herramientas e instrumentos considerando su grado de precisión y normas de seguridad. Verifica el rango de funcionamiento de cada parte o etapa de la solución tecnológica. Detecta errores en los procedimientos o en la selección de materiales, y realiza ajustes o cambios según los requerimientos establecidos."
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Realiza pruebas repetitivas para verificar el funcionamiento de la solución tecnológica según los requerimientos establecidos y fundamenta su propuesta de mejora para incrementar la eficiencia y reducir el impacto ambiental. Explica su construcción, y los cambios o ajustes realizados sobre la base de conocimientos científicos o en prácticas locales."
+    }
+  ]
+}

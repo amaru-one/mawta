@@ -279,7 +279,7 @@ func TestSyncCurriculum(t *testing.T) {
 
 	// One capability was renamed by the school; the sync must report it and
 	// leave it alone.
-	const renamed = "Traduce datos y condiciones a expresiones algebraicas y gráficas"
+	const renamed = "Traduce datos y condiciones a expresiones algebraicas"
 	if _, err := env.Admin.Pool.Exec(ctx, `
 		update capabilities set name = $3
 		 where tenant_id = $1 and code = $2`,

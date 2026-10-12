@@ -20,6 +20,10 @@ type Transcriber interface {
 	Transcribe(ctx context.Context, audioMP3 []byte) (string, error)
 }
 
+// AfterTranscript runs in the job's transaction once a transcript is saved.
+// The registry uses it to queue the redaction sweep of the note.
+type AfterTranscript func(ctx context.Context, tx pgx.Tx, voiceNoteID uuid.UUID) error
+
 type transcribePayload struct {
 	VoiceNoteID uuid.UUID `json:"voice_note_id"`
 }
@@ -33,7 +37,7 @@ type transcribePayload struct {
 // handler (logging.WithSTTTask), and the concrete stt.Client reads it back
 // from that same context to attribute its usage event. A test double that
 // wants to assert on the attribution can read it the same way.
-func VoiceNoteTranscribe(transcriber Transcriber) func(ctx context.Context, tx pgx.Tx, jobID int64, payload []byte) error {
+func VoiceNoteTranscribe(transcriber Transcriber, after ...AfterTranscript) func(ctx context.Context, tx pgx.Tx, jobID int64, payload []byte) error {
 	return func(ctx context.Context, tx pgx.Tx, jobID int64, payload []byte) error {
 		var p transcribePayload
 		if err := json.Unmarshal(payload, &p); err != nil {
@@ -72,7 +76,15 @@ func VoiceNoteTranscribe(transcriber Transcriber) func(ctx context.Context, tx p
 			}
 			return err // transient: let the worker's normal backoff retry
 		}
-		return repo.SetVoiceNoteTranscript(ctx, tx, p.VoiceNoteID, text)
+		if err := repo.SetVoiceNoteTranscript(ctx, tx, p.VoiceNoteID, text); err != nil {
+			return err
+		}
+		for _, f := range after {
+			if err := f(ctx, tx, p.VoiceNoteID); err != nil {
+				return err
+			}
+		}
+		return nil
 	}
 }
 

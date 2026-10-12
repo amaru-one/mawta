@@ -10,7 +10,9 @@
 
 	interface Props {
 		note: Note;
-		ondelete: (note: Note) => void;
+		// Without it the note is read-only: no delete button (e.g. a note shown
+		// for review, which the teacher moves or confirms instead).
+		ondelete?: (note: Note) => void;
 	}
 
 	let { note, ondelete }: Props = $props();
@@ -120,10 +122,12 @@
 		{/if}
 	</button>
 
-	<IconButton icon="trash" label="Eliminar nota" onclick={() => (showDeleteConfirm = true)} />
+	{#if ondelete}
+		<IconButton icon="trash" label="Eliminar nota" onclick={() => (showDeleteConfirm = true)} />
+	{/if}
 </div>
 
-{#if showDeleteConfirm}
+{#if showDeleteConfirm && ondelete}
 	<ConfirmDialog
 		title="¿Eliminar esta nota?"
 		text="Esta acción no se puede deshacer."

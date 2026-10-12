@@ -14,7 +14,7 @@ import (
 )
 
 // AgentGeneration is one "✦ Generar con Mawta" request and its outcome
-// (agent_generations, 00005). The agents share this table: Agent says which
+// (agent_generations). The agents share this table: Agent says which
 // one serves the request and Kind what it generates.
 type AgentGeneration struct {
 	ID           uuid.UUID
@@ -22,6 +22,10 @@ type AgentGeneration struct {
 	Kind         string
 	ClassID      uuid.UUID
 	ExperienceID *uuid.UUID
+	StudentID    *uuid.UUID
+	CompetencyID *uuid.UUID
+	TermID       *uuid.UUID
+	VoiceNoteID  *uuid.UUID
 	RequestedBy  uuid.UUID
 	TargetKey    string
 	Status       string
@@ -53,13 +57,14 @@ func (g AgentGeneration) Expired(now time.Time) bool {
 }
 
 const generationColumns = `
-	id, agent, kind, class_id, experience_id, requested_by, target_key, status,
-	input, result, error, attempts, deadline_at, created_at, finished_at`
+	id, agent, kind, class_id, experience_id, student_id, competency_id, term_id, voice_note_id,
+	requested_by, target_key, status, input, result, error, attempts, deadline_at, created_at, finished_at`
 
 func scanGeneration(row pgx.Row) (AgentGeneration, error) {
 	var g AgentGeneration
 	var input, result []byte
-	err := row.Scan(&g.ID, &g.Agent, &g.Kind, &g.ClassID, &g.ExperienceID, &g.RequestedBy, &g.TargetKey,
+	err := row.Scan(&g.ID, &g.Agent, &g.Kind, &g.ClassID, &g.ExperienceID,
+		&g.StudentID, &g.CompetencyID, &g.TermID, &g.VoiceNoteID, &g.RequestedBy, &g.TargetKey,
 		&g.Status, &input, &result, &g.Error, &g.Attempts, &g.DeadlineAt, &g.CreatedAt, &g.FinishedAt)
 	if err != nil {
 		return g, err
@@ -71,12 +76,18 @@ func scanGeneration(row pgx.Row) (AgentGeneration, error) {
 	return g, nil
 }
 
-// NewGeneration is what a request to an agent carries.
+// NewGeneration is what a request to an agent carries. The scope columns
+// (student, competency, term, voice note) are set by the agents that work on
+// one student; planning leaves them nil.
 type NewGeneration struct {
 	Agent        string
 	Kind         string
 	ClassID      uuid.UUID
 	ExperienceID *uuid.UUID
+	StudentID    *uuid.UUID
+	CompetencyID *uuid.UUID
+	TermID       *uuid.UUID
+	VoiceNoteID  *uuid.UUID
 	RequestedBy  uuid.UUID
 	TargetKey    string
 	Input        json.RawMessage
@@ -94,12 +105,14 @@ func CreateGeneration(ctx context.Context, tx pgx.Tx, in NewGeneration) (g Agent
 	}
 	g, err = scanGeneration(tx.QueryRow(ctx, `
 		insert into agent_generations
-		  (tenant_id, agent, kind, class_id, experience_id, requested_by, target_key, input, deadline_at)
-		values (app.current_tenant_id(), $1, $2, $3, $4, $5, $6, $7, now() + make_interval(secs => $8))
+		  (tenant_id, agent, kind, class_id, experience_id, student_id, competency_id, term_id, voice_note_id,
+		   requested_by, target_key, input, deadline_at)
+		values (app.current_tenant_id(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
+		        now() + make_interval(secs => $12))
 		on conflict (tenant_id, target_key) where status in ('pending', 'running') do nothing
 		returning `+generationColumns,
-		in.Agent, in.Kind, in.ClassID, in.ExperienceID, in.RequestedBy, in.TargetKey, []byte(input),
-		in.Deadline.Seconds()))
+		in.Agent, in.Kind, in.ClassID, in.ExperienceID, in.StudentID, in.CompetencyID, in.TermID, in.VoiceNoteID,
+		in.RequestedBy, in.TargetKey, []byte(input), in.Deadline.Seconds()))
 	if err == nil {
 		return g, true, nil
 	}
@@ -198,4 +211,20 @@ func FailGeneration(ctx context.Context, tx pgx.Tx, id uuid.UUID, message, detai
 		 where id = $1
 	`, append(append([]any{id}, usageArgs(u)...), message, detail)...)
 	return err
+}
+
+// LatestConclusionGeneration is the most recent conclusions generation for a
+// student, competency and term, so a proposal survives a page reload. ok is
+// false when there is none.
+func LatestConclusionGeneration(ctx context.Context, tx pgx.Tx, studentID, competencyID, termID uuid.UUID) (g AgentGeneration, ok bool, err error) {
+	g, err = scanGeneration(tx.QueryRow(ctx, `
+		select `+generationColumns+` from agent_generations
+		 where agent = 'conclusions' and student_id = $1 and competency_id = $2 and term_id = $3
+		 order by created_at desc
+		 limit 1
+	`, studentID, competencyID, termID))
+	if errors.Is(err, pgx.ErrNoRows) {
+		return g, false, nil
+	}
+	return g, err == nil, err
 }

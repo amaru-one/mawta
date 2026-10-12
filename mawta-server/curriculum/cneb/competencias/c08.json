@@ -1,0 +1,204 @@
+{
+  "numero_cneb": 8,
+  "nombre": "Lee diversos tipos de textos escritos en lengua materna",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Obtiene información del texto escrito"
+    },
+    {
+      "numero": 2,
+      "nombre": "Infiere e interpreta información del texto"
+    },
+    {
+      "numero": 3,
+      "nombre": "Reflexiona y evalúa la forma, el contenido y contexto del texto"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene como base principalmente el nivel 1 de la competencia “Se comunica oralmente en su lengua materna”."
+    },
+    {
+      "nivel": 2,
+      "texto": "Lee diversos tipos de textos que tratan temas reales o imaginarios que le son cotidianos, en los que predominan palabras conocidas y que se acompañan con ilustraciones. Construye hipótesis o predicciones sobre la información contenida en los textos y demuestra comprensión de las ilustraciones y de algunos símbolos escritos que transmiten información. Expresa sus gustos y preferencias en relación a los textos leídos a partir de su propia experiencia. Utiliza algunas convenciones básicas de los textos escritos."
+    },
+    {
+      "nivel": 3,
+      "texto": "Lee diversos tipos de textos de estructura simple en los que predominan palabras conocidas e ilustraciones que apoyan las ideas centrales. Obtiene información poco evidente distinguiéndola de otra semejante y realiza inferencias locales a partir de información explícita. Interpreta el texto considerando información recurrente para construir su sentido global. Opina sobre sucesos e ideas importantes del texto a partir de su propia experiencia."
+    },
+    {
+      "nivel": 4,
+      "texto": "Lee diversos tipos de textos que presentan estructura simple con algunos elementos complejos y con vocabulario variado. Obtiene información poco evidente distinguiéndola de otras próximas y semejantes. Realiza inferencias locales a partir de información explícita e implícita. Interpreta el texto considerando información relevante para construir su sentido global. Reflexiona sobre sucesos e ideas importantes del texto y explica la intención de los recursos textuales más comunes a partir de su conocimiento y experiencia."
+    },
+    {
+      "nivel": 5,
+      "texto": "Lee diversos tipos de textos con varios elementos complejos en su estructura y con vocabulario variado. Obtiene información e integra datos que están en distintas partes del texto. Realiza inferencias locales a partir de información explícita e implícita. Interpreta el texto considerando información relevante y complementaria para construir su sentido global. Reflexiona sobre aspectos variados del texto a partir de su conocimiento y experiencia. Evalúa el uso del lenguaje, la intención de los recursos textuales y el efecto del texto en el lector a partir de su conocimiento y del contexto sociocultural."
+    },
+    {
+      "nivel": 6,
+      "texto": "Lee diversos tipos de texto con estructuras complejas y vocabulario variado. Integra información contrapuesta que está en distintas partes del texto. Interpreta el texto considerando información relevante y complementaria para construir su sentido global, valiéndose de otros textos. Reflexiona sobre formas y contenidos del texto a partir de su conocimiento y experiencia. Evalúa el uso del lenguaje, la intención de los recursos textuales y el efecto del texto en el lector a partir de su conocimiento y del contexto sociocultural."
+    },
+    {
+      "nivel": 7,
+      "texto": "Lee diversos tipos de textos con estructuras complejas, vocabulario variado y especializado. Integra información contrapuesta y ambigua que está en distintas partes del texto. Interpreta el texto considerando información relevante y de detalle para construir su sentido global, valiéndose de otros textos y reconociendo distintas posturas y sentidos. Reflexiona sobre formas y contenidos del texto y asume una posición sobre las relaciones de poder que este presenta. Evalúa el uso del lenguaje, la validez de la información, el estilo del texto, la intención de estrategias discursivas y recursos textuales. Explica el efecto del texto en el lector a partir de su conocimiento y del contexto sociocultural en el que fue escrito."
+    },
+    {
+      "nivel": 8,
+      "texto": "Lee diversos tipos de textos con estructuras complejas, principalmente de naturaleza analítica y reflexiva, con vocabulario variado y especializado. Interpreta y reinterpreta el texto a partir del análisis de énfasis y matices intencionados, valiéndose de otros textos y reconociendo distintas posturas y sentidos. Reflexiona sobre formas y contenidos del texto y asume una posición sobre las ideologías y relaciones de poder que este presenta. Evalúa el uso del lenguaje, la validez de la información, el estilo del texto, la intención de estrategias discursivas y recursos textuales. Explica el efecto del texto en el lector así como la influencia de los valores y posturas del autor en relación al contexto sociocultural en el que el texto fue escrito."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Identifica información explícita, relevante y complementaria seleccionando datos específicos y algunos detalles en diversos tipos de texto con varios elementos complejos en su estructura, así como vocabulario variado. Integra información explícita cuando se encuentra en distintas partes del texto, o en distintos textos al realizar una lectura intertextual."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Explica el tema, los subtemas y el propósito comunicativo del texto. Distingue lo relevante de lo complementario clasificando y sintetizando la información. Establece conclusiones sobre lo comprendido vinculando el texto con su experiencia y los contextos socioculturales en que se desenvuelve."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Deduce diversas relaciones lógicas entre las ideas del texto escrito (causa-efecto, semejanza-diferencia, entre otras) a partir de información relevante y complementaria del texto, o al realizar una lectura intertextual. Señala las características implícitas de seres, objetos, hechos y lugares, y determina el significado de palabras en contexto y de expresiones con sentido figurado."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Explica la intención del autor, los diferentes puntos de vista, los estereotipos, y la información que aportan organizadores o ilustraciones. Explica la trama, y las características y motivaciones de personas y personajes, además de algunas figuras retóricas (por ejemplo, la hipérbole), considerando algunas características del tipo textual y género discursivo."
+    },
+    {
+      "grado": "1S",
+      "orden": 5,
+      "texto": "Opina sobre el contenido, la organización textual, el sentido de diversos recursos textuales y la intención del autor. Evalúa los efectos del texto en los lectores a partir de su experiencia y de los contextos socioculturales en que se desenvuelve."
+    },
+    {
+      "grado": "1S",
+      "orden": 6,
+      "texto": "Justifica la elección o recomendación de textos de su preferencia cuando los comparte con otros. Sustenta su posición sobre estereotipos, creencias y valores presentes en los textos. Contrasta textos entre sí, y determina las características de los autores, los tipos textuales y los géneros discursivos."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Identifica información explícita, relevante y complementaria seleccionando datos específicos y algunos detalles en diversos tipos de texto de estructura compleja y con información contrapuesta y vocabulario variado. Integra información explícita cuando se encuentra en distintas partes del texto, o en distintos textos al realizar una lectura intertextual."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Explica el tema, los subtemas y el propósito comunicativo del texto. Distingue lo relevante de lo complementario clasificando y sintetizando la información. Establece conclusiones sobre lo comprendido vinculando el texto con su experiencia y los contextos socioculturales en que se desenvuelve."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Deduce diversas relaciones lógicas entre las ideas del texto escrito (causa-efecto, semejanza-diferencia, entre otras) a partir de información contrapuesta del texto o al realizar una lectura intertextual. Señala las características implícitas de seres, objetos, hechos y lugares, y determina el significado de palabras en contexto y de expresiones con sentido figurado."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Explica la intención del autor, los diferentes puntos de vista, los estereotipos, y la información que aportan gráficos e ilustraciones. Explica la trama, y las características y motivaciones de personas y personajes, además de algunas figuras retóricas (por ejemplo, el símil), de acuerdo con el sentido global del texto, considerando algunas características del tipo textual y género discursivo."
+    },
+    {
+      "grado": "2S",
+      "orden": 5,
+      "texto": "Opina sobre el contenido, la organización textual, el sentido de diversos recursos textuales y la intención del autor. Evalúa la eficacia de la información considerando los efectos del texto en los lectores a partir de su experiencia y de los contextos socioculturales en que se desenvuelve."
+    },
+    {
+      "grado": "2S",
+      "orden": 6,
+      "texto": "Justifica la elección o recomendación de textos de su preferencia cuando los comparte con otros. Sustenta su posición sobre estereotipos, creencias y valores presentes en los textos. Contrasta textos entre sí, y determina las características de los autores, los tipos textuales y los géneros discursivos."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Identifica información explícita, relevante y complementaria seleccionando datos específicos y detalles en diversos tipos de texto de estructura compleja y con información contrapuesta y vocabulario especializado. Integra información explícita cuando se encuentra en distintas partes del texto, o en distintos textos al realizar una lectura intertextual."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Deduce diversas relaciones lógicas entre las ideas del texto escrito (causa-efecto, semejanza-diferencia, entre otras) a partir de información contrapuesta o de detalle del texto, o al realizar una lectura intertextual. Señala las características implícitas de seres, objetos, hechos y lugares, y determina el significado de palabras en contexto y de expresiones con sentido figurado."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Explica el tema, los subtemas y el propósito comunicativo del texto cuando este presenta información especializada. Distingue lo relevante de lo complementario clasificando y sintetizando la información. Establece conclusiones sobre lo comprendido contrastando su experiencia y conocimiento con el contexto sociocultural del texto."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Explica la intención del autor considerando algunas estrategias discursivas utilizadas, y las características del tipo textual y género discursivo. Explica diferentes puntos de vista, algunos sesgos, contradicciones, el uso de la información estadística, las representaciones sociales presentes en el texto, y el modo en que diversas figuras retóricas junto con la trama y la evolución de personajes construyen el sentido del texto."
+    },
+    {
+      "grado": "3S",
+      "orden": 5,
+      "texto": "Opina sobre el contenido, la organización textual, las estrategias discursivas y la intención del autor. Emite un juicio crítico sobre la eficacia y validez de la información considerando los efectos del texto en los lectores, y contrastando su experiencia y conocimiento con el contexto sociocultural del texto."
+    },
+    {
+      "grado": "3S",
+      "orden": 6,
+      "texto": "Justifica la elección o recomendación de textos de su preferencia cuando los comparte con otros. Sustenta su posición sobre estereotipos y relaciones de poder presentes en los textos. Contrasta textos entre sí, y determina las características de los autores, los tipos textuales y los géneros discursivos."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Identifica información explícita, relevante y complementaria seleccionando datos específicos y detalles en diversos tipos de texto de estructura compleja y con información contrapuesta y ambigua, así como vocabulario especializado. Integra información explícita cuando se encuentra en distintas partes del texto, o en distintos textos al realizar una lectura intertextual."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Deduce diversas relaciones lógicas entre las ideas del texto escrito (causa-efecto, semejanza-diferencia, entre otras) a partir de información de detalle, contrapuesta o ambigua del texto, o al realizar una lectura intertextual. Señala las características implícitas de seres, objetos, hechos y lugares, y determina el significado de palabras en contexto y de expresiones con sentido figurado."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Explica el tema, los subtemas y el propósito comunicativo del texto cuando este presenta información especializada o abstracta. Distingue lo relevante de lo complementario clasificando y sintetizando la información. Establece conclusiones sobre lo comprendido contrastando su experiencia y conocimiento con el contexto sociocultural del texto."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Explica la intención del autor considerando diversas estrategias discursivas utilizadas, y las características del tipo textual y género discursivo. Explica diferentes puntos de vista, sesgos, contradicciones, falacias, contrargumentos, el uso de la información estadística, las representaciones sociales presentes en el texto, y el modo en que diversas figuras retóricas junto con la trama y la evolución de personajes construyen el sentido del texto."
+    },
+    {
+      "grado": "4S",
+      "orden": 5,
+      "texto": "Opina sobre el contenido, la organización textual, las estrategias discursivas, las representaciones sociales y la intención del autor. Emite un juicio crítico sobre la eficacia y validez de la información considerando los efectos del texto en los lectores, y contrastando su experiencia y conocimiento con el contexto sociocultural del texto."
+    },
+    {
+      "grado": "4S",
+      "orden": 6,
+      "texto": "Justifica la elección o recomendación de textos de su preferencia cuando los comparte con otros. Sustenta su posición sobre las relaciones de poder e ideologías de los textos. Contrasta textos entre sí, y determina las características de tipos textuales y géneros discursivos, o de movimientos literarios."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Identifica información explícita, relevante y complementaria seleccionando datos específicos y detalles en diversos tipos de texto de estructura compleja y con información contrapuesta y ambigua, así como falacias, paradojas, matices y vocabulario especializado. Integra información explícita cuando se encuentra en distintas partes del texto, o en distintos textos al realizar una lectura intertextual."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Explica el tema, los subtemas y el propósito comunicativo del texto cuando este presenta información especializada o abstracta. Distingue lo relevante de lo complementario clasificando y sintetizando la información. Establece conclusiones sobre lo comprendido contrastando su experiencia y conocimiento con el contexto sociocultural del texto y del autor."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Deduce diversas relaciones lógicas entre las ideas del texto escrito (causa-efecto, semejanza-diferencia, entre otras) a partir de información de detalle, contrapuesta y ambigua del texto, o al realizar una lectura intertextual. Señala las características implícitas de seres, objetos, hechos y lugares, y determina el significado de palabras en contexto y de expresiones con sentido figurado."
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Explica la intención del autor considerando diversas estrategias discursivas utilizadas, y las características del tipo textual y género discursivo. Explica diferentes puntos de vista, sesgos, falacias, ambigüedades, paradojas, matices, y contrargumentos, y el uso de la información estadística, así como las representaciones sociales presentes en el texto. Asimismo, explica el modo en que el texto construye diferentes sentidos o interpretaciones considerando la trama, diversas figuras retóricas utilizadas o la evolución de personajes."
+    },
+    {
+      "grado": "5S",
+      "orden": 5,
+      "texto": "Opina sobre el contenido, la organización textual, las estrategias discursivas, las representaciones sociales y la intención del autor. Emite un juicio crítico sobre la eficacia y validez de la información, y sobre el estilo de un autor, considerando los efectos del texto en los lectores, y contrastando su experiencia y conocimiento con el contexto sociocultural del texto y del autor."
+    },
+    {
+      "grado": "5S",
+      "orden": 6,
+      "texto": "Justifica la elección o recomendación de textos de su preferencia cuando los comparte con otros. Sustenta su posición sobre las relaciones de poder e ideologías de los textos. Contrasta textos entre sí, y determina las características de tipos textuales y géneros discursivos, o de movimientos literarios."
+    }
+  ]
+}

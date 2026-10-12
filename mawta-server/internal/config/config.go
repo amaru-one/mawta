@@ -52,6 +52,15 @@ type Config struct {
 	AgentPriceCacheReadPerMTok  float64
 	AgentPriceCacheWritePerMTok float64
 
+	// The redaction sweep (names in voice-note transcripts) and the
+	// descriptive-conclusions agent each run on their own model, with their
+	// own prices: the sweep is a small, frequent call; a conclusion is one
+	// careful piece of writing. Prices left at zero record a zero, unknown cost.
+	RedactionAgentModel    string
+	RedactionAgentPrices   AgentPrices
+	ConclusionsAgentModel  string
+	ConclusionsAgentPrices AgentPrices
+
 	SessionCookieName   string
 	SessionCookieSecure bool
 	SessionTTL          time.Duration
@@ -91,6 +100,10 @@ func Load() (Config, error) {
 		AgentPriceOutputPerMTok:     getfloat("AGENT_PRICE_OUTPUT_PER_MTOK", 0),
 		AgentPriceCacheReadPerMTok:  getfloat("AGENT_PRICE_CACHE_READ_PER_MTOK", 0),
 		AgentPriceCacheWritePerMTok: getfloat("AGENT_PRICE_CACHE_WRITE_PER_MTOK", 0),
+		RedactionAgentModel:         getenv("REDACTION_AGENT_MODEL", "claude-haiku-5-5"),
+		RedactionAgentPrices:        getprices("REDACTION_AGENT_PRICE"),
+		ConclusionsAgentModel:       getenv("CONCLUSIONS_AGENT_MODEL", "claude-sonnet-5-5"),
+		ConclusionsAgentPrices:      getprices("CONCLUSIONS_AGENT_PRICE"),
 
 		SessionCookieName: getenv("SESSION_COOKIE_NAME", "mawta_session"),
 		// Fails closed: a production deploy that forgets to set this still
@@ -129,6 +142,25 @@ func Load() (Config, error) {
 // reads the flag from the logger it is handed, not from Config.
 func RequestBodyCaptureFromEnv() bool {
 	return logging.RequestBodyCaptureFromEnv()
+}
+
+// AgentPrices are one agent model's prices in US dollars per million tokens.
+type AgentPrices struct {
+	InputPerMTok      float64
+	OutputPerMTok     float64
+	CacheReadPerMTok  float64
+	CacheWritePerMTok float64
+}
+
+// getprices reads <prefix>_INPUT_PER_MTOK, _OUTPUT_, _CACHE_READ_ and
+// _CACHE_WRITE_PER_MTOK.
+func getprices(prefix string) AgentPrices {
+	return AgentPrices{
+		InputPerMTok:      getfloat(prefix+"_INPUT_PER_MTOK", 0),
+		OutputPerMTok:     getfloat(prefix+"_OUTPUT_PER_MTOK", 0),
+		CacheReadPerMTok:  getfloat(prefix+"_CACHE_READ_PER_MTOK", 0),
+		CacheWritePerMTok: getfloat(prefix+"_CACHE_WRITE_PER_MTOK", 0),
+	}
 }
 
 func getenv(key, def string) string {

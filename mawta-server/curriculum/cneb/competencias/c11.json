@@ -1,0 +1,219 @@
+{
+  "numero_cneb": 11,
+  "nombre": "Lee diversos tipos de textos escritos en castellano como segunda lengua",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Obtiene información del texto escrito"
+    },
+    {
+      "numero": 2,
+      "nombre": "Infiere e interpreta información del texto escrito"
+    },
+    {
+      "numero": 3,
+      "nombre": "Reflexiona y evalúa la forma, el contenido y contexto del texto escrito"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Se comunica oralmente en su lengua materna”."
+    },
+    {
+      "nivel": 2,
+      "texto": "Este nivel tiene como base el nivel 2 de la competencia “Se comunica oralmente en su lengua materna”."
+    },
+    {
+      "nivel": 3,
+      "texto": "Lee diversos tipos de textos breves de estructura simple que tratan sobre temas cotidianos, en los que predomina vocabulario conocido e ilustraciones. Identifica y relaciona información ubicada en distintas partes del texto. Expresa sus gustos y preferencias sobre el contenido de un texto en su lengua materna."
+    },
+    {
+      "nivel": 4,
+      "texto": "Lee diversos tipos de textos de estructura simple que presentan vocabulario variado. Identifica y relaciona información ubicada en distintas partes del texto (semejanzas y diferencias), infiere el propósito y el tema central e interpreta el sentido de un texto relacionándolo con alguna situación de su contexto sociocultural. Reconoce la utilidad de elementos formales básicos en el texto. Opina de forma breve sobre las ideas del texto."
+    },
+    {
+      "nivel": 5,
+      "texto": "Lee diversos tipos de textos con algunos elementos complejos que presentan vocabulario variado. Relaciona información ubicada en distintas partes del texto, infiere el propósito comunicativo, el tema central y las ideas principales. Interpreta integrando información explícita e implícita para construir el sentido de un texto relacionándolo con su contexto sociocultural. Reconoce la utilidad de elementos formales. Opina sobre sucesos e ideas del texto justificando su posición."
+    },
+    {
+      "nivel": 6,
+      "texto": "Lee diversos tipos de textos complejos que tienen vocabulario variado. Relaciona información ubicada en distintas partes del texto, infiere el propósito comunicativo, el tema central y las ideas principales. Interpreta integrando información para construir el sentido de un texto relacionándolo con otros textos y su contexto sociocultural. Explica la intención de elementos formales del texto. Opina sobre sucesos e ideas del texto, y lo relaciona con el contexto sociocultural en el que fue escrito."
+    },
+    {
+      "nivel": 7,
+      "texto": "Lee diversos tipos de textos complejos que tienen vocabulario variado y especializado. Interpreta integrando información para construir el sentido global de un texto contrastándolo con otros textos que presentan ideas diferentes y su contexto sociocultural. Evalúa la efectividad del contenido del texto y explica la intención de diversos elementos formales. Reflexiona sobre distintos sucesos e ideas del texto, y lo relaciona con el contexto sociocultural e ideológico en el que fue escrito."
+    },
+    {
+      "nivel": 8,
+      "texto": "Lee diversos tipos de textos con estructuras complejas, vocabulario variado y especializado. Interpreta el sentido global del texto. Evalúa la efectividad del contenido del texto y explica la intención de los elementos formales. Reflexiona críticamente sobre el texto y lo relaciona con el contexto sociocultural e ideológico en el que fue escrito."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Identifica información relevante de textos complejos con vocabulario variado. Ejemplo: textos con expresiones de sentido figurado."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Integra información explícita ubicada en distintas partes del texto."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Deduce información en textos complejos (por ejemplo, en textos continuos y discontinuos) y temas de diversos campos del saber, en los que predomina el vocabulario variado."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Explica el tema y el propósito comunicativo relacionando información del texto con sus saberes de su contexto sociocultural."
+    },
+    {
+      "grado": "1S",
+      "orden": 5,
+      "texto": "Opina sobre ideas, hechos y personajes, y los relaciona con su contexto sociocultural."
+    },
+    {
+      "grado": "1S",
+      "orden": 6,
+      "texto": "Explica la intención del autor considerando las características de los tipos textuales y la estructura del texto."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Identifica información relevante de textos complejos con vocabulario variado. Ejemplo: textos con expresiones de sentido figurado."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Integra información explícita ubicada en distintas partes del texto."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Deduce información en textos complejos (por ejemplo, en textos continuos y discontinuos) y temas de diversos campos del saber, en los que predomina el vocabulario variado."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Explica el tema y el propósito comunicativo relacionando información del texto con sus saberes de su contexto sociocultural."
+    },
+    {
+      "grado": "2S",
+      "orden": 5,
+      "texto": "Opina sobre ideas, hechos y personajes, y los relaciona y contrasta con su contexto sociocultural."
+    },
+    {
+      "grado": "2S",
+      "orden": 6,
+      "texto": "Explica la intención del autor considerando las características de los tipos textuales, la estructura del texto y el género usado."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Identifica información relevante de textos complejos con vocabulario variado. Ejemplo: textos que contengan ambigüedades, humor e ironía, con expresiones de sentido figurado."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Integra información explícita ubicada en distintas partes del texto."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Deduce información en textos complejos y temas de diversos campos del saber, en los que predomina el vocabulario variado y especializado."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Explica el tema y el propósito comunicativo relacionando información del texto con sus saberes de su contexto sociocultural."
+    },
+    {
+      "grado": "3S",
+      "orden": 5,
+      "texto": "Opina sobre ideas, hechos y personajes argumentando su posición respecto del texto, e identificando el contexto social e histórico donde se ha producido."
+    },
+    {
+      "grado": "3S",
+      "orden": 6,
+      "texto": "Explica los diferentes puntos de vista, estereotipos y sesgos de diversos tipos de texto al contrastarlos."
+    },
+    {
+      "grado": "3S",
+      "orden": 7,
+      "texto": "Explica la intención del autor considerando el tipo de texto, el género discursivo y las estrategias discursivas empleadas en el texto."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Identifica información relevante de textos complejos con vocabulario variado. Ejemplo: textos que contengan ambigüedades, humor e ironía."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Integra información explícita ubicada en distintas partes del texto."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Deduce información en textos complejos y temas de diversos campos del saber, en los que predomina el vocabulario variado y especializado."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Explica el tema y el propósito comunicativo relacionando información del texto con sus saberes de su contexto sociocultural y contrastando la información con otras fuentes de información escritas, a fin de presentar su propia posición."
+    },
+    {
+      "grado": "4S",
+      "orden": 5,
+      "texto": "Opina sobre ideas, hechos y personajes argumentando su posición respecto del texto, e identificando el contexto social e histórico donde se ha producido."
+    },
+    {
+      "grado": "4S",
+      "orden": 6,
+      "texto": "Explica los diferentes puntos de vista, estereotipos y sesgos de diversos tipos de texto al contrastarlos."
+    },
+    {
+      "grado": "4S",
+      "orden": 7,
+      "texto": "Explica la intención del autor considerando el tipo de texto, el género discursivo y las estrategias discursivas empleadas en el texto."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Identifica información relevante de textos complejos con vocabulario variado y especializado (por ejemplo, textos que contengan ambigüedades, humor e ironía)."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Integra información explícita ubicada en distintas partes del texto."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Deduce información en textos complejos y temas de diversos campos del saber, en los que predomina el vocabulario variado y especializado."
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Explica el tema y el propósito comunicativo relacionando información del texto con sus saberes de su contexto sociocultural y contrastando la información con otras fuentes de información escritas, a fin de presentar su propia posición."
+    },
+    {
+      "grado": "5S",
+      "orden": 5,
+      "texto": "Opina sobre ideas, hechos y personajes argumentando su posición respecto del texto, e identificando el contexto social e histórico donde se ha producido."
+    },
+    {
+      "grado": "5S",
+      "orden": 6,
+      "texto": "Explica los diferentes puntos de vista, estereotipos y sesgos de diversos tipos de texto al contrastarlos."
+    },
+    {
+      "grado": "5S",
+      "orden": 7,
+      "texto": "Explica la intención del autor considerando el tipo de texto, el género discursivo y las estrategias discursivas empleadas en el texto."
+    }
+  ]
+}

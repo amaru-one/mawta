@@ -1,0 +1,129 @@
+{
+  "numero_cneb": 5,
+  "nombre": "Aprecia de manera crítica manifestaciones artístico-culturales",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Percibe manifestaciones artístico-culturales"
+    },
+    {
+      "numero": 2,
+      "nombre": "Contextualiza manifestaciones artístico-culturales"
+    },
+    {
+      "numero": 3,
+      "nombre": "Reflexiona creativa y críticamente sobre manifestaciones artístico-culturales"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene principalmente como base el nivel 1 de la competencia “Crea proyectos desde los lenguajes artísticos”."
+    },
+    {
+      "nivel": 2,
+      "texto": "Este nivel tiene principalmente como base el nivel 2 de la competencia “Crea proyectos desde los lenguajes artísticos”."
+    },
+    {
+      "nivel": 3,
+      "texto": "Aprecia de manera crítica manifestaciones artístico-culturales al observar, escuchar y describir las características visuales, táctiles, sonoras y kinestésicas de estas manifestaciones, describiendo las sensaciones que le transmiten. Participa de conversaciones sobre los contextos donde se originan manifestaciones artístico-culturales y reconoce que responden a características propias de un grupo de personas, de tiempos y lugares diferentes. Expresa sus preferencias sobre manifestaciones artísticas que observa o experimenta y conversa sobre los temas, las ideas y sentimientos que comunican."
+    },
+    {
+      "nivel": 4,
+      "texto": "Aprecia de manera crítica manifestaciones artístico-culturales al observar, escuchar y describir las características claves de una manifestación artístico-cultural, su forma, los medios que utiliza, su temática; describe las ideas o sentimientos que comunica. Investiga los contextos donde se origina e infiere información acerca del lugar, la época y la cultura donde fue creada. Integra la información recogida y describe de qué manera una manifestación artístico-cultural comunica ideas, sentimientos e intenciones."
+    },
+    {
+      "nivel": 5,
+      "texto": "Aprecia de manera crítica manifestaciones artístico-culturales al interpretar las cualidades expresivas de los elementos del arte, la estructura y los medios utilizados en una manifestación artístico-cultural y explica cómo transmite mensajes, ideas y sentimientos. Investiga los contextos donde se originan manifestaciones artístico-culturales tradicionales y contemporáneas e identifica cómo los cambios, las creencias y los valores revelan la manera en que una determinada persona o sociedad ha vivido. Genera hipótesis sobre el significado y las diversas intenciones que puede tener una manifestación creada en contextos históricos y culturales diferentes."
+    },
+    {
+      "nivel": 6,
+      "texto": "Aprecia de manera crítica manifestaciones artístico-culturales cuando describe las características fundamentales de los diversos lenguajes del arte y las culturas que los producen, y los asocia a experiencias, mensajes, emociones e ideas, siendo consciente de que generan diferentes reacciones e interpretaciones en las personas. Investiga las creencias, cosmovisiones, tradiciones y la función social de manifestaciones artístico-culturales de diversos tiempos y lugares y distingue las diferentes maneras en que se usa el arte para representar y reflejar la identidad de un grupo de personas. Integra la información recogida para describir la complejidad y la riqueza de la obra, así como para generar hipótesis sobre el significado y la intención del artista. Evalúa la eficacia del uso de las técnicas utilizadas en relación a las intenciones específicas."
+    },
+    {
+      "nivel": 7,
+      "texto": "Aprecia de manera crítica manifestaciones artístico-culturales cuando reconoce en estas la función comunicativa de los elementos y códigos de los lenguajes de las artes de diversas épocas y lugares; comprende que generan diferentes reacciones en las personas y que existen diferentes maneras de interpretarlas según los referentes socioculturales de las personas que las aprecian. Investiga el impacto de los medios de comunicación, los cambios sociales y tecnológicos en las manifestaciones artístico-culturales contemporáneas y compara las diversas funciones que ha cumplido el arte en una variedad de contextos sociales, culturales e históricos. Integra la información recogida y describe cómo una manifestación artístico-cultural nos reta a interpretar sus ideas y significados. Evalúa la eficacia del uso de las técnicas utilizadas en comparación con la intención de la obra, de otros trabajos y artistas afines y hace comentarios sobre los impactos que puede tener una manifestación sobre aquellos que las observan o experimentan."
+    },
+    {
+      "nivel": 8,
+      "texto": "Aprecia de manera crítica manifestaciones artístico-culturales al interpretar los códigos, principios y elementos de los lenguajes del arte, al participar vivencial y virtualmente de experiencias que amplíen sus parámetros valorativos y lo vinculen a referentes culturales de su comunidad y de otros contextos. Investiga las interrelaciones entre las manifestaciones artístico-culturales y otros campos del conocimiento. Genera hipótesis sobre las repercusiones y legado de la obra. Evalúa la pertinencia e interpreta las intenciones y significados de manifestaciones artístico-culturales y reconoce el impacto que un artista o un grupo de artistas puede tener sobre las creencias, valores y actitudes de un grupo de personas o una sociedad."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Describe las cualidades estéticas de manifestaciones artístico-culturales diversas. Ejemplo: la textura de un tejido, los contrastes de colores de una pintura o el timbre de un instrumento musical) asociándolas a emociones, sensaciones e ideas propias, y reconociendo que pueden generar diferentes reacciones en otras personas."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Obtiene información sobre los contextos en que se producen o presentan las manifestaciones artístico-culturales, y los asocia a las cualidades estéticas que observa."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Genera hipótesis sobre los posibles significados e intenciones a partir de la información y las relaciones que estableció entre las manifestaciones artístico-culturales y los contextos en los que se producen o presentan."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Describe las cualidades estéticas de manifestaciones artístico-culturales diversas empleando el lenguaje propio de las artes (elementos, principios y códigos) y las vincula con los individuos, contextos y épocas en las que fueron producidas. Ejemplo: El estudiante describe los símbolos que aparecen en un manto, perteneciente a la comunidad nativa asháninka Marankiari Bajo - Perené, y explica cómo estos se vinculan con el lugar y la comunidad donde fue creado el manto."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Establece relaciones de correspondencia entre las manifestaciones artístico-culturales y sus cosmovisiones. Señala las intenciones y funciones que cumplen en un determinado contexto. Ejemplo: El estudiante señala que, en la parte superior de una Tabla de Sarhua, aparecen representados los apus (divinidades andinas) y, en la parte inferior, un santo católico. Explica que, en la actualidad, en la comunidad de Sarhua (Ayacucho), se honra a ambas deidades. Explica que las tablas de Sarhua tienen la función de servir como un registro de la historia de las familias."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Genera hipótesis sobre el significado de una manifestación artístico-cultural a partir de la información recogida y explica la relación entre los elementos que la componen y las ideas que comunica. Evalúa la eficacia de las técnicas aplicadas en función de su impacto en sí mismo o en la audiencia."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Describe de qué manera los elementos, principios y códigos de una manifestación artístico-cultural son utilizados para comunicar mensajes, ideas y sentimientos. Ejemplo: El estudiante escucha que hay sonidos graves y agudos en la melodía de los sikuris. Identifica tres grupos de músicos: niños, jóvenes y adultos, a los que les corresponden sonidos y tamaños de instrumento diferenciados: cañas chicas para los niños (sonidos agudos), medianas para los jóvenes y grandes para los adultos (sonidos graves). Explica que la melodía se construye a partir de la combinación de los sonidos producidos por los tres grupos, en una especie de diálogo o trenzado."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Compara diversos estilos, modos de producción o tecnologías asociados a las manifestaciones artístico-culturales de diversos lugares y épocas que observa o experimenta para identificar sus transformaciones."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Explica el significado de una manifestación artístico-cultural a partir de criterios propios e información recabada (en ese sentido, una melodía ejecutada por los sikuris es un diálogo entre tres generaciones de varones). Opina sobre el impacto de esa manifestación en sí mismo y en la audiencia."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Explica el rol que cumplen los elementos, principios y códigos de las manifestaciones artístico-culturales de diversas culturas para transmitir significados."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Compara las manifestaciones artístico-culturales de diversos contextos y épocas, estableciendo similitudes y diferencias en los estilos, los temas, las intenciones y las cualidades estéticas. Opina sobre la contribución de las artes y los artistas a la sociedad. Ejemplo: El estudiante establece comparaciones entre danzantes callejeros de periodos históricos o culturas diversas."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Explica el significado de una manifestación artístico-cultural y lo justifica utilizando el lenguaje propio de las artes. Contrasta su postura personal con las opiniones de sus pares."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Describe los efectos que tienen los elementos, principios y códigos asociados a cada lenguaje artístico sobre la audiencia. Ejemplo: Los estudiantes observan una serie de afiches sobre el bullying y analizan cómo se usan los principios de contraste (colores y textura) reconociendo las peculiaridades del mensaje."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Obtiene y selecciona información sobre cómo los cambios sociales y tecnológicos afectan la producción, la difusión y el consumo de manifestaciones artístico-culturales a lo largo de la historia. Opina sobre la manera en que estas reflejan los contextos en los que fueron creadas. Ejemplo: El estudiantes explica cómo y por qué los retablos en el siglo XVII representaban escenas católicas, mientras que, en la actualidad, los artistas creadores de retablos representan testimonios y narrativas relacionados con temas sociales actuales."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Emite un juicio de valor utilizando argumentos sobre la efectividad de una manifestación artístico-cultural, de acuerdo con la influencia o impacto que puede tener sobre el público. Explica las intenciones del artista basándose en los elementos, los principios y el contexto en que fue creada su obra."
+    }
+  ]
+}

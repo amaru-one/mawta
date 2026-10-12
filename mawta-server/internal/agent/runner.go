@@ -48,15 +48,39 @@ type Runner struct {
 	Prices llm.Prices
 	Logger *slog.Logger
 	agents map[string]Agent
+	models map[string]binding
 }
 
-// NewRunner builds a runner over a model and its agents.
+// binding is the model an agent runs on when it is not the runner's default.
+type binding struct {
+	model  llm.Model
+	prices llm.Prices
+}
+
+// NewRunner builds a runner over a default model and its agents.
 func NewRunner(database *db.DB, model llm.Model, prices llm.Prices, logger *slog.Logger, agents ...Agent) *Runner {
-	r := &Runner{DB: database, Model: model, Prices: prices, Logger: logger, agents: map[string]Agent{}}
+	r := &Runner{DB: database, Model: model, Prices: prices, Logger: logger,
+		agents: map[string]Agent{}, models: map[string]binding{}}
 	for _, a := range agents {
 		r.agents[a.Name()] = a
 	}
 	return r
+}
+
+// Bind registers an agent that runs on its own model and prices instead of
+// the runner's default (e.g. the redaction sweep on a small, cheap model).
+func (r *Runner) Bind(a Agent, model llm.Model, prices llm.Prices) *Runner {
+	r.agents[a.Name()] = a
+	r.models[a.Name()] = binding{model: model, prices: prices}
+	return r
+}
+
+// modelFor is the model and prices an agent runs on.
+func (r *Runner) modelFor(agentName string) (llm.Model, llm.Prices) {
+	if b, ok := r.models[agentName]; ok {
+		return b.model, b.prices
+	}
+	return r.Model, r.Prices
 }
 
 // Outcome tells the worker how an attempt ended when it did not fail
@@ -131,11 +155,12 @@ func (r *Runner) Run(ctx context.Context, tenantID uuid.UUID, payload []byte, at
 
 	// 2. Call the model (with one repair round for an unusable answer), then
 	// 3. apply the answer in a fresh transaction.
-	usage := repo.Usage{Model: r.Model.Name(), PromptVersion: ag.PromptVersion()}
+	model, prices := r.modelFor(gen.Agent)
+	usage := repo.Usage{Model: model.Name(), PromptVersion: ag.PromptVersion()}
 	spec := *prep.Spec
 	for round := 0; round < 2; round++ {
-		resp, callErr := r.call(ctx, gen, attempt, spec)
-		usage = addUsage(usage, r.usage(resp.Usage))
+		resp, callErr := r.call(ctx, model, prices, gen, attempt, spec)
+		usage = addUsage(usage, usageOf(prices, resp.Usage))
 		if callErr != nil {
 			if errors.Is(callErr, llm.ErrPermanent) {
 				return OutcomeFailed, r.failTx(ctx, tc, gen, MsgInvalidAnswer, callErr.Error(), usage)
@@ -196,9 +221,9 @@ func (r *Runner) Run(ctx context.Context, tenantID uuid.UUID, payload []byte, at
 }
 
 // call makes one model call and logs its usage.
-func (r *Runner) call(ctx context.Context, gen repo.AgentGeneration, attempt int16, spec Spec) (llm.Response, error) {
+func (r *Runner) call(ctx context.Context, model llm.Model, prices llm.Prices, gen repo.AgentGeneration, attempt int16, spec Spec) (llm.Response, error) {
 	start := time.Now()
-	resp, err := r.Model.Generate(ctx, llm.Request{
+	resp, err := model.Generate(ctx, llm.Request{
 		System:    spec.System,
 		Prompt:    spec.Prompt,
 		Tool:      spec.Tool,
@@ -208,7 +233,7 @@ func (r *Runner) call(ctx context.Context, gen repo.AgentGeneration, attempt int
 		GenerationID:     gen.ID.String(),
 		Agent:            gen.Agent,
 		Kind:             gen.Kind,
-		Model:            r.Model.Name(),
+		Model:            model.Name(),
 		Attempt:          attempt,
 		DurationMs:       time.Since(start).Milliseconds(),
 		Outcome:          "success",
@@ -223,23 +248,23 @@ func (r *Runner) call(ctx context.Context, gen repo.AgentGeneration, attempt int
 			ev.ErrorClass = "permanent"
 		}
 	}
-	if r.Prices.Known() {
-		cost := r.Prices.Cost(resp.Usage)
+	if prices.Known() {
+		cost := prices.Cost(resp.Usage)
 		ev.CostUSD = &cost
 	}
 	logging.LogAgentUsage(r.Logger, ev)
 	return resp, err
 }
 
-func (r *Runner) usage(u llm.Usage) repo.Usage {
+func usageOf(prices llm.Prices, u llm.Usage) repo.Usage {
 	out := repo.Usage{
 		InputTokens:      u.InputTokens,
 		OutputTokens:     u.OutputTokens,
 		CacheReadTokens:  u.CacheReadTokens,
 		CacheWriteTokens: u.CacheWriteTokens,
 	}
-	if r.Prices.Known() {
-		out.CostUSD = r.Prices.Cost(u)
+	if prices.Known() {
+		out.CostUSD = prices.Cost(u)
 	}
 	return out
 }
