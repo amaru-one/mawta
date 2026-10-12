@@ -423,7 +423,7 @@
 		line-height: 1.25;
 		padding: 6px 7px;
 		overflow: hidden;
-		z-index: 1;
+		z-index: var(--mw-z-raised);
 	}
 
 	.tl-block small {
@@ -452,7 +452,7 @@
 	}
 
 	.tl-marks {
-		margin-top: 4px;
+		margin-top: var(--mw-space-1);
 		height: 8px;
 	}
 
@@ -554,7 +554,7 @@
 	}
 
 	.exp .meta {
-		margin: 4px 0 0;
+		margin: var(--mw-space-1) 0 0;
 	}
 
 	.exp-comps {

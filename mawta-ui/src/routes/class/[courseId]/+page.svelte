@@ -207,11 +207,11 @@
 
 <style>
 	.body {
-		padding: 18px 20px 30px;
+		padding: 18px var(--mw-space-5) 30px;
 	}
 
 	.eyebrow {
-		margin: 0 0 12px;
+		margin: 0 0 var(--mw-space-3);
 	}
 
 	.clsname {
@@ -234,19 +234,19 @@
 	}
 
 	.eyebrow.tight {
-		margin-bottom: 4px;
+		margin-bottom: var(--mw-space-1);
 	}
 
 	.railhint {
-		margin: 0 0 12px;
+		margin: 0 0 var(--mw-space-3);
 		font-size: var(--mw-type-small-size);
 		color: var(--mw-ink-muted);
 	}
 
 	.hero {
 		display: block;
-		margin: 18px 0 8px;
-		padding: 18px 20px;
+		margin: 18px 0 var(--mw-space-2);
+		padding: 18px var(--mw-space-5);
 		border-radius: var(--mw-radius-xl);
 		background: var(--mw-accent);
 		color: var(--mw-on-accent);
@@ -256,7 +256,7 @@
 	.hero-row {
 		display: flex;
 		align-items: center;
-		gap: 12px;
+		gap: var(--mw-space-3);
 		margin-top: 10px;
 	}
 
@@ -290,7 +290,7 @@
 	}
 
 	.quiet {
-		margin-top: 16px;
+		margin-top: var(--mw-space-4);
 		margin-bottom: 34px;
 		display: flex;
 		flex-direction: column;
@@ -319,9 +319,9 @@
 
 	.hscroll {
 		display: flex;
-		gap: 12px;
+		gap: var(--mw-space-3);
 		overflow-x: auto;
-		padding: 0 20px 8px;
+		padding: 0 var(--mw-space-5) var(--mw-space-2);
 		margin: 0 -20px 30px;
 		scroll-snap-type: x proximity;
 	}
@@ -332,15 +332,15 @@
 
 	.lcard {
 		display: flex;
-		gap: 16px;
+		gap: var(--mw-space-4);
 		width: max-content;
 		min-width: 190px;
 		max-width: 300px;
 		flex: 0 0 auto;
 		scroll-snap-align: start;
-		padding: 14px 16px;
+		padding: 14px var(--mw-space-4);
 		background: var(--mw-surface-tint);
-		border-radius: 14px;
+		border-radius: var(--mw-radius-xl);
 		color: inherit;
 	}
 
@@ -386,7 +386,7 @@
 		display: flex;
 		align-items: center;
 		gap: 6px;
-		margin-top: 4px;
+		margin-top: var(--mw-space-1);
 		font-family: var(--mw-font-sans);
 		font-size: var(--mw-type-label-size);
 		color: var(--mw-ink-muted);
