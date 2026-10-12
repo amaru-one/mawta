@@ -18,30 +18,16 @@ export default defineConfig({
 		{
 			name: 'chromium',
 			use: { ...devices['Desktop Chrome'], viewport: { width: 390, height: 844 } },
-			testIgnore: /flag\.spec\.ts/,
 		},
 		{
 			name: 'webkit',
 			use: { ...devices['Desktop Safari'], viewport: { width: 390, height: 844 } },
-			testIgnore: /flag\.spec\.ts/,
-		},
-		{
-			name: 'planning-disabled',
-			use: { ...devices['Desktop Chrome'], baseURL: 'http://127.0.0.1:4174' },
-			testMatch: /flag\.spec\.ts/,
 		},
 	],
 	webServer: [
 		{
 			command: 'bun run dev --host 127.0.0.1 --port 4173 --strictPort',
 			url: 'http://127.0.0.1:4173',
-			env: { PUBLIC_PLANNING_ENABLED: 'true', PUBLIC_PLANNING_API: 'real' },
-			reuseExistingServer: false,
-		},
-		{
-			command: 'bun run dev --host 127.0.0.1 --port 4174 --strictPort',
-			url: 'http://127.0.0.1:4174',
-			env: { PUBLIC_PLANNING_ENABLED: 'false', PUBLIC_PLANNING_API: 'real' },
 			reuseExistingServer: false,
 		},
 	],
