@@ -5,6 +5,7 @@
 		Card,
 		Checkbox,
 		CoverageMeter,
+		Disclosure,
 		EmptyState,
 		Field,
 		Icon,
@@ -14,9 +15,10 @@
 	// The criteria step of a saved experience. One competencia at a time, with
 	// ‹ › between them: its capacidades say in words which ones a criterio
 	// already looks at, and the criterios are the protagonists. A criterio is a
-	// grade desempeño landed on the situation; it can look at several
-	// capacidades of its competencia and is listed once. Mawta only fills gaps
-	// when asked, and "Continuar" waits until every competencia was seen.
+	// cycle standard landed on the situation (a grade desempeño is optional
+	// support); it can look at several capacidades of its competencia and is
+	// listed once. Mawta only fills gaps when asked, and "Continuar" waits until
+	// every competencia was seen.
 	import { onDestroy, onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
@@ -94,6 +96,9 @@
 	);
 	const capabilities = $derived(list(currentCurriculum?.capabilities));
 	const performances = $derived(list(currentCurriculum?.performances));
+	const standard = $derived(currentCurriculum?.standard ?? null);
+	let standardOpen = $state(false);
+	let performanceOpen = $state(false);
 	const criteria = $derived(
 		list(experience?.criteria).filter((criterion) => criterion.competency_id === current?.id)
 	);
@@ -101,7 +106,8 @@
 		new Set(criteria.flatMap((criterion) => list(criterion.capability_ids)))
 	);
 	const missing = $derived(capabilities.filter((capability) => !covered.has(capability.id)));
-	const pending = $derived(criteria.some(isProposal));
+	const pendingCount = $derived(criteria.filter(isProposal).length);
+	const pending = $derived(pendingCount > 0);
 	const unseen = $derived(comps.filter((c) => !visited.includes(c.id)).length);
 
 	// Seeing a competencia is what "Continuar" waits for.
@@ -115,7 +121,15 @@
 		if (next < 0 || next >= comps.length) return;
 		hapticTap();
 		form = null;
+		standardOpen = false;
+		performanceOpen = false;
 		compIdx = next;
+	}
+
+	// "ciclo_vi" -> "ciclo VI"
+	function cycleLabel(cycle: string | null | undefined): string {
+		if (!cycle) return 'ciclo';
+		return cycle.startsWith('ciclo_') ? `ciclo ${cycle.slice(6).toUpperCase()}` : cycle;
 	}
 
 	function isProposal(criterion: ExperienceCriterionDto): boolean {
@@ -131,15 +145,17 @@
 		return performances.find((performance) => performance.id === id)?.text ?? '';
 	}
 
+	// Every criterio carries the same anchor line: the desempeño it lands on,
+	// or the cycle standard when it has none.
+	function anchorOf(criterion: ExperienceCriterionDto): string {
+		const text = performanceText(criterion.performance_id);
+		return text ? `↳ Desempeño: ${text}` : `↳ Estándar · ${cycleLabel(curriculum?.grade.cycle)}`;
+	}
+
 	// "a", "a y b", "a, b y c"
 	function joinY(items: string[]): string {
 		if (items.length <= 1) return items.join('');
 		return `${items.slice(0, -1).join(', ')} y ${items[items.length - 1]}`;
-	}
-
-	function shortText(text: string, max = 90): string {
-		if (text.length <= max) return text;
-		return `${text.slice(0, max).replace(/\s+\S*$/, '')}…`;
 	}
 
 	// ---- create and edit ----
@@ -201,10 +217,7 @@
 	}
 
 	const canSave = $derived(
-		!!form &&
-			form.performanceId !== '' &&
-			form.capabilityIds.length > 0 &&
-			form.description.trim() !== ''
+		!!form && form.capabilityIds.length > 0 && form.description.trim() !== ''
 	);
 
 	async function save(): Promise<void> {
@@ -214,11 +227,17 @@
 		const body = {
 			description: form.description.trim(),
 			capability_ids: form.capabilityIds,
-			performance_id: form.performanceId,
 		};
 		try {
-			if (form.id) await updateCriterion(form.id, body);
-			else await createCriterion(experienceId, { competency_id: current.id, ...body });
+			if (form.id) {
+				await updateCriterion(form.id, { ...body, performance_id: form.performanceId || null });
+			} else {
+				await createCriterion(experienceId, {
+					competency_id: current.id,
+					...body,
+					...(form.performanceId ? { performance_id: form.performanceId } : {}),
+				});
+			}
 			form = null;
 			await reload();
 			showToast('Criterio guardado');
@@ -231,14 +250,17 @@
 
 	// ---- proposals ----
 
-	async function accept(criterion: ExperienceCriterionDto): Promise<void> {
+	// Accepts every pending proposal of this competencia, in order.
+	async function acceptAll(): Promise<void> {
 		hapticTap();
 		try {
-			await acceptCriterion(criterion.id);
-			await reload();
+			for (const criterion of criteria.filter(isProposal)) {
+				await acceptCriterion(criterion.id);
+			}
 		} catch {
-			showToast('No se pudo aceptar el criterio');
+			showToast('No se pudieron aceptar todos los criterios');
 		}
+		await reload();
 	}
 
 	let deletingId = $state<string | null>(null);
@@ -321,17 +343,43 @@
 				}))}
 			/>
 
+			{#if standard}
+				<div class="standard">
+					<p class="eyebrow">Estándar · nivel esperado {cycleLabel(curriculum?.grade.cycle)}</p>
+					<p id="standard-text" class="standard-text" class:clamped={!standardOpen}>
+						{standard.text}
+					</p>
+					<button
+						type="button"
+						class="standard-toggle"
+						aria-expanded={standardOpen}
+						aria-controls="standard-text"
+						onclick={() => (standardOpen = !standardOpen)}
+					>
+						{standardOpen ? 'Ver menos' : 'Ver completo'}
+					</button>
+				</div>
+			{/if}
+
 			<div class="section">
 				<p class="eyebrow">Criterios · {criteria.length}</p>
 				{#if pending}
-					<p class="meta help">Mawta propuso estos criterios: acéptalos o edítalos.</p>
+					<div class="pending-bar">
+						<p class="meta">
+							Mawta propuso {pendingCount === 1 ? '1 criterio' : `${pendingCount} criterios`}:
+							revísalos o acéptalos.
+						</p>
+						<Button variant="secondary" onclick={() => void acceptAll()}>
+							<Icon name="check" size={15} /> Aceptar todos
+						</Button>
+					</div>
 				{/if}
 
 				{#if criteria.length === 0}
 					<Card>
 						<p class="empty-title">Aún no hay criterios para esta competencia.</p>
 						<p class="meta">
-							Mawta puede proponerlos a partir de los desempeños del grado, o puedes crearlos tú.
+							Mawta puede proponerlos a partir del estándar del ciclo, o puedes crearlos tú.
 						</p>
 					</Card>
 				{/if}
@@ -349,17 +397,8 @@
 										: 'Mira la capacidad'}
 									{joinY(list(criterion.capability_ids).map(capabilityName))}.
 								</p>
-								{#if performanceText(criterion.performance_id)}
-									<p class="crit-from">
-										↳ desde: {shortText(performanceText(criterion.performance_id))}
-									</p>
-								{/if}
+								<p class="crit-from">{anchorOf(criterion)}</p>
 								<div class="crit-actions row">
-									{#if isProposal(criterion)}
-										<Action variant="main" onclick={() => void accept(criterion)}>
-											<Icon name="check" size={13} /> Aceptar
-										</Action>
-									{/if}
 									<Action variant="link" onclick={() => openEdit(criterion)}>Editar</Action>
 									<Action
 										variant="remove"
@@ -434,19 +473,7 @@
 	{#snippet editor()}
 		{#if form}
 			<Card>
-				<Field
-					kind="select"
-					label="Desempeño del grado"
-					value={form.performanceId}
-					onchange={(event) => choosePerformance(event.currentTarget.value)}
-				>
-					<option value="" disabled>Elige un desempeño</option>
-					{#each performances as performance (performance.id)}
-						<option value={performance.id}>{shortText(performance.text, 110)}</option>
-					{/each}
-				</Field>
-
-				<p class="f-label spaced">Capacidades que mira</p>
+				<p class="f-label">Capacidades que mira</p>
 				<div class="cap-options">
 					{#each capabilities as capability (capability.id)}
 						<Checkbox
@@ -462,9 +489,54 @@
 					kind="textarea"
 					label="Criterio"
 					rows={3}
-					placeholder="Aterriza el desempeño a tu situación"
+					placeholder="Concreta el estándar en tu situación"
 					bind:value={form.description}
 				/>
+
+				{#if performances.length > 0}
+					<Disclosure bind:open={performanceOpen}>
+						{#snippet summary()}
+							<span class="pick-head">
+								<span class="pick-label">Desempeño del grado (opcional)</span>
+								<span class="pick-value">
+									{form?.performanceId ? performanceText(form.performanceId) : 'Sin desempeño'}
+								</span>
+							</span>
+						{/snippet}
+						<fieldset class="group">
+							<legend class="pick-hint">
+								Elige el desempeño al que se ancla el criterio, o déjalo sin desempeño.
+							</legend>
+							<label class="pick">
+								<input
+									type="radio"
+									name="performance"
+									value=""
+									checked={form.performanceId === ''}
+									onchange={() => choosePerformance('')}
+								/>
+								<span>Sin desempeño</span>
+							</label>
+							{#each performances as performance (performance.id)}
+								<label class="pick">
+									<input
+										type="radio"
+										name="performance"
+										value={performance.id}
+										checked={form.performanceId === performance.id}
+										onchange={() => choosePerformance(performance.id)}
+									/>
+									<span>{performance.text}</span>
+								</label>
+							{/each}
+						</fieldset>
+					</Disclosure>
+				{:else}
+					<p class="meta no-perf">
+						Este grado no tiene desempeños cargados para esta competencia. El criterio se basa en el
+						estándar del ciclo.
+					</p>
+				{/if}
 
 				{#if formError}
 					<p class="form-error"><Icon name="alert" size={14} /> {formError}</p>
@@ -497,12 +569,42 @@
 		line-height: 1.2;
 	}
 
-	.section {
-		margin-top: var(--mw-space-6);
+	.standard {
+		margin-top: var(--mw-space-4);
 	}
 
-	.help {
-		margin: -4px 0 6px;
+	.standard-text {
+		margin: 0;
+		max-width: 68ch;
+		font-size: var(--mw-type-small-size);
+		line-height: 1.5;
+		color: var(--mw-ink-secondary);
+	}
+
+	.standard-text.clamped {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 3;
+		line-clamp: 3;
+		overflow: hidden;
+	}
+
+	.standard-toggle {
+		margin: 4px 0 0;
+		padding: 8px 0;
+		min-height: 44px;
+		border: 0;
+		background: none;
+		font: inherit;
+		font-size: var(--mw-type-caption-size);
+		font-weight: 700;
+		color: var(--mw-ink);
+		text-decoration: underline;
+		cursor: pointer;
+	}
+
+	.section {
+		margin-top: var(--mw-space-6);
 	}
 
 	.empty-title {
@@ -557,9 +659,6 @@
 		color: var(--mw-ink-secondary);
 	}
 
-	.f-label.spaced {
-		margin-top: 14px;
-	}
 	.view :global(.field) {
 		width: 100%;
 	}
@@ -594,5 +693,70 @@
 	}
 	.view :global(.to-summary) {
 		margin: 2px 0 6px;
+	}
+
+	.pending-bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		gap: var(--mw-space-2);
+		margin: 0 0 var(--mw-space-2);
+	}
+
+	.pending-bar p {
+		margin: 0;
+	}
+
+	.pick-head {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		text-align: left;
+	}
+
+	.pick-label {
+		font-size: var(--mw-type-caption-size);
+		font-weight: 700;
+		color: var(--mw-ink-secondary);
+	}
+
+	.pick-value {
+		font-size: var(--mw-type-small-size);
+		line-height: 1.45;
+		color: var(--mw-ink);
+		overflow-wrap: anywhere;
+	}
+
+	.pick-hint {
+		margin: 0 0 var(--mw-space-2);
+		font-size: var(--mw-type-caption-size);
+		color: var(--mw-ink-muted);
+	}
+
+	.pick {
+		display: flex;
+		align-items: flex-start;
+		gap: var(--mw-space-2);
+		min-height: 44px;
+		padding: var(--mw-space-2) 0;
+		border-top: 1px solid var(--mw-line);
+		font-size: var(--mw-type-small-size);
+		line-height: 1.45;
+		color: var(--mw-ink-secondary);
+		cursor: pointer;
+	}
+
+	.pick input {
+		margin-top: 3px;
+		width: 18px;
+		height: 18px;
+		flex: none;
+		accent-color: var(--mw-ink);
+	}
+
+	.no-perf {
+		margin: var(--mw-space-2) 0 0;
+		line-height: 1.45;
 	}
 </style>

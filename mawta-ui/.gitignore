@@ -30,4 +30,3 @@ vite.config.ts.timestamp-*
 .vitest/
 
 /test-results/
-/playwright-report/

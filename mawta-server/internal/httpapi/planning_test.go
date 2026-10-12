@@ -39,6 +39,8 @@ var (
 	planSubjectCom  = uuid.MustParse("a0000000-0000-4000-8000-000000000408")
 	planCompetCom   = uuid.MustParse("a0000000-0000-4000-8000-000000000409")
 	planLevelMapID  = uuid.MustParse("a0000000-0000-4000-8000-00000000040a")
+	planStdC1       = uuid.MustParse("a0000000-0000-4000-8000-00000000040b")
+	planStdC2       = uuid.MustParse("a0000000-0000-4000-8000-00000000040c")
 	planHoliday     = "2026-06-29"
 	planVacationIn  = "2026-07-20"
 	planVacationOut = "2026-07-24"
@@ -54,6 +56,11 @@ func ensurePlanningCurriculum(t *testing.T, env *dbtest.Env) {
 
 		insert into standard_level_mappings (id, tenant_id, modality, cycle, expected_level)
 		values ({{mapping}}, {{tenant}}, 'ebr', 'ciclo_vii', 7) on conflict do nothing;
+
+		insert into learning_standards (id, tenant_id, competency_id, level, official_text) values
+		  ({{stdC1}}, {{tenant}}, {{c1}}, 7, 'Resuelve problemas referidos a las relaciones entre cantidades.'),
+		  ({{stdC2}}, {{tenant}}, {{c2}}, 7, 'Resuelve problemas de regularidad, equivalencia y cambio.')
+		on conflict do nothing;
 
 		insert into capabilities (id, tenant_id, competency_id, code, name, sort_order) values
 		  ({{capC1a}}, {{tenant}}, {{c1}}, 'MAT-C1-CAP1', 'Traduce cantidades a expresiones numéricas', 1),
@@ -87,6 +94,7 @@ func ensurePlanningCurriculum(t *testing.T, env *dbtest.Env) {
 		on conflict do nothing;
 	`, map[string]any{
 		"grade": fx.GradeLevel, "mapping": planLevelMapID, "tenant": fx.TenantA,
+		"stdC1": planStdC1, "stdC2": planStdC2,
 		"capC1a": planCapC1a, "capC1b": planCapC1b, "c1": fx.CompetencyC1, "c2": fx.CompetencyC2,
 		"grade4S": planGrade4S, "perfC1a": planPerfC1a, "perfC1b": planPerfC1b, "perfC2": planPerfC2,
 		"perf4S": planPerfC1Of4S, "subjectCom": planSubjectCom, "competCom": planCompetCom,
