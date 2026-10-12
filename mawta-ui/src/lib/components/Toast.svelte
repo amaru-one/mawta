@@ -6,6 +6,7 @@
 			? {
 					id: $toast.id,
 					message: $toast.message,
+					tone: $toast.tone,
 					actionLabel: $toast.undoLabel,
 					onaction: $toast.onUndo,
 					durationMs: $toast.durationMs,

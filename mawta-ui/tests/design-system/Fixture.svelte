@@ -23,6 +23,7 @@
 		Dialog,
 		ConfirmDialog,
 		EmptyState,
+		ErrorNotice,
 		LoadingState,
 		type ToastMessage,
 	} from '../../src/lib/design-system';
@@ -173,6 +174,23 @@
 				title="Quitar criterio"
 				description="El criterio se quitará de la experiencia."
 				confirmLabel="Confirmar"
+				onconfirm={onaction}
+				{oncancel}
+			/>
+		{:else if scenario === 'error'}
+			<ErrorNotice message="No pudimos guardar el nivel." onretry={onaction} retrying={loading} />
+		{:else if scenario === 'danger'}
+			<Button
+				onclick={() => {
+					confirmation = true;
+				}}>Cerrar sesión</Button
+			>
+			<ConfirmDialog
+				bind:open={confirmation}
+				tone="danger"
+				title="¿Cerrar sesión?"
+				description="Tendrás que volver a entrar."
+				confirmLabel="Cerrar sesión"
 				onconfirm={onaction}
 				{oncancel}
 			/>

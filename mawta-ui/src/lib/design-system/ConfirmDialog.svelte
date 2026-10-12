@@ -7,6 +7,7 @@
 		description,
 		confirmLabel,
 		cancelLabel = 'Cancelar',
+		tone = 'default',
 		onconfirm,
 		oncancel,
 	}: {
@@ -15,6 +16,7 @@
 		description: string;
 		confirmLabel: string;
 		cancelLabel?: string;
+		tone?: 'default' | 'danger';
 		onconfirm: () => void;
 		oncancel?: () => void;
 	} = $props();
@@ -35,5 +37,7 @@
 			onclick={() => {
 				open = false;
 			}}>{cancelLabel}</Button
-		><Button variant="primary" onclick={confirm}>{confirmLabel}</Button>{/snippet}
+		><Button variant={tone === 'danger' ? 'danger' : 'primary'} onclick={confirm}
+			>{confirmLabel}</Button
+		>{/snippet}
 </Dialog>

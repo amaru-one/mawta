@@ -111,5 +111,5 @@
 		/>
 	{/if}
 	{#if help}<p id="{id}-help" class="mw-field__help">{help}</p>{/if}
-	{#if error}<p id="{id}-error" class="mw-field__error">{error}</p>{/if}
+	{#if error}<p id="{id}-error" class="mw-field__error" role="alert">{error}</p>{/if}
 </div>

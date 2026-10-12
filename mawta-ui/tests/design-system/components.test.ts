@@ -3,6 +3,8 @@ import { userEvent, commands } from 'vitest/browser';
 import { render } from 'vitest-browser-svelte';
 import Fixture from './Fixture.svelte';
 import { tick } from 'svelte';
+import { get } from 'svelte/store';
+import { dismissToast, showError, toast } from '../../src/lib/toast';
 
 declare module 'vitest/browser' {
 	interface BrowserCommands {
@@ -272,4 +274,56 @@ test('numeric fields start empty, bind numbers, and preserve native empty values
 	await expect
 		.element(screen.getByRole('status', { name: 'Nota actual' }))
 		.toHaveTextContent('null:');
+});
+
+test('showError stores an error tone with a retry action and a longer hold', () => {
+	const retry = vi.fn();
+	showError('No se guardó', { onRetry: retry });
+	const current = get(toast)!;
+	expect(current.tone).toBe('error');
+	expect(current.undoLabel).toBe('Reintentar');
+	expect(current.durationMs).toBe(6000);
+	current.onUndo?.();
+	expect(retry).toHaveBeenCalledTimes(1);
+	dismissToast(current.id);
+});
+
+test('error toasts announce as alerts and hold their timer while hovered', async () => {
+	const dismissed = vi.fn();
+	const screen = await render(Fixture, {
+		scenario: 'toast',
+		ondismiss: dismissed,
+		toastValue: { id: 'err', message: 'No se guardó', tone: 'error', durationMs: 300 },
+	});
+	const notice = screen.getByRole('alert');
+	await expect.element(notice).toHaveTextContent('No se guardó');
+	await userEvent.hover(notice.element());
+	await new Promise((resolve) => setTimeout(resolve, 450));
+	expect(dismissed).not.toHaveBeenCalled();
+	await userEvent.unhover(notice.element());
+	await new Promise((resolve) => setTimeout(resolve, 450));
+	expect(dismissed).toHaveBeenCalledTimes(1);
+});
+
+test('error notices are announced and retry runs once, busy while retrying', async () => {
+	const retry = vi.fn();
+	const screen = await render(Fixture, { scenario: 'error', onaction: retry });
+	await expect.element(screen.getByRole('alert')).toHaveTextContent('No pudimos guardar el nivel.');
+	await screen.getByRole('button', { name: 'Reintentar' }).click();
+	expect(retry).toHaveBeenCalledTimes(1);
+	await screen.rerender({ loading: true });
+	await expect.element(screen.getByRole('button', { name: 'Reintentar' })).toBeDisabled();
+});
+
+test('danger confirmations use the danger button and fire one decision', async () => {
+	const confirm = vi.fn();
+	const cancel = vi.fn();
+	const screen = await render(Fixture, { scenario: 'danger', onaction: confirm, oncancel: cancel });
+	await screen.getByRole('button', { name: 'Cerrar sesión' }).click();
+	const dialog = screen.getByRole('alertdialog');
+	const confirmButton = dialog.getByRole('button', { name: 'Cerrar sesión' });
+	expect(getComputedStyle(confirmButton.element()).backgroundColor).toBe('rgb(180, 35, 24)');
+	await confirmButton.click();
+	expect(confirm).toHaveBeenCalledTimes(1);
+	expect(cancel).not.toHaveBeenCalled();
 });

@@ -130,6 +130,19 @@
 .mw-root .mw-btn--secondary:hover:not(:disabled) {
 	background: var(--mw-surface-page);
 }
+.mw-root .mw-btn--danger {
+	background: var(--mw-danger);
+	border-color: var(--mw-danger);
+	color: var(--mw-on-accent);
+	box-shadow: var(--mw-shadow-action);
+}
+.mw-root .mw-btn--danger:active:not(:disabled) {
+	filter: brightness(0.9);
+}
+.mw-root .mw-error-notice {
+	display: grid;
+	gap: var(--mw-space-2);
+}
 .mw-root .mw-btn--block {
 	width: 100%;
 }
