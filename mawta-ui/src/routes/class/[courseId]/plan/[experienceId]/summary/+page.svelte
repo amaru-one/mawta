@@ -287,7 +287,7 @@
 	{#if confirmingDelete}
 		<ConfirmDialog
 			title="¿Eliminar esta experiencia?"
-			text="Se eliminan también sus criterios, evidencias y sesiones."
+			description="Se eliminan también sus criterios, evidencias y sesiones."
 			confirmLabel="Eliminar"
 			onconfirm={() => void remove()}
 			oncancel={() => (confirmingDelete = false)}

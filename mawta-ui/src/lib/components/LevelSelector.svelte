@@ -4,9 +4,16 @@
 	let {
 		level,
 		disabled = false,
+		variant = 'official',
 		onselect,
-	}: { level: Tier | null; disabled?: boolean; onselect: (level: Tier) => void } = $props();
+	}: {
+		level: Tier | null;
+		disabled?: boolean;
+		variant?: 'official' | 'evidence';
+		onselect: (level: Tier) => void;
+	} = $props();
 	const uid = $props.id();
+	const legend = $derived(variant === 'evidence' ? 'Valoración de la evidencia' : 'Nivel de logro');
 	const tiers: { value: Tier; label: string }[] = [
 		{ value: 'AD', label: 'Destacado' },
 		{ value: 'A', label: 'Esperado' },
@@ -21,8 +28,8 @@
 	}
 </script>
 
-<fieldset class="levels official" {disabled}>
-	<legend>Nivel de logro</legend>
+<fieldset class="levels {variant}" {disabled}>
+	<legend>{legend}</legend>
 	<div class="options">
 		{#each tiers as tier (tier.value)}<label class:chosen={level === tier.value}>
 				<input
@@ -93,6 +100,17 @@
 		background: var(--mw-accent);
 		border-color: var(--mw-accent);
 		color: var(--mw-on-accent);
+	}
+
+	.evidence label {
+		border: 0;
+		border-bottom: 2px solid var(--mw-line-control);
+		border-radius: 0;
+	}
+	.evidence .chosen {
+		border-color: var(--mw-accent);
+		color: var(--mw-accent);
+		background: var(--mw-surface-tint);
 	}
 
 	.unset {

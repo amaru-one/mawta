@@ -130,7 +130,7 @@
 {#if showDeleteConfirm && ondelete}
 	<ConfirmDialog
 		title="¿Eliminar esta nota?"
-		text="Esta acción no se puede deshacer."
+		description="Esta acción no se puede deshacer."
 		confirmLabel="Eliminar"
 		onconfirm={() => {
 			ondelete(note);

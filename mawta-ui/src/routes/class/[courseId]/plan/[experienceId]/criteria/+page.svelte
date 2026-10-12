@@ -483,7 +483,7 @@
 	{#if deletingId}
 		<ConfirmDialog
 			title="¿Quitar este criterio?"
-			text="Se quita también de las evidencias que lo usan."
+			description="Se quita también de las evidencias que lo usan."
 			confirmLabel="Quitar"
 			onconfirm={() => void remove(deletingId ?? '')}
 			oncancel={() => (deletingId = null)}

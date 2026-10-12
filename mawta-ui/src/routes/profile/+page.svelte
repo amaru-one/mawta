@@ -131,7 +131,7 @@
 	{#if showLogoutConfirm}
 		<ConfirmDialog
 			title="¿Cerrar sesión?"
-			text="Tendrás que iniciar sesión de nuevo para acceder a tus clases."
+			description="Tendrás que iniciar sesión de nuevo para acceder a tus clases."
 			confirmLabel="Cerrar sesión"
 			onconfirm={confirmLogout}
 			oncancel={() => {

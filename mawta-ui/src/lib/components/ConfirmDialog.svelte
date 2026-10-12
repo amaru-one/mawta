@@ -2,13 +2,13 @@
 	import { ConfirmDialog } from '$lib/design-system';
 	let {
 		title,
-		text,
+		description,
 		confirmLabel,
 		onconfirm,
 		oncancel,
 	}: {
 		title: string;
-		text: string;
+		description: string;
 		confirmLabel: string;
 		onconfirm: () => void;
 		oncancel: () => void;
@@ -16,4 +16,4 @@
 	let open = $state(true);
 </script>
 
-<ConfirmDialog bind:open {title} description={text} {confirmLabel} {onconfirm} {oncancel} />
+<ConfirmDialog bind:open {title} {description} {confirmLabel} {onconfirm} {oncancel} />

@@ -374,10 +374,6 @@
 		gap: 6px;
 		margin-bottom: 14px;
 	}
-	.view .field:global(.narrow) {
-		max-width: 120px;
-	}
-
 	.lbl {
 		font-family: var(--mw-font-sans);
 		font-size: var(--mw-type-label-size);
@@ -386,10 +382,6 @@
 		text-transform: uppercase;
 		color: var(--mw-ink-muted);
 	}
-	.view :global(.in) {
-		width: 100%;
-	}
-
 	.note {
 		margin: 10px 0 0;
 		font-size: var(--mw-type-caption-size);

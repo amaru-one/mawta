@@ -19,7 +19,7 @@
 	import { list } from '$lib/api/client';
 	import { agentUnavailable, GenerationAborted, waitForGeneration } from '$lib/api/generation';
 	import { isAgentUnavailable, planningErrorText } from '$lib/api/planningErrors';
-	import type { ExperienceDto, GenerationDto, SessionOutlineDto } from '$lib/api/dto';
+	import type { ExperienceDto, SessionOutlineDto } from '$lib/api/dto';
 	import {
 		acceptSession,
 		deleteSession,
@@ -81,28 +81,6 @@
 	function evidenceName(id: string | null): string {
 		if (!id) return '';
 		return evidences.find((evidence) => evidence.id === id)?.name ?? '';
-	}
-
-	// "Mar 16 jun"
-	const WEEKDAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-	const MONTHS = [
-		'ene',
-		'feb',
-		'mar',
-		'abr',
-		'may',
-		'jun',
-		'jul',
-		'ago',
-		'sep',
-		'oct',
-		'nov',
-		'dic',
-	];
-
-	function fromISO(date: string): Date {
-		const [y, m, d] = date.split('-').map(Number);
-		return new Date(y ?? 1970, (m ?? 1) - 1, d ?? 1);
 	}
 
 	// ---- create and edit one date's session ----

@@ -39,7 +39,6 @@
 	import { getStudentEvidence } from '$lib/api/endpoints/students';
 	import CompetencyIndex from '$lib/components/CompetencyIndex.svelte';
 	import ConclusionAssistant from '$lib/components/ConclusionAssistant.svelte';
-	import LevelScale from '$lib/components/LevelScale.svelte';
 	import LevelSelector from '$lib/components/LevelSelector.svelte';
 	import ScoreRuler from '$lib/components/ScoreRuler.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
@@ -437,7 +436,8 @@
 									{/if}
 								{:else}
 									<div class="ruler">
-										<LevelScale
+										<LevelSelector
+											variant="evidence"
 											level={off ? null : letterOf(e)}
 											disabled={busy}
 											onselect={(l) => void writeScore(e, 'graded', null, l)}
@@ -650,12 +650,6 @@
 		letter-spacing: 0.04em;
 		color: var(--mw-ink-muted);
 		font-family: var(--mw-font-sans);
-	}
-	.view :global(.ta) {
-		width: 100%;
-	}
-	.view :global(.recs) {
-		margin-top: var(--mw-space-3);
 	}
 
 	.actions {
