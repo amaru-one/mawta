@@ -3,6 +3,7 @@
 
 import type { IconName } from './icons';
 import type { Tier } from './levels';
+import type { ConclusionRequirement } from './api/dto';
 
 // --- View models built from the API ---
 
@@ -102,7 +103,7 @@ export type CompetencyLevel = {
 	assertedAt: Date | null;
 	// Why a conclusión descriptiva is mandatory here, decided server-side.
 	conclusionRequired: boolean;
-	conclusionRequirement: 'level_c' | 'consecutive_c' | 'inclusion_support' | 'optional';
+	conclusionRequirement: ConclusionRequirement;
 	conclusionBody: string | null;
 	conclusionStatus: 'draft' | 'final' | null;
 };

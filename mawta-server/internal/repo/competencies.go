@@ -223,7 +223,27 @@ func AssertCompetencyLevel(ctx context.Context, tx pgx.Tx, classID, studentID, c
 // carry personalised recommendations, but that lives in body's free text —
 // there is no separate flag to validate, because nothing can verify text
 // actually contains a recommendation.
-func UpsertConclusion(ctx context.Context, tx pgx.Tx, classID, studentID, competencyID, termID, teacherID uuid.UUID, body string, status string) (uuid.UUID, error) {
+//
+// generationID, when set, is the Mawta proposal the teacher started from: it
+// must be a completed conclusions generation for this same student,
+// competency and term. The text is still the teacher's.
+func UpsertConclusion(ctx context.Context, tx pgx.Tx, classID, studentID, competencyID, termID, teacherID uuid.UUID, body string, status string, generationID *uuid.UUID) (uuid.UUID, error) {
+	if generationID != nil {
+		var ok bool
+		if err := tx.QueryRow(ctx, `
+			select exists (
+			  select 1 from agent_generations
+			   where id = $1 and agent = 'conclusions' and status = 'completed'
+			     and student_id = $2 and competency_id = $3 and term_id = $4)
+		`, *generationID, studentID, competencyID, termID).Scan(&ok); err != nil {
+			return uuid.Nil, err
+		}
+		if !ok {
+			return uuid.Nil, db.NewAppError(http.StatusUnprocessableEntity, "generation_mismatch",
+				"La propuesta de Mawta no corresponde a esta competencia y periodo.")
+		}
+	}
+
 	requirement, err := conclusionRequirement(ctx, tx, classID, studentID, competencyID, termID)
 	if err != nil {
 		return uuid.Nil, err
@@ -249,12 +269,12 @@ func UpsertConclusion(ctx context.Context, tx pgx.Tx, classID, studentID, compet
 	err = tx.QueryRow(ctx, `
 		insert into descriptive_conclusions
 		  (tenant_id, student_id, competency_id, academic_year_id, term_id, class_id, body,
-		   requirement, status, authored_by_id, supersedes_id)
-		select app.current_tenant_id(), $1, $2, c.academic_year_id, $3, $4, $5, $6, $7, $8, $9
+		   requirement, status, authored_by_id, supersedes_id, generation_id)
+		select app.current_tenant_id(), $1, $2, c.academic_year_id, $3, $4, $5, $6, $7, $8, $9, $10
 		  from classes c where c.id = $4
 		returning id
 	`, studentID, competencyID, termID, classID, body,
-		requirement, status, teacherID, supersedesID).Scan(&newID)
+		requirement, status, teacherID, supersedesID, generationID).Scan(&newID)
 	return newID, err
 }
 

@@ -11,7 +11,10 @@ export class ApiError extends Error {
 		readonly status: number,
 		readonly code: string,
 		message: string,
-		readonly hint?: string
+		readonly hint?: string,
+		// The whole JSON body, for the few errors that carry more than
+		// {code, message} (e.g. insufficient_evidence lists what is missing).
+		readonly body?: unknown
 	) {
 		super(message);
 		this.name = 'ApiError';
@@ -42,7 +45,8 @@ async function toApiError(res: Response): Promise<ApiError> {
 				res.status,
 				body.error.code,
 				body.error.message ?? res.statusText,
-				body.error.hint
+				body.error.hint,
+				body
 			);
 		}
 	} catch {

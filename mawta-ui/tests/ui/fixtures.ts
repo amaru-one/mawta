@@ -488,6 +488,10 @@ export async function mockApi(page: Page, state: ApiState) {
 				],
 			});
 		if (path.endsWith('/competencies')) return send({ competencies: state.levels });
+		// "✦ Generar con Mawta" for a conclusión: no earlier proposal, no
+		// discarded voice notes.
+		if (path.endsWith('/conclusions/generation')) return send({ generation: null });
+		if (path.endsWith('/voice-notes/discarded')) return send({ voice_notes: [] });
 		if (path.endsWith('/evidence')) return send({ evidence: state.evaluations });
 		if (path === '/sessions/session-1')
 			return send({

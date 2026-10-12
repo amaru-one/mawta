@@ -140,6 +140,8 @@ type conclusionRequest struct {
 	Body         string  `json:"body"`
 	Status       string  `json:"status"`
 	TermID       *string `json:"term_id"`
+	// GenerationID is the Mawta proposal the teacher started from, if any.
+	GenerationID *string `json:"generation_id"`
 }
 
 // POST /classes/{classID}/students/{studentID}/conclusions
@@ -187,6 +189,15 @@ func (a *API) handleUpsertConclusion(w http.ResponseWriter, r *http.Request) {
 	if req.TermID != nil {
 		termIDParam, _ = uuid.Parse(*req.TermID)
 	}
+	var generationID *uuid.UUID
+	if req.GenerationID != nil && *req.GenerationID != "" {
+		g, err := uuid.Parse(*req.GenerationID)
+		if err != nil {
+			badRequest(w, "invalid generation_id")
+			return
+		}
+		generationID = &g
+	}
 
 	var id uuid.UUID
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
@@ -201,11 +212,11 @@ func (a *API) handleUpsertConclusion(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 		id, err = repo.UpsertConclusion(r.Context(), tx, classID, studentID, competencyID,
-			term.ID, tc.TeacherID, strings.TrimSpace(req.Body), status)
+			term.ID, tc.TeacherID, strings.TrimSpace(req.Body), status, generationID)
 		if err != nil {
 			return err
 		}
-		payload, _ := json.Marshal(map[string]any{"status": status, "competency_id": competencyID})
+		payload, _ := json.Marshal(map[string]any{"status": status, "competency_id": competencyID, "generation_id": generationID})
 		return repo.LogEvent(r.Context(), tx, "conclusion.written", "descriptive_conclusion",
 			&id, payload, &studentID, &classID, nil)
 	})
