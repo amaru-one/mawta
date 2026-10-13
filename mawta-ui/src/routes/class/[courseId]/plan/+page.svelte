@@ -154,8 +154,8 @@
 	const lanes = $derived(Math.max(1, ...expBlocks.map((block) => block.lane)));
 
 	// Non-teaching days mark the class slots they take, merged while consecutive
-	// class days share a kind and label. Text shows only when the mark covers a
-	// week or more; a single slot is a stripe, and the legend and title say it.
+	// class days share a kind and label. A feriado is a dot; vacations and gestión
+	// tint their slots. The title says which day it is.
 	const OFF_TEXT: Record<NonTeachingDayKind, string> = {
 		feriado: 'feriado',
 		vacaciones: 'vacaciones',
@@ -176,28 +176,22 @@
 			}))
 	);
 
-	// Vacations and gestión are bands in their own row under the bars, so they
-	// never cover an experience either. Text shows for a week or more.
-	const bands = $derived(
+	// Vacations and gestión take class slots too. They get the same tint as a week
+	// without classes, behind the bars, so there is one "sin clases" look and
+	// nothing covers an experience.
+	const offSlots = $derived(
 		offMarks
 			.filter((run) => run.kind !== 'feriado')
-			.map((run, index) => {
-				const weeks = run.end - run.start;
-				return {
-					id: index,
-					text: OFF_TEXT[run.kind],
-					label: run.label ?? OFF_TEXT[run.kind],
-					showText: weeks >= 1,
-					left: percentOf(run.start, weekCount),
-					width: percentOf(weeks, weekCount),
-				};
-			})
+			.map((run, index) => ({
+				id: index,
+				label: run.label ?? OFF_TEXT[run.kind],
+				left: percentOf(run.start, weekCount),
+				width: percentOf(run.end - run.start, weekCount),
+			}))
 	);
 
-	// Track rows, in px: the bars, then the bands (if any), then the dots (if any).
-	const ROW = 47;
-	const bandsTop = $derived(lanes * ROW);
-	const trackHeight = $derived(bands.length > 0 ? bandsTop + 44 : lanes * ROW - 3);
+	// The track is as tall as its bars: 44px each, 3px apart.
+	const trackHeight = $derived(lanes * 47 - 3);
 
 	// ---- status and coverage, written as text ----
 
@@ -298,15 +292,13 @@
 									{/if}
 								</span>
 							{/each}
-							<!-- After the bars: a feriado inside an experience shows as its own slot. -->
-							{#each bands as band (band.id)}
+							<!-- Behind the bars (they are raised): a vacation never covers an experience. -->
+							{#each offSlots as slot (slot.id)}
 								<span
-									class="tl-band"
-									style="top:{bandsTop}px;left:calc({band.left}% + 1.5px);width:calc({band.width}% - 3px)"
-									title={band.label}
-								>
-									{#if band.showText}{band.text}{/if}
-								</span>
+									class="tl-slot-off"
+									style="left:calc({slot.left}% + 1.5px);width:calc({slot.width}% - 3px)"
+									title={slot.label}
+								></span>
 							{/each}
 						</div>
 						<!-- Outside the track, so the dots never stretch the week columns. -->
@@ -319,7 +311,6 @@
 					<div class="legend">
 						<span><span class="sw sw-exp"></span>Experiencia (n.º como en la lista)</span>
 						<span><span class="sw-dot"></span>Feriado</span>
-						<span><span class="sw sw-off"></span>Vacaciones o gestión</span>
 						<span><span class="sw sw-week-off"></span>Semana sin clases</span>
 					</div>
 				</div>
@@ -559,21 +550,14 @@
 		opacity: 0.85;
 	}
 
-	/* Vacation or gestión: a band in its own row under the bars; the top comes inline. */
-	.tl-band {
+	/* Vacation or gestión slots: the same tint as a week without classes, behind the bars. */
+	.tl-slot-off {
 		position: absolute;
-		height: 44px;
+		top: 0;
+		bottom: 0;
 		border-radius: var(--mw-radius-md);
-		background: var(--mw-surface-page);
-		border: 1px dashed var(--mw-line-control);
-		color: var(--mw-ink-muted);
-		font-family: var(--mw-font-sans);
-		font-size: var(--mw-type-label-size);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		overflow: hidden;
-		text-align: center;
+		background: var(--mw-surface-card);
+		border: 1px solid var(--mw-line);
 	}
 
 	/* The row under the track: same width, so a percentage here is the same day. */
@@ -624,12 +608,6 @@
 
 	.sw-exp {
 		background: var(--mw-accent);
-	}
-
-	.sw-off {
-		background: var(--mw-surface-page);
-		border: 1px dashed var(--mw-line-control);
-		border: 1px solid var(--mw-line);
 	}
 
 	.sw-dot {

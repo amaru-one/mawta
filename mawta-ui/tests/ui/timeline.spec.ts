@@ -46,22 +46,22 @@ test('a feriado on a class day is a dot under the line; a feriado on a day witho
 	expect(api.unexpected).toEqual([]);
 });
 
-test('a vacation covering a whole week of classes marks the week, with its name', async ({
+test('a vacation covering a whole week of classes shows as a week without classes', async ({
 	page,
 	api,
 }) => {
 	api.vacationWeek = true;
 	await page.goto('/class/class-1/plan');
-	const vacation = page.locator('.tl-band', { hasText: 'vacaciones' });
+	const vacation = page.locator('.tl-slot-off');
 	await expect(vacation).toHaveCount(1);
 	const track = await page.locator('.tl-track').boundingBox();
 	const box = await vacation.boundingBox();
 	if (!track || !box) throw new Error('timeline is not laid out');
+	// One week wide and as tall as the track: the same look as a week without classes.
 	expect(Math.abs(box.width + 3 - track.width / 12)).toBeLessThan(1.5);
-	// The band is its own row under the bars, so it never covers an experience.
-	const bar = await page.locator('.tl-block').first().boundingBox();
-	if (!bar) throw new Error('bar is not laid out');
-	expect(box.y).toBeGreaterThanOrEqual(bar.y + bar.height);
+	expect(Math.abs(box.height - track.height)).toBeLessThan(1.5);
+	// No separate row for vacations: the track is only as tall as one row of bars.
+	expect(track.height).toBeLessThan(50);
 	expect(api.unexpected).toEqual([]);
 });
 
