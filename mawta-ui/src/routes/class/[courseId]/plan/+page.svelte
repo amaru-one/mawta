@@ -195,6 +195,17 @@
 
 	// ---- status and coverage, written as text ----
 
+	// Only competencias this term plans get an evidence count; below the minimum
+	// the line says what the conclusion needs. Nothing is said about the others.
+	function evidenceText(competency: { in_term: boolean; evidences_this_term: number }): string {
+		if (!competency.in_term) return '';
+		const n = competency.evidences_this_term;
+		const count = n === 1 ? '1 evidencia' : `${n} evidencias`;
+		return n < 2
+			? ` ${count} en el trimestre; Mawta necesita al menos 2 para la conclusión.`
+			: ` ${count} en el trimestre.`;
+	}
+
 	const EXPERIENCE_STATUS: Record<string, string> = {
 		borrador: 'Borrador',
 		planificada: 'Planificada',
@@ -333,7 +344,7 @@
 										? 'due'
 										: 'waiting',
 							label: COMPETENCY_STATUS[competency.status] ?? competency.status,
-							detail: `${competency.capabilities_covered_this_term} de ${competency.capabilities_total} capacidades con criterio. ${competency.status !== 'planificada' ? termsWorkedText(list(competency.terms_worked)) : ''}`,
+							detail: `${competency.capabilities_covered_this_term} de ${competency.capabilities_total} capacidades con criterio.${evidenceText(competency)} ${competency.status !== 'planificada' ? termsWorkedText(list(competency.terms_worked)) : ''}`,
 						}))}
 					/>
 				</Context>

@@ -92,7 +92,10 @@ export function seed() {
 			},
 		],
 		class_dates: dates,
-		warnings: [{ code: 'pending_proposals', count: 3 }],
+		warnings: [
+			{ code: 'competency_few_evidences', competency_id: competency.id, count: 1 },
+			{ code: 'pending_proposals', count: 3 },
+		],
 	};
 	const evaluations: EvaluationDto[] = [
 		{
@@ -613,6 +616,9 @@ export async function mockApi(page: Page, state: ApiState) {
 						terms_worked: [1],
 						capabilities_total: 2,
 						capabilities_covered_this_term: 0,
+						evidences_this_term: 1,
+						evidence_kinds: ['produccion'],
+						in_term: true,
 					},
 				],
 			});

@@ -765,6 +765,24 @@ function workedTerms(competency: Competency): number[] {
 }
 
 // Warnings never block; they are what the summary screen shows.
+// Accepted evidences of the term that observe the competency, with their kinds:
+// the same count the server gives the term plan and the experience warnings.
+function termEvidenceOf(competencyId: string): { count: number; kinds: string[] } {
+	const seen = new Map<string, EvidenceKind>();
+	for (const experience of liveExperiences()) {
+		if (experience.term_id !== TERM.id) continue;
+		for (const evidence of liveEvidencesOf(experience.id)) {
+			if (!evidence.accepted_at) continue;
+			const observes = evidence.criterion_ids.some(
+				(criterionId) => criterionById(criterionId)?.competency_id === competencyId
+			);
+			if (observes) seen.set(evidence.id, evidence.kind);
+		}
+	}
+	const kinds = [...new Set(seen.values())].sort();
+	return { count: seen.size, kinds };
+}
+
 function experienceWarnings(experience: Experience): WarningDto[] {
 	const warnings: WarningDto[] = [];
 	for (const competencyId of experience.competency_ids) {
@@ -777,6 +795,23 @@ function experienceWarnings(experience: Experience): WarningDto[] {
 				code: 'capability_without_criterion',
 				competency_id: competencyId,
 				capability_id: capability.id,
+			});
+		}
+	}
+	// Evidence is read over the whole term, as the server does.
+	for (const competencyId of experience.competency_ids) {
+		const tally = termEvidenceOf(competencyId);
+		if (tally.count < 2) {
+			warnings.push({
+				code: 'competency_few_evidences',
+				competency_id: competencyId,
+				count: tally.count,
+			});
+		} else if (tally.kinds.length === 1) {
+			warnings.push({
+				code: 'competency_single_kind',
+				competency_id: competencyId,
+				kind: tally.kinds[0],
 			});
 		}
 	}
@@ -1157,6 +1192,12 @@ export async function getClassPlan(_classId: string, termId?: string): Promise<C
 			capabilities_covered_this_term: competency.capabilities.filter((capability) =>
 				covered.has(capability.id)
 			).length,
+			evidences_this_term: termEvidenceOf(competency.id).count,
+			evidence_kinds: termEvidenceOf(competency.id).kinds,
+			in_term: liveExperiences().some(
+				(experience) =>
+					experience.term_id === TERM.id && experience.competency_ids.includes(competency.id)
+			),
 		};
 	});
 

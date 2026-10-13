@@ -332,9 +332,14 @@ export type ConclusionPointDto = {
 };
 
 export type ConclusionWarningCode =
-	'voice_notes_discarded' | 'all_voice_notes_discarded' | 'voice_notes_pending' | 'no_voice_notes';
+	| 'voice_notes_discarded'
+	| 'all_voice_notes_discarded'
+	| 'voice_notes_pending'
+	| 'no_voice_notes'
+	| 'evidence_single_kind'
+	| 'evidence_single_experience';
 
-export type ConclusionWarningDto = { code: ConclusionWarningCode; count?: number };
+export type ConclusionWarningDto = { code: ConclusionWarningCode; count?: number; kind?: string };
 
 // A completed conclusion generation's proposal. Lives on the generation until
 // the teacher saves (and usually edits) it as their own conclusion.
@@ -538,6 +543,12 @@ export type PlanCompetencyDto = {
 	capabilities_total: number;
 	/** Capabilities with at least one criterio in this term's experiences. */
 	capabilities_covered_this_term: number;
+	/** Distinct evidences of the class this term that observe the competencia. */
+	evidences_this_term: number;
+	/** The kinds of those evidences: 'produccion' and/or 'actuacion'. */
+	evidence_kinds: string[] | null;
+	/** Whether an experience of this term plans the competencia at all. */
+	in_term: boolean;
 };
 
 export type ClassPlanDto = {
@@ -658,7 +669,9 @@ export type SessionOutlineDto = {
 
 export type WarningDto =
 	| { code: 'capability_without_criterion'; competency_id: string; capability_id: string }
-	| { code: 'pending_proposals'; count: number };
+	| { code: 'pending_proposals'; count: number }
+	| { code: 'competency_few_evidences'; competency_id: string; count: number }
+	| { code: 'competency_single_kind'; competency_id: string; kind: string };
 
 export type ExperienceDto = {
 	id: string;

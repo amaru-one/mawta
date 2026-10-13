@@ -98,6 +98,26 @@
 			.filter(Boolean)
 	);
 
+	// Evidence per competencia is counted over the whole term (the conclusion
+	// counts it that way), so these warnings name the competencia and the count.
+	function competencyName(competencyId: string): string {
+		return list(experience?.competencies).find((c) => c.id === competencyId)?.name ?? '';
+	}
+
+	const thinCompetencies = $derived(
+		warnings.filter(
+			(warning): warning is Extract<WarningDto, { code: 'competency_few_evidences' }> =>
+				warning.code === 'competency_few_evidences'
+		)
+	);
+
+	const singleKindCompetencies = $derived(
+		warnings.filter(
+			(warning): warning is Extract<WarningDto, { code: 'competency_single_kind' }> =>
+				warning.code === 'competency_single_kind'
+		)
+	);
+
 	const pendingBy = $derived(pendingCounts(experience));
 
 	// "15 jun – 10 jul"
@@ -244,6 +264,39 @@
 					</a></Notice
 				>
 			{/if}
+			{#each thinCompetencies as warning (warning.competency_id)}
+				<Notice variant="attention"
+					><a
+						href={`${base}/evidences?from=summary`}
+						data-sveltekit-replacestate
+						onclick={hapticTap}
+					>
+						<span class="grow notice-text">
+							{competencyName(warning.competency_id)}: {warning.count === 1
+								? '1 evidencia'
+								: `${warning.count} evidencias`} en el trimestre. Mawta necesita al menos 2 para proponer
+							su conclusión. Agrega otra aquí o en otra experiencia. Puedes guardar igual.
+						</span>
+					</a></Notice
+				>
+			{/each}
+			{#each singleKindCompetencies as warning (warning.competency_id)}
+				<Notice variant="attention"
+					><a
+						href={`${base}/evidences?from=summary`}
+						data-sveltekit-replacestate
+						onclick={hapticTap}
+					>
+						<span class="grow notice-text">
+							{competencyName(warning.competency_id)}: todas sus evidencias son {warning.kind ===
+							'actuacion'
+								? 'actuaciones'
+								: 'producciones'}. El CNEB pide evidencia variada: considera una de otro tipo.
+							Puedes guardar igual.
+						</span>
+					</a></Notice
+				>
+			{/each}
 			{#if pendingBy.total > 0}
 				<Notice variant="attention">
 					<span class="grow notice-text">

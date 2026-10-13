@@ -230,6 +230,10 @@
 				);
 			case 'no_voice_notes':
 				return 'No hay notas de voz este periodo: la propuesta se basa solo en las evidencias y puede ser menos precisa.';
+			case 'evidence_single_kind':
+				return `Todas las evidencias valoradas son ${w.kind === 'actuacion' ? 'actuaciones' : 'producciones'}. El CNEB pide evidencia variada: revisa que la propuesta no generalice de más.`;
+			case 'evidence_single_experience':
+				return 'Todas las evidencias valoradas vienen de una sola experiencia. El CNEB recomienda evidencia de diversas situaciones.';
 		}
 	}
 

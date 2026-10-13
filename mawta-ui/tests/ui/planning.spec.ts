@@ -46,6 +46,18 @@ test('removing a criterio offers "Deshacer" that brings it back', async ({ page,
 	expect(api.unexpected).toEqual([]);
 });
 
+test('a competency with fewer than two evidences in the term is named on the summary, with a link', async ({
+	page,
+	api,
+}) => {
+	await page.goto(`${planningBase}/summary`);
+	const notice = page.getByRole('link', { name: /Mawta necesita al menos 2/ });
+	await expect(notice).toContainText('Resuelve problemas de cantidad');
+	await expect(notice).toContainText('1 evidencia en el trimestre');
+	await expect(notice).toHaveAttribute('href', /\/evidences\?from=summary$/);
+	expect(api.unexpected).toEqual([]);
+});
+
 test('the summary links each pending kind to the step that owns it', async ({ page, api }) => {
 	await page.goto(`${planningBase}/summary`);
 	await expect(page.getByRole('link', { name: /en evidencias/ })).toHaveAttribute(

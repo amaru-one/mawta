@@ -65,6 +65,17 @@ test('a vacation covering a whole week of classes shows as a week without classe
 	expect(api.unexpected).toEqual([]);
 });
 
+test("Tu trimestre counts a competency's evidence and says what the conclusion needs", async ({
+	page,
+	api,
+}) => {
+	await page.goto('/class/class-1/plan');
+	await expect(
+		page.getByText(/1 evidencia en el trimestre; Mawta necesita al menos 2 para la conclusión/)
+	).toBeVisible();
+	expect(api.unexpected).toEqual([]);
+});
+
 test('adjacent experiences are separated and numbered in the order of their cards', async ({
 	page,
 	api,
