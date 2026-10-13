@@ -6,7 +6,7 @@
 	import { hapticTap } from '$lib/haptics';
 	import {
 		loadNotifications,
-		markAllNotificationsRead,
+		markNotificationsRead,
 		markNotificationRead,
 	} from '$lib/notifications';
 	import { notifications, unreadNotificationCount } from '$lib/stores';
@@ -31,6 +31,12 @@
 	// Alerts are the assistant's output; reminders are plain app to-dos.
 	const alerts = $derived($notifications.filter((n) => n.aiGenerated));
 	const reminders = $derived($notifications.filter((n) => !n.aiGenerated));
+	// "Marcar" acts on what the teacher can see under the current filter, not on everything.
+	const visibleUnreadIds = $derived(
+		[...(filter !== 'reminders' ? alerts : []), ...(filter !== 'alerts' ? reminders : [])]
+			.filter((n) => !n.read)
+			.map((n) => n.id)
+	);
 
 	const showAlerts = $derived(filter !== 'reminders' && alerts.length > 0);
 	const showReminders = $derived(filter !== 'alerts' && reminders.length > 0);
@@ -76,7 +82,9 @@
 		<div class="row head">
 			<p class="title">Notificaciones</p>
 			{#if $unreadNotificationCount > 0}
-				<Action variant="link" onclick={markAllNotificationsRead}>Marcar todas leídas</Action>
+				<Action variant="link" onclick={() => void markNotificationsRead(visibleUnreadIds)}
+					>{filter === 'all' ? 'Marcar todas leídas' : 'Marcar estas como leídas'}</Action
+				>
 			{/if}
 		</div>
 
@@ -102,7 +110,8 @@
 							</span>
 							<span class="meta">{metaLine(n)}</span>
 						</span>
-						{#if !n.read}<span class="unread ai-dot"></span>{/if}
+						{#if !n.read}<span class="unread ai-dot"><span class="mw-sr-only">Sin leer.</span></span
+							>{/if}
 					</button>
 				{/each}
 			</div>
@@ -120,7 +129,7 @@
 							</span>
 							<span class="meta">{metaLine(n)}</span>
 						</span>
-						{#if !n.read}<span class="unread"></span>{/if}
+						{#if !n.read}<span class="unread"><span class="mw-sr-only">Sin leer.</span></span>{/if}
 					</button>
 				{/each}
 			</div>

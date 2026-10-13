@@ -62,7 +62,7 @@ test('notifications retain filters and mark-all behavior', async ({ page, api })
 	await page.goto('/notifications');
 	await page.getByRole('button', { name: 'Marcar todas leídas' }).click();
 	await expect(page.getByRole('button', { name: 'Marcar todas leídas' })).toHaveCount(0);
-	expect(api.writes.some((w) => w.path === '/notifications/read-all')).toBe(true);
+	expect(api.writes.some((w) => w.path === '/notifications/notification-1/read')).toBe(true);
 });
 
 test('manual planning keeps optional situation and free class dates', async ({ page, api }) => {
