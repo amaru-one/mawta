@@ -170,7 +170,15 @@ actually read:
 | `voice_notes_discarded` | Some notes were discarded, others used | Count only |
 | `all_voice_notes_discarded` | Every note was discarded (worst case) | Shows the notes to move or confirm |
 | `voice_notes_pending` | Notes still transcribing or waiting for the sweep | Count only |
-| `no_voice_notes` | The student has no notes this term | "Less precise" | `body` is progress, difficulties, the justification or supports
+| `no_voice_notes` | The student has no notes this term | "Less precise" |
+| `evidence_single_kind` | Every graded evidence is one kind (`kind`: `produccion` or `actuacion`); the CNEB asks for varied evidence | Note, the proposal still runs |
+| `evidence_single_experience` | Every graded evidence comes from one learning experience; the CNEB asks for diverse situations | Note, the proposal still runs |
+
+The two evidence codes appear only from the minimum of graded evidence on, and
+only about graded evidence. Evidence the teacher added by hand has no
+experience, so it never proves a single experience on its own.
+
+`body` is progress, difficulties, the justification or supports
 when the norm asks for them, and recommendations, one paragraph each.
 
 What the server enforces on the model's answer (otherwise one repair round,

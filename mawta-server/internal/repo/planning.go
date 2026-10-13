@@ -193,6 +193,12 @@ type PlanCompetency struct {
 	TermsWorked                 []int32   `json:"terms_worked"`
 	CapabilitiesTotal           int       `json:"capabilities_total"`
 	CapabilitiesCoveredThisTerm int       `json:"capabilities_covered_this_term"`
+	// EvidencesThisTerm counts the distinct evidences of the class in this term
+	// that observe the competency, and EvidenceKinds their kinds. InTerm tells
+	// whether an experience of this term plans the competency at all.
+	EvidencesThisTerm int      `json:"evidences_this_term"`
+	EvidenceKinds     []string `json:"evidence_kinds"`
+	InTerm            bool     `json:"in_term"`
 }
 
 type Plan struct {
@@ -269,8 +275,100 @@ func GetPlan(ctx context.Context, tx pgx.Tx, classID uuid.UUID, term PlanTerm) (
 	if p.Experiences, err = planExperiences(ctx, tx, classID, term.ID); err != nil {
 		return p, err
 	}
-	p.Competencies, err = planCompetencies(ctx, tx, classID, cc, term)
-	return p, err
+	if p.Competencies, err = planCompetencies(ctx, tx, classID, cc, term); err != nil {
+		return p, err
+	}
+	return p, fillEvidenceTallies(ctx, tx, classID, term.ID, p.Competencies)
+}
+
+// EvidenceTally is how much evidence a competency has in a term.
+type EvidenceTally struct {
+	Count int
+	Kinds []string
+}
+
+// termEvidenceByCompetency counts, per competency, the distinct evidences of
+// the class in the term that observe it: accepted planned evidences (drafts
+// included, as the plan does) and hand-added assessments. Assessments synced
+// from a planned evidence are left out, so a planned evidence is counted once.
+func termEvidenceByCompetency(ctx context.Context, tx pgx.Tx, classID, termID uuid.UUID) (map[uuid.UUID]EvidenceTally, error) {
+	rows, err := tx.Query(ctx, `
+		select u.competency_id, count(distinct u.evidence_id), array_agg(distinct u.kind order by u.kind)
+		  from (
+		    select pe.id as evidence_id, cr.competency_id, pe.kind
+		      from planned_evidences pe
+		      join learning_experiences le on le.id = pe.experience_id and le.deleted_at is null
+		      join planned_evidence_criteria pec on pec.evidence_id = pe.id and pec.deleted_at is null
+		      join evaluation_criteria cr on cr.id = pec.criterion_id
+		       and cr.deleted_at is null and cr.accepted_at is not null
+		     where le.class_id = $1 and le.term_id = $2
+		       and pe.deleted_at is null and pe.accepted_at is not null
+		    union all
+		    select a.id, cr.competency_id, a.kind
+		      from assessments a
+		      join assessment_criteria ac on ac.assessment_id = a.id and ac.deleted_at is null
+		      join evaluation_criteria cr on cr.id = ac.criterion_id and cr.deleted_at is null
+		     where a.class_id = $1 and a.term_id = $2
+		       and a.planned_evidence_id is null and a.student_id is null
+		       and a.status in ('published', 'closed') and a.deleted_at is null
+		  ) u
+		 group by u.competency_id
+	`, classID, termID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := map[uuid.UUID]EvidenceTally{}
+	for rows.Next() {
+		var id uuid.UUID
+		var t EvidenceTally
+		if err := rows.Scan(&id, &t.Count, &t.Kinds); err != nil {
+			return nil, err
+		}
+		out[id] = t
+	}
+	return out, rows.Err()
+}
+
+// fillEvidenceTallies sets the term evidence fields of each competency in comps.
+func fillEvidenceTallies(ctx context.Context, tx pgx.Tx, classID, termID uuid.UUID, comps []PlanCompetency) error {
+	tally, err := termEvidenceByCompetency(ctx, tx, classID, termID)
+	if err != nil {
+		return err
+	}
+	rows, err := tx.Query(ctx, `
+		select distinct ec.competency_id
+		  from experience_competencies ec
+		  join learning_experiences le on le.id = ec.experience_id
+		 where le.class_id = $1 and le.term_id = $2
+		   and le.deleted_at is null and ec.deleted_at is null
+	`, classID, termID)
+	if err != nil {
+		return err
+	}
+	inTerm := map[uuid.UUID]bool{}
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			rows.Close()
+			return err
+		}
+		inTerm[id] = true
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	for i := range comps {
+		t := tally[comps[i].ID]
+		comps[i].EvidencesThisTerm = t.Count
+		comps[i].EvidenceKinds = t.Kinds
+		if comps[i].EvidenceKinds == nil {
+			comps[i].EvidenceKinds = []string{}
+		}
+		comps[i].InTerm = inTerm[comps[i].ID]
+	}
+	return nil
 }
 
 // Range returns the term's first and last day.
@@ -756,6 +854,7 @@ type Warning struct {
 	CompetencyID *uuid.UUID `json:"competency_id,omitempty"`
 	CapabilityID *uuid.UUID `json:"capability_id,omitempty"`
 	Count        *int       `json:"count,omitempty"`
+	Kind         *string    `json:"kind,omitempty"`
 }
 
 type Experience struct {
@@ -960,6 +1059,51 @@ func experienceWarnings(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID) 
 	rows.Close()
 	if err := rows.Err(); err != nil {
 		return nil, err
+	}
+
+	// Evidence per competency is read over the whole term, not this experience:
+	// the conclusion counts it that way, so a single experience is not an alarm.
+	var classID, termID uuid.UUID
+	if err := tx.QueryRow(ctx, `select class_id, term_id from learning_experiences where id = $1`,
+		experienceID).Scan(&classID, &termID); err != nil {
+		return nil, err
+	}
+	tally, err := termEvidenceByCompetency(ctx, tx, classID, termID)
+	if err != nil {
+		return nil, err
+	}
+	compRows, err := tx.Query(ctx, `
+		select ec.competency_id
+		  from experience_competencies ec
+		  join competencies c on c.id = ec.competency_id
+		 where ec.experience_id = $1 and ec.deleted_at is null
+		 order by c.sort_order, c.code
+	`, experienceID)
+	if err != nil {
+		return nil, err
+	}
+	var compIDs []uuid.UUID
+	for compRows.Next() {
+		var id uuid.UUID
+		if err := compRows.Scan(&id); err != nil {
+			compRows.Close()
+			return nil, err
+		}
+		compIDs = append(compIDs, id)
+	}
+	compRows.Close()
+	if err := compRows.Err(); err != nil {
+		return nil, err
+	}
+	for _, id := range compIDs {
+		t := tally[id]
+		if t.Count < MinConclusionEvidences {
+			n := t.Count
+			out = append(out, Warning{Code: "competency_few_evidences", CompetencyID: &id, Count: &n})
+		} else if len(t.Kinds) == 1 {
+			kind := t.Kinds[0]
+			out = append(out, Warning{Code: "competency_single_kind", CompetencyID: &id, Kind: &kind})
+		}
 	}
 
 	var pending int

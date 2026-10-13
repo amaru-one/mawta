@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
+
 	"mawta-server/internal/repo"
 )
 
@@ -49,6 +51,62 @@ func TestComposeOrdersSectionsAndClosesSentences(t *testing.T) {
 	}, "\n\n")
 	if body != want {
 		t.Fatalf("body:\n%s\n--- want ---\n%s", body, want)
+	}
+}
+
+func TestVarietyWarnings(t *testing.T) {
+	// Only the variety codes: voice-note warnings are tested in TestWarnings.
+	codes := func(ws []Warning) []string {
+		var out []string
+		for _, w := range ws {
+			if strings.HasPrefix(w.Code, "evidence_") {
+				out = append(out, w.Code)
+			}
+		}
+		return out
+	}
+	// graded builds evidence the student has a score for; ungraded has none.
+	graded := func(kind string, exp *uuid.UUID) repo.ConclusionEvidence {
+		return repo.ConclusionEvidence{ID: uuid.New(), Kind: kind, ExperienceID: exp, ScoreStatus: ptr("graded")}
+	}
+	ungraded := func(kind string, exp *uuid.UUID) repo.ConclusionEvidence {
+		return repo.ConclusionEvidence{ID: uuid.New(), Kind: kind, ExperienceID: exp}
+	}
+	exp1, exp2 := uuid.New(), uuid.New()
+	withGraded := func(m Material) Material {
+		for _, e := range m.Evidences {
+			if e.Graded() {
+				m.Graded++
+			}
+		}
+		return m
+	}
+	cases := []struct {
+		name  string
+		m     Material
+		codes []string
+	}{
+		{"two of one kind from one experience", withGraded(Material{Evidences: []repo.ConclusionEvidence{
+			graded("produccion", &exp1), graded("produccion", &exp1)}}),
+			[]string{WarnEvidenceSingleKind, WarnEvidenceSingleExperience}},
+		{"two kinds from two experiences", withGraded(Material{Evidences: []repo.ConclusionEvidence{
+			graded("produccion", &exp1), graded("actuacion", &exp2)}}), nil},
+		{"two kinds from one experience", withGraded(Material{Evidences: []repo.ConclusionEvidence{
+			graded("produccion", &exp1), graded("actuacion", &exp1)}}),
+			[]string{WarnEvidenceSingleExperience}},
+		{"below the minimum: nothing to say yet", withGraded(Material{Evidences: []repo.ConclusionEvidence{
+			graded("produccion", &exp1)}}), nil},
+		{"hand-added evidence never proves one experience", withGraded(Material{Evidences: []repo.ConclusionEvidence{
+			graded("produccion", nil), graded("produccion", nil)}}),
+			[]string{WarnEvidenceSingleKind}},
+		{"ungraded evidence does not count", withGraded(Material{Evidences: []repo.ConclusionEvidence{
+			graded("produccion", &exp1), graded("produccion", &exp2), ungraded("actuacion", &exp1)}}),
+			[]string{WarnEvidenceSingleKind}},
+	}
+	for _, c := range cases {
+		if got := codes(c.m.Warnings()); strings.Join(got, ",") != strings.Join(c.codes, ",") {
+			t.Errorf("%s: warnings = %v, want %v", c.name, got, c.codes)
+		}
 	}
 }
 

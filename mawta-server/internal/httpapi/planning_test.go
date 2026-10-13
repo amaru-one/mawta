@@ -495,8 +495,9 @@ func TestPlanningAnExperience(t *testing.T) {
 	if want := expectedClassDates("2026-06-01", "2026-06-30"); strings.Join(exp.ClassDates, ",") != strings.Join(want, ",") {
 		t.Errorf("class_dates = %v, want %v", exp.ClassDates, want)
 	}
-	// Three capabilities, no criteria: three warnings, nothing pending.
-	if len(exp.Warnings) != 3 {
+	// Three capabilities, no criteria: three warnings, nothing pending. The
+	// competency evidence warnings are checked on their own below.
+	if caps := warningsWithCode(exp.Warnings, "capability_without_criterion"); len(caps) != 3 {
 		t.Errorf("warnings = %+v, want one capability_without_criterion per capability", exp.Warnings)
 	}
 	expPath := "/api/v1/experiences/" + exp.ID.String()
@@ -623,9 +624,22 @@ func TestPlanningAnExperience(t *testing.T) {
 	// Every capability now has an accepted criterion except MAT-C1-CAP1
 	// (the first criterion was edited down to CAP2).
 	got = getExperience(t, h, token, exp.ID)
-	if len(got.Warnings) != 1 || got.Warnings[0].Code != "capability_without_criterion" ||
-		*got.Warnings[0].CapabilityID != planCapC1a {
+	if caps := warningsWithCode(got.Warnings, "capability_without_criterion"); len(caps) != 1 ||
+		*caps[0].CapabilityID != planCapC1a {
 		t.Errorf("warnings = %+v, want only MAT-C1-CAP1 uncovered", got.Warnings)
+	}
+	// The one accepted evidence planned over MAT-C1 is the only one in the
+	// term so far: the planning warning counts it and asks for a second.
+	if few := findWarning(got.Warnings, "competency_few_evidences"); few == nil || *few.Count != 1 {
+		t.Errorf("warnings = %+v, want competency_few_evidences with count 1", got.Warnings)
+	}
+
+	// The term plan carries the same count, and marks MAT-C1 as planned this term.
+	termPlan := getPlan(t, h, token, classID, fx.TermII)
+	for _, c := range termPlan.Competencies {
+		if c.ID == fx.CompetencyC1 && (c.EvidencesThisTerm != 1 || !c.InTerm || len(c.EvidenceKinds) != 1) {
+			t.Errorf("plan competency MAT-C1 = %+v, want one evidence of one kind, planned this term", c)
+		}
 	}
 
 	// Edit the experience itself.
@@ -638,7 +652,7 @@ func TestPlanningAnExperience(t *testing.T) {
 	// Confirm.
 	w = mustDo(t, h, token, "POST", expPath+"/confirm", "", http.StatusOK)
 	decodeInto(t, w, &got)
-	if got.Status != "planificada" || len(got.Warnings) != 1 {
+	if got.Status != "planificada" || len(warningsWithCode(got.Warnings, "capability_without_criterion")) != 1 {
 		t.Errorf("confirmed experience = %+v, want planificada with its warning", got)
 	}
 
@@ -697,6 +711,17 @@ func findWarning(ws []repo.Warning, code string) *repo.Warning {
 		}
 	}
 	return nil
+}
+
+// warningsWithCode returns every warning with the given code, in order.
+func warningsWithCode(ws []repo.Warning, code string) []repo.Warning {
+	var out []repo.Warning
+	for _, w := range ws {
+		if w.Code == code {
+			out = append(out, w)
+		}
+	}
+	return out
 }
 
 // assertPlacement checks both sides of an evidence's placement agree: date
