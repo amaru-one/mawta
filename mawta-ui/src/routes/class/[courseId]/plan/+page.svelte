@@ -197,10 +197,7 @@
 	// Track rows, in px: the bars, then the bands (if any), then the dots (if any).
 	const ROW = 47;
 	const bandsTop = $derived(lanes * ROW);
-	const dotsTop = $derived(bands.length > 0 ? bandsTop + ROW : bandsTop);
-	const trackHeight = $derived(
-		feriadoDots.length > 0 ? dotsTop + 8 : bands.length > 0 ? bandsTop + 44 : lanes * ROW - 3
-	);
+	const trackHeight = $derived(bands.length > 0 ? bandsTop + 44 : lanes * ROW - 3);
 
 	// ---- status and coverage, written as text ----
 
@@ -311,9 +308,11 @@
 									{#if band.showText}{band.text}{/if}
 								</span>
 							{/each}
+						</div>
+						<!-- Outside the track, so the dots never stretch the week columns. -->
+						<div class="tl-marks">
 							{#each feriadoDots as dot (dot.id)}
-								<i class="tl-dot" style="top:{dotsTop + 4}px;left:{dot.left}%" title={dot.label}
-								></i>
+								<i class="tl-dot" style="left:{dot.left}%" title={dot.label}></i>
 							{/each}
 						</div>
 					</div>
@@ -577,9 +576,18 @@
 		text-align: center;
 	}
 
-	/* A feriado: a dot under the line, centred on its class slot. */
+	/* The row under the track: same width, so a percentage here is the same day. */
+	.tl-marks {
+		position: relative;
+		width: max(100%, calc(var(--cols) * 80px));
+		height: 8px;
+		margin-top: var(--mw-space-1);
+	}
+
+	/* A feriado: a dot in the row under the track, centred on its class slot. */
 	.tl-dot {
 		position: absolute;
+		top: 50%;
 		transform: translate(-50%, -50%);
 		width: 6px;
 		height: 6px;
