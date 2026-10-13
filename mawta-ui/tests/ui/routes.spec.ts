@@ -251,7 +251,7 @@ test('No entregó and final conclusions preserve their distinct contracts', asyn
 		)
 		.toBe(true);
 	await page.getByRole('button', { name: 'Marcar como final', exact: true }).click();
-	await expect(page.getByText('Una conclusión final debe incluir recomendaciones')).toBeVisible();
+	await expect(page.getByText('Para marcarla como final, incluye recomendaciones personalizadas.')).toBeVisible();
 	expect(api.writes.some((w) => w.path.endsWith('/conclusions') && w.body.status === 'final')).toBe(
 		false
 	);

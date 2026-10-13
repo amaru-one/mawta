@@ -45,7 +45,8 @@
 	import { EVIDENCE_KIND_LABEL } from '$lib/evidence';
 	import type { Tier } from '$lib/levels';
 	import { hapticTap } from '$lib/haptics';
-	import { showToast } from '$lib/toast';
+	import { showError, showToast } from '$lib/toast';
+	import { guardUnsaved } from '$lib/unsaved.svelte';
 
 	const courseId = $derived(page.params.courseId ?? '');
 	const studentId = $derived(page.params.studentId ?? '');
@@ -125,6 +126,17 @@
 	// `selected`) still does the actual refetch; this only makes the choice
 	// survive a remount.
 	function selectCompetency(id: string): void {
+		// Switching would re-seed the draft from the server and lose unsaved text,
+		// so ask first. The dialog confirms the switch and discards the draft.
+		if (id !== selected && conclusionDirty()) {
+			switchTo = id;
+			switchOpen = true;
+			return;
+		}
+		applySelection(id);
+	}
+
+	function applySelection(id: string): void {
 		selected = id;
 		const params = new URLSearchParams(page.url.searchParams);
 		params.set('comp', id);
@@ -247,12 +259,16 @@
 		if (savingLevel || selected === '') return;
 		savingLevel = true;
 		try {
+			const previous = currentLevel?.level ?? null;
 			await assertCompetencyLevel(courseId, studentId, { competency_id: selected, level });
+			showToast('Nivel guardado', previous ? { onUndo: () => void setLevel(previous) } : undefined);
 			levels = levels.map((l) =>
 				l.competency_id === selected ? { ...l, level, asserted_at: new Date().toISOString() } : l
 			);
 		} catch (err) {
-			showToast(err instanceof ApiError ? err.message : 'No se pudo guardar el nivel');
+			showError(err instanceof ApiError ? err.message : 'No se pudo guardar el nivel', {
+				onRetry: () => void setLevel(level),
+			});
 		} finally {
 			savingLevel = false;
 		}
@@ -271,6 +287,13 @@
 	let generationId = $state<string | null>(null);
 	let pendingProposal = $state<{ body: string; generationId: string } | null>(null);
 	let replaceOpen = $state(false);
+	let switchTo = $state<string | null>(null);
+	let switchOpen = $state(false);
+	let recsError = $state(false);
+	// The draft differs from what the server holds for this competencia.
+	const conclusionDirty = (): boolean =>
+		draft.trim() !== (currentLevel?.conclusion_body ?? '').trim();
+	const leave = guardUnsaved(conclusionDirty);
 
 	// Re-seed the draft when the competencia changes, from whatever is on the
 	// server. `untrack` so typing does not re-seed it on every keystroke.
@@ -314,8 +337,8 @@
 		if (savingConclusion || selected === '' || draft.trim() === '') return;
 		// Mirrors the server's 422 missing_recommendations rather than letting the
 		// teacher lose the text to a rejection.
-		if (status === 'final' && !withRecs) {
-			showToast('Una conclusión final debe incluir recomendaciones');
+		recsError = status === 'final' && !withRecs;
+		if (recsError) {
 			return;
 		}
 		savingConclusion = true;
@@ -334,7 +357,9 @@
 			);
 			showToast(status === 'final' ? 'Conclusión guardada como final' : 'Borrador guardado');
 		} catch (err) {
-			showToast(err instanceof ApiError ? err.message : 'No se pudo guardar la conclusión');
+			showError(err instanceof ApiError ? err.message : 'No se pudo guardar la conclusión', {
+				onRetry: () => void saveConclusion(status),
+			});
 		} finally {
 			savingConclusion = false;
 		}
@@ -466,6 +491,9 @@
 				/>
 
 				<p class="eyebrow gap">Conclusión descriptiva</p>
+				{#if currentLevel?.conclusion_status}<p class="meta">
+						Estado: {currentLevel.conclusion_status === 'final' ? 'final' : 'borrador'}
+					</p>{/if}
 				{#if currentLevel?.conclusion_required}
 					<p class="hint req">
 						{REQUIREMENT_TEXT[currentLevel.conclusion_requirement] ?? 'Obligatoria.'}
@@ -492,6 +520,12 @@
 				<Checkbox bind:checked={withRecs}>
 					<span class="grow">Incluye recomendaciones personalizadas</span>
 				</Checkbox>
+				{#if recsError}<p class="mw-field__error" role="alert">
+						Para marcarla como final, incluye recomendaciones personalizadas.
+					</p>{/if}
+				{#if draft.trim() === ''}<p class="meta">
+						Escribe la conclusión para poder guardarla.
+					</p>{/if}
 				<div class="actions">
 					<Button
 						variant="secondary"
@@ -525,6 +559,28 @@
 		if (pendingProposal) applyProposal(pendingProposal.body, pendingProposal.generationId);
 	}}
 	oncancel={() => (pendingProposal = null)}
+/>
+
+<ConfirmDialog
+	bind:open={switchOpen}
+	title="¿Cambiar de competencia?"
+	description="Tienes una conclusión sin guardar en esta competencia."
+	confirmLabel="Descartar y cambiar"
+	cancelLabel="Seguir aquí"
+	onconfirm={() => {
+		if (switchTo) applySelection(switchTo);
+		switchTo = null;
+	}}
+	oncancel={() => (switchTo = null)}
+/>
+<ConfirmDialog
+	bind:open={leave.state.open}
+	tone="danger"
+	title="¿Salir sin guardar?"
+	description="Se perderá la conclusión que estás escribiendo."
+	confirmLabel="Descartar"
+	cancelLabel="Seguir editando"
+	onconfirm={leave.confirmLeave}
 />
 
 <style>

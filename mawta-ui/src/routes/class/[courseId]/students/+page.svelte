@@ -201,7 +201,7 @@
 							{#if r.level !== null}
 								<LevelBadge tier={r.level} size={26} />
 							{:else}
-								<span class="nolevel">Sin nivel</span>
+								<span class="nolevel">Sin valorar</span>
 							{/if}
 							<span class="grow">
 								<span class="name">{r.full_name}</span>
