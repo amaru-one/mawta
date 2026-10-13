@@ -162,20 +162,44 @@
 		gestion: 'gestión',
 	};
 
-	const offBlocks = $derived(
-		track
-			? offRuns(track, nonTeachingDays).map((run, index) => {
-					const weeks = run.end - run.start;
-					return {
-						id: `${index}`,
-						text: OFF_TEXT[run.kind],
-						label: run.label ?? OFF_TEXT[run.kind],
-						showText: weeks >= 1,
-						left: percentOf(run.start, weekCount),
-						width: percentOf(weeks, weekCount),
-					};
-				})
-			: []
+	const offMarks = $derived(track ? offRuns(track, nonTeachingDays) : []);
+
+	// A feriado is a dot under the line, at the middle of its class slot. It never
+	// covers an experience: the bar shows the experience, the dot shows the day.
+	const feriadoDots = $derived(
+		offMarks
+			.filter((run) => run.kind === 'feriado')
+			.map((run, index) => ({
+				id: index,
+				left: percentOf((run.start + run.end) / 2, weekCount),
+				label: run.label ?? OFF_TEXT.feriado,
+			}))
+	);
+
+	// Vacations and gestión are bands in their own row under the bars, so they
+	// never cover an experience either. Text shows for a week or more.
+	const bands = $derived(
+		offMarks
+			.filter((run) => run.kind !== 'feriado')
+			.map((run, index) => {
+				const weeks = run.end - run.start;
+				return {
+					id: index,
+					text: OFF_TEXT[run.kind],
+					label: run.label ?? OFF_TEXT[run.kind],
+					showText: weeks >= 1,
+					left: percentOf(run.start, weekCount),
+					width: percentOf(weeks, weekCount),
+				};
+			})
+	);
+
+	// Track rows, in px: the bars, then the bands (if any), then the dots (if any).
+	const ROW = 47;
+	const bandsTop = $derived(lanes * ROW);
+	const dotsTop = $derived(bands.length > 0 ? bandsTop + ROW : bandsTop);
+	const trackHeight = $derived(
+		feriadoDots.length > 0 ? dotsTop + 8 : bands.length > 0 ? bandsTop + 44 : lanes * ROW - 3
 	);
 
 	// ---- status and coverage, written as text ----
@@ -253,7 +277,7 @@
 									><b>{weekStart(week)}</b><small>Sem {week}</small></span
 								>{/each}
 						</div>
-						<div class="tl-track" style="height:calc(var(--lanes) * 47px - 3px)">
+						<div class="tl-track" style="height:{trackHeight}px">
 							{#each weekNumbers as week (week)}
 								<span
 									class="tl-week"
@@ -278,20 +302,25 @@
 								</span>
 							{/each}
 							<!-- After the bars: a feriado inside an experience shows as its own slot. -->
-							{#each offBlocks as block (block.id)}
+							{#each bands as band (band.id)}
 								<span
-									class="tl-off"
-									style="left:calc({block.left}% + 1.5px);width:calc({block.width}% - 3px)"
-									title={block.label}
+									class="tl-band"
+									style="top:{bandsTop}px;left:calc({band.left}% + 1.5px);width:calc({band.width}% - 3px)"
+									title={band.label}
 								>
-									{#if block.showText}{block.text}{/if}
+									{#if band.showText}{band.text}{/if}
 								</span>
+							{/each}
+							{#each feriadoDots as dot (dot.id)}
+								<i class="tl-dot" style="top:{dotsTop + 4}px;left:{dot.left}%" title={dot.label}
+								></i>
 							{/each}
 						</div>
 					</div>
 					<div class="legend">
 						<span><span class="sw sw-exp"></span>Experiencia (n.º como en la lista)</span>
-						<span><span class="sw sw-off"></span>Sin clases: feriado, vacaciones, gestión</span>
+						<span><span class="sw-dot"></span>Feriado</span>
+						<span><span class="sw sw-off"></span>Vacaciones o gestión</span>
 						<span><span class="sw sw-week-off"></span>Semana sin clases</span>
 					</div>
 				</div>
@@ -531,10 +560,9 @@
 		opacity: 0.85;
 	}
 
-	.tl-off {
+	/* Vacation or gestión: a band in its own row under the bars; the top comes inline. */
+	.tl-band {
 		position: absolute;
-		top: 0;
-		z-index: var(--mw-z-raised);
 		height: 44px;
 		border-radius: var(--mw-radius-md);
 		background: var(--mw-surface-page);
@@ -547,6 +575,16 @@
 		justify-content: center;
 		overflow: hidden;
 		text-align: center;
+	}
+
+	/* A feriado: a dot under the line, centred on its class slot. */
+	.tl-dot {
+		position: absolute;
+		transform: translate(-50%, -50%);
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: var(--mw-ink-muted);
 	}
 
 	/* A week with no class day keeps its width; only its colour says so. */
@@ -584,6 +622,13 @@
 		background: var(--mw-surface-page);
 		border: 1px dashed var(--mw-line-control);
 		border: 1px solid var(--mw-line);
+	}
+
+	.sw-dot {
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: var(--mw-ink-muted);
 	}
 
 	.sw-week-off {

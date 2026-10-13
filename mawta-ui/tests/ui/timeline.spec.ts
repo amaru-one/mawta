@@ -29,19 +29,20 @@ test('experiences that share a week sit in one row, split at the day one ends', 
 	expect(api.unexpected).toEqual([]);
 });
 
-test('a feriado on a class day marks one class slot; a feriado on a day without class is not drawn', async ({
+test('a feriado on a class day is a dot under the line; a feriado on a day without class is not drawn', async ({
 	page,
 	api,
 }) => {
 	await page.goto('/class/class-1/plan');
-	// Oct 21 is a Wednesday class: one third of its week. Oct 8 is a Thursday: no mark.
-	const marks = page.locator('.tl-off');
-	await expect(marks).toHaveCount(1);
-	const track = await page.locator('.tl-track').boundingBox();
-	const mark = await marks.boundingBox();
-	if (!track || !mark) throw new Error('timeline is not laid out');
-	// The term spans 12 weeks; a class slot is a third of one, less the 3px inset.
-	expect(Math.abs(mark.width + 3 - track.width / 12 / 3)).toBeLessThan(1.5);
+	// Oct 21 is a Wednesday class: one dot. Oct 8 is a Thursday: no dot.
+	const dots = page.locator('.tl-dot');
+	await expect(dots).toHaveCount(1);
+	await expect(page.locator('.tl-band')).toHaveCount(0);
+	const bar = await page.locator('.tl-block').first().boundingBox();
+	const dot = await dots.boundingBox();
+	if (!bar || !dot) throw new Error('timeline is not laid out');
+	// The dot sits below the line of bars, never over an experience.
+	expect(dot.y).toBeGreaterThanOrEqual(bar.y + bar.height);
 	expect(api.unexpected).toEqual([]);
 });
 
@@ -51,12 +52,16 @@ test('a vacation covering a whole week of classes marks the week, with its name'
 }) => {
 	api.vacationWeek = true;
 	await page.goto('/class/class-1/plan');
-	const vacation = page.locator('.tl-off', { hasText: 'vacaciones' });
+	const vacation = page.locator('.tl-band', { hasText: 'vacaciones' });
 	await expect(vacation).toHaveCount(1);
 	const track = await page.locator('.tl-track').boundingBox();
 	const box = await vacation.boundingBox();
 	if (!track || !box) throw new Error('timeline is not laid out');
 	expect(Math.abs(box.width + 3 - track.width / 12)).toBeLessThan(1.5);
+	// The band is its own row under the bars, so it never covers an experience.
+	const bar = await page.locator('.tl-block').first().boundingBox();
+	if (!bar) throw new Error('bar is not laid out');
+	expect(box.y).toBeGreaterThanOrEqual(bar.y + bar.height);
 	expect(api.unexpected).toEqual([]);
 });
 
