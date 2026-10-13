@@ -9,7 +9,6 @@
 		LoadingState,
 		Notice,
 		Segmented,
-		PendingDialog,
 	} from '$lib/design-system';
 	// The evidences step of a saved experience: where the teacher will observe
 	// the criteria. An evidencia is a producción, an actuación or a prueba
@@ -40,8 +39,7 @@
 	} from '$lib/api/endpoints/planning';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
-	import { runSequential } from '$lib/batch';
-	import { showError, showToast } from '$lib/toast';
+	import { showToast } from '$lib/toast';
 
 	const courseId = $derived(page.params.courseId ?? '');
 	const experienceId = $derived(page.params.experienceId ?? '');
@@ -84,9 +82,6 @@
 	const criteria = $derived(list(experience?.criteria));
 	const evidences = $derived(list(experience?.evidences));
 	const pending = $derived(evidences.some(isProposal));
-	const proposals = $derived(evidences.filter(isProposal));
-	let acceptingAll = $state<{ done: number; total: number } | null>(null);
-	let pendingOpen = $state(false);
 
 	function isProposal(evidence: PlannedEvidenceDto): boolean {
 		return evidence.proposed_by === 'mawta' && evidence.accepted_at === null;
@@ -136,11 +131,6 @@
 		return parts.length > 0 ? joinY(parts) : null;
 	});
 
-	function shortText(text: string, max = 80): string {
-		if (text.length <= max) return text;
-		return `${text.slice(0, max).replace(/\s+\S*$/, '')}…`;
-	}
-
 	// "a", "a y b", "a, b y c"
 	function joinY(items: string[]): string {
 		if (items.length <= 1) return items.join('');
@@ -162,6 +152,8 @@
 	let form = $state<EvidenceForm | null>(null);
 	let saving = $state(false);
 	let formError = $state<string | null>(null);
+	// The maximum is validated once the teacher leaves its field, not per key.
+	let maxTouched = $state(false);
 
 	function errorText(error: unknown): string {
 		return planningErrorText(error, 'No se pudo guardar la evidencia. Inténtalo de nuevo.');
@@ -170,6 +162,7 @@
 	function openCreate(): void {
 		hapticTap();
 		formError = null;
+		maxTouched = false;
 		form =
 			form && form.id === null
 				? null
@@ -186,6 +179,7 @@
 	function openEdit(evidence: PlannedEvidenceDto): void {
 		hapticTap();
 		formError = null;
+		maxTouched = false;
 		form = {
 			id: evidence.id,
 			name: evidence.name,
@@ -217,6 +211,16 @@
 			form.criterionIds.length > 0 &&
 			(form.valueScale === 'ordinal' || maxValid)
 	);
+
+	// What is still missing before "Guardar" can work, in the teacher's words.
+	const missingText = $derived.by(() => {
+		if (!form || canSave) return null;
+		const parts: string[] = [];
+		if (form.name.trim() === '') parts.push('un nombre');
+		if (form.criterionIds.length === 0) parts.push('al menos un criterio');
+		if (form.valueScale === 'numeric' && !maxValid) parts.push('una nota máxima válida');
+		return `Para guardar falta ${joinY(parts)}.`;
+	});
 
 	async function save(): Promise<void> {
 		if (!form || !canSave || saving) return;
@@ -250,7 +254,7 @@
 			await acceptEvidence(evidence.id);
 			await reload();
 		} catch {
-			showError('No se pudo aceptar la evidencia', { onRetry: () => void accept(evidence) });
+			showToast('No se pudo aceptar la evidencia');
 		}
 	}
 
@@ -324,31 +328,6 @@
 		}
 	}
 
-	// Accepts each proposal in turn; failures are kept for a retry instead of stopping the batch.
-	async function acceptAll(items: PlannedEvidenceDto[] = proposals): Promise<void> {
-		hapticTap();
-		acceptingAll = { done: 0, total: items.length };
-		const result = await runSequential(
-			items,
-			(evidence) => acceptEvidence(evidence.id),
-			(done, total) => {
-				acceptingAll = { done, total };
-			}
-		);
-		acceptingAll = null;
-		await reload();
-		if (result.failed.length > 0)
-			showError(`No se aceptaron ${result.failed.length} de ${items.length} evidencias`, {
-				onRetry: () => void acceptAll(result.failed),
-			});
-	}
-
-	// "Continuar" asks first when Mawta's proposals are still unreviewed.
-	function requestNext(): void {
-		if (!editing && proposals.length > 0) pendingOpen = true;
-		else next();
-	}
-
 	function next(): void {
 		hapticTap();
 		void goto(editing ? summaryHref : `/class/${courseId}/plan/${experienceId}/sessions`, {
@@ -365,7 +344,7 @@
 
 	<div class="body">
 		{#if ready && experience}
-			<p class="eyebrow">{experience.title} · Paso 2 de 4 · Evidencias</p>
+			<p class="eyebrow">{experience.title} · Evidencias</p>
 			<h1 class="screen-title sm">¿Dónde observarás tus criterios?</h1>
 			<p class="meta intro">
 				Producciones o actuaciones de tus estudiantes. Una evidencia puede reunir criterios de
@@ -382,17 +361,7 @@
 
 			<div class="section">
 				<p class="eyebrow">Evidencias · {evidences.length}</p>
-				{#if pending}{#if proposals.length > 1}<Button
-							variant="secondary"
-							block
-							disabled={acceptingAll !== null}
-							loading={acceptingAll !== null}
-							onclick={() => void acceptAll()}
-						>
-							{acceptingAll
-								? `Aceptando ${acceptingAll.done} de ${acceptingAll.total}…`
-								: `Aceptar todas (${proposals.length})`}
-						</Button>{/if}
+				{#if pending}
 					<p class="meta help">Mawta propuso estas evidencias: acéptalas o edítalas.</p>
 				{/if}
 
@@ -419,7 +388,7 @@
 									<ul class="ev-crit">
 										{#each groupsOf(evidence) as group (group.competency.id)}
 											{#if comps.length > 1}
-												<li class="grp">{group.competency.name}</li>
+												<li class="grp mw-text mw-text--label">{group.competency.name}</li>
 											{/if}
 											{#each group.criteria as criterion (criterion.id)}
 												<li class="crit-row">
@@ -454,7 +423,7 @@
 							variant="secondary"
 							block
 							class="half"
-							disabled={generating}
+							loading={generating}
 							onclick={() => void generate()}
 						>
 							<Icon name="sparkles" size={15} />
@@ -467,7 +436,9 @@
 					</Button>
 				</div>
 				{#if generating}
-					<p class="meta waiting">Mawta está proponiendo evidencias para tus criterios…</p>
+					<p class="meta waiting" role="status">
+						Mawta está proponiendo evidencias para tus criterios…
+					</p>
 				{/if}
 
 				{#if form && form.id === null}
@@ -476,17 +447,14 @@
 			</div>
 
 			<div class="footer-action">
-				<PendingDialog
-					bind:open={pendingOpen}
-					count={proposals.length}
-					onreview={() => {}}
-					oncontinue={next}
-				/>
-				<Button variant="primary" block onclick={requestNext}>
-					{#if editing}Listo{:else}Continuar con las sesiones <Icon
-							name="chevron-right"
-							size={16}
-						/>{/if}
+				<Button
+					variant="primary"
+					block
+					icon={editing ? undefined : 'chevron-right'}
+					iconPosition="end"
+					onclick={next}
+				>
+					{editing ? 'Listo' : 'Continuar con las sesiones'}
 				</Button>
 			</div>
 		{:else if loadError}
@@ -513,7 +481,6 @@
 					{/each}
 				</Field>
 
-				<p class="f-label spaced">Cómo la valorarás</p>
 				<Segmented
 					label="Cómo la valorarás"
 					value={form.valueScale}
@@ -532,40 +499,58 @@
 						step="1"
 						min="1"
 						max="100"
+						help="Número entero del 1 al 100."
+						error={maxTouched && !maxValid ? 'Escribe un número entero del 1 al 100.' : undefined}
+						onblur={() => (maxTouched = true)}
 						bind:value={form.maxScore}
 					/>
 				{/if}
 
-				<p class="f-label spaced">Criterios que observarás en ella</p>
-				{#if criteria.length === 0}
-					<p class="meta no-criteria">
-						Esta experiencia todavía no tiene criterios: vuelve al paso anterior para crearlos.
-					</p>
-				{:else}
-					{#each comps as competency (competency.id)}
-						{#if criteriaOf(competency.id).length > 0}
-							<p class="meta grp-label">{competency.name}</p>
-							{#each criteriaOf(competency.id) as criterion (criterion.id)}
-								<Checkbox
-									checked={form.criterionIds.includes(criterion.id)}
-									onchange={() => toggleCriterion(criterion.id)}
-								>
-									<span>{shortText(criterion.description, 90)}</span>
-								</Checkbox>
-							{/each}
-						{/if}
-					{/each}
-				{/if}
+				<fieldset class="group">
+					<legend class="mw-field__label">Criterios que observarás en ella</legend>
+					{#if criteria.length === 0}
+						<p class="meta no-criteria">
+							Esta experiencia todavía no tiene criterios: vuelve al paso anterior para crearlos.
+						</p>
+					{:else}
+						{#each comps as competency (competency.id)}
+							{#if criteriaOf(competency.id).length > 0}
+								<fieldset class="group">
+									{#if comps.length > 1}
+										<legend class="mw-text mw-text--label">{competency.name}</legend>
+									{/if}
+									{#each criteriaOf(competency.id) as criterion (criterion.id)}
+										<Checkbox
+											checked={form.criterionIds.includes(criterion.id)}
+											onchange={() => toggleCriterion(criterion.id)}
+										>
+											<span>{criterion.description}</span>
+										</Checkbox>
+									{/each}
+								</fieldset>
+							{/if}
+						{/each}
+					{/if}
+				</fieldset>
 
 				{#if formError}
 					<p class="form-error"><Icon name="alert" size={14} /> {formError}</p>
 				{/if}
 
+				{#if missingText}
+					<p id="ev-missing" class="meta missing">{missingText}</p>
+				{/if}
+
 				<div class="ev-actions row">
-					<Action variant="main" disabled={!canSave || saving} onclick={() => void save()}>
+					<Action
+						variant="main"
+						disabled={!canSave || saving}
+						aria-describedby={missingText ? 'ev-missing' : undefined}
+						onclick={() => void save()}
+					>
 						<Icon name="check" size={13} /> Guardar
 					</Action>
-					<Action variant="remove" onclick={() => (form = null)}>Cancelar</Action>
+					<Action variant="neutral" onclick={() => (form = null)}>Cancelar</Action>
 				</div>
 			</Card>
 		{/if}
@@ -632,21 +617,19 @@
 	}
 
 	.ev-crit .grp {
-		margin: 8px 0 2px;
-		font-family: var(--mw-font-sans);
-		font-size: var(--mw-type-label-size);
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
-		color: var(--mw-ink-muted);
+		margin: var(--mw-space-2) 0 2px;
 	}
 
 	.ev-crit .crit-row {
 		display: flex;
 		padding: 5px 0;
-		border-top: 1px solid var(--mw-line);
-		font-size: 12.5px;
+		font-size: var(--mw-type-small-size);
 		line-height: 1.4;
 		color: var(--mw-ink-secondary);
+	}
+
+	.ev-crit .crit-row + .crit-row {
+		border-top: 1px solid var(--mw-line);
 	}
 
 	.ev-actions {
@@ -658,31 +641,33 @@
 	.actions {
 		gap: 8px;
 		margin-top: 12px;
+		flex-wrap: wrap;
 	}
 	.view :global(.half) {
-		flex: 1;
+		flex: 1 1 150px;
 	}
 
 	.waiting {
 		margin: 8px 0 0;
 	}
 
-	.f-label {
-		margin: 0 0 6px;
-		font-size: var(--mw-type-caption-size);
-		font-weight: 700;
-		color: var(--mw-ink-secondary);
+	.group {
+		margin: var(--mw-space-4) 0 0;
+		padding: 0;
+		border: 0;
+		min-width: 0;
 	}
 
-	.f-label.spaced {
-		margin-top: 14px;
+	.group legend {
+		padding: 0;
+		margin-bottom: var(--mw-space-2);
+	}
+
+	.missing {
+		margin: var(--mw-space-2) 0 0;
 	}
 	.view :global(.field) {
 		width: 100%;
-	}
-
-	.grp-label {
-		margin: 8px 0 4px;
 	}
 
 	.no-criteria {

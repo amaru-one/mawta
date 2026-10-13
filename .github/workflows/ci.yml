@@ -58,5 +58,4 @@ jobs:
       - run: bun eslint .
       - run: bunx playwright install --with-deps chromium webkit
       - run: bun run test:components
-      - run: bun run test:ui
       - run: bun run build

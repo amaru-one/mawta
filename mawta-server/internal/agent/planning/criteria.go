@@ -20,7 +20,6 @@ type criteriaState struct {
 	ExperienceID uuid.UUID
 	CompetencyID uuid.UUID
 	Capabilities map[uuid.UUID]bool
-	Performances map[uuid.UUID]bool
 }
 
 var criteriaTool = llm.Tool{
@@ -34,9 +33,8 @@ var criteriaTool = llm.Tool{
 				"properties": map[string]any{
 					"description":    map[string]any{"type": "string", "description": "El criterio: una oración en tercera persona que empieza con un verbo en presente."},
 					"capability_ids": map[string]any{"type": "array", "items": map[string]any{"type": "string"}, "description": "Ids de las capacidades que mira el criterio."},
-					"performance_id": map[string]any{"type": "string", "description": "Id del desempeño del grado que el criterio aterriza."},
 				},
-				"required": []string{"description", "capability_ids", "performance_id"},
+				"required": []string{"description", "capability_ids"},
 			},
 		},
 	},
@@ -75,14 +73,14 @@ func prepareCriteria(ctx context.Context, tx pgx.Tx, gen repo.AgentGeneration) (
 			comp = &cur.Competencies[i]
 		}
 	}
-	if comp == nil || len(comp.Performances) == 0 {
-		return agent.Prepared{}, unprocessable("no_performances",
-			"Esta competencia no tiene desempeños cargados para el grado; escribe los criterios a mano.")
+	if comp == nil || comp.Standard == nil {
+		return agent.Prepared{}, unprocessable("no_standard",
+			"Esta competencia no tiene estándar cargado para el ciclo; escribe los criterios a mano.")
 	}
 
 	covered := coveredCapabilities(exp, in.CompetencyID)
 	st := criteriaState{ExperienceID: expID, CompetencyID: in.CompetencyID,
-		Capabilities: map[uuid.UUID]bool{}, Performances: map[uuid.UUID]bool{}}
+		Capabilities: map[uuid.UUID]bool{}}
 	var gaps []repo.CurriculumCapability
 	for _, cap := range comp.Capabilities {
 		st.Capabilities[cap.ID] = true
@@ -93,9 +91,6 @@ func prepareCriteria(ctx context.Context, tx pgx.Tx, gen repo.AgentGeneration) (
 	if len(gaps) == 0 {
 		r, err := result(map[string]any{"criteria_ids": []uuid.UUID{}})
 		return agent.Prepared{Result: r}, err
-	}
-	for _, p := range comp.Performances {
-		st.Performances[p.ID] = true
 	}
 
 	var pr strings.Builder
@@ -108,9 +103,18 @@ func prepareCriteria(ctx context.Context, tx pgx.Tx, gen repo.AgentGeneration) (
 		}
 		fmt.Fprintf(&pr, "- id=%s %s (%s)\n", cap.ID, cap.Name, mark)
 	}
-	fmt.Fprintf(&pr, "\nDesempeños del grado %s para esta competencia:\n", cur.Grade.Code)
-	for _, p := range comp.Performances {
-		fmt.Fprintf(&pr, "- id=%s %s\n", p.ID, p.Text)
+	fmt.Fprintf(&pr, "\nEstándar de aprendizaje, nivel esperado al final del %s:\n%s\n",
+		cycleLabel(cur.Grade.Cycle), comp.Standard.Text)
+	if len(comp.Performances) > 0 {
+		if comp.Performances[0].EnProceso {
+			fmt.Fprintf(&pr, "\nEl grado %s está en proceso hacia ese nivel.\n", cur.Grade.Code)
+		} else {
+			fmt.Fprintf(&pr, "\nEl grado %s alcanza ese nivel.\n", cur.Grade.Code)
+		}
+		fmt.Fprintf(&pr, "\nDesempeños del grado %s (solo para calibrar la exigencia del grado; no los cites):\n", cur.Grade.Code)
+		for _, p := range comp.Performances {
+			fmt.Fprintf(&pr, "- %s\n", p.Text)
+		}
 	}
 	if existing := existingCriteria(exp, in.CompetencyID); len(existing) > 0 {
 		pr.WriteString("\nCriterios que ya existen para esta competencia (no los repitas):\n")
@@ -162,7 +166,6 @@ func applyCriteria(ctx context.Context, tx pgx.Tx, gen repo.AgentGeneration, p a
 		Criteria []struct {
 			Description   string   `json:"description"`
 			CapabilityIDs []string `json:"capability_ids"`
-			PerformanceID string   `json:"performance_id"`
 		} `json:"criteria"`
 	}
 	if err := decode(answer, &a); err != nil {
@@ -189,11 +192,6 @@ func applyCriteria(ctx context.Context, tx pgx.Tx, gen repo.AgentGeneration, p a
 			reasons = append(reasons, fmt.Sprintf("criterio %d: descripción vacía o repetida", i+1))
 			continue
 		}
-		performanceID, err := uuid.Parse(strings.TrimSpace(c.PerformanceID))
-		if err != nil || !st.Performances[performanceID] {
-			reasons = append(reasons, fmt.Sprintf("criterio %d: performance_id no es un desempeño de la lista", i+1))
-			continue
-		}
 		var capabilityIDs []uuid.UUID
 		fillsGap := false
 		for _, s := range c.CapabilityIDs {
@@ -215,7 +213,6 @@ func applyCriteria(ctx context.Context, tx pgx.Tx, gen repo.AgentGeneration, p a
 			CompetencyID:  st.CompetencyID,
 			Description:   description,
 			CapabilityIDs: capabilityIDs,
-			PerformanceID: performanceID,
 		})
 		if err != nil {
 			var appErr *db.AppError
@@ -238,6 +235,18 @@ func applyCriteria(ctx context.Context, tx pgx.Tx, gen repo.AgentGeneration, p a
 		return nil, agent.Invalid("la lista criteria vino vacía, pero hay capacidades sin criterio")
 	}
 	return result(map[string]any{"criteria_ids": ids})
+}
+
+// cycleLabel turns a cycle code ("ciclo_vi") into prose ("ciclo VI").
+func cycleLabel(cycle *string) string {
+	if cycle == nil {
+		return "ciclo"
+	}
+	code, ok := strings.CutPrefix(*cycle, "ciclo_")
+	if !ok {
+		return *cycle
+	}
+	return "ciclo " + strings.ToUpper(code)
 }
 
 func deref(s *string) string {

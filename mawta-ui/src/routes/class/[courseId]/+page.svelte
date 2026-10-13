@@ -11,11 +11,6 @@
 
 	const courseId = $derived(page.params.courseId ?? '');
 
-	// The term-planning flow is built screen by screen behind this flag; until
-	// it is 'true' the class panel is exactly as today.
-	const PLANNING_ENABLED =
-		(import.meta.env as Record<string, string | undefined>).PUBLIC_PLANNING_ENABLED === 'true';
-
 	let ready = $state(false);
 	let loadError = $state(false);
 	let d = $state<ClassDashboardDto | null>(null);
@@ -120,17 +115,12 @@
 						<span class="quiet-d">Niveles de logro por competencia</span>
 					</span>
 				</ListRow>
-				<!-- The term-planning flow's only entry, hidden until it exists:
-			     PUBLIC_PLANNING_ENABLED shows the row, and the plan screen it
-			     opens is the flow's home ("Tu trimestre"). -->
-				{#if PLANNING_ENABLED}
-					<ListRow href="/class/{courseId}/plan" onclick={hapticTap}>
-						<span class="quiet-t">
-							Plan del trimestre
-							<span class="quiet-d">Experiencias, criterios y sesiones</span>
-						</span>
-					</ListRow>
-				{/if}
+				<ListRow href="/class/{courseId}/plan" onclick={hapticTap}>
+					<span class="quiet-t">
+						Plan del trimestre
+						<span class="quiet-d">Experiencias, criterios y sesiones</span>
+					</span>
+				</ListRow>
 				<!-- A screen now, not a dialog: choosing the competencia and its criterios
 			     is the decision that makes the evidence usable later, and in a 360px
 			     modal it sat under the fold behind a scroll box. The trailing plus

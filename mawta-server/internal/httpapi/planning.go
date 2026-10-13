@@ -420,13 +420,13 @@ type createPlannedCriterionRequest struct {
 	CompetencyID  string   `json:"competency_id"`
 	Description   string   `json:"description"`
 	CapabilityIDs []string `json:"capability_ids"`
-	PerformanceID string   `json:"performance_id"`
+	PerformanceID *string  `json:"performance_id"`
 }
 
 // POST /experiences/{experienceID}/criteria
 //
-// A criterion the teacher writes from one of the class grade's performances,
-// looking at one or more capabilities of its competency.
+// A criterion the teacher writes from the cycle standard, looking at one or
+// more capabilities of its competency. A grade performance is optional.
 func (a *API) handleCreatePlannedCriterion(w http.ResponseWriter, r *http.Request) {
 	tc := tenantCtxFrom(r)
 	experienceID, err := pathUUID(r, "experienceID")
@@ -443,9 +443,13 @@ func (a *API) handleCreatePlannedCriterion(w http.ResponseWriter, r *http.Reques
 		badRequest(w, "invalid competency_id")
 		return
 	}
-	if in.PerformanceID, err = uuid.Parse(req.PerformanceID); err != nil {
-		badRequest(w, "invalid performance_id")
-		return
+	if req.PerformanceID != nil {
+		id, err := uuid.Parse(*req.PerformanceID)
+		if err != nil {
+			badRequest(w, "invalid performance_id")
+			return
+		}
+		in.PerformanceID = &id
 	}
 	if in.CapabilityIDs, err = parseUUIDList("capability_ids", req.CapabilityIDs); err != nil {
 		badRequest(w, err.Error())
@@ -476,9 +480,9 @@ func (a *API) handleCreatePlannedCriterion(w http.ResponseWriter, r *http.Reques
 }
 
 type updatePlannedCriterionRequest struct {
-	Description   *string   `json:"description"`
-	CapabilityIDs *[]string `json:"capability_ids"`
-	PerformanceID *string   `json:"performance_id"`
+	Description   *string        `json:"description"`
+	CapabilityIDs *[]string      `json:"capability_ids"`
+	PerformanceID nullableString `json:"performance_id"`
 }
 
 // PUT /criteria/{criterionID}
@@ -500,13 +504,16 @@ func (a *API) handleUpdatePlannedCriterion(w http.ResponseWriter, r *http.Reques
 		badRequest(w, err.Error())
 		return
 	}
-	if req.PerformanceID != nil {
-		id, err := uuid.Parse(*req.PerformanceID)
-		if err != nil {
-			badRequest(w, "invalid performance_id")
-			return
+	if req.PerformanceID.set {
+		p.PerformanceIDSet = true
+		if req.PerformanceID.value != nil {
+			id, err := uuid.Parse(*req.PerformanceID.value)
+			if err != nil {
+				badRequest(w, "invalid performance_id")
+				return
+			}
+			p.PerformanceID = &id
 		}
-		p.PerformanceID = &id
 	}
 
 	var out repo.ExperienceCriterion
