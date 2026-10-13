@@ -301,7 +301,9 @@
 						{#each blocks as b (b.sessionId)}
 							{#if b.off}
 								<span class="box off" style="top: {b.top}px; height: {b.height}px">
-									<span class="btime">{b.time} · cancelada</span>
+									<span class="btime"
+										>{b.time} · {b.status === 'rescheduled' ? 'reprogramada' : 'cancelada'}</span
+									>
 									<span class="bname">{b.name}</span>
 								</span>
 							{:else}

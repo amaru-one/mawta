@@ -133,6 +133,7 @@
 			title="¿Cerrar sesión?"
 			description="Tendrás que iniciar sesión de nuevo para acceder a tus clases."
 			confirmLabel="Cerrar sesión"
+			tone="danger"
 			onconfirm={confirmLogout}
 			oncancel={() => {
 				hapticTap();
