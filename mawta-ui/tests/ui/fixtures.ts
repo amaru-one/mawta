@@ -8,6 +8,19 @@ import type {
 
 export const competency = { id: 'comp-1', code: 'MAT-1', name: 'Resuelve problemas de cantidad' };
 export const dates = ['2026-10-05', '2026-10-07', '2026-10-09'];
+
+// Monday, Wednesday and Friday class days across the term (2026-10-01 to 2026-12-18).
+const isoDay = (day: Date) =>
+	`${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+export const termClassDates = (() => {
+	const out: string[] = [];
+	const day = new Date(2026, 9, 1);
+	const end = new Date(2026, 11, 18);
+	for (; day <= end; day.setDate(day.getDate() + 1)) {
+		if ([1, 3, 5].includes(day.getDay())) out.push(isoDay(day));
+	}
+	return out;
+})();
 const timestamp = '2026-10-06T14:00:00Z';
 export const studentRoute = '/class/class-1/students/student-1?name=Ana%20Quispe&course=Matemática';
 export const planningBase = '/class/class-1/plan/experience-1';
@@ -527,8 +540,8 @@ export async function mockApi(page: Page, state: ApiState) {
 		if (path.endsWith('/curriculum')) return send(curriculum);
 		if (path.endsWith('/calendar'))
 			return send({
-				class_dates: [...dates, '2026-10-12', '2026-10-14', '2026-10-16'],
-				non_teaching_days: [],
+				class_dates: termClassDates.filter((date) => date >= '2026-10-12' && date !== '2026-10-21'),
+				non_teaching_days: [{ date: '2026-10-21', kind: 'feriado', label: 'Feriado' }],
 			});
 		if (path === '/experiences/experience-1') return send(state.experience);
 		if (path.endsWith('/plan'))

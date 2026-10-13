@@ -8,6 +8,7 @@ import { dismissToast, showError, toast } from '../../src/lib/toast';
 import { safeNext } from '../../src/lib/auth';
 import { pendingCounts } from '../../src/lib/planning/pending';
 import { runSequential } from '../../src/lib/batch';
+import { dayLabel, monthGrid } from '../../src/lib/calendar';
 
 declare module 'vitest/browser' {
 	interface BrowserCommands {
@@ -277,6 +278,20 @@ test('numeric fields start empty, bind numbers, and preserve native empty values
 	await expect
 		.element(screen.getByRole('status', { name: 'Nota actual' }))
 		.toHaveTextContent('null:');
+});
+
+test('month grids start on Monday, pad with nulls and hold every day once', () => {
+	const october = monthGrid({ year: 2026, month: 9 });
+	expect(october[0].slice(0, 3)).toEqual([null, null, null]);
+	expect(october[0][3]).toBe('2026-10-01'); // a Thursday
+	expect(october.at(-1)?.at(-1)).toBeNull();
+	expect(october.flat().filter((day) => day !== null)).toHaveLength(31);
+	expect(october.every((week) => week.length === 7)).toBe(true);
+});
+
+test('day labels name the weekday and the month in Spanish', () => {
+	expect(dayLabel('2026-10-12')).toBe('lunes 12 de octubre de 2026');
+	expect(dayLabel('2026-10-14')).toBe('miércoles 14 de octubre de 2026');
 });
 
 test('pending counts only unaccepted items, per step', () => {

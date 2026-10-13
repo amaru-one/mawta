@@ -12,6 +12,7 @@ export { default as Dialog } from './Dialog.svelte';
 export { default as EmptyState } from './EmptyState.svelte';
 export { default as ErrorNotice } from './ErrorNotice.svelte';
 export { default as PendingDialog } from './PendingDialog.svelte';
+export { default as RangeCalendar } from './RangeCalendar.svelte';
 export { default as Field } from './Field.svelte';
 export { default as Icon } from './Icon.svelte';
 export { default as IconButton } from './IconButton.svelte';

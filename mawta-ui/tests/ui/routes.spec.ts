@@ -70,7 +70,9 @@ test('manual planning keeps optional situation and free class dates', async ({ p
 	await page.getByLabel('Tu idea', { exact: true }).fill('Organizar una feria del aula');
 	await page.getByRole('button', { name: 'Escribirlo yo', exact: true }).click();
 	await page.getByLabel('Nombre', { exact: true }).fill('Feria de compras');
-	await expect(page.getByLabel('Empieza', { exact: true })).toHaveValue('2026-10-12');
+	await expect(
+		page.getByRole('button', { name: 'lunes 12 de octubre de 2026, inicio' })
+	).toBeVisible();
 	await page.getByRole('button', { name: 'Guardar borrador', exact: true }).click();
 	await expect(page).toHaveURL(/\/criteria$/);
 	const write = api.writes.find((w) => w.path === '/classes/class-1/experiences');
@@ -103,8 +105,12 @@ test('generated proposal preserves the returned dates for review', async ({ page
 	await page.getByLabel('Tu idea', { exact: true }).fill('Una feria');
 	await page.getByRole('button', { name: 'Generar con Mawta' }).click();
 	await expect(page.getByLabel('Nombre', { exact: true })).toHaveValue('La feria del aula');
-	await expect(page.getByLabel('Empieza', { exact: true })).toHaveValue('2026-10-12');
-	await expect(page.getByLabel('Termina', { exact: true })).toHaveValue('2026-10-16');
+	await expect(
+		page.getByRole('button', { name: 'lunes 12 de octubre de 2026, inicio' })
+	).toBeVisible();
+	await expect(
+		page.getByRole('button', { name: 'viernes 16 de octubre de 2026, fin' })
+	).toBeVisible();
 	expect(api.writes.some((w) => w.path.endsWith('/experience-proposals'))).toBe(true);
 });
 
@@ -251,7 +257,9 @@ test('No entregó and final conclusions preserve their distinct contracts', asyn
 		)
 		.toBe(true);
 	await page.getByRole('button', { name: 'Marcar como final', exact: true }).click();
-	await expect(page.getByText('Para marcarla como final, incluye recomendaciones personalizadas.')).toBeVisible();
+	await expect(
+		page.getByText('Para marcarla como final, incluye recomendaciones personalizadas.')
+	).toBeVisible();
 	expect(api.writes.some((w) => w.path.endsWith('/conclusions') && w.body.status === 'final')).toBe(
 		false
 	);
