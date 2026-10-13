@@ -15,11 +15,13 @@
 	let {
 		armed,
 		onrecorded,
+		oncancelled,
 		phase = $bindable('idle'),
 		elapsedSec = $bindable(0),
 	}: {
 		armed: boolean;
 		onrecorded: (blob: Blob, durationSec: number) => void;
+		oncancelled?: () => void;
 		phase?: RecordPhase;
 		elapsedSec?: number;
 	} = $props();
@@ -36,6 +38,12 @@
 		clearInterval(tickTimer);
 		phase = 'idle';
 		elapsedSec = 0;
+	}
+	// Losing focus (a call, another app, a tab switch) ends the take. The teacher is
+	// told, so the cancelled audio is not mistaken for a saved note.
+	function abort() {
+		if (phase !== 'idle') oncancelled?.();
+		cancel();
 	}
 	function cancel() {
 		++pressId;
@@ -125,7 +133,7 @@
 	});
 </script>
 
-<svelte:window onblur={cancel} />
+<svelte:window onblur={abort} />
 <div class="recording-control">
 	<button
 		type="button"

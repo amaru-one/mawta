@@ -136,6 +136,11 @@ func prepareExperience(ctx context.Context, tx pgx.Tx, gen repo.AgentGeneration)
 		pr.WriteString("\nEl docente no eligió competencias: elige tú entre 1 y 3 del área.\n")
 	}
 	fmt.Fprintf(&pr, "\n<idea_del_docente>\n%s\n</idea_del_docente>\n", strings.TrimSpace(in.IdeaText))
+	if ctx := strings.TrimSpace(in.ContextText); ctx != "" {
+		fmt.Fprintf(&pr, "\n<contexto_del_docente>\n%s\n</contexto_del_docente>\n", ctx)
+	} else {
+		pr.WriteString("\nContexto del docente: ninguno. No incluyas ningún evento, feria, aniversario, campaña ni actividad social.\n")
+	}
 
 	return agent.Prepared{
 		Spec: &agent.Spec{

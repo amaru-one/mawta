@@ -332,9 +332,14 @@ export type ConclusionPointDto = {
 };
 
 export type ConclusionWarningCode =
-	'voice_notes_discarded' | 'all_voice_notes_discarded' | 'voice_notes_pending' | 'no_voice_notes';
+	| 'voice_notes_discarded'
+	| 'all_voice_notes_discarded'
+	| 'voice_notes_pending'
+	| 'no_voice_notes'
+	| 'evidence_single_kind'
+	| 'evidence_single_experience';
 
-export type ConclusionWarningDto = { code: ConclusionWarningCode; count?: number };
+export type ConclusionWarningDto = { code: ConclusionWarningCode; count?: number; kind?: string };
 
 // A completed conclusion generation's proposal. Lives on the generation until
 // the teacher saves (and usually edits) it as their own conclusion.
@@ -538,6 +543,12 @@ export type PlanCompetencyDto = {
 	capabilities_total: number;
 	/** Capabilities with at least one criterio in this term's experiences. */
 	capabilities_covered_this_term: number;
+	/** Distinct evidences of the class this term that observe the competencia. */
+	evidences_this_term: number;
+	/** The kinds of those evidences: 'produccion' and/or 'actuacion'. */
+	evidence_kinds: string[] | null;
+	/** Whether an experience of this term plans the competencia at all. */
+	in_term: boolean;
 };
 
 export type ClassPlanDto = {
@@ -545,6 +556,11 @@ export type ClassPlanDto = {
 	non_teaching_days: PlanNonTeachingDayDto[] | null;
 	/** Class dates in the whole term, non-teaching days excluded. */
 	class_dates_total: number;
+	/**
+	 * Every day the weekly schedule meets in the term, non-teaching days included:
+	 * a feriado on a class day is a class slot the timeline marks.
+	 */
+	scheduled_class_days: string[] | null;
 	experiences: PlanExperienceDto[] | null;
 	/** The competencies of the class's area. */
 	competencies: PlanCompetencyDto[] | null;
@@ -660,7 +676,9 @@ export type SessionOutlineDto = {
 
 export type WarningDto =
 	| { code: 'capability_without_criterion'; competency_id: string; capability_id: string }
-	| { code: 'pending_proposals'; count: number };
+	| { code: 'pending_proposals'; count: number }
+	| { code: 'competency_few_evidences'; competency_id: string; count: number }
+	| { code: 'competency_single_kind'; competency_id: string; kind: string };
 
 export type ExperienceDto = {
 	id: string;
@@ -671,6 +689,8 @@ export type ExperienceDto = {
 	idea_text: string;
 	/** Null until a situation is written; it is optional. */
 	situation_text: string | null;
+	/** The teacher's event or context. Null means none: the agent may not invent one. */
+	context_text: string | null;
 	starts_on: string;
 	ends_on: string;
 	competencies: ExperienceCompetencyRefDto[] | null;
@@ -688,6 +708,8 @@ export type CreateExperienceBody = {
 	idea_text: string;
 	/** Optional: an experience can be saved before its situation is written. */
 	situation_text?: string | null;
+	/** Optional event or context the teacher wrote; the only source of an event. */
+	context_text?: string | null;
 	starts_on: string;
 	ends_on: string;
 	/** At least one, of the class's area. */
@@ -750,6 +772,8 @@ export type UpdateSessionBody = {
 export type ExperienceProposalBody = {
 	term_id: string;
 	idea_text: string;
+	/** Optional event or context the teacher wrote; omitted when empty. */
+	context_text?: string;
 	competency_ids?: string[];
 };
 

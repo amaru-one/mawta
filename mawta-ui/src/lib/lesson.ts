@@ -15,7 +15,7 @@ import {
 } from './api/endpoints/sessions';
 import { parseDateOnly, splitDisplayName } from './api/mappers';
 import { currentCourse, currentSession, entries, entryKey, notes, students } from './stores';
-import { showToast } from './toast';
+import { showError, showToast } from './toast';
 import type { Entry, Note, Session, Student } from './types';
 
 const SAVE_ERROR = 'No se pudo guardar — revisa tu conexión';
@@ -114,10 +114,10 @@ export async function addNote(studentId: string, blob: Blob, durationSec: number
 	if (!get(entries).has(entryId)) return;
 
 	const durationMs = Math.round(durationSec * 1000);
-	const localId = `local-${Date.now()}`;
 	const note: Note = {
-		id: localId,
+		id: `local-${Date.now()}`,
 		entryId,
+		studentId,
 		audioBlob: blob,
 		transcript: null,
 		durationMs,
@@ -125,25 +125,41 @@ export async function addNote(studentId: string, blob: Blob, durationSec: number
 		createdAt: new Date(),
 	};
 	setEntryNotes(entryId, [note, ...(get(notes).get(entryId) ?? [])]);
+	await uploadNote(session.id, note);
+}
 
+// A refused upload keeps the note, with its audio, in the list as 'failed' so the
+// teacher can retry it instead of recording again.
+async function uploadNote(sessionId: string, note: Note): Promise<void> {
+	if (!note.audioBlob || !note.studentId) return;
 	try {
-		const { id } = await createVoiceNote(session.id, studentId, blob, durationMs);
-		// Saving is automatic: there is no "Guardar" control on the note row
-		// any more, so the note is immediately taken through to 'saved' here,
-		// as a second call right after the create that made it. The status
-		// flips optimistically like the rest of this module; if the save leg
-		// itself fails, one silent retry follows, and if that also fails the
-		// note stays 'draft' server-side — still playable and deletable, only
-		// missing from área's "tiene comentarios" indicator for this one note,
-		// which is not worth a toast the teacher cannot act on.
-		replaceNote(entryId, localId, { ...note, id, status: 'saved' });
+		const { id } = await createVoiceNote(
+			sessionId,
+			note.studentId,
+			note.audioBlob,
+			note.durationMs
+		);
+		// Saving is automatic: the note is taken through to "saved" right after the
+		// create. If that second call fails, one silent retry follows, and if that also
+		// fails the note stays "draft" server-side: still playable and deletable.
+		replaceNote(note.entryId, note.id, { ...note, id, status: 'saved' });
 		void saveVoiceNote(id).catch(() => void saveVoiceNote(id).catch(() => {}));
 	} catch (err) {
-		replaceNote(entryId, localId, null);
+		replaceNote(note.entryId, note.id, { ...note, status: 'failed' });
 		// Validation rejections (over 1 min, empty/near-empty audio) carry a
 		// specific server message worth showing instead of the generic one.
-		showToast(err instanceof ApiError ? err.message : SAVE_ERROR);
+		showError(err instanceof ApiError ? err.message : SAVE_ERROR, {
+			onRetry: () => void retryNote(note),
+		});
 	}
+}
+
+// Retries an upload the server refused, from the audio still held in memory.
+export async function retryNote(note: Note): Promise<void> {
+	const session = get(currentSession);
+	if (!session) return;
+	replaceNote(note.entryId, note.id, { ...note, status: 'draft' });
+	await uploadNote(session.id, { ...note, status: 'draft' });
 }
 
 // Discard is final server-side; the confirm dialog already says so.

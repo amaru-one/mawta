@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { showError } from '$lib/toast';
 	import { Button, Field, Icon, IconButton, ListRow, LoadingState } from '$lib/design-system';
 	// The class list. It navigates and it reports — it does NOT evaluate.
 	//
@@ -66,9 +67,12 @@
 	// index refetches the list. The names do not change, so the rows are left on
 	// screen while it lands rather than blanking to a spinner.
 	let switching = $state(false);
+	// Bumped by "Reintentar" to run the competencia fetch again.
+	let attempt = $state(0);
 
 	$effect(() => {
 		const competencyId = selected;
+		void attempt;
 		untrack(() => {
 			if (!ready || competencyId === '') return;
 			switching = true;
@@ -76,7 +80,15 @@
 				.then((res) => {
 					rows = list(res.students);
 				})
-				.catch(() => {})
+				.catch(() => {
+					// Old rows must not stay under the new competencia's header.
+					rows = [];
+					showError('No se pudo cargar esta competencia', {
+						onRetry: () => {
+							attempt += 1;
+						},
+					});
+				})
 				.finally(() => {
 					switching = false;
 				});
@@ -201,7 +213,7 @@
 							{#if r.level !== null}
 								<LevelBadge tier={r.level} size={26} />
 							{:else}
-								<span class="nolevel">Sin nivel</span>
+								<span class="nolevel">Sin valorar</span>
 							{/if}
 							<span class="grow">
 								<span class="name">{r.full_name}</span>

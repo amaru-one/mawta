@@ -1,5 +1,5 @@
 import type { Snippet } from 'svelte';
-export type ButtonVariant = 'primary' | 'secondary';
+export type ButtonVariant = 'primary' | 'secondary' | 'danger';
 export type ActionVariant = 'neutral' | 'main' | 'remove' | 'link';
 export type NoticeVariant = 'info' | 'attention' | 'danger';
 export type Status = 'done' | 'due' | 'waiting';
@@ -28,6 +28,7 @@ export interface StatusItem {
 export interface ToastMessage {
 	id: string | number;
 	message: string;
+	tone?: 'info' | 'error';
 	actionLabel?: string;
 	onaction?: () => void;
 	durationMs?: number;

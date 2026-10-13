@@ -9,6 +9,7 @@
 		Icon,
 		LoadingState,
 		Notice,
+		RangeCalendar,
 	} from '$lib/design-system';
 	import { onDestroy, onMount } from 'svelte';
 	import { page } from '$app/state';
@@ -70,6 +71,9 @@
 	type Step = 'idea' | 'review' | 'change';
 	let step = $state<Step>('idea');
 	let ideaText = $state('');
+	// Optional event or context. Hidden until asked for: it is the only way an event enters.
+	let contextText = $state('');
+	let contextOpen = $state(false);
 	let selected = $state<string[]>([]);
 
 	const competencies = $derived(list(curriculum?.competencies));
@@ -130,6 +134,17 @@
 		return `${day.getDate()} ${MONTHS[day.getMonth()]}`;
 	}
 
+	// "2026" — shown once, in the range summary, not on every option.
+	function yearOf(date: string): number {
+		return fromISO(date).getFullYear();
+	}
+
+	// Whole weeks a range touches, counting the week of its first day.
+	function weeksBetween(from: string, to: string): number {
+		const days = Math.round((fromISO(to).getTime() - fromISO(from).getTime()) / 86400000);
+		return Math.floor(days / 7) + 1;
+	}
+
 	// "lun 15 jun"
 	function fmtDay(date: string): string {
 		return `${WEEKDAY_SHORT[fromISO(date).getDay()]} ${fmtDate(date)}`;
@@ -187,8 +202,12 @@
 		return upToTarget[upToTarget.length - 1] ?? fits[0] ?? start;
 	}
 
+	// Which date the calendar's next tap sets: the start or the end.
+	let picking = $state<'start' | 'end'>('start');
+
 	function setStart(start: string): void {
 		startsOn = start;
+		picking = 'end';
 		if (start === '') {
 			endsOn = '';
 			return;
@@ -213,6 +232,46 @@
 		const days = new Set(rangeClassDates.map((date) => fromISO(date).getDay()));
 		return WEEKDAY_SHORT.filter((_, index) => days.has(index)).join(', ');
 	});
+
+	// ---- the range calendar: what each day is, and what a tap does ----
+
+	const nonTeachingKind = $derived(
+		new Map(list(calendar?.non_teaching_days).map((day) => [day.date, day.kind]))
+	);
+	const classSet = $derived(new Set(classDates));
+
+	function kindOf(
+		date: string
+	): 'free' | 'busy' | 'holiday' | 'vacation' | 'management' | 'noclass' {
+		if (isBusy(date)) return 'busy';
+		const kind = nonTeachingKind.get(date);
+		if (kind === 'feriado') return 'holiday';
+		if (kind === 'vacaciones') return 'vacation';
+		if (kind === 'gestion') return 'management';
+		return classSet.has(date) ? 'free' : 'noclass';
+	}
+
+	function canStart(date: string): boolean {
+		return startOptions.includes(date);
+	}
+
+	function canEnd(date: string): boolean {
+		return startsOn !== '' && endOptions.includes(date);
+	}
+
+	// Which date the next tap sets, chosen with the Inicio / Fin chips (as in a flight search).
+	// Picking a start moves on to the end, so a later start can always be chosen.
+	function pick(date: string): void {
+		if (picking === 'start') {
+			if (canStart(date)) setStart(date);
+			return;
+		}
+		if (canEnd(date)) {
+			endsOn = date;
+			return;
+		}
+		if (canStart(date)) setStart(date);
+	}
 
 	// ---- "✦ Generar con Mawta": propose and poll ----
 
@@ -256,6 +315,7 @@
 		try {
 			const body: ExperienceProposalBody = { term_id: plan.term.id, idea_text: ideaText.trim() };
 			if (selected.length > 0) body.competency_ids = [...selected];
+			if (contextText.trim() !== '') body.context_text = contextText.trim();
 			const started = await proposeExperience(courseId, body);
 			const done = await waitForGeneration(started, leaving.signal);
 			if (done.status === 'failed') {
@@ -295,6 +355,7 @@
 				title: title.trim(),
 				idea_text: ideaText.trim(),
 				situation_text: situation.trim() || null,
+				context_text: contextText.trim() || null,
 				starts_on: startsOn,
 				ends_on: endsOn,
 				competency_ids: [...selected],
@@ -340,8 +401,24 @@
 						label="Tu idea"
 						rows={4}
 						bind:value={ideaText}
-						placeholder="Ej.: que armen y atiendan una tiendita en la feria del aula"
+						placeholder="Ej.: que armen y atiendan una tiendita para practicar vueltos"
 					/>
+				{/if}
+
+				{#if contextOpen}
+					<Field
+						kind="textarea"
+						label="Evento o contexto"
+						rows={2}
+						maxlength={300}
+						bind:value={contextText}
+						help="Mawta solo usará un evento si lo escribes aquí."
+						placeholder="Ej.: feria del aula, aniversario del colegio"
+					/>
+				{:else}
+					<Action variant="link" onclick={() => (contextOpen = true)}
+						>+ Agregar un evento o contexto (opcional)</Action
+					>
 				{/if}
 
 				{#if genError !== null}
@@ -413,9 +490,11 @@
 				<p class="origin">
 					{#if origin === 'mawta'}
 						<span class="ai-star">✦</span>
-						Mawta la armó a partir de tu idea: “{ideaText}”. Aún no está guardada.
+						Mawta la armó a partir de tu idea: “{ideaText}”. Aún no está guardada.{#if contextText.trim() !== ''}
+							Evento o contexto: “{contextText.trim()}”.{/if}
 					{:else}
-						Tu idea: “{ideaText}”. Aún no está guardada.
+						Tu idea: “{ideaText}”. Aún no está guardada.{#if contextText.trim() !== ''}
+							Evento o contexto: “{contextText.trim()}”.{/if}
 					{/if}
 				</p>
 				<h1 class="screen-title">Revisa la experiencia</h1>
@@ -484,39 +563,42 @@
 							</p>
 						</Notice>
 					{:else}
-						<div class="row when-row">
-							<Field
-								kind="select"
-								label="Empieza"
-								value={startsOn}
-								onchange={(event) => setStart(event.currentTarget.value)}
+						<div class="pick-row" role="group" aria-label="Elegir qué fecha tocar">
+							<button
+								type="button"
+								class="pick"
+								aria-pressed={picking === 'start'}
+								onclick={() => (picking = 'start')}
 							>
-								{#if startsOn !== '' && !startOptions.includes(startsOn)}
-									<option value={startsOn}>{fmtDay(startsOn)}</option>
-								{/if}
-								{#each startOptions as date (date)}
-									<option value={date}>{fmtDay(date)}</option>
-								{/each}
-							</Field>
-							<Field
-								kind="select"
-								label="Termina"
-								value={endsOn}
-								onchange={(event) => (endsOn = event.currentTarget.value)}
+								<small>Inicio</small>{startsOn === '' ? 'Elige' : fmtDay(startsOn)}
+							</button>
+							<button
+								type="button"
+								class="pick"
+								aria-pressed={picking === 'end'}
+								onclick={() => (picking = 'end')}
 							>
-								{#if endsOn !== '' && !endOptions.includes(endsOn)}
-									<option value={endsOn}>{fmtDay(endsOn)}</option>
-								{/if}
-								{#each endOptions as date (date)}
-									<option value={date}>{fmtDay(date)}</option>
-								{/each}
-							</Field>
+								<small>Fin</small>{endsOn === '' ? 'Elige' : fmtDay(endsOn)}
+							</button>
 						</div>
-						<p class="f-help">
-							<Icon name="calendar" size={12} />
-							{rangeClassDates.length} clases{classDaysText ? ` (${classDaysText})` : ''} · los días de
-							otras experiencias no aparecen
-						</p>
+						<RangeCalendar
+							min={plan?.term.starts_on ?? ''}
+							max={plan?.term.ends_on ?? ''}
+							start={startsOn || null}
+							end={endsOn || null}
+							{kindOf}
+							{canStart}
+							{canEnd}
+							onpick={pick}
+						/>
+						{#if startsOn !== '' && endsOn !== ''}
+							<p class="f-help">
+								<Icon name="calendar" size={12} />
+								{fmtDate(startsOn)} – {fmtDate(endsOn)}
+								{yearOf(endsOn)} · {weeksBetween(startsOn, endsOn)} semanas · {rangeClassDates.length}
+								clases{classDaysText ? ` (${classDaysText})` : ''}
+							</p>
+						{/if}
 					{/if}
 					{#if saveErrorText !== null}
 						<Notice variant="attention">
@@ -600,6 +682,37 @@
 		width: 100%;
 	}
 
+	.pick-row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: var(--mw-space-2);
+	}
+
+	.pick {
+		display: grid;
+		gap: 2px;
+		min-height: var(--mw-touch-target);
+		padding: var(--mw-space-2) var(--mw-space-3);
+		border: 1px solid var(--mw-line-control);
+		border-radius: var(--mw-radius-md);
+		background: var(--mw-surface-card);
+		text-align: left;
+		font-size: var(--mw-type-small-size);
+		font-weight: 600;
+		color: var(--mw-ink);
+	}
+
+	.pick small {
+		font-size: var(--mw-type-label-size);
+		font-weight: 500;
+		color: var(--mw-ink-muted);
+	}
+
+	.pick[aria-pressed='true'] {
+		border-color: var(--mw-accent);
+		box-shadow: inset 0 0 0 1px var(--mw-accent);
+	}
+
 	.f-help {
 		display: flex;
 		align-items: center;
@@ -636,10 +749,6 @@
 		font-size: var(--mw-type-body-size);
 		line-height: 1.45;
 		color: var(--mw-ink);
-	}
-
-	.when-row {
-		gap: 10px;
 	}
 
 	.waiting-text {

@@ -48,7 +48,9 @@ export type Note = {
 	audioBlob: Blob | null;
 	transcript: string | null;
 	durationMs: number;
-	status: 'draft' | 'saved';
+	status: 'draft' | 'saved' | 'failed';
+	// Set on notes recorded in this session, so a refused upload can be retried.
+	studentId?: string;
 	createdAt?: Date;
 };
 

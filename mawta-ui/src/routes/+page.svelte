@@ -301,7 +301,9 @@
 						{#each blocks as b (b.sessionId)}
 							{#if b.off}
 								<span class="box off" style="top: {b.top}px; height: {b.height}px">
-									<span class="btime">{b.time} · cancelada</span>
+									<span class="btime"
+										>{b.time} · {b.status === 'rescheduled' ? 'reprogramada' : 'cancelada'}</span
+									>
 									<span class="bname">{b.name}</span>
 								</span>
 							{:else}
@@ -350,14 +352,14 @@
 
 	.head {
 		flex-shrink: 0;
-		padding: 18px 20px 0;
+		padding: 18px var(--mw-space-5) 0;
 	}
 
 	.titlerow {
 		display: flex;
 		align-items: flex-start;
 		justify-content: space-between;
-		gap: 12px;
+		gap: var(--mw-space-3);
 		padding-bottom: 14px;
 	}
 
@@ -370,7 +372,7 @@
 	}
 
 	.sum {
-		margin: 10px 0 16px;
+		margin: 10px 0 var(--mw-space-4);
 		font-size: var(--mw-type-label-size);
 		font-family: var(--mw-font-sans);
 		letter-spacing: 0.04em;
@@ -381,8 +383,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: 4px;
-		padding: 2px 0 12px;
+		gap: var(--mw-space-1);
+		padding: 2px 0 var(--mw-space-3);
 		border-bottom: 1px solid var(--mw-line);
 	}
 
@@ -392,7 +394,7 @@
 		align-items: center;
 		gap: 6px;
 		width: 46px;
-		padding: 4px 0;
+		padding: var(--mw-space-1) 0;
 	}
 
 	.dow {
@@ -450,20 +452,23 @@
 		flex: 1;
 		min-height: 0;
 		overflow-y: auto;
-		padding: 14px 18px 24px;
+		padding: 14px 18px var(--mw-space-6);
 	}
 
 	.grid::-webkit-scrollbar {
 		width: 0;
 	}
 
+	/* One gutter for every hour-aligned element, so labels, rules and blocks line up. */
 	.canvas {
+		--gutter: 52px;
+		--label-w: 42px;
 		position: relative;
 	}
 
 	.hline {
 		position: absolute;
-		left: 50px;
+		left: var(--gutter);
 		right: 0;
 		height: 0;
 		border-top: 1px solid var(--mw-line);
@@ -472,24 +477,26 @@
 	.hlabel {
 		position: absolute;
 		left: 0;
-		width: 34px;
+		width: var(--label-w);
 		text-align: right;
 		font-size: var(--mw-type-label-size);
 		line-height: 1.4;
 		font-family: var(--mw-font-sans);
 		color: var(--mw-ink-secondary);
+		white-space: nowrap;
+		font-variant-numeric: tabular-nums;
 	}
 
 	.box {
 		position: absolute;
-		left: 50px;
+		left: var(--gutter);
 		right: 0;
 		display: flex;
 		flex-direction: column;
 		gap: 2px;
 		justify-content: center;
-		padding: 6px 12px;
-		border-radius: 12px;
+		padding: 6px var(--mw-space-3);
+		border-radius: var(--mw-radius-lg);
 		background: var(--mw-surface-tint);
 		border: 1px solid var(--mw-line);
 		overflow: hidden;
@@ -555,12 +562,12 @@
 		left: 0;
 		right: 0;
 		height: 0;
-		z-index: 2;
+		z-index: var(--mw-z-overlay);
 	}
 
 	.nowrule {
 		position: absolute;
-		left: 50px;
+		left: var(--gutter);
 		right: 0;
 		top: 0;
 		height: 1px;
@@ -569,7 +576,7 @@
 
 	.nowdot {
 		position: absolute;
-		left: 47px;
+		left: calc(var(--gutter) - 3px);
 		top: -3px;
 		width: 6px;
 		height: 6px;
@@ -581,7 +588,9 @@
 		position: absolute;
 		left: 0;
 		top: -7px;
-		width: 34px;
+		width: var(--label-w);
+		white-space: nowrap;
+		font-variant-numeric: tabular-nums;
 		text-align: right;
 		font-size: var(--mw-type-label-size);
 		line-height: 1.4;
@@ -591,7 +600,7 @@
 	}
 
 	.none {
-		margin: 8px 0 0;
+		margin: var(--mw-space-2) 0 0;
 		font-size: var(--mw-type-heading-size);
 		color: var(--mw-ink-secondary);
 	}

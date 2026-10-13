@@ -83,7 +83,7 @@ func prepareEvidences(ctx context.Context, tx pgx.Tx, gen repo.AgentGeneration) 
 		competency[c.ID] = c.Name
 	}
 	var pr strings.Builder
-	fmt.Fprintf(&pr, "Experiencia: %s\nSituación: %s\n\nCriterios de la experiencia:\n", exp.Title, deref(exp.SituationText))
+	fmt.Fprintf(&pr, "Experiencia: %s\nSituación: %s\n%s\nCriterios de la experiencia:\n", exp.Title, deref(exp.SituationText), contextLine(exp.ContextText))
 	for _, c := range exp.Criteria {
 		mark := "ya tiene evidencia"
 		if !observed[c.ID] {

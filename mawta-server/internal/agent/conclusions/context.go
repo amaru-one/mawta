@@ -18,7 +18,7 @@ import (
 // teacher-asserted level plus this many distinct evidences with a live
 // graded score, read against the competency's criteria in the term. Voice
 // notes never count toward it: they complement, they do not ground.
-const MinGradedEvidences = 2
+const MinGradedEvidences = repo.MinConclusionEvidences
 
 // Scope is what one conclusion is about. It always comes from the server
 // (the request path or the generation's columns), never from the model.
@@ -96,6 +96,7 @@ func (m Material) Check() error {
 type Warning struct {
 	Code  string `json:"code"`
 	Count int    `json:"count,omitempty"`
+	Kind  string `json:"kind,omitempty"`
 }
 
 // Warning codes.
@@ -109,7 +110,49 @@ const (
 	WarnVoiceNotesPending      = "voice_notes_pending"
 	// No note at all: the proposal is less precise.
 	WarnNoVoiceNotes = "no_voice_notes"
+	// The graded evidence is all one kind (produccion or actuacion): the CNEB
+	// asks for varied evidence. Never blocks: the proposal still runs.
+	WarnEvidenceSingleKind = "evidence_single_kind"
+	// The graded evidence all comes from one learning experience: the CNEB
+	// asks for evidence from diverse situations.
+	WarnEvidenceSingleExperience = "evidence_single_experience"
 )
+
+// varietyWarnings flags graded evidence that is narrow: one kind, or one
+// experience. It only speaks once the minimum is met, and only about graded
+// evidence, the material the proposal stands on. Evidence the teacher added by
+// hand has no experience, so it never proves a single experience on its own.
+func (m Material) varietyWarnings() []Warning {
+	if m.Graded < MinGradedEvidences {
+		return nil
+	}
+	var out []Warning
+	kinds := map[string]bool{}
+	var experience *uuid.UUID
+	singleExperience := true
+	for _, e := range m.Evidences {
+		if !e.Graded() {
+			continue
+		}
+		kinds[e.Kind] = true
+		if e.ExperienceID == nil {
+			singleExperience = false
+		} else if experience == nil {
+			experience = e.ExperienceID
+		} else if *experience != *e.ExperienceID {
+			singleExperience = false
+		}
+	}
+	if len(kinds) == 1 {
+		for kind := range kinds {
+			out = append(out, Warning{Code: WarnEvidenceSingleKind, Kind: kind})
+		}
+	}
+	if singleExperience && experience != nil {
+		out = append(out, Warning{Code: WarnEvidenceSingleExperience})
+	}
+	return out
+}
 
 // OnlyDiscardedNotes reports the worst case: the student has voice notes in
 // the term, and the sweep discarded every one of them.
@@ -132,7 +175,7 @@ func (m Material) Warnings() []Warning {
 	if len(m.VoiceNotes) == 0 && m.NoteCounts.Discarded == 0 {
 		out = append(out, Warning{Code: WarnNoVoiceNotes})
 	}
-	return out
+	return append(out, m.varietyWarnings()...)
 }
 
 // refs are the short references the model cites (E1, N1, C1) and the ids

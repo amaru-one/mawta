@@ -136,6 +136,9 @@ func planClass(t *testing.T, env *dbtest.Env) uuid.UUID {
 		values ({{class}}, {{tenant}}, {{year}}, {{grade}}, {{course}}, {{section}}, {{label}}, 'Matemática ' || {{label}});
 		insert into class_teachers (tenant_id, class_id, teacher_id, role, starts_on)
 		values ({{tenant}}, {{class}}, {{teacher}}, 'titular', '2026-03-01');
+		insert into class_schedules (tenant_id, class_id, weekday, starts_at, ends_at, effective_from)
+		values ({{tenant}}, {{class}}, 1, time '08:00', time '09:30', '2026-03-01'),
+		       ({{tenant}}, {{class}}, 3, time '08:00', time '09:30', '2026-03-01');
 
 		insert into class_sessions (tenant_id, academic_year_id, class_id, term_id, session_date,
 		                            scheduled_start_at, scheduled_end_at, status)
@@ -179,6 +182,7 @@ func planClass(t *testing.T, env *dbtest.Env) uuid.UUID {
 			delete from experience_competencies where experience_id in %[1]s;
 			delete from learning_experiences where class_id = '%[2]s';
 			delete from class_sessions where class_id = '%[2]s';
+			delete from class_schedules where class_id = '%[2]s';
 			delete from class_teachers where class_id = '%[2]s';
 			delete from classes where id = '%[2]s';
 			delete from section_memberships where section_id = '%[3]s';
@@ -315,6 +319,19 @@ func TestPlanReadsAnEmptyTerm(t *testing.T) {
 	// Friday and the non-teaching days left out.
 	if want := len(expectedClassDates("2026-05-16", "2026-07-31")); p.ClassDatesTotal != want {
 		t.Errorf("class_dates_total = %d, want %d", p.ClassDatesTotal, want)
+	}
+	// The weekly schedule meets Mondays and Wednesdays across the whole term,
+	// holidays and vacations included: the timeline marks them as class slots.
+	var wantScheduled []string
+	from, _ := time.Parse("2006-01-02", p.Term.StartsOn)
+	to, _ := time.Parse("2006-01-02", p.Term.EndsOn)
+	for d := from; !d.After(to); d = d.AddDate(0, 0, 1) {
+		if d.Weekday() == time.Monday || d.Weekday() == time.Wednesday {
+			wantScheduled = append(wantScheduled, d.Format("2006-01-02"))
+		}
+	}
+	if fmt.Sprint(p.ScheduledClassDays) != fmt.Sprint(wantScheduled) {
+		t.Errorf("scheduled_class_days = %v, want %v", p.ScheduledClassDays, wantScheduled)
 	}
 	wantRanges := []repo.NonTeachingRange{
 		{From: planHoliday, To: planHoliday, Kind: "feriado"},
@@ -486,8 +503,9 @@ func TestPlanningAnExperience(t *testing.T) {
 	if want := expectedClassDates("2026-06-01", "2026-06-30"); strings.Join(exp.ClassDates, ",") != strings.Join(want, ",") {
 		t.Errorf("class_dates = %v, want %v", exp.ClassDates, want)
 	}
-	// Three capabilities, no criteria: three warnings, nothing pending.
-	if len(exp.Warnings) != 3 {
+	// Three capabilities, no criteria: three warnings, nothing pending. The
+	// competency evidence warnings are checked on their own below.
+	if caps := warningsWithCode(exp.Warnings, "capability_without_criterion"); len(caps) != 3 {
 		t.Errorf("warnings = %+v, want one capability_without_criterion per capability", exp.Warnings)
 	}
 	expPath := "/api/v1/experiences/" + exp.ID.String()
@@ -614,9 +632,22 @@ func TestPlanningAnExperience(t *testing.T) {
 	// Every capability now has an accepted criterion except MAT-C1-CAP1
 	// (the first criterion was edited down to CAP2).
 	got = getExperience(t, h, token, exp.ID)
-	if len(got.Warnings) != 1 || got.Warnings[0].Code != "capability_without_criterion" ||
-		*got.Warnings[0].CapabilityID != planCapC1a {
+	if caps := warningsWithCode(got.Warnings, "capability_without_criterion"); len(caps) != 1 ||
+		*caps[0].CapabilityID != planCapC1a {
 		t.Errorf("warnings = %+v, want only MAT-C1-CAP1 uncovered", got.Warnings)
+	}
+	// The one accepted evidence planned over MAT-C1 is the only one in the
+	// term so far: the planning warning counts it and asks for a second.
+	if few := findWarning(got.Warnings, "competency_few_evidences"); few == nil || *few.Count != 1 {
+		t.Errorf("warnings = %+v, want competency_few_evidences with count 1", got.Warnings)
+	}
+
+	// The term plan carries the same count, and marks MAT-C1 as planned this term.
+	termPlan := getPlan(t, h, token, classID, fx.TermII)
+	for _, c := range termPlan.Competencies {
+		if c.ID == fx.CompetencyC1 && (c.EvidencesThisTerm != 1 || !c.InTerm || len(c.EvidenceKinds) != 1) {
+			t.Errorf("plan competency MAT-C1 = %+v, want one evidence of one kind, planned this term", c)
+		}
 	}
 
 	// Edit the experience itself.
@@ -629,7 +660,7 @@ func TestPlanningAnExperience(t *testing.T) {
 	// Confirm.
 	w = mustDo(t, h, token, "POST", expPath+"/confirm", "", http.StatusOK)
 	decodeInto(t, w, &got)
-	if got.Status != "planificada" || len(got.Warnings) != 1 {
+	if got.Status != "planificada" || len(warningsWithCode(got.Warnings, "capability_without_criterion")) != 1 {
 		t.Errorf("confirmed experience = %+v, want planificada with its warning", got)
 	}
 
@@ -688,6 +719,17 @@ func findWarning(ws []repo.Warning, code string) *repo.Warning {
 		}
 	}
 	return nil
+}
+
+// warningsWithCode returns every warning with the given code, in order.
+func warningsWithCode(ws []repo.Warning, code string) []repo.Warning {
+	var out []repo.Warning
+	for _, w := range ws {
+		if w.Code == code {
+			out = append(out, w)
+		}
+	}
+	return out
 }
 
 // assertPlacement checks both sides of an evidence's placement agree: date

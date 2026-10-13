@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { IconButton } from '$lib/design-system';
+	import { Button, IconButton } from '$lib/design-system';
 	import { onDestroy } from 'svelte';
 
 	import { showToast } from '$lib/toast';
@@ -13,9 +13,11 @@
 		// Without it the note is read-only: no delete button (e.g. a note shown
 		// for review, which the teacher moves or confirms instead).
 		ondelete?: (note: Note) => void;
+		// Shown for a note the server refused to save; the audio is still here.
+		onretry?: (note: Note) => void;
 	}
 
-	let { note, ondelete }: Props = $props();
+	let { note, ondelete, onretry }: Props = $props();
 
 	let alive = true;
 	let loading = $state(false);
@@ -122,6 +124,9 @@
 		{/if}
 	</button>
 
+	{#if note.status === 'failed' && onretry}
+		<Button variant="secondary" onclick={() => onretry(note)}>Reintentar guardar</Button>
+	{/if}
 	{#if ondelete}
 		<IconButton icon="trash" label="Eliminar nota" onclick={() => (showDeleteConfirm = true)} />
 	{/if}
@@ -130,7 +135,7 @@
 {#if showDeleteConfirm && ondelete}
 	<ConfirmDialog
 		title="¿Eliminar esta nota?"
-		text="Esta acción no se puede deshacer."
+		description="Esta acción no se puede deshacer."
 		confirmLabel="Eliminar"
 		onconfirm={() => {
 			ondelete(note);
@@ -154,7 +159,7 @@
 		flex: 1;
 		min-width: 0;
 		text-align: left;
-		min-height: 40px;
+		min-height: var(--mw-touch-target);
 	}
 	.duration {
 		font-size: var(--mw-type-small-size);

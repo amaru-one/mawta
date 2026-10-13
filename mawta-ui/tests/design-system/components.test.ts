@@ -3,6 +3,13 @@ import { userEvent, commands } from 'vitest/browser';
 import { render } from 'vitest-browser-svelte';
 import Fixture from './Fixture.svelte';
 import { tick } from 'svelte';
+import { get } from 'svelte/store';
+import { dismissToast, showError, toast } from '../../src/lib/toast';
+import { safeNext } from '../../src/lib/auth';
+import { pendingCounts } from '../../src/lib/planning/pending';
+import { runSequential } from '../../src/lib/batch';
+import { dayLabel, monthGrid } from '../../src/lib/calendar';
+import { buildTimeline, offRuns, spanOf } from '../../src/lib/timeline';
 
 declare module 'vitest/browser' {
 	interface BrowserCommands {
@@ -272,4 +279,181 @@ test('numeric fields start empty, bind numbers, and preserve native empty values
 	await expect
 		.element(screen.getByRole('status', { name: 'Nota actual' }))
 		.toHaveTextContent('null:');
+});
+
+test('month grids start on Monday, pad with nulls and hold every day once', () => {
+	const october = monthGrid({ year: 2026, month: 9 });
+	expect(october[0].slice(0, 3)).toEqual([null, null, null]);
+	expect(october[0][3]).toBe('2026-10-01'); // a Thursday
+	expect(october.at(-1)?.at(-1)).toBeNull();
+	expect(october.flat().filter((day) => day !== null)).toHaveLength(31);
+	expect(october.every((week) => week.length === 7)).toBe(true);
+});
+
+test('day labels name the weekday and the month in Spanish', () => {
+	expect(dayLabel('2026-10-12')).toBe('lunes 12 de octubre de 2026');
+	expect(dayLabel('2026-10-14')).toBe('miércoles 14 de octubre de 2026');
+});
+
+test('pending counts only unaccepted items, per step', () => {
+	const counts = pendingCounts({
+		criteria: [{ accepted_at: null }, { accepted_at: '2026-10-01T10:00:00Z' }],
+		evidences: [{ accepted_at: null }],
+		sessions: null,
+	} as never);
+	expect(counts).toEqual({ criteria: 1, evidences: 1, sessions: 0, total: 2 });
+});
+
+test('runSequential keeps going after a failure and reports only the failed items', async () => {
+	const seen: number[] = [];
+	const progress = vi.fn();
+	const result = await runSequential(
+		[1, 2, 3],
+		async (n) => {
+			seen.push(n);
+			if (n === 2) throw new Error('no');
+		},
+		progress
+	);
+	expect(seen).toEqual([1, 2, 3]);
+	expect(result).toEqual({ done: 2, failed: [2] });
+	expect(progress).toHaveBeenLastCalledWith(3, 3);
+});
+
+test('pending dialog offers review and continue as separate decisions', async () => {
+	const review = vi.fn();
+	const continueAnyway = vi.fn();
+	const screen = await render(Fixture, {
+		scenario: 'pending',
+		onaction: review,
+		oncontinue: continueAnyway,
+	});
+	await screen.getByRole('button', { name: 'Continuar', exact: true }).click();
+	const dialog = screen.getByRole('dialog');
+	expect(dialog.element().textContent).toContain('Quedan 3 propuestas sin revisar');
+	await dialog.getByRole('button', { name: 'Continuar de todos modos' }).click();
+	expect(continueAnyway).toHaveBeenCalledTimes(1);
+	expect(review).not.toHaveBeenCalled();
+});
+
+test('safeNext keeps same-origin paths and rejects off-site or login targets', () => {
+	expect(safeNext('/class/class-1')).toBe('/class/class-1');
+	for (const unsafe of ['//evil.test', '/\\evil.test', 'https://evil.test', '/login', null]) {
+		expect(safeNext(unsafe)).toBeNull();
+	}
+});
+
+// Two weeks from Monday 5 oct, classes on Mon/Wed/Fri: week 1 has three class
+// days (thirds), week 2 too.
+const MWF_TERM = {
+	termStart: '2026-10-05',
+	termEnd: '2026-10-18',
+	scheduled: ['2026-10-05', '2026-10-07', '2026-10-09', '2026-10-12', '2026-10-14', '2026-10-16'],
+};
+
+test('buildTimeline splits each week into its class days and ignores the days between', () => {
+	const track = buildTimeline(MWF_TERM.termStart, MWF_TERM.termEnd, MWF_TERM.scheduled);
+	expect(track.weekCount).toBe(2);
+	expect(track.weekHasClasses).toEqual([true, true]);
+	expect(track.slots).toHaveLength(6);
+	// Wednesday 7 starts exactly where Monday 5 ends: no empty Tuesday on the track.
+	expect(track.slots[0]?.end).toBeCloseTo(track.slots[1]?.start ?? NaN);
+	expect(track.slots[1]?.start).toBeCloseTo(1 / 3);
+	expect(track.slots[3]?.start).toBeCloseTo(1);
+});
+
+test('buildTimeline marks a week with no class day, and falls back to Monday to Friday', () => {
+	const sparse = buildTimeline('2026-10-05', '2026-10-18', ['2026-10-05']);
+	expect(sparse.weekHasClasses).toEqual([true, false]);
+	const fallback = buildTimeline('2026-10-05', '2026-10-11', null);
+	expect(fallback.slots.map((slot) => slot.date)).toEqual([
+		'2026-10-05',
+		'2026-10-06',
+		'2026-10-07',
+		'2026-10-08',
+		'2026-10-09',
+	]);
+});
+
+test('spanOf starts and ends on class days, and shared weeks meet at the class boundary', () => {
+	const track = buildTimeline(MWF_TERM.termStart, MWF_TERM.termEnd, MWF_TERM.scheduled);
+	// Oct 5 to Oct 7 covers the first two thirds of week 1, whatever the calendar days.
+	const first = spanOf(track, '2026-10-05', '2026-10-07');
+	expect(first?.start).toBeCloseTo(0);
+	expect(first?.end).toBeCloseTo(2 / 3);
+	// Oct 9 begins the last third, so the next experience touches the first.
+	const second = spanOf(track, '2026-10-09', '2026-10-16');
+	expect(second?.start).toBeCloseTo(2 / 3);
+	expect(second?.end).toBeCloseTo(2);
+	// A stretch with no class day has nothing to draw.
+	expect(spanOf(track, '2026-10-06', '2026-10-06')).toBeNull();
+});
+
+test('offRuns marks class slots only, merges consecutive ones, and ignores non-class days', () => {
+	const track = buildTimeline(MWF_TERM.termStart, MWF_TERM.termEnd, MWF_TERM.scheduled);
+	const runs = offRuns(track, [
+		// Wednesday 7 is a class slot: one third of week 1.
+		{ from: '2026-10-07', to: '2026-10-07', kind: 'feriado', label: 'Feriado' },
+		// Tuesday 6 is not a class day: nothing is drawn.
+		{ from: '2026-10-06', to: '2026-10-06', kind: 'feriado', label: 'Feriado' },
+		// The whole of week 2 is vacation: one run across its three slots.
+		{ from: '2026-10-12', to: '2026-10-16', kind: 'vacaciones', label: null },
+	]);
+	expect(runs).toHaveLength(2);
+	expect(runs[0]?.start).toBeCloseTo(1 / 3);
+	expect(runs[0]?.end).toBeCloseTo(2 / 3);
+	expect(runs[1]?.start).toBeCloseTo(1);
+	expect(runs[1]?.end).toBeCloseTo(2);
+});
+
+test('showError stores an error tone with a retry action and a longer hold', () => {
+	const retry = vi.fn();
+	showError('No se guardó', { onRetry: retry });
+	const current = get(toast)!;
+	expect(current.tone).toBe('error');
+	expect(current.undoLabel).toBe('Reintentar');
+	expect(current.durationMs).toBe(6000);
+	current.onUndo?.();
+	expect(retry).toHaveBeenCalledTimes(1);
+	dismissToast(current.id);
+});
+
+test('error toasts announce as alerts and hold their timer while hovered', async () => {
+	const dismissed = vi.fn();
+	const screen = await render(Fixture, {
+		scenario: 'toast',
+		ondismiss: dismissed,
+		toastValue: { id: 'err', message: 'No se guardó', tone: 'error', durationMs: 300 },
+	});
+	const notice = screen.getByRole('alert');
+	await expect.element(notice).toHaveTextContent('No se guardó');
+	await userEvent.hover(notice.element());
+	await new Promise((resolve) => setTimeout(resolve, 450));
+	expect(dismissed).not.toHaveBeenCalled();
+	await userEvent.unhover(notice.element());
+	await new Promise((resolve) => setTimeout(resolve, 450));
+	expect(dismissed).toHaveBeenCalledTimes(1);
+});
+
+test('error notices are announced and retry runs once, busy while retrying', async () => {
+	const retry = vi.fn();
+	const screen = await render(Fixture, { scenario: 'error', onaction: retry });
+	await expect.element(screen.getByRole('alert')).toHaveTextContent('No pudimos guardar el nivel.');
+	await screen.getByRole('button', { name: 'Reintentar' }).click();
+	expect(retry).toHaveBeenCalledTimes(1);
+	await screen.rerender({ loading: true });
+	await expect.element(screen.getByRole('button', { name: 'Reintentar' })).toBeDisabled();
+});
+
+test('danger confirmations use the danger button and fire one decision', async () => {
+	const confirm = vi.fn();
+	const cancel = vi.fn();
+	const screen = await render(Fixture, { scenario: 'danger', onaction: confirm, oncancel: cancel });
+	await screen.getByRole('button', { name: 'Cerrar sesión' }).click();
+	const dialog = screen.getByRole('alertdialog');
+	const confirmButton = dialog.getByRole('button', { name: 'Cerrar sesión' });
+	expect(getComputedStyle(confirmButton.element()).backgroundColor).toBe('rgb(180, 35, 24)');
+	await confirmButton.click();
+	expect(confirm).toHaveBeenCalledTimes(1);
+	expect(cancel).not.toHaveBeenCalled();
 });

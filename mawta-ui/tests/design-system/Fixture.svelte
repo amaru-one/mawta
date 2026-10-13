@@ -23,6 +23,8 @@
 		Dialog,
 		ConfirmDialog,
 		EmptyState,
+		ErrorNotice,
+		PendingDialog,
 		LoadingState,
 		type ToastMessage,
 	} from '../../src/lib/design-system';
@@ -31,6 +33,7 @@
 		onaction = () => {},
 		oncancel = () => {},
 		ondismiss = () => {},
+		oncontinue = () => {},
 		toastValue = null,
 		loading = false,
 		disabled = false,
@@ -39,6 +42,7 @@
 		onaction?: () => void;
 		oncancel?: () => void;
 		ondismiss?: (id: string | number) => void;
+		oncontinue?: () => void;
 		toastValue?: ToastMessage | null;
 		loading?: boolean;
 		disabled?: boolean;
@@ -52,6 +56,7 @@
 	let confirmation = $state(false);
 	let step = $state(0);
 	let standalone = $state(false);
+	let pendingOpen = $state(false);
 	const options = [
 		{ value: 'production', label: 'Producción' },
 		{ value: 'performance', label: 'Actuación' },
@@ -173,6 +178,30 @@
 				title="Quitar criterio"
 				description="El criterio se quitará de la experiencia."
 				confirmLabel="Confirmar"
+				onconfirm={onaction}
+				{oncancel}
+			/>
+		{:else if scenario === 'pending'}
+			<Button
+				onclick={() => {
+					pendingOpen = true;
+				}}>Continuar</Button
+			>
+			<PendingDialog bind:open={pendingOpen} count={3} onreview={onaction} {oncontinue} />
+		{:else if scenario === 'error'}
+			<ErrorNotice message="No pudimos guardar el nivel." onretry={onaction} retrying={loading} />
+		{:else if scenario === 'danger'}
+			<Button
+				onclick={() => {
+					confirmation = true;
+				}}>Cerrar sesión</Button
+			>
+			<ConfirmDialog
+				bind:open={confirmation}
+				tone="danger"
+				title="¿Cerrar sesión?"
+				description="Tendrás que volver a entrar."
+				confirmLabel="Cerrar sesión"
 				onconfirm={onaction}
 				{oncancel}
 			/>

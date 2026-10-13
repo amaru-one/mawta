@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { DesignSystem, LoadingState } from '$lib/design-system';
+	import { DesignSystem, ErrorNotice, LoadingState } from '$lib/design-system';
 	import '../app.css';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -7,16 +7,54 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import Toast from '$lib/components/Toast.svelte';
 	import { getMe } from '$lib/api/endpoints/home';
-	import { setUnauthorizedHandler } from '$lib/api/client';
+	import { ApiError, setUnauthorizedHandler } from '$lib/api/client';
+	import { loginHref } from '$lib/auth';
 	import { loadNotifications } from '$lib/notifications';
 	import { session, teacher } from '$lib/stores';
 
 	let { children } = $props();
 
+	let bootFailed = $state(false);
+	let retrying = $state(false);
+
+	// An expired session sends the teacher to login and back to this page.
 	function goAnonymous(): void {
 		session.set({ status: 'anonymous' });
 		teacher.set(null);
-		if (page.url.pathname !== '/login') void goto('/login', { replaceState: true });
+		if (page.url.pathname !== '/login')
+			void goto(loginHref(page.url.pathname + page.url.search), { replaceState: true });
+	}
+
+	async function boot(): Promise<void> {
+		bootFailed = false;
+		try {
+			const me = await getMe();
+			const name = me.user.display_name;
+			teacher.set({
+				initials: name
+					.split(' ')
+					.slice(0, 2)
+					.map((w) => w[0] ?? '')
+					.join('')
+					.toUpperCase(),
+				shortName: name,
+				school: me.tenant.name,
+			});
+			session.set({ status: 'authenticated', role: me.role });
+
+			// Only loads once signed in — an unconditional load would spam
+			// /notifications with 401s (each one re-triggering the redirect)
+			// for as long as a viewer sits on /login.
+			void loadNotifications().catch(() => {});
+		} catch (error) {
+			// A 401 already went through the unauthorized handler and redirected.
+			if (error instanceof ApiError && error.status === 401) return;
+			// Network or 5xx: the session may be fine. Say so and let the teacher retry
+			// instead of silently sending them to login.
+			bootFailed = true;
+		} finally {
+			retrying = false;
+		}
 	}
 
 	onMount(() => {
@@ -29,33 +67,13 @@
 			return;
 		}
 
-		getMe()
-			.then((me) => {
-				const name = me.user.display_name;
-				teacher.set({
-					initials: name
-						.split(' ')
-						.slice(0, 2)
-						.map((w) => w[0] ?? '')
-						.join('')
-						.toUpperCase(),
-					shortName: name,
-					school: me.tenant.name,
-				});
-				session.set({ status: 'authenticated', role: me.role });
-
-				// Only loads once signed in — an unconditional load would spam
-				// /notifications with 401s (each one re-triggering the redirect)
-				// for as long as a viewer sits on /login.
-				void loadNotifications().catch(() => {});
-			})
-			.catch(() => {
-				// A non-401 failure (network, 5xx) also lands here since
-				// setUnauthorizedHandler only fires on 401; either way there is
-				// no usable session, so the shell falls back the same way.
-				goAnonymous();
-			});
+		void boot();
 	});
+
+	function retry(): void {
+		retrying = true;
+		void boot();
+	}
 </script>
 
 <svelte:head>
@@ -67,6 +85,14 @@
 	<div class="app-shell">
 		{#if $session.status !== 'unknown'}
 			{@render children()}
+		{:else if bootFailed}
+			<div class="body">
+				<ErrorNotice
+					message="No pudimos conectar con Mawta. Revisa tu conexión e inténtalo de nuevo."
+					onretry={retry}
+					{retrying}
+				/>
+			</div>
 		{:else}
 			<div class="body"><LoadingState label="Cargando Mawta…" /></div>
 		{/if}

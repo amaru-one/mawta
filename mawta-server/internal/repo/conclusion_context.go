@@ -110,8 +110,15 @@ type ConclusionEvidence struct {
 	MaxValue    *float64
 	ScaleLevel  *string
 	Feedback    *string
-	Criteria    []ConclusionCriterion
+	// ExperienceID is the learning experience the evidence was planned in; nil
+	// for an evidence the teacher registered by hand.
+	ExperienceID *uuid.UUID
+	Criteria     []ConclusionCriterion
 }
+
+// MinConclusionEvidences is the least number of graded evidences a conclusion
+// can stand on, per student, competency and term. Planning warns below it too.
+const MinConclusionEvidences = 2
 
 // Graded reports whether the evidence carries a value for this student.
 func (e ConclusionEvidence) Graded() bool {
@@ -133,11 +140,12 @@ type ConclusionCriterion struct {
 func ListConclusionEvidence(ctx context.Context, tx pgx.Tx, classID, studentID, competencyID, termID uuid.UUID) ([]ConclusionEvidence, error) {
 	rows, err := tx.Query(ctx, `
 		select a.id, a.title, a.description, a.kind, a.value_scale, a.due_at,
-		       s.status, s.raw_value::float8, s.max_value::float8, l.code, s.feedback
+		       s.status, s.raw_value::float8, s.max_value::float8, l.code, s.feedback, pe.experience_id
 		  from assessments a
 		  left join scores s on s.assessment_id = a.id and s.student_id = $2
 		                    and s.superseded_at is null and s.deleted_at is null
 		  left join grade_scale_levels l on l.id = s.scale_level_id
+		  left join planned_evidences pe on pe.id = a.planned_evidence_id and pe.deleted_at is null
 		 where a.class_id = $1 and a.term_id = $4
 		   and a.status in ('published', 'closed') and a.deleted_at is null
 		   and (a.student_id is null or a.student_id = $2)
@@ -155,7 +163,7 @@ func ListConclusionEvidence(ctx context.Context, tx pgx.Tx, classID, studentID, 
 	for rows.Next() {
 		var e ConclusionEvidence
 		if err := rows.Scan(&e.ID, &e.Title, &e.Description, &e.Kind, &e.ValueScale, &e.DueAt,
-			&e.ScoreStatus, &e.RawValue, &e.MaxValue, &e.ScaleLevel, &e.Feedback); err != nil {
+			&e.ScoreStatus, &e.RawValue, &e.MaxValue, &e.ScaleLevel, &e.Feedback, &e.ExperienceID); err != nil {
 			rows.Close()
 			return nil, err
 		}

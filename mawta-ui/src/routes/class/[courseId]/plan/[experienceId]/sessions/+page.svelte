@@ -8,6 +8,7 @@
 		LoadingState,
 		Notice,
 		SessionRow,
+		PendingDialog,
 	} from '$lib/design-system';
 	// The sessions step: a light outline, one row per class date of the
 	// experience. Every date starts without a session; the teacher creates,
@@ -19,7 +20,7 @@
 	import { list } from '$lib/api/client';
 	import { agentUnavailable, GenerationAborted, waitForGeneration } from '$lib/api/generation';
 	import { isAgentUnavailable, planningErrorText } from '$lib/api/planningErrors';
-	import type { ExperienceDto, GenerationDto, SessionOutlineDto } from '$lib/api/dto';
+	import type { ExperienceDto, SessionOutlineDto } from '$lib/api/dto';
 	import {
 		acceptSession,
 		deleteSession,
@@ -29,7 +30,8 @@
 	} from '$lib/api/endpoints/planning';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
-	import { showToast } from '$lib/toast';
+	import { runSequential } from '$lib/batch';
+	import { showError, showToast } from '$lib/toast';
 
 	const courseId = $derived(page.params.courseId ?? '');
 	const experienceId = $derived(page.params.experienceId ?? '');
@@ -72,6 +74,9 @@
 	const filled = $derived(dates.filter((date) => byDate.has(date)).length);
 	const empty = $derived(dates.length - filled);
 	const pending = $derived(sessions.some(isProposal));
+	const proposals = $derived(sessions.filter(isProposal));
+	let acceptingAll = $state<{ done: number; total: number } | null>(null);
+	let pendingOpen = $state(false);
 	const loose = $derived(evidences.filter((evidence) => !evidence.session_date));
 
 	function isProposal(session: SessionOutlineDto): boolean {
@@ -81,28 +86,6 @@
 	function evidenceName(id: string | null): string {
 		if (!id) return '';
 		return evidences.find((evidence) => evidence.id === id)?.name ?? '';
-	}
-
-	// "Mar 16 jun"
-	const WEEKDAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-	const MONTHS = [
-		'ene',
-		'feb',
-		'mar',
-		'abr',
-		'may',
-		'jun',
-		'jul',
-		'ago',
-		'sep',
-		'oct',
-		'nov',
-		'dic',
-	];
-
-	function fromISO(date: string): Date {
-		const [y, m, d] = date.split('-').map(Number);
-		return new Date(y ?? 1970, (m ?? 1) - 1, d ?? 1);
 	}
 
 	// ---- create and edit one date's session ----
@@ -154,7 +137,7 @@
 			await acceptSession(experienceId, date);
 			await reload();
 		} catch {
-			showToast('No se pudo aceptar la sesión');
+			showError('No se pudo aceptar la sesión', { onRetry: () => void accept(date) });
 		}
 	}
 
@@ -219,6 +202,31 @@
 		}
 	}
 
+	// Accepts each proposal in turn; failures are kept for a retry instead of stopping the batch.
+	async function acceptAll(items: SessionOutlineDto[] = proposals): Promise<void> {
+		hapticTap();
+		acceptingAll = { done: 0, total: items.length };
+		const result = await runSequential(
+			items,
+			(session) => acceptSession(experienceId, session.date),
+			(done, total) => {
+				acceptingAll = { done, total };
+			}
+		);
+		acceptingAll = null;
+		await reload();
+		if (result.failed.length > 0)
+			showError(`No se aceptaron ${result.failed.length} de ${items.length} sesiones`, {
+				onRetry: () => void acceptAll(result.failed),
+			});
+	}
+
+	// "Continuar" asks first when Mawta's proposals are still unreviewed.
+	function requestNext(): void {
+		if (!editing && proposals.length > 0) pendingOpen = true;
+		else next();
+	}
+
 	function next(): void {
 		hapticTap();
 		void goto(editing ? summaryHref : `/class/${courseId}/plan/${experienceId}/summary`, {
@@ -235,7 +243,7 @@
 
 	<div class="body">
 		{#if ready && experience}
-			<p class="eyebrow">{experience.title} · Sesiones</p>
+			<p class="eyebrow">{experience.title} · Paso 3 de 4 · Sesiones</p>
 			<h1 class="screen-title title">{dates.length} clases</h1>
 			<p class="screen-sub">
 				{filled} de {dates.length} con sesión · contadas por fecha según tu horario
@@ -269,7 +277,17 @@
 			{/if}
 
 			<div class="section">
-				{#if pending}
+				{#if pending}{#if proposals.length > 1}<Button
+							variant="secondary"
+							block
+							disabled={acceptingAll !== null}
+							loading={acceptingAll !== null}
+							onclick={() => void acceptAll()}
+						>
+							{acceptingAll
+								? `Aceptando ${acceptingAll.done} de ${acceptingAll.total}…`
+								: `Aceptar todas (${proposals.length})`}
+						</Button>{/if}
 					<p class="meta help">Mawta propuso estas sesiones: acéptalas o edítalas.</p>
 				{/if}
 				<div class="sessions">
@@ -344,7 +362,13 @@
 			<p class="meta later">Antes de cada clase, Mawta podrá preparar el detalle de la sesión.</p>
 
 			<div class="footer-action">
-				<Button variant="primary" block onclick={next}>
+				<PendingDialog
+					bind:open={pendingOpen}
+					count={proposals.length}
+					onreview={() => {}}
+					oncontinue={next}
+				/>
+				<Button variant="primary" block onclick={requestNext}>
 					{#if editing}Listo{:else}Continuar <Icon name="chevron-right" size={16} />{/if}
 				</Button>
 			</div>

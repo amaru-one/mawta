@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Action, Button, Context, Icon, LoadingState, Notice } from '$lib/design-system';
+	import { pendingCounts } from '$lib/planning/pending';
 	// "Revisar y guardar": a compact summary of the experience and its notes.
 	// Notes never block: a capacidad without a criterio or proposals still to
 	// review are said, each linking to its step, and the teacher can save
@@ -97,12 +98,27 @@
 			.filter(Boolean)
 	);
 
-	const pendingCount = $derived(
-		warnings.reduce(
-			(sum, warning) => (warning.code === 'pending_proposals' ? sum + warning.count : sum),
-			0
+	// Evidence per competencia is counted over the whole term (the conclusion
+	// counts it that way), so these warnings name the competencia and the count.
+	function competencyName(competencyId: string): string {
+		return list(experience?.competencies).find((c) => c.id === competencyId)?.name ?? '';
+	}
+
+	const thinCompetencies = $derived(
+		warnings.filter(
+			(warning): warning is Extract<WarningDto, { code: 'competency_few_evidences' }> =>
+				warning.code === 'competency_few_evidences'
 		)
 	);
+
+	const singleKindCompetencies = $derived(
+		warnings.filter(
+			(warning): warning is Extract<WarningDto, { code: 'competency_single_kind' }> =>
+				warning.code === 'competency_single_kind'
+		)
+	);
+
+	const pendingBy = $derived(pendingCounts(experience));
 
 	// "15 jun – 10 jul"
 	const MONTHS = [
@@ -183,6 +199,9 @@
 			{:else}
 				<p class="situation muted">Todavía sin situación significativa.</p>
 			{/if}
+			{#if experience.context_text}
+				<p class="situation">Evento o contexto: {experience.context_text}</p>
+			{/if}
 
 			<Context>
 				{#each comps as competency (competency.id)}
@@ -245,21 +264,62 @@
 					</a></Notice
 				>
 			{/if}
-			{#if pendingCount > 0}
+			{#each thinCompetencies as warning (warning.competency_id)}
 				<Notice variant="attention"
 					><a
-						href={`${base}/criteria?from=summary`}
+						href={`${base}/evidences?from=summary`}
 						data-sveltekit-replacestate
 						onclick={hapticTap}
 					>
 						<span class="grow notice-text">
-							{pendingCount === 1
-								? '1 propuesta sin revisar'
-								: `${pendingCount} propuestas sin revisar`}
-							de Mawta. Puedes guardar igual.
+							{competencyName(warning.competency_id)}: {warning.count === 1
+								? '1 evidencia'
+								: `${warning.count} evidencias`} en el trimestre. Mawta necesita al menos 2 para proponer
+							su conclusión. Agrega otra aquí o en otra experiencia. Puedes guardar igual.
 						</span>
 					</a></Notice
 				>
+			{/each}
+			{#each singleKindCompetencies as warning (warning.competency_id)}
+				<Notice variant="attention"
+					><a
+						href={`${base}/evidences?from=summary`}
+						data-sveltekit-replacestate
+						onclick={hapticTap}
+					>
+						<span class="grow notice-text">
+							{competencyName(warning.competency_id)}: todas sus evidencias son {warning.kind ===
+							'actuacion'
+								? 'actuaciones'
+								: 'producciones'}. El CNEB pide evidencia variada: considera una de otro tipo.
+							Puedes guardar igual.
+						</span>
+					</a></Notice
+				>
+			{/each}
+			{#if pendingBy.total > 0}
+				<Notice variant="attention">
+					<span class="grow notice-text">
+						{pendingBy.total === 1
+							? '1 propuesta de Mawta sin revisar'
+							: `${pendingBy.total} propuestas de Mawta sin revisar`}:
+						{#if pendingBy.criteria > 0}<a
+								href={`${base}/criteria?from=summary`}
+								data-sveltekit-replacestate
+								onclick={hapticTap}>{pendingBy.criteria} en criterios</a
+							>{/if}{#if pendingBy.criteria > 0 && pendingBy.evidences + pendingBy.sessions > 0},
+						{/if}{#if pendingBy.evidences > 0}<a
+								href={`${base}/evidences?from=summary`}
+								data-sveltekit-replacestate
+								onclick={hapticTap}>{pendingBy.evidences} en evidencias</a
+							>{/if}{#if pendingBy.evidences > 0 && pendingBy.sessions > 0},
+						{/if}{#if pendingBy.sessions > 0}<a
+								href={`${base}/sessions?from=summary`}
+								data-sveltekit-replacestate
+								onclick={hapticTap}>{pendingBy.sessions} en sesiones</a
+							>{/if}. Puedes guardar igual.
+					</span>
+				</Notice>
 			{/if}
 
 			<div class="footer-action">
@@ -287,7 +347,7 @@
 	{#if confirmingDelete}
 		<ConfirmDialog
 			title="¿Eliminar esta experiencia?"
-			text="Se eliminan también sus criterios, evidencias y sesiones."
+			description="Se eliminan también sus criterios, evidencias y sesiones."
 			confirmLabel="Eliminar"
 			onconfirm={() => void remove()}
 			oncancel={() => (confirmingDelete = false)}

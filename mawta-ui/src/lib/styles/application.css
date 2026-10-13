@@ -113,7 +113,7 @@
 }
 .application .pressable {
 	touch-action: manipulation;
-	transition: background-color 120ms ease;
+	transition: background-color var(--mw-duration-fast) var(--mw-ease);
 }
 .application .pressable:active {
 	opacity: 0.85;

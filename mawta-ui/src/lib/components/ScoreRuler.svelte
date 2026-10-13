@@ -66,6 +66,12 @@
 		if (committed !== value) onselect(committed);
 	}
 
+	// A cancelled pointer (the browser took over for a scroll, or the OS interrupted)
+	// is not a choice: drop the in-flight value without committing it.
+	function cancel(): void {
+		dragging = null;
+	}
+
 	function key(e: KeyboardEvent): void {
 		if (disabled) return;
 		const from = value ?? 0;
@@ -98,7 +104,7 @@
 		onpointerdown={down}
 		onpointermove={move}
 		onpointerup={up}
-		onpointercancel={up}
+		onpointercancel={cancel}
 		onkeydown={key}
 	>
 		<div class="ticks">

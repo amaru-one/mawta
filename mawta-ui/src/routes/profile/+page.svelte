@@ -131,8 +131,9 @@
 	{#if showLogoutConfirm}
 		<ConfirmDialog
 			title="¿Cerrar sesión?"
-			text="Tendrás que iniciar sesión de nuevo para acceder a tus clases."
+			description="Tendrás que iniciar sesión de nuevo para acceder a tus clases."
 			confirmLabel="Cerrar sesión"
+			tone="danger"
 			onconfirm={confirmLogout}
 			oncancel={() => {
 				hapticTap();
@@ -248,7 +249,9 @@
 	}
 	dd > a {
 		padding: var(--mw-space-2) 0;
-		min-height: 40px;
+		display: flex;
+		align-items: center;
+		min-height: var(--mw-touch-target);
 	}
 	dd > a:first-child {
 		margin-top: calc(-1 * var(--mw-space-2));

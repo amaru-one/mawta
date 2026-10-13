@@ -58,7 +58,7 @@
 	}
 
 	.item {
-		min-width: 40px;
+		min-width: var(--mw-touch-target);
 		min-height: 48px;
 		flex-shrink: 0;
 		display: block;
