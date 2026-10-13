@@ -127,17 +127,27 @@
 		return weeks;
 	});
 
-	// Experience blocks, placed by their dates.
-	const expBlocks = $derived(
-		orderedExperiences.map((experience, index) => ({
-			id: experience.id,
-			number: index + 1,
-			title: experience.title,
-			classes: experience.class_dates,
-			from: weekOf(experience.starts_on),
-			to: weekOf(experience.ends_on),
-		}))
-	);
+	// Experience blocks, placed by their weeks. Two experiences that share a week
+	// cannot share a row, so each takes the first lane whose last week is earlier.
+	const expBlocks = $derived.by(() => {
+		const laneEnds: number[] = [];
+		return orderedExperiences.map((experience, index) => {
+			const from = weekOf(experience.starts_on);
+			const to = weekOf(experience.ends_on);
+			let lane = laneEnds.findIndex((end) => end < from);
+			if (lane === -1) lane = laneEnds.push(to) - 1;
+			else laneEnds[lane] = to;
+			return {
+				id: experience.id,
+				number: index + 1,
+				title: experience.title,
+				classes: experience.class_dates,
+				from,
+				to,
+				lane: lane + 1,
+			};
+		});
+	});
 
 	// Non-teaching days: a range longer than one day is drawn over the weeks it
 	// covers; a single day is a dot under its week.
@@ -261,6 +271,7 @@
 							{#each expBlocks as block (block.id)}
 								<span
 									class="tl-block"
+									style:grid-row={block.lane}
 									title={`${block.number}. ${block.title}`}
 									style="grid-column:{block.from} / {block.to + 1}"
 								>

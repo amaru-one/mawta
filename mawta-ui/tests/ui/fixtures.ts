@@ -165,7 +165,7 @@ export function seed() {
 		unavailable: false,
 		loginError: false,
 		// Adds a second experience in the following weeks, adjacent to the first on the timeline.
-		secondExperience: false,
+		secondExperience: false as false | 'adjacent' | 'shared-week',
 		// Status returned by GET /me. 401 mimics an expired session, 5xx a server failure.
 		meStatus: 200 as number,
 		failures: new Set<string>(),
@@ -566,8 +566,8 @@ export async function mockApi(page: Page, state: ApiState) {
 									id: 'experience-2',
 									title: 'Simulacros de pruebas',
 									status: 'borrador',
-									starts_on: '2026-10-19',
-									ends_on: '2026-10-23',
+									starts_on: state.secondExperience === 'shared-week' ? '2026-10-09' : '2026-10-19',
+									ends_on: state.secondExperience === 'shared-week' ? '2026-10-16' : '2026-10-23',
 									class_dates: 3,
 									competencies: [
 										{ ...competency, capabilities_total: 2, capabilities_with_criteria: 0 },
