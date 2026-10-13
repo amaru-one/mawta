@@ -318,6 +318,13 @@
 								<p class="exp-coverage">
 									{coverage.withCriteria} de {coverage.total} capacidades con criterio
 								</p>
+								{#if experience.pending_proposals > 0}
+									<p class="exp-coverage">
+										{experience.pending_proposals === 1
+											? '1 propuesta de Mawta por revisar'
+											: `${experience.pending_proposals} propuestas de Mawta por revisar`}
+									</p>
+								{/if}
 							</button>
 						{/each}
 					</div>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Action, Button, Context, Icon, LoadingState, Notice } from '$lib/design-system';
+	import { pendingCounts } from '$lib/planning/pending';
 	// "Revisar y guardar": a compact summary of the experience and its notes.
 	// Notes never block: a capacidad without a criterio or proposals still to
 	// review are said, each linking to its step, and the teacher can save
@@ -97,12 +98,7 @@
 			.filter(Boolean)
 	);
 
-	const pendingCount = $derived(
-		warnings.reduce(
-			(sum, warning) => (warning.code === 'pending_proposals' ? sum + warning.count : sum),
-			0
-		)
-	);
+	const pendingBy = $derived(pendingCounts(experience));
 
 	// "15 jun – 10 jul"
 	const MONTHS = [
@@ -245,21 +241,29 @@
 					</a></Notice
 				>
 			{/if}
-			{#if pendingCount > 0}
-				<Notice variant="attention"
-					><a
-						href={`${base}/criteria?from=summary`}
-						data-sveltekit-replacestate
-						onclick={hapticTap}
-					>
-						<span class="grow notice-text">
-							{pendingCount === 1
-								? '1 propuesta sin revisar'
-								: `${pendingCount} propuestas sin revisar`}
-							de Mawta. Puedes guardar igual.
-						</span>
-					</a></Notice
-				>
+			{#if pendingBy.total > 0}
+				<Notice variant="attention">
+					<span class="grow notice-text">
+						{pendingBy.total === 1
+							? '1 propuesta de Mawta sin revisar'
+							: `${pendingBy.total} propuestas de Mawta sin revisar`}:
+						{#if pendingBy.criteria > 0}<a
+								href={`${base}/criteria?from=summary`}
+								data-sveltekit-replacestate
+								onclick={hapticTap}>{pendingBy.criteria} en criterios</a
+							>{/if}{#if pendingBy.criteria > 0 && pendingBy.evidences + pendingBy.sessions > 0},
+						{/if}{#if pendingBy.evidences > 0}<a
+								href={`${base}/evidences?from=summary`}
+								data-sveltekit-replacestate
+								onclick={hapticTap}>{pendingBy.evidences} en evidencias</a
+							>{/if}{#if pendingBy.evidences > 0 && pendingBy.sessions > 0},
+						{/if}{#if pendingBy.sessions > 0}<a
+								href={`${base}/sessions?from=summary`}
+								data-sveltekit-replacestate
+								onclick={hapticTap}>{pendingBy.sessions} en sesiones</a
+							>{/if}. Puedes guardar igual.
+					</span>
+				</Notice>
 			{/if}
 
 			<div class="footer-action">

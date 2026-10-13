@@ -9,6 +9,7 @@
 		Field,
 		Icon,
 		LoadingState,
+		PendingDialog,
 		StepNav,
 	} from '$lib/design-system';
 	// The criteria step of a saved experience. One competencia at a time, with
@@ -38,10 +39,10 @@
 		getExperience,
 		updateCriterion,
 	} from '$lib/api/endpoints/planning';
-	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
+	import { runSequential } from '$lib/batch';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
-	import { showToast } from '$lib/toast';
+	import { showError, showToast } from '$lib/toast';
 
 	const courseId = $derived(page.params.courseId ?? '');
 	const experienceId = $derived(page.params.experienceId ?? '');
@@ -102,6 +103,9 @@
 	);
 	const missing = $derived(capabilities.filter((capability) => !covered.has(capability.id)));
 	const pending = $derived(criteria.some(isProposal));
+	const proposals = $derived(criteria.filter(isProposal));
+	let acceptingAll = $state<{ done: number; total: number } | null>(null);
+	let pendingOpen = $state(false);
 	const unseen = $derived(comps.filter((c) => !visited.includes(c.id)).length);
 
 	// Seeing a competencia is what "Continuar" waits for.
@@ -237,22 +241,64 @@
 			await acceptCriterion(criterion.id);
 			await reload();
 		} catch {
-			showToast('No se pudo aceptar el criterio');
+			showError('No se pudo aceptar el criterio', { onRetry: () => void accept(criterion) });
 		}
 	}
 
-	let deletingId = $state<string | null>(null);
-
-	async function remove(id: string): Promise<void> {
-		deletingId = null;
+	async function remove(criterion: ExperienceCriterionDto): Promise<void> {
+		const id = criterion.id;
 		try {
 			await deleteCriterion(id);
 			if (form?.id === id) form = null;
 			await reload();
-			showToast('Criterio quitado');
+			showToast('Criterio quitado', {
+				onUndo: criterion.performance_id ? () => void restore(criterion) : undefined,
+			});
 		} catch {
-			showToast('No se pudo quitar el criterio');
+			showError('No se pudo quitar el criterio', { onRetry: () => void remove(criterion) });
 		}
+	}
+
+	// Accepts each proposal in turn; failures are kept for a retry instead of stopping the batch.
+	async function acceptAll(items: ExperienceCriterionDto[] = proposals): Promise<void> {
+		hapticTap();
+		acceptingAll = { done: 0, total: items.length };
+		const result = await runSequential(
+			items,
+			(criterion) => acceptCriterion(criterion.id),
+			(done, total) => {
+				acceptingAll = { done, total };
+			}
+		);
+		acceptingAll = null;
+		await reload();
+		if (result.failed.length > 0)
+			showError(`No se aceptaron ${result.failed.length} de ${items.length} criterios`, {
+				onRetry: () => void acceptAll(result.failed),
+			});
+	}
+
+	// Recreates a removed criterio; it comes back as the teacher's, since the
+	// API does not carry the proposal's provenance.
+	async function restore(criterion: ExperienceCriterionDto): Promise<void> {
+		if (!criterion.performance_id) return;
+		try {
+			await createCriterion(experienceId, {
+				competency_id: criterion.competency_id,
+				description: criterion.description,
+				capability_ids: list(criterion.capability_ids),
+				performance_id: criterion.performance_id,
+			});
+			await reload();
+		} catch {
+			showError('No se pudo restaurar el criterio');
+		}
+	}
+
+	// "Continuar" asks first when Mawta's proposals are still unreviewed.
+	function requestNext(): void {
+		if (!editing && proposals.length > 0) pendingOpen = true;
+		else next();
 	}
 
 	// ---- "✦ Generar con Mawta": only fills capacidades without a criterio ----
@@ -302,7 +348,7 @@
 
 	<div class="body">
 		{#if ready && experience && current}
-			<p class="eyebrow">{experience.title} · Criterios</p>
+			<p class="eyebrow">{experience.title} · Paso 1 de 4 · Criterios</p>
 
 			<StepNav
 				title="Revisar competencias"
@@ -325,6 +371,17 @@
 				<p class="eyebrow">Criterios · {criteria.length}</p>
 				{#if pending}
 					<p class="meta help">Mawta propuso estos criterios: acéptalos o edítalos.</p>
+					{#if proposals.length > 1}<Button
+							variant="secondary"
+							block
+							disabled={acceptingAll !== null}
+							onclick={() => void acceptAll()}
+							loading={acceptingAll !== null}
+						>
+							{acceptingAll
+								? `Aceptando ${acceptingAll.done} de ${acceptingAll.total}…`
+								: `Aceptar todas (${proposals.length})`}
+						</Button>{/if}
 				{/if}
 
 				{#if criteria.length === 0}
@@ -360,12 +417,14 @@
 											<Icon name="check" size={13} /> Aceptar
 										</Action>
 									{/if}
-									<Action variant="link" onclick={() => openEdit(criterion)}>Editar</Action>
+									<Action variant="link" onclick={() => openEdit(criterion)}
+										>{isProposal(criterion) ? 'Editar y aceptar' : 'Editar'}</Action
+									>
 									<Action
 										variant="remove"
 										onclick={() => {
 											hapticTap();
-											deletingId = criterion.id;
+											void remove(criterion);
 										}}
 									>
 										<Icon name="trash" size={13} /> Quitar
@@ -405,8 +464,14 @@
 				{/if}
 			</div>
 
+			<PendingDialog
+				bind:open={pendingOpen}
+				count={proposals.length}
+				onreview={() => {}}
+				oncontinue={next}
+			/>
 			<div class="footer-action">
-				<Button variant="primary" block disabled={!editing && unseen > 0} onclick={next}>
+				<Button variant="primary" block disabled={!editing && unseen > 0} onclick={requestNext}>
 					{#if editing}Listo{:else}Continuar con las evidencias <Icon
 							name="chevron-right"
 							size={16}
@@ -479,16 +544,6 @@
 			</Card>
 		{/if}
 	{/snippet}
-
-	{#if deletingId}
-		<ConfirmDialog
-			title="¿Quitar este criterio?"
-			description="Se quita también de las evidencias que lo usan."
-			confirmLabel="Quitar"
-			onconfirm={() => void remove(deletingId ?? '')}
-			oncancel={() => (deletingId = null)}
-		/>
-	{/if}
 </div>
 
 <style>

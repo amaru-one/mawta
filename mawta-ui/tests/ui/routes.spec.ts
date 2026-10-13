@@ -178,6 +178,8 @@ test('sessions can be created on an empty date and summary can be confirmed', as
 		api.writes.some((w) => w.method === 'PUT' && w.path.endsWith('/sessions/2026-10-07'))
 	).toBe(true);
 	await page.getByRole('button', { name: 'Continuar', exact: true }).click();
+	// The seeded session is still a Mawta proposal, so Continuar warns first.
+	await page.getByRole('button', { name: 'Continuar de todos modos' }).click();
 	await page.getByRole('button', { name: 'Guardar experiencia', exact: true }).click();
 	await expect(page).toHaveURL('/class/class-1/plan');
 	expect(api.experience.status).toBe('planificada');

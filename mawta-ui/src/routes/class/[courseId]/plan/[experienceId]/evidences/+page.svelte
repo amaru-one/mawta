@@ -9,6 +9,7 @@
 		LoadingState,
 		Notice,
 		Segmented,
+		PendingDialog,
 	} from '$lib/design-system';
 	// The evidences step of a saved experience: where the teacher will observe
 	// the criteria. An evidencia is a producción, an actuación or a prueba
@@ -39,7 +40,8 @@
 	} from '$lib/api/endpoints/planning';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
-	import { showToast } from '$lib/toast';
+	import { runSequential } from '$lib/batch';
+	import { showError, showToast } from '$lib/toast';
 
 	const courseId = $derived(page.params.courseId ?? '');
 	const experienceId = $derived(page.params.experienceId ?? '');
@@ -82,6 +84,9 @@
 	const criteria = $derived(list(experience?.criteria));
 	const evidences = $derived(list(experience?.evidences));
 	const pending = $derived(evidences.some(isProposal));
+	const proposals = $derived(evidences.filter(isProposal));
+	let acceptingAll = $state<{ done: number; total: number } | null>(null);
+	let pendingOpen = $state(false);
 
 	function isProposal(evidence: PlannedEvidenceDto): boolean {
 		return evidence.proposed_by === 'mawta' && evidence.accepted_at === null;
@@ -245,7 +250,7 @@
 			await acceptEvidence(evidence.id);
 			await reload();
 		} catch {
-			showToast('No se pudo aceptar la evidencia');
+			showError('No se pudo aceptar la evidencia', { onRetry: () => void accept(evidence) });
 		}
 	}
 
@@ -319,6 +324,31 @@
 		}
 	}
 
+	// Accepts each proposal in turn; failures are kept for a retry instead of stopping the batch.
+	async function acceptAll(items: PlannedEvidenceDto[] = proposals): Promise<void> {
+		hapticTap();
+		acceptingAll = { done: 0, total: items.length };
+		const result = await runSequential(
+			items,
+			(evidence) => acceptEvidence(evidence.id),
+			(done, total) => {
+				acceptingAll = { done, total };
+			}
+		);
+		acceptingAll = null;
+		await reload();
+		if (result.failed.length > 0)
+			showError(`No se aceptaron ${result.failed.length} de ${items.length} evidencias`, {
+				onRetry: () => void acceptAll(result.failed),
+			});
+	}
+
+	// "Continuar" asks first when Mawta's proposals are still unreviewed.
+	function requestNext(): void {
+		if (!editing && proposals.length > 0) pendingOpen = true;
+		else next();
+	}
+
 	function next(): void {
 		hapticTap();
 		void goto(editing ? summaryHref : `/class/${courseId}/plan/${experienceId}/sessions`, {
@@ -335,7 +365,7 @@
 
 	<div class="body">
 		{#if ready && experience}
-			<p class="eyebrow">{experience.title} · Evidencias</p>
+			<p class="eyebrow">{experience.title} · Paso 2 de 4 · Evidencias</p>
 			<h1 class="screen-title sm">¿Dónde observarás tus criterios?</h1>
 			<p class="meta intro">
 				Producciones o actuaciones de tus estudiantes. Una evidencia puede reunir criterios de
@@ -352,7 +382,17 @@
 
 			<div class="section">
 				<p class="eyebrow">Evidencias · {evidences.length}</p>
-				{#if pending}
+				{#if pending}{#if proposals.length > 1}<Button
+							variant="secondary"
+							block
+							disabled={acceptingAll !== null}
+							loading={acceptingAll !== null}
+							onclick={() => void acceptAll()}
+						>
+							{acceptingAll
+								? `Aceptando ${acceptingAll.done} de ${acceptingAll.total}…`
+								: `Aceptar todas (${proposals.length})`}
+						</Button>{/if}
 					<p class="meta help">Mawta propuso estas evidencias: acéptalas o edítalas.</p>
 				{/if}
 
@@ -436,7 +476,13 @@
 			</div>
 
 			<div class="footer-action">
-				<Button variant="primary" block onclick={next}>
+				<PendingDialog
+					bind:open={pendingOpen}
+					count={proposals.length}
+					onreview={() => {}}
+					oncontinue={next}
+				/>
+				<Button variant="primary" block onclick={requestNext}>
 					{#if editing}Listo{:else}Continuar con las sesiones <Icon
 							name="chevron-right"
 							size={16}
