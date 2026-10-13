@@ -107,6 +107,14 @@
 		return Math.min(Math.max(Math.floor(days / 7) + 1, 1), weekCount);
 	}
 
+	// "5 oct": the day each week opens on, counted from the term's first day.
+	function weekStart(week: number): string {
+		if (!plan) return '';
+		const day = fromISO(plan.term.starts_on);
+		day.setDate(day.getDate() + (week - 1) * 7);
+		return `${day.getDate()} ${MONTHS[day.getMonth()]}`;
+	}
+
 	const weekNumbers = $derived.by(() => {
 		const weeks: number[] = [];
 		for (let week = 1; week <= weekCount; week++) weeks.push(week);
@@ -210,7 +218,8 @@
 							icon="chevron-left"
 							label="Semanas anteriores"
 							onclick={() => timeline?.scrollBy({ left: -240 })}
-						/><span class="meta">Desliza para ver el trimestre</span><IconButton
+						/><span class="meta">{fmtRange(plan.term.starts_on, plan.term.ends_on)}</span
+						><IconButton
 							icon="chevron-right"
 							label="Semanas siguientes"
 							onclick={() => timeline?.scrollBy({ left: 240 })}
@@ -223,7 +232,9 @@
 						aria-label="Calendario por semanas"
 					>
 						<div class="tl-head">
-							{#each weekNumbers as week (week)}<span>{week}</span>{/each}
+							{#each weekNumbers as week (week)}<span
+									><b>{weekStart(week)}</b><small>Sem {week}</small></span
+								>{/each}
 						</div>
 						<div class="tl-track">
 							{#each weekNumbers as week (week)}
@@ -406,6 +417,17 @@
 		font-family: var(--mw-font-sans);
 		font-size: var(--mw-type-label-size);
 		color: var(--mw-ink-muted);
+		white-space: nowrap;
+	}
+
+	.tl-head b {
+		display: block;
+		font-weight: 600;
+		color: var(--mw-ink-secondary);
+	}
+
+	.tl-head small {
+		font-size: inherit;
 	}
 
 	.tl-track {

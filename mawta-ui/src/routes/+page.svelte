@@ -459,13 +459,16 @@
 		width: 0;
 	}
 
+	/* One gutter for every hour-aligned element, so labels, rules and blocks line up. */
 	.canvas {
+		--gutter: 52px;
+		--label-w: 42px;
 		position: relative;
 	}
 
 	.hline {
 		position: absolute;
-		left: 50px;
+		left: var(--gutter);
 		right: 0;
 		height: 0;
 		border-top: 1px solid var(--mw-line);
@@ -474,17 +477,19 @@
 	.hlabel {
 		position: absolute;
 		left: 0;
-		width: 34px;
+		width: var(--label-w);
 		text-align: right;
 		font-size: var(--mw-type-label-size);
 		line-height: 1.4;
 		font-family: var(--mw-font-sans);
 		color: var(--mw-ink-secondary);
+		white-space: nowrap;
+		font-variant-numeric: tabular-nums;
 	}
 
 	.box {
 		position: absolute;
-		left: 50px;
+		left: var(--gutter);
 		right: 0;
 		display: flex;
 		flex-direction: column;
@@ -562,7 +567,7 @@
 
 	.nowrule {
 		position: absolute;
-		left: 50px;
+		left: var(--gutter);
 		right: 0;
 		top: 0;
 		height: 1px;
@@ -571,7 +576,7 @@
 
 	.nowdot {
 		position: absolute;
-		left: 47px;
+		left: calc(var(--gutter) - 3px);
 		top: -3px;
 		width: 6px;
 		height: 6px;
@@ -583,7 +588,9 @@
 		position: absolute;
 		left: 0;
 		top: -7px;
-		width: 34px;
+		width: var(--label-w);
+		white-space: nowrap;
+		font-variant-numeric: tabular-nums;
 		text-align: right;
 		font-size: var(--mw-type-label-size);
 		line-height: 1.4;

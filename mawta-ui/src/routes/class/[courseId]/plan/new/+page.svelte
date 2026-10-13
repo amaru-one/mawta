@@ -130,6 +130,17 @@
 		return `${day.getDate()} ${MONTHS[day.getMonth()]}`;
 	}
 
+	// "2026" — shown once, in the range summary, not on every option.
+	function yearOf(date: string): number {
+		return fromISO(date).getFullYear();
+	}
+
+	// Whole weeks a range touches, counting the week of its first day.
+	function weeksBetween(from: string, to: string): number {
+		const days = Math.round((fromISO(to).getTime() - fromISO(from).getTime()) / 86400000);
+		return Math.floor(days / 7) + 1;
+	}
+
 	// "lun 15 jun"
 	function fmtDay(date: string): string {
 		return `${WEEKDAY_SHORT[fromISO(date).getDay()]} ${fmtDate(date)}`;
@@ -512,11 +523,15 @@
 								{/each}
 							</Field>
 						</div>
-						<p class="f-help">
-							<Icon name="calendar" size={12} />
-							{rangeClassDates.length} clases{classDaysText ? ` (${classDaysText})` : ''} · los días de
-							otras experiencias no aparecen
-						</p>
+						{#if startsOn !== '' && endsOn !== ''}
+							<p class="f-help">
+								<Icon name="calendar" size={12} />
+								{fmtDate(startsOn)} – {fmtDate(endsOn)}
+								{yearOf(endsOn)} · {weeksBetween(startsOn, endsOn)} semanas · {rangeClassDates.length}
+								clases{classDaysText ? ` (${classDaysText})` : ''}
+							</p>
+						{/if}
+						<p class="f-help">Los días de otras experiencias no aparecen en la lista.</p>
 					{/if}
 					{#if saveErrorText !== null}
 						<Notice variant="attention">
@@ -638,8 +653,16 @@
 		color: var(--mw-ink);
 	}
 
-	.when-row {
+	/* Two equal columns, tops aligned; the shared .row flex would size each select to its text. */
+	.row.when-row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		align-items: start;
 		gap: 10px;
+	}
+
+	.when-row :global(select) {
+		width: 100%;
 	}
 
 	.waiting-text {
