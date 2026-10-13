@@ -6,6 +6,8 @@ import { tick } from 'svelte';
 import { get } from 'svelte/store';
 import { dismissToast, showError, toast } from '../../src/lib/toast';
 import { safeNext } from '../../src/lib/auth';
+import { pendingCounts } from '../../src/lib/planning/pending';
+import { runSequential } from '../../src/lib/batch';
 
 declare module 'vitest/browser' {
 	interface BrowserCommands {
@@ -275,6 +277,47 @@ test('numeric fields start empty, bind numbers, and preserve native empty values
 	await expect
 		.element(screen.getByRole('status', { name: 'Nota actual' }))
 		.toHaveTextContent('null:');
+});
+
+test('pending counts only unaccepted items, per step', () => {
+	const counts = pendingCounts({
+		criteria: [{ accepted_at: null }, { accepted_at: '2026-10-01T10:00:00Z' }],
+		evidences: [{ accepted_at: null }],
+		sessions: null,
+	} as never);
+	expect(counts).toEqual({ criteria: 1, evidences: 1, sessions: 0, total: 2 });
+});
+
+test('runSequential keeps going after a failure and reports only the failed items', async () => {
+	const seen: number[] = [];
+	const progress = vi.fn();
+	const result = await runSequential(
+		[1, 2, 3],
+		async (n) => {
+			seen.push(n);
+			if (n === 2) throw new Error('no');
+		},
+		progress
+	);
+	expect(seen).toEqual([1, 2, 3]);
+	expect(result).toEqual({ done: 2, failed: [2] });
+	expect(progress).toHaveBeenLastCalledWith(3, 3);
+});
+
+test('pending dialog offers review and continue as separate decisions', async () => {
+	const review = vi.fn();
+	const continueAnyway = vi.fn();
+	const screen = await render(Fixture, {
+		scenario: 'pending',
+		onaction: review,
+		oncontinue: continueAnyway,
+	});
+	await screen.getByRole('button', { name: 'Continuar', exact: true }).click();
+	const dialog = screen.getByRole('dialog');
+	expect(dialog.element().textContent).toContain('Quedan 3 propuestas sin revisar');
+	await dialog.getByRole('button', { name: 'Continuar de todos modos' }).click();
+	expect(continueAnyway).toHaveBeenCalledTimes(1);
+	expect(review).not.toHaveBeenCalled();
 });
 
 test('safeNext keeps same-origin paths and rejects off-site or login targets', () => {
