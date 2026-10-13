@@ -9,6 +9,7 @@ import { safeNext } from '../../src/lib/auth';
 import { pendingCounts } from '../../src/lib/planning/pending';
 import { runSequential } from '../../src/lib/batch';
 import { dayLabel, monthGrid } from '../../src/lib/calendar';
+import { dayOffset, spanPercent } from '../../src/lib/timeline';
 
 declare module 'vitest/browser' {
 	interface BrowserCommands {
@@ -340,6 +341,22 @@ test('safeNext keeps same-origin paths and rejects off-site or login targets', (
 	for (const unsafe of ['//evil.test', '/\\evil.test', 'https://evil.test', '/login', null]) {
 		expect(safeNext(unsafe)).toBeNull();
 	}
+});
+
+test('dayOffset counts whole days from the term start, across month ends', () => {
+	expect(dayOffset('2026-10-01', '2026-10-01')).toBe(0);
+	expect(dayOffset('2026-10-01', '2026-10-09')).toBe(8);
+	expect(dayOffset('2026-10-01', '2026-11-01')).toBe(31);
+});
+
+test('spanPercent places an inclusive day span and clamps it to the track', () => {
+	// A 10-day track: days 2 to 4 cover 3 of 10 columns, starting at column 2.
+	expect(spanPercent(2, 4, 10)).toEqual({ left: 20, width: 30 });
+	// One day is exactly one column.
+	expect(spanPercent(5, 5, 10)).toEqual({ left: 50, width: 10 });
+	// Days before the track start or after its end are pulled onto the track.
+	expect(spanPercent(-3, 1, 10)).toEqual({ left: 0, width: 20 });
+	expect(spanPercent(8, 15, 10)).toEqual({ left: 80, width: 20 });
 });
 
 test('showError stores an error tone with a retry action and a longer hold', () => {

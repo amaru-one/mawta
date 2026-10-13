@@ -7,7 +7,7 @@ test('a single experience carries number 1 on its bar and its card', async ({ pa
 	expect(api.unexpected).toEqual([]);
 });
 
-test('experiences that share a week are stacked in separate rows, never drawn on top', async ({
+test('experiences that share a week sit in one row, split at the day one ends', async ({
 	page,
 	api,
 }) => {
@@ -18,8 +18,14 @@ test('experiences that share a week are stacked in separate rows, never drawn on
 	const first = await bars.nth(0).boundingBox();
 	const second = await bars.nth(1).boundingBox();
 	if (!first || !second) throw new Error('bars are not laid out');
-	const apart = first.y + first.height <= second.y || second.y + second.height <= first.y;
-	expect(apart).toBe(true);
+	// One row: the same top edge.
+	expect(Math.abs(first.y - second.y)).toBeLessThan(1);
+	// Split, not overlapping, with a small gap at the boundary.
+	const gap = second.x - (first.x + first.width);
+	expect(gap).toBeGreaterThanOrEqual(0);
+	expect(gap).toBeLessThan(8);
+	// Widths follow the day counts: 5 days (Oct 5–9) and 7 days (Oct 10–16), each with a 3px inset.
+	expect((first.width + 3) / 5).toBeCloseTo((second.width + 3) / 7, 0);
 	expect(api.unexpected).toEqual([]);
 });
 

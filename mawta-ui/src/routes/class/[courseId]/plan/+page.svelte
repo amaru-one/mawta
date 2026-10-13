@@ -16,6 +16,7 @@
 	import { getClassPlan } from '$lib/api/endpoints/planning';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
+	import { dayOffset, spanPercent } from '$lib/timeline';
 
 	let timeline = $state<HTMLDivElement | null>(null);
 	const courseId = $derived(page.params.courseId ?? '');
@@ -93,10 +94,10 @@
 
 	// ---- the term as weeks ----
 
-	// Weeks are counted from the term's first day: week 1 opens the term, and
-	// every experience and non-teaching range is placed by the week its dates
-	// fall in. A stretch without experiences is just empty weeks — nothing
-	// warns, because a gap is not a problem.
+	// Weeks are the column headers, counted from the term's first day. Experiences
+	// and non-teaching ranges are placed by their exact day, so two experiences
+	// that share a week are split at the day one of them changes. A stretch
+	// without experiences is just empty weeks — nothing warns.
 	const weekCount = $derived.by(() => {
 		if (!plan) return 0;
 		const days = Math.round(
@@ -105,12 +106,20 @@
 		return Math.floor(days / 7) + 1;
 	});
 
-	function weekOf(date: string): number {
-		if (!plan) return 1;
-		const days = Math.round(
-			(fromISO(date).getTime() - fromISO(plan.term.starts_on).getTime()) / DAY_MS
-		);
-		return Math.min(Math.max(Math.floor(days / 7) + 1, 1), weekCount);
+	// The track is one column per day of the week columns, so a percentage of it
+	// is an exact day.
+	const totalDays = $derived(weekCount * 7);
+
+	function dayOf(date: string): number {
+		return plan ? dayOffset(plan.term.starts_on, date) : 0;
+	}
+
+	// Short spans can't hold text: 10+ days shows the title, 3–9 days shows the
+	// number only, under 3 shows an empty pill. The card list keeps the full title.
+	function barSize(days: number): 'full' | 'number' | 'none' {
+		if (days >= 10) return 'full';
+		if (days >= 3) return 'number';
+		return 'none';
 	}
 
 	// "5 oct": the day each week opens on, counted from the term's first day.
@@ -127,30 +136,33 @@
 		return weeks;
 	});
 
-	// Experience blocks, placed by their weeks. Two experiences that share a week
-	// cannot share a row, so each takes the first lane whose last week is earlier.
+	// Experience blocks, placed by day. The server rejects overlapping experiences,
+	// so they normally share one row. A lane is used only if two ranges ever collide
+	// on the same day: the second one moves down instead of being drawn on top.
 	const expBlocks = $derived.by(() => {
 		const laneEnds: number[] = [];
 		return orderedExperiences.map((experience, index) => {
-			const from = weekOf(experience.starts_on);
-			const to = weekOf(experience.ends_on);
-			let lane = laneEnds.findIndex((end) => end < from);
-			if (lane === -1) lane = laneEnds.push(to) - 1;
-			else laneEnds[lane] = to;
+			const startDay = dayOf(experience.starts_on);
+			const endDay = dayOf(experience.ends_on);
+			let lane = laneEnds.findIndex((end) => end < startDay);
+			if (lane === -1) lane = laneEnds.push(endDay) - 1;
+			else laneEnds[lane] = endDay;
 			return {
 				id: experience.id,
 				number: index + 1,
 				title: experience.title,
 				classes: experience.class_dates,
-				from,
-				to,
+				size: barSize(endDay - startDay + 1),
+				...spanPercent(startDay, endDay, totalDays),
 				lane: lane + 1,
 			};
 		});
 	});
 
-	// Non-teaching days: a range longer than one day is drawn over the weeks it
-	// covers; a single day is a dot under its week.
+	const lanes = $derived(Math.max(1, ...expBlocks.map((block) => block.lane)));
+
+	// Non-teaching days: a range longer than one day is drawn over the days it
+	// covers; a single day is a dot under its own day.
 	const OFF_TEXT: Record<NonTeachingDayKind, string> = {
 		feriado: 'feriado',
 		vacaciones: 'vacaciones',
@@ -160,20 +172,23 @@
 	const offBlocks = $derived(
 		nonTeachingDays
 			.filter((day) => day.from !== day.to)
-			.map((day, index) => ({
-				id: `${day.from}-${index}`,
-				text: OFF_TEXT[day.kind] ?? day.kind,
-				label: day.label ?? OFF_TEXT[day.kind] ?? day.kind,
-				from: weekOf(day.from),
-				to: weekOf(day.to),
-			}))
+			.map((day, index) => {
+				const days = dayOf(day.to) - dayOf(day.from) + 1;
+				return {
+					id: `${day.from}-${index}`,
+					text: OFF_TEXT[day.kind] ?? day.kind,
+					label: day.label ?? OFF_TEXT[day.kind] ?? day.kind,
+					size: barSize(days),
+					...spanPercent(dayOf(day.from), dayOf(day.to), totalDays),
+				};
+			})
 	);
 
 	const offDots = $derived(
 		nonTeachingDays
 			.filter((day) => day.from === day.to)
 			.map((day) => ({
-				week: weekOf(day.from),
+				left: ((dayOf(day.from) + 0.5) / totalDays) * 100,
 				label: day.label ?? OFF_TEXT[day.kind] ?? day.kind,
 			}))
 	);
@@ -229,7 +244,7 @@
 
 			<div class="section">
 				<p class="eyebrow">Tu trimestre por semanas</p>
-				<div class="timeline" style="--cols:{weekCount}">
+				<div class="timeline" style="--cols:{weekCount};--lanes:{lanes}">
 					<div class="timeline-actions">
 						<IconButton
 							icon="chevron-left"
@@ -253,42 +268,40 @@
 									><b>{weekStart(week)}</b><small>Sem {week}</small></span
 								>{/each}
 						</div>
-						<div class="tl-track">
+						<div class="tl-track" style="height:calc(var(--lanes) * 47px - 3px)">
 							{#each weekNumbers as week (week)}
 								<span class="tl-week" style="grid-column:{week}"></span>
 							{/each}
 							{#each offBlocks as block (block.id)}
+								<!-- Too short for the word: the stripes, the legend and the title say it. -->
 								<span
-									class="tl-off"
-									style="grid-column:{block.from} / {block.to + 1}"
+									class="tl-off tl-{block.size}"
+									style="left:calc({block.left}% + 1.5px);width:calc({block.width}% - 3px)"
 									title={block.label}
 								>
-									<!-- A one-week cell is too narrow for the word; the stripes, the
-							     legend and the title say it. -->
-									{#if block.to > block.from}{block.text}{/if}
+									{#if block.size === 'full'}{block.text}{/if}
 								</span>
 							{/each}
 							{#each expBlocks as block (block.id)}
 								<span
-									class="tl-block"
-									style:grid-row={block.lane}
+									class="tl-block tl-{block.size}"
 									title={`${block.number}. ${block.title}`}
-									style="grid-column:{block.from} / {block.to + 1}"
+									style="left:calc({block.left}% + 1.5px);width:calc({block.width}% - 3px);top:{(block.lane -
+										1) *
+										47}px"
 								>
-									<b class="tl-num" aria-hidden="true">{block.number}</b>
-									<span class="tl-title">{block.title}</span>
-									<small>{block.classes} clases</small>
+									{#if block.size !== 'none'}<b class="tl-num" aria-hidden="true">{block.number}</b
+										>{/if}
+									{#if block.size === 'full'}
+										<span class="tl-title">{block.title}</span>
+										<small>{block.classes} clases</small>
+									{/if}
 								</span>
 							{/each}
 						</div>
 						<div class="tl-marks">
-							{#each weekNumbers as week (week)}
-								{@const dot = offDots.find((item) => item.week === week)}
-								{#if dot}
-									<i class="tl-dot" title={dot.label}></i>
-								{:else}
-									<span></span>
-								{/if}
+							{#each offDots as dot, index (index)}
+								<i class="tl-dot" style="left:{dot.left}%" title={dot.label}></i>
 							{/each}
 						</div>
 					</div>
@@ -426,12 +439,13 @@
 		--cols: 1;
 	}
 
+	/* Head, track and marks share one width, so a percentage of the track is a day. */
 	.tl-head,
 	.tl-track,
 	.tl-marks {
 		display: grid;
 		grid-template-columns: repeat(var(--cols), minmax(80px, 1fr));
-		gap: 3px;
+		width: max(100%, calc(var(--cols) * 80px));
 	}
 
 	.tl-head span {
@@ -452,19 +466,23 @@
 		font-size: inherit;
 	}
 
+	/* One row of bars, as tall as the lanes in use (the lane gap is 3px). */
 	.tl-track {
+		position: relative;
+		grid-template-rows: 1fr;
 		margin-top: 6px;
 	}
 
+	/* Each week column is inset 1.5px, so two columns show the same 3px gap as before. */
 	.tl-week {
-		grid-row: 1;
-		height: 44px;
+		margin: 0 1.5px;
 		border-radius: var(--mw-radius-md);
 		background: var(--mw-surface-tint);
 	}
 
 	.tl-block {
-		grid-row: 1;
+		position: absolute;
+		top: 0;
 		height: 44px;
 		border-radius: var(--mw-radius-md);
 		background: var(--mw-accent);
@@ -479,10 +497,14 @@
 
 	/* Each experience is its own pill: a card-coloured border separates neighbours. */
 	.tl-block {
-		position: relative;
 		padding-left: 30px;
 		border: 2px solid var(--mw-surface-card);
 		background-clip: padding-box;
+	}
+
+	/* Too short for anything inside: the pill keeps its colour and the card says the rest. */
+	.tl-block.tl-none {
+		padding: 0;
 	}
 
 	/* The number matches the card in the list; it stays visible when the title is clipped. */
@@ -527,7 +549,8 @@
 	}
 
 	.tl-off {
-		grid-row: 1;
+		position: absolute;
+		top: 0;
 		height: 44px;
 		border-radius: var(--mw-radius-md);
 		background: var(--mw-surface-page);
@@ -543,12 +566,15 @@
 	}
 
 	.tl-marks {
+		position: relative;
 		margin-top: var(--mw-space-1);
 		height: 8px;
 	}
 
 	.tl-dot {
-		justify-self: center;
+		position: absolute;
+		top: 50%;
+		transform: translate(-50%, -50%);
 		width: 6px;
 		height: 6px;
 		border-radius: 50%;

@@ -566,7 +566,7 @@ export async function mockApi(page: Page, state: ApiState) {
 									id: 'experience-2',
 									title: 'Simulacros de pruebas',
 									status: 'borrador',
-									starts_on: state.secondExperience === 'shared-week' ? '2026-10-09' : '2026-10-19',
+									starts_on: state.secondExperience === 'shared-week' ? '2026-10-10' : '2026-10-19',
 									ends_on: state.secondExperience === 'shared-week' ? '2026-10-16' : '2026-10-23',
 									class_dates: 3,
 									competencies: [
