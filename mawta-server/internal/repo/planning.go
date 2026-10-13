@@ -98,9 +98,11 @@ func countClassDates(ctx context.Context, tx pgx.Tx, classID uuid.UUID, from, to
 	return n, err
 }
 
-// scheduledClassDays returns the dates in [from, to] that the class's weekly
-// schedule covers, in order. Unlike ClassDates it keeps non-teaching days: the
-// timeline needs them to show a feriado as one of the class's slots.
+// scheduledClassDays returns the dates in [from, to] the class meets, in order:
+// the days its weekly schedule covers plus the days it has a session, so a class
+// with sessions but no schedule rows still gets its real days. Unlike ClassDates
+// it keeps non-teaching days: the timeline shows a feriado as one of the class's
+// slots.
 func scheduledClassDays(ctx context.Context, tx pgx.Tx, classID uuid.UUID, from, to time.Time) ([]string, error) {
 	rows, err := tx.Query(ctx, `
 		select to_char(d, 'YYYY-MM-DD')
@@ -112,6 +114,13 @@ func scheduledClassDays(ctx context.Context, tx pgx.Tx, classID uuid.UUID, from,
 		      and s.weekday = extract(isodow from d)
 		      and s.effective_from <= d
 		      and (s.effective_to is null or d < s.effective_to)
+		 )
+		    or exists (
+		   select 1 from class_sessions cs
+		    where cs.class_id = $1
+		      and cs.deleted_at is null
+		      and cs.status <> 'cancelled'
+		      and cs.session_date = d
 		 )
 		 order by d
 	`, classID, from, to)
