@@ -98,6 +98,38 @@ func countClassDates(ctx context.Context, tx pgx.Tx, classID uuid.UUID, from, to
 	return n, err
 }
 
+// scheduledClassDays returns the dates in [from, to] that the class's weekly
+// schedule covers, in order. Unlike ClassDates it keeps non-teaching days: the
+// timeline needs them to show a feriado as one of the class's slots.
+func scheduledClassDays(ctx context.Context, tx pgx.Tx, classID uuid.UUID, from, to time.Time) ([]string, error) {
+	rows, err := tx.Query(ctx, `
+		select to_char(d, 'YYYY-MM-DD')
+		  from generate_series($2::date, $3::date, interval '1 day') d
+		 where exists (
+		   select 1 from class_schedules s
+		    where s.class_id = $1
+		      and s.deleted_at is null
+		      and s.weekday = extract(isodow from d)
+		      and s.effective_from <= d
+		      and (s.effective_to is null or d < s.effective_to)
+		 )
+		 order by d
+	`, classID, from, to)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []string{}
+	for rows.Next() {
+		var d string
+		if err := rows.Scan(&d); err != nil {
+			return nil, err
+		}
+		out = append(out, d)
+	}
+	return out, rows.Err()
+}
+
 // ------------------------------------------------------------------ plan --
 
 type PlanTerm struct {
@@ -158,8 +190,11 @@ type Plan struct {
 	Term            PlanTerm           `json:"term"`
 	NonTeachingDays []NonTeachingRange `json:"non_teaching_days"`
 	ClassDatesTotal int                `json:"class_dates_total"`
-	Experiences     []PlanExperience   `json:"experiences"`
-	Competencies    []PlanCompetency   `json:"competencies"`
+	// The days the weekly schedule meets in the term, holidays included: a
+	// feriado on a class day is a class slot the timeline marks, not a missing one.
+	ScheduledClassDays []string         `json:"scheduled_class_days"`
+	Experiences        []PlanExperience `json:"experiences"`
+	Competencies       []PlanCompetency `json:"competencies"`
 }
 
 // ResolvePlanTerm picks the term "Tu trimestre" shows: termID when given
@@ -217,6 +252,9 @@ func GetPlan(ctx context.Context, tx pgx.Tx, classID uuid.UUID, term PlanTerm) (
 		return p, err
 	}
 	if p.ClassDatesTotal, err = countClassDates(ctx, tx, classID, term.from, term.to); err != nil {
+		return p, err
+	}
+	if p.ScheduledClassDays, err = scheduledClassDays(ctx, tx, classID, term.from, term.to); err != nil {
 		return p, err
 	}
 	if p.Experiences, err = planExperiences(ctx, tx, classID, term.ID); err != nil {

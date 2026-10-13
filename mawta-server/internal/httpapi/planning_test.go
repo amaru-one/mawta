@@ -128,6 +128,9 @@ func planClass(t *testing.T, env *dbtest.Env) uuid.UUID {
 		values ({{class}}, {{tenant}}, {{year}}, {{grade}}, {{course}}, {{section}}, {{label}}, 'Matemática ' || {{label}});
 		insert into class_teachers (tenant_id, class_id, teacher_id, role, starts_on)
 		values ({{tenant}}, {{class}}, {{teacher}}, 'titular', '2026-03-01');
+		insert into class_schedules (tenant_id, class_id, weekday, starts_at, ends_at, effective_from)
+		values ({{tenant}}, {{class}}, 1, time '08:00', time '09:30', '2026-03-01'),
+		       ({{tenant}}, {{class}}, 3, time '08:00', time '09:30', '2026-03-01');
 
 		insert into class_sessions (tenant_id, academic_year_id, class_id, term_id, session_date,
 		                            scheduled_start_at, scheduled_end_at, status)
@@ -171,6 +174,7 @@ func planClass(t *testing.T, env *dbtest.Env) uuid.UUID {
 			delete from experience_competencies where experience_id in %[1]s;
 			delete from learning_experiences where class_id = '%[2]s';
 			delete from class_sessions where class_id = '%[2]s';
+			delete from class_schedules where class_id = '%[2]s';
 			delete from class_teachers where class_id = '%[2]s';
 			delete from classes where id = '%[2]s';
 			delete from section_memberships where section_id = '%[3]s';
@@ -307,6 +311,19 @@ func TestPlanReadsAnEmptyTerm(t *testing.T) {
 	// Friday and the non-teaching days left out.
 	if want := len(expectedClassDates("2026-05-16", "2026-07-31")); p.ClassDatesTotal != want {
 		t.Errorf("class_dates_total = %d, want %d", p.ClassDatesTotal, want)
+	}
+	// The weekly schedule meets Mondays and Wednesdays across the whole term,
+	// holidays and vacations included: the timeline marks them as class slots.
+	var wantScheduled []string
+	from, _ := time.Parse("2006-01-02", p.Term.StartsOn)
+	to, _ := time.Parse("2006-01-02", p.Term.EndsOn)
+	for d := from; !d.After(to); d = d.AddDate(0, 0, 1) {
+		if d.Weekday() == time.Monday || d.Weekday() == time.Wednesday {
+			wantScheduled = append(wantScheduled, d.Format("2006-01-02"))
+		}
+	}
+	if fmt.Sprint(p.ScheduledClassDays) != fmt.Sprint(wantScheduled) {
+		t.Errorf("scheduled_class_days = %v, want %v", p.ScheduledClassDays, wantScheduled)
 	}
 	wantRanges := []repo.NonTeachingRange{
 		{From: planHoliday, To: planHoliday, Kind: "feriado"},
