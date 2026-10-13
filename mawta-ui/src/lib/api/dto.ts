@@ -545,6 +545,11 @@ export type ClassPlanDto = {
 	non_teaching_days: PlanNonTeachingDayDto[] | null;
 	/** Class dates in the whole term, non-teaching days excluded. */
 	class_dates_total: number;
+	/**
+	 * Every day the weekly schedule meets in the term, non-teaching days included:
+	 * a feriado on a class day is a class slot the timeline marks.
+	 */
+	scheduled_class_days: string[] | null;
 	experiences: PlanExperienceDto[] | null;
 	/** The competencies of the class's area. */
 	competencies: PlanCompetencyDto[] | null;

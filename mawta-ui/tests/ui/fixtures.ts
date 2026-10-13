@@ -166,6 +166,8 @@ export function seed() {
 		loginError: false,
 		// Adds a second experience in the following weeks, adjacent to the first on the timeline.
 		secondExperience: false as false | 'adjacent' | 'shared-week',
+		// Makes Oct 22–28, a whole week of class days, a vacation on the timeline.
+		vacationWeek: false,
 		// Status returned by GET /me. 401 mimics an expired session, 5xx a server failure.
 		meStatus: 200 as number,
 		failures: new Set<string>(),
@@ -174,6 +176,16 @@ export function seed() {
 	};
 }
 export type ApiState = ReturnType<typeof seed>;
+
+// Every date from `from` to `to` (inclusive) that falls on one of the ISO weekdays.
+function weekdaysBetween(from: string, to: string, weekdays: number[]): string[] {
+	const out: string[] = [];
+	for (let t = Date.parse(from); t <= Date.parse(to); t += 86400000) {
+		const day = new Date(t);
+		if (weekdays.includes(day.getUTCDay())) out.push(day.toISOString().slice(0, 10));
+	}
+	return out;
+}
 
 export async function mockApi(page: Page, state: ApiState) {
 	await page.route('https://fonts.googleapis.com/**', (route) => route.abort());
@@ -556,9 +568,16 @@ export async function mockApi(page: Page, state: ApiState) {
 					status: 'active',
 				},
 				non_teaching_days: [
+					// The 8 oct feriado is a Thursday, not a class day: the timeline ignores it. The 21 oct
+					// feriado is a Wednesday class: it marks that one class slot.
 					{ from: '2026-10-08', to: '2026-10-08', kind: 'feriado', label: 'Feriado' },
+					{ from: '2026-10-21', to: '2026-10-21', kind: 'feriado', label: 'Feriado' },
+					...(state.vacationWeek
+						? [{ from: '2026-10-22', to: '2026-10-28', kind: 'vacaciones', label: 'Vacaciones' }]
+						: []),
 				],
 				class_dates_total: 30,
+				scheduled_class_days: weekdaysBetween('2026-10-01', '2026-12-18', [1, 3, 5]),
 				experiences: [
 					...(state.secondExperience
 						? [

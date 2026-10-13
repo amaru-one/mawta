@@ -16,7 +16,7 @@
 	import { getClassPlan } from '$lib/api/endpoints/planning';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
-	import { dayOffset, spanPercent } from '$lib/timeline';
+	import { buildTimeline, offRuns, percentOf, spanOf } from '$lib/timeline';
 
 	let timeline = $state<HTMLDivElement | null>(null);
 	const courseId = $derived(page.params.courseId ?? '');
@@ -73,7 +73,6 @@
 		'nov',
 		'dic',
 	];
-	const DAY_MS = 86400000;
 
 	// "YYYY-MM-DD" → local midnight, so no UTC shift ever moves a class date.
 	function fromISO(date: string): Date {
@@ -94,31 +93,19 @@
 
 	// ---- the term as weeks ----
 
-	// Weeks are the column headers, counted from the term's first day. Experiences
-	// and non-teaching ranges are placed by their exact day, so two experiences
-	// that share a week are split at the day one of them changes. A stretch
-	// without experiences is just empty weeks — nothing warns.
-	const weekCount = $derived.by(() => {
-		if (!plan) return 0;
-		const days = Math.round(
-			(fromISO(plan.term.ends_on).getTime() - fromISO(plan.term.starts_on).getTime()) / DAY_MS
-		);
-		return Math.floor(days / 7) + 1;
-	});
+	// Weeks are the column headers. Each week is split into its class days, so the
+	// track counts classes: consecutive classes touch and days without class take
+	// no space. A week with no class is a normal-width week in its own colour.
+	const track = $derived(
+		plan ? buildTimeline(plan.term.starts_on, plan.term.ends_on, plan.scheduled_class_days) : null
+	);
+	const weekCount = $derived(track?.weekCount ?? 0);
 
-	// The track is one column per day of the week columns, so a percentage of it
-	// is an exact day.
-	const totalDays = $derived(weekCount * 7);
-
-	function dayOf(date: string): number {
-		return plan ? dayOffset(plan.term.starts_on, date) : 0;
-	}
-
-	// Short spans can't hold text: 10+ days shows the title, 3–9 days shows the
-	// number only, under 3 shows an empty pill. The card list keeps the full title.
-	function barSize(days: number): 'full' | 'number' | 'none' {
-		if (days >= 10) return 'full';
-		if (days >= 3) return 'number';
+	// Short spans can't hold text. Measured in weeks: a week or more shows the
+	// title, from 0.6 of a week the number only, below that an empty pill.
+	function barSize(weeks: number): 'full' | 'number' | 'none' {
+		if (weeks >= 1.5) return 'full';
+		if (weeks >= 0.6) return 'number';
 		return 'none';
 	}
 
@@ -136,33 +123,39 @@
 		return weeks;
 	});
 
-	// Experience blocks, placed by day. The server rejects overlapping experiences,
-	// so they normally share one row. A lane is used only if two ranges ever collide
-	// on the same day: the second one moves down instead of being drawn on top.
+	// Experience blocks, placed on the class-day track. The server rejects
+	// overlapping experiences, so they normally share one row. A lane is used only
+	// if two spans ever collide: the second one moves down instead of being drawn
+	// on top. The number is the card's position, even when a block is skipped.
 	const expBlocks = $derived.by(() => {
 		const laneEnds: number[] = [];
-		return orderedExperiences.map((experience, index) => {
-			const startDay = dayOf(experience.starts_on);
-			const endDay = dayOf(experience.ends_on);
-			let lane = laneEnds.findIndex((end) => end < startDay);
-			if (lane === -1) lane = laneEnds.push(endDay) - 1;
-			else laneEnds[lane] = endDay;
-			return {
-				id: experience.id,
-				number: index + 1,
-				title: experience.title,
-				classes: experience.class_dates,
-				size: barSize(endDay - startDay + 1),
-				...spanPercent(startDay, endDay, totalDays),
-				lane: lane + 1,
-			};
+		return orderedExperiences.flatMap((experience, index) => {
+			const span = track ? spanOf(track, experience.starts_on, experience.ends_on) : null;
+			if (!span) return [];
+			let lane = laneEnds.findIndex((end) => end <= span.start);
+			if (lane === -1) lane = laneEnds.push(span.end) - 1;
+			else laneEnds[lane] = span.end;
+			const weeks = span.end - span.start;
+			return [
+				{
+					id: experience.id,
+					number: index + 1,
+					title: experience.title,
+					classes: experience.class_dates,
+					size: barSize(weeks),
+					left: percentOf(span.start, weekCount),
+					width: percentOf(weeks, weekCount),
+					lane: lane + 1,
+				},
+			];
 		});
 	});
 
 	const lanes = $derived(Math.max(1, ...expBlocks.map((block) => block.lane)));
 
-	// Non-teaching days: a range longer than one day is drawn over the days it
-	// covers; a single day is a dot under its own day.
+	// Non-teaching days mark the class slots they take, merged while consecutive
+	// class days share a kind and label. Text shows only when the mark covers a
+	// week or more; a single slot is a stripe, and the legend and title say it.
 	const OFF_TEXT: Record<NonTeachingDayKind, string> = {
 		feriado: 'feriado',
 		vacaciones: 'vacaciones',
@@ -170,27 +163,19 @@
 	};
 
 	const offBlocks = $derived(
-		nonTeachingDays
-			.filter((day) => day.from !== day.to)
-			.map((day, index) => {
-				const days = dayOf(day.to) - dayOf(day.from) + 1;
-				return {
-					id: `${day.from}-${index}`,
-					text: OFF_TEXT[day.kind] ?? day.kind,
-					label: day.label ?? OFF_TEXT[day.kind] ?? day.kind,
-					size: barSize(days),
-					...spanPercent(dayOf(day.from), dayOf(day.to), totalDays),
-				};
-			})
-	);
-
-	const offDots = $derived(
-		nonTeachingDays
-			.filter((day) => day.from === day.to)
-			.map((day) => ({
-				left: ((dayOf(day.from) + 0.5) / totalDays) * 100,
-				label: day.label ?? OFF_TEXT[day.kind] ?? day.kind,
-			}))
+		track
+			? offRuns(track, nonTeachingDays).map((run, index) => {
+					const weeks = run.end - run.start;
+					return {
+						id: `${index}`,
+						text: OFF_TEXT[run.kind],
+						label: run.label ?? OFF_TEXT[run.kind],
+						showText: weeks >= 1,
+						left: percentOf(run.start, weekCount),
+						width: percentOf(weeks, weekCount),
+					};
+				})
+			: []
 	);
 
 	// ---- status and coverage, written as text ----
@@ -270,17 +255,11 @@
 						</div>
 						<div class="tl-track" style="height:calc(var(--lanes) * 47px - 3px)">
 							{#each weekNumbers as week (week)}
-								<span class="tl-week" style="grid-column:{week}"></span>
-							{/each}
-							{#each offBlocks as block (block.id)}
-								<!-- Too short for the word: the stripes, the legend and the title say it. -->
 								<span
-									class="tl-off tl-{block.size}"
-									style="left:calc({block.left}% + 1.5px);width:calc({block.width}% - 3px)"
-									title={block.label}
-								>
-									{#if block.size === 'full'}{block.text}{/if}
-								</span>
+									class="tl-week"
+									class:tl-week-off={track !== null && !track.weekHasClasses[week - 1]}
+									style="grid-column:{week}"
+								></span>
 							{/each}
 							{#each expBlocks as block (block.id)}
 								<span
@@ -298,17 +277,22 @@
 									{/if}
 								</span>
 							{/each}
-						</div>
-						<div class="tl-marks">
-							{#each offDots as dot, index (index)}
-								<i class="tl-dot" style="left:{dot.left}%" title={dot.label}></i>
+							<!-- After the bars: a feriado inside an experience shows as its own slot. -->
+							{#each offBlocks as block (block.id)}
+								<span
+									class="tl-off"
+									style="left:calc({block.left}% + 1.5px);width:calc({block.width}% - 3px)"
+									title={block.label}
+								>
+									{#if block.showText}{block.text}{/if}
+								</span>
 							{/each}
 						</div>
 					</div>
 					<div class="legend">
 						<span><span class="sw sw-exp"></span>Experiencia (n.º como en la lista)</span>
-						<span><span class="sw sw-off"></span>Semana sin clases</span>
-						<span><span class="sw-dot"></span>Día sin clases</span>
+						<span><span class="sw sw-off"></span>Sin clases: feriado, vacaciones, gestión</span>
+						<span><span class="sw sw-week-off"></span>Semana sin clases</span>
 					</div>
 				</div>
 			</div>
@@ -441,8 +425,7 @@
 
 	/* Head, track and marks share one width, so a percentage of the track is a day. */
 	.tl-head,
-	.tl-track,
-	.tl-marks {
+	.tl-track {
 		display: grid;
 		grid-template-columns: repeat(var(--cols), minmax(80px, 1fr));
 		width: max(100%, calc(var(--cols) * 80px));
@@ -551,6 +534,7 @@
 	.tl-off {
 		position: absolute;
 		top: 0;
+		z-index: var(--mw-z-raised);
 		height: 44px;
 		border-radius: var(--mw-radius-md);
 		background: var(--mw-surface-page);
@@ -565,20 +549,10 @@
 		text-align: center;
 	}
 
-	.tl-marks {
-		position: relative;
-		margin-top: var(--mw-space-1);
-		height: 8px;
-	}
-
-	.tl-dot {
-		position: absolute;
-		top: 50%;
-		transform: translate(-50%, -50%);
-		width: 6px;
-		height: 6px;
-		border-radius: 50%;
-		background: var(--mw-ink-muted);
+	/* A week with no class day keeps its width; only its colour says so. */
+	.tl-week-off {
+		background: var(--mw-surface-card);
+		border: 1px solid var(--mw-line);
 	}
 
 	.legend {
@@ -612,11 +586,12 @@
 		border: 1px solid var(--mw-line);
 	}
 
-	.sw-dot {
-		width: 6px;
-		height: 6px;
-		border-radius: 50%;
-		background: var(--mw-ink-muted);
+	.sw-week-off {
+		width: 12px;
+		height: 12px;
+		border-radius: 3px;
+		background: var(--mw-surface-card);
+		border: 1px solid var(--mw-line);
 	}
 
 	.label-row {

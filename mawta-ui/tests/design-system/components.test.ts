@@ -9,7 +9,7 @@ import { safeNext } from '../../src/lib/auth';
 import { pendingCounts } from '../../src/lib/planning/pending';
 import { runSequential } from '../../src/lib/batch';
 import { dayLabel, monthGrid } from '../../src/lib/calendar';
-import { dayOffset, spanPercent } from '../../src/lib/timeline';
+import { buildTimeline, offRuns, spanOf } from '../../src/lib/timeline';
 
 declare module 'vitest/browser' {
 	interface BrowserCommands {
@@ -343,20 +343,67 @@ test('safeNext keeps same-origin paths and rejects off-site or login targets', (
 	}
 });
 
-test('dayOffset counts whole days from the term start, across month ends', () => {
-	expect(dayOffset('2026-10-01', '2026-10-01')).toBe(0);
-	expect(dayOffset('2026-10-01', '2026-10-09')).toBe(8);
-	expect(dayOffset('2026-10-01', '2026-11-01')).toBe(31);
+// Two weeks from Monday 5 oct, classes on Mon/Wed/Fri: week 1 has three class
+// days (thirds), week 2 too.
+const MWF_TERM = {
+	termStart: '2026-10-05',
+	termEnd: '2026-10-18',
+	scheduled: ['2026-10-05', '2026-10-07', '2026-10-09', '2026-10-12', '2026-10-14', '2026-10-16'],
+};
+
+test('buildTimeline splits each week into its class days and ignores the days between', () => {
+	const track = buildTimeline(MWF_TERM.termStart, MWF_TERM.termEnd, MWF_TERM.scheduled);
+	expect(track.weekCount).toBe(2);
+	expect(track.weekHasClasses).toEqual([true, true]);
+	expect(track.slots).toHaveLength(6);
+	// Wednesday 7 starts exactly where Monday 5 ends: no empty Tuesday on the track.
+	expect(track.slots[0]?.end).toBeCloseTo(track.slots[1]?.start ?? NaN);
+	expect(track.slots[1]?.start).toBeCloseTo(1 / 3);
+	expect(track.slots[3]?.start).toBeCloseTo(1);
 });
 
-test('spanPercent places an inclusive day span and clamps it to the track', () => {
-	// A 10-day track: days 2 to 4 cover 3 of 10 columns, starting at column 2.
-	expect(spanPercent(2, 4, 10)).toEqual({ left: 20, width: 30 });
-	// One day is exactly one column.
-	expect(spanPercent(5, 5, 10)).toEqual({ left: 50, width: 10 });
-	// Days before the track start or after its end are pulled onto the track.
-	expect(spanPercent(-3, 1, 10)).toEqual({ left: 0, width: 20 });
-	expect(spanPercent(8, 15, 10)).toEqual({ left: 80, width: 20 });
+test('buildTimeline marks a week with no class day, and falls back to Monday to Friday', () => {
+	const sparse = buildTimeline('2026-10-05', '2026-10-18', ['2026-10-05']);
+	expect(sparse.weekHasClasses).toEqual([true, false]);
+	const fallback = buildTimeline('2026-10-05', '2026-10-11', null);
+	expect(fallback.slots.map((slot) => slot.date)).toEqual([
+		'2026-10-05',
+		'2026-10-06',
+		'2026-10-07',
+		'2026-10-08',
+		'2026-10-09',
+	]);
+});
+
+test('spanOf starts and ends on class days, and shared weeks meet at the class boundary', () => {
+	const track = buildTimeline(MWF_TERM.termStart, MWF_TERM.termEnd, MWF_TERM.scheduled);
+	// Oct 5 to Oct 7 covers the first two thirds of week 1, whatever the calendar days.
+	const first = spanOf(track, '2026-10-05', '2026-10-07');
+	expect(first?.start).toBeCloseTo(0);
+	expect(first?.end).toBeCloseTo(2 / 3);
+	// Oct 9 begins the last third, so the next experience touches the first.
+	const second = spanOf(track, '2026-10-09', '2026-10-16');
+	expect(second?.start).toBeCloseTo(2 / 3);
+	expect(second?.end).toBeCloseTo(2);
+	// A stretch with no class day has nothing to draw.
+	expect(spanOf(track, '2026-10-06', '2026-10-06')).toBeNull();
+});
+
+test('offRuns marks class slots only, merges consecutive ones, and ignores non-class days', () => {
+	const track = buildTimeline(MWF_TERM.termStart, MWF_TERM.termEnd, MWF_TERM.scheduled);
+	const runs = offRuns(track, [
+		// Wednesday 7 is a class slot: one third of week 1.
+		{ from: '2026-10-07', to: '2026-10-07', kind: 'feriado', label: 'Feriado' },
+		// Tuesday 6 is not a class day: nothing is drawn.
+		{ from: '2026-10-06', to: '2026-10-06', kind: 'feriado', label: 'Feriado' },
+		// The whole of week 2 is vacation: one run across its three slots.
+		{ from: '2026-10-12', to: '2026-10-16', kind: 'vacaciones', label: null },
+	]);
+	expect(runs).toHaveLength(2);
+	expect(runs[0]?.start).toBeCloseTo(1 / 3);
+	expect(runs[0]?.end).toBeCloseTo(2 / 3);
+	expect(runs[1]?.start).toBeCloseTo(1);
+	expect(runs[1]?.end).toBeCloseTo(2);
 });
 
 test('showError stores an error tone with a retry action and a longer hold', () => {

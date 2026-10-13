@@ -24,8 +24,39 @@ test('experiences that share a week sit in one row, split at the day one ends', 
 	const gap = second.x - (first.x + first.width);
 	expect(gap).toBeGreaterThanOrEqual(0);
 	expect(gap).toBeLessThan(8);
-	// Widths follow the day counts: 5 days (Oct 5–9) and 7 days (Oct 10–16), each with a 3px inset.
-	expect((first.width + 3) / 5).toBeCloseTo((second.width + 3) / 7, 0);
+	// Both run three class days (Oct 5, 7, 9 and Oct 12, 14, 16), so their bars match in width.
+	expect(Math.abs(first.width - second.width)).toBeLessThan(1);
+	expect(api.unexpected).toEqual([]);
+});
+
+test('a feriado on a class day marks one class slot; a feriado on a day without class is not drawn', async ({
+	page,
+	api,
+}) => {
+	await page.goto('/class/class-1/plan');
+	// Oct 21 is a Wednesday class: one third of its week. Oct 8 is a Thursday: no mark.
+	const marks = page.locator('.tl-off');
+	await expect(marks).toHaveCount(1);
+	const track = await page.locator('.tl-track').boundingBox();
+	const mark = await marks.boundingBox();
+	if (!track || !mark) throw new Error('timeline is not laid out');
+	// The term spans 12 weeks; a class slot is a third of one, less the 3px inset.
+	expect(Math.abs(mark.width + 3 - track.width / 12 / 3)).toBeLessThan(1.5);
+	expect(api.unexpected).toEqual([]);
+});
+
+test('a vacation covering a whole week of classes marks the week, with its name', async ({
+	page,
+	api,
+}) => {
+	api.vacationWeek = true;
+	await page.goto('/class/class-1/plan');
+	const vacation = page.locator('.tl-off', { hasText: 'vacaciones' });
+	await expect(vacation).toHaveCount(1);
+	const track = await page.locator('.tl-track').boundingBox();
+	const box = await vacation.boundingBox();
+	if (!track || !box) throw new Error('timeline is not laid out');
+	expect(Math.abs(box.width + 3 - track.width / 12)).toBeLessThan(1.5);
 	expect(api.unexpected).toEqual([]);
 });
 

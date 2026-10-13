@@ -244,15 +244,17 @@ function isNonTeaching(date: string): boolean {
 
 // Distinct dates with a scheduled session in the range, non-teaching days
 // excluded — a double block would still be one date.
-function classDatesBetween(from: string, to: string): string[] {
+// Every day the weekly schedule meets, feriados and vacations included.
+function scheduledDaysBetween(from: string, to: string): string[] {
 	const dates: string[] = [];
 	for (let day = fromISO(from); day <= fromISO(to); day = addDays(day, 1)) {
-		if (!CLASS_WEEKDAYS.includes(day.getDay())) continue;
-		const iso = toISO(day);
-		if (isNonTeaching(iso)) continue;
-		dates.push(iso);
+		if (CLASS_WEEKDAYS.includes(day.getDay())) dates.push(toISO(day));
 	}
 	return dates;
+}
+
+function classDatesBetween(from: string, to: string): string[] {
+	return scheduledDaysBetween(from, to).filter((iso) => !isNonTeaching(iso));
 }
 
 // The four competencias of Matemática with their real CNEB names, capabilities
@@ -1168,6 +1170,7 @@ export async function getClassPlan(_classId: string, termId?: string): Promise<C
 		},
 		non_teaching_days: NON_TEACHING_DAYS,
 		class_dates_total: classDatesBetween(TERM.starts_on, TERM.ends_on).length,
+		scheduled_class_days: scheduledDaysBetween(TERM.starts_on, TERM.ends_on),
 		experiences: planExperiences,
 		competencies: planCompetencies,
 	});
