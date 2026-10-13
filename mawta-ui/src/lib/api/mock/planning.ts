@@ -142,6 +142,7 @@ interface Experience {
 	title: string;
 	idea_text: string;
 	situation_text: string | null;
+	context_text: string | null;
 	starts_on: string;
 	ends_on: string;
 	competency_ids: string[];
@@ -536,6 +537,7 @@ function seedExperience(): void {
 			'Quiero armar una tiendita en el aula: ponemos precios, compramos, damos el vuelto y registramos qué se vende más.',
 		situation_text:
 			'Organizamos la tiendita de la feria del aula: ponemos precios con descuentos, cobramos, damos el vuelto y registramos qué se vende más para decidir qué ofrecer en la próxima feria.',
+		context_text: 'Feria del aula de compras',
 		starts_on: startsOn,
 		ends_on: endsOn,
 		competency_ids: ['mat-c1', 'mat-c4'],
@@ -1226,6 +1228,7 @@ function toExperienceDto(experience: Experience): ExperienceDto {
 		title: experience.title,
 		idea_text: experience.idea_text,
 		situation_text: experience.situation_text,
+		context_text: experience.context_text,
 		starts_on: experience.starts_on,
 		ends_on: experience.ends_on,
 		competencies: competencyRefs,
@@ -1289,6 +1292,7 @@ export async function createExperience(
 		title: body.title,
 		idea_text: body.idea_text,
 		situation_text: body.situation_text?.trim() ? body.situation_text.trim() : null,
+		context_text: body.context_text?.trim() ? body.context_text.trim() : null,
 		starts_on: body.starts_on,
 		ends_on: body.ends_on,
 		competency_ids: [...body.competency_ids],

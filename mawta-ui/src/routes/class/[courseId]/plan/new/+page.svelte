@@ -70,6 +70,9 @@
 	type Step = 'idea' | 'review' | 'change';
 	let step = $state<Step>('idea');
 	let ideaText = $state('');
+	// Optional event or context. Hidden until asked for: it is the only way an event enters.
+	let contextText = $state('');
+	let contextOpen = $state(false);
 	let selected = $state<string[]>([]);
 
 	const competencies = $derived(list(curriculum?.competencies));
@@ -267,6 +270,7 @@
 		try {
 			const body: ExperienceProposalBody = { term_id: plan.term.id, idea_text: ideaText.trim() };
 			if (selected.length > 0) body.competency_ids = [...selected];
+			if (contextText.trim() !== '') body.context_text = contextText.trim();
 			const started = await proposeExperience(courseId, body);
 			const done = await waitForGeneration(started, leaving.signal);
 			if (done.status === 'failed') {
@@ -306,6 +310,7 @@
 				title: title.trim(),
 				idea_text: ideaText.trim(),
 				situation_text: situation.trim() || null,
+				context_text: contextText.trim() || null,
 				starts_on: startsOn,
 				ends_on: endsOn,
 				competency_ids: [...selected],
@@ -351,8 +356,24 @@
 						label="Tu idea"
 						rows={4}
 						bind:value={ideaText}
-						placeholder="Ej.: que armen y atiendan una tiendita en la feria del aula"
+						placeholder="Ej.: que armen y atiendan una tiendita para practicar vueltos"
 					/>
+				{/if}
+
+				{#if contextOpen}
+					<Field
+						kind="textarea"
+						label="Evento o contexto"
+						rows={2}
+						maxlength={300}
+						bind:value={contextText}
+						help="Mawta solo usará un evento si lo escribes aquí."
+						placeholder="Ej.: feria del aula, aniversario del colegio"
+					/>
+				{:else}
+					<Action variant="link" onclick={() => (contextOpen = true)}
+						>+ Agregar un evento o contexto (opcional)</Action
+					>
 				{/if}
 
 				{#if genError !== null}
@@ -424,9 +445,11 @@
 				<p class="origin">
 					{#if origin === 'mawta'}
 						<span class="ai-star">✦</span>
-						Mawta la armó a partir de tu idea: “{ideaText}”. Aún no está guardada.
+						Mawta la armó a partir de tu idea: “{ideaText}”. Aún no está guardada.{#if contextText.trim() !== ''}
+							Evento o contexto: “{contextText.trim()}”.{/if}
 					{:else}
-						Tu idea: “{ideaText}”. Aún no está guardada.
+						Tu idea: “{ideaText}”. Aún no está guardada.{#if contextText.trim() !== ''}
+							Evento o contexto: “{contextText.trim()}”.{/if}
 					{/if}
 				</p>
 				<h1 class="screen-title">Revisa la experiencia</h1>

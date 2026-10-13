@@ -179,6 +179,9 @@
 			{:else}
 				<p class="situation muted">Todavía sin situación significativa.</p>
 			{/if}
+			{#if experience.context_text}
+				<p class="situation">Evento o contexto: {experience.context_text}</p>
+			{/if}
 
 			<Context>
 				{#each comps as competency (competency.id)}

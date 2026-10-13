@@ -38,6 +38,7 @@ export function seed() {
 		title: 'La tiendita escolar',
 		idea_text: 'Organizar una tienda en el aula',
 		situation_text: 'Calculamos los precios y explicamos nuestras decisiones.',
+		context_text: 'Feria del aula de compras',
 		starts_on: dates[0],
 		ends_on: dates[2],
 		competencies: [competency],

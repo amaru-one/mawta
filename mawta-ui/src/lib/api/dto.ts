@@ -664,6 +664,8 @@ export type ExperienceDto = {
 	idea_text: string;
 	/** Null until a situation is written; it is optional. */
 	situation_text: string | null;
+	/** The teacher's event or context. Null means none: the agent may not invent one. */
+	context_text: string | null;
 	starts_on: string;
 	ends_on: string;
 	competencies: ExperienceCompetencyRefDto[] | null;
@@ -681,6 +683,8 @@ export type CreateExperienceBody = {
 	idea_text: string;
 	/** Optional: an experience can be saved before its situation is written. */
 	situation_text?: string | null;
+	/** Optional event or context the teacher wrote; the only source of an event. */
+	context_text?: string | null;
 	starts_on: string;
 	ends_on: string;
 	/** At least one, of the class's area. */
@@ -742,6 +746,8 @@ export type UpdateSessionBody = {
 export type ExperienceProposalBody = {
 	term_id: string;
 	idea_text: string;
+	/** Optional event or context the teacher wrote; omitted when empty. */
+	context_text?: string;
 	competency_ids?: string[];
 };
 
