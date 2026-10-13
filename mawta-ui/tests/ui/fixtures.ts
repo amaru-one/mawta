@@ -164,6 +164,8 @@ export function seed() {
 		notifications,
 		unavailable: false,
 		loginError: false,
+		// Adds a second experience in the following weeks, adjacent to the first on the timeline.
+		secondExperience: false,
 		// Status returned by GET /me. 401 mimics an expired session, 5xx a server failure.
 		meStatus: 200 as number,
 		failures: new Set<string>(),
@@ -558,6 +560,22 @@ export async function mockApi(page: Page, state: ApiState) {
 				],
 				class_dates_total: 30,
 				experiences: [
+					...(state.secondExperience
+						? [
+								{
+									id: 'experience-2',
+									title: 'Simulacros de pruebas',
+									status: 'borrador',
+									starts_on: '2026-10-19',
+									ends_on: '2026-10-23',
+									class_dates: 3,
+									competencies: [
+										{ ...competency, capabilities_total: 2, capabilities_with_criteria: 0 },
+									],
+									pending_proposals: 0,
+								},
+							]
+						: []),
 					{
 						id: 'experience-1',
 						title: state.experience.title,

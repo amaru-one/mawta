@@ -47,6 +47,12 @@
 	// The plan screen's whole read is one request; a failed load only offers
 	// the retry, the same as the criteria screen.
 	const experiences = $derived(list(plan?.experiences));
+	// The bars and the cards share this order, so "1" is the same experience in both.
+	const orderedExperiences = $derived(
+		[...experiences].sort((a, b) =>
+			a.starts_on < b.starts_on ? -1 : a.starts_on > b.starts_on ? 1 : 0
+		)
+	);
 	const competencies = $derived(list(plan?.competencies));
 	const nonTeachingDays = $derived(list(plan?.non_teaching_days));
 
@@ -123,8 +129,9 @@
 
 	// Experience blocks, placed by their dates.
 	const expBlocks = $derived(
-		experiences.map((experience) => ({
+		orderedExperiences.map((experience, index) => ({
 			id: experience.id,
+			number: index + 1,
 			title: experience.title,
 			classes: experience.class_dates,
 			from: weekOf(experience.starts_on),
@@ -254,9 +261,10 @@
 							{#each expBlocks as block (block.id)}
 								<span
 									class="tl-block"
-									title={block.title}
+									title={`${block.number}. ${block.title}`}
 									style="grid-column:{block.from} / {block.to + 1}"
 								>
+									<b class="tl-num" aria-hidden="true">{block.number}</b>
 									<span class="tl-title">{block.title}</span>
 									<small>{block.classes} clases</small>
 								</span>
@@ -274,7 +282,7 @@
 						</div>
 					</div>
 					<div class="legend">
-						<span><span class="sw sw-exp"></span>Experiencia</span>
+						<span><span class="sw sw-exp"></span>Experiencia (n.º como en la lista)</span>
 						<span><span class="sw sw-off"></span>Semana sin clases</span>
 						<span><span class="sw-dot"></span>Día sin clases</span>
 					</div>
@@ -308,10 +316,13 @@
 				{#if experiences.length > 0}
 					<p class="eyebrow">Experiencias · {experiences.length}</p>
 					<div class="stack">
-						{#each experiences as experience (experience.id)}
+						{#each orderedExperiences as experience, index (experience.id)}
 							{@const coverage = coverageOf(experience)}
 							<button class="card exp pressable" onclick={() => openExperience(experience)}>
 								<div class="row exp-head">
+									<span class="exp-num"
+										><span class="mw-sr-only">Experiencia </span>{index + 1}</span
+									>
 									<p class="grow exp-title">{experience.title}</p>
 									<p class="exp-status">
 										{EXPERIENCE_STATUS[experience.status] ?? experience.status}
@@ -453,6 +464,46 @@
 		padding: 6px 7px;
 		overflow: hidden;
 		z-index: var(--mw-z-raised);
+	}
+
+	/* Each experience is its own pill: a card-coloured border separates neighbours. */
+	.tl-block {
+		position: relative;
+		padding-left: 30px;
+		border: 2px solid var(--mw-surface-card);
+		background-clip: padding-box;
+	}
+
+	/* The number matches the card in the list; it stays visible when the title is clipped. */
+	.tl-num {
+		position: absolute;
+		left: 5px;
+		top: 50%;
+		display: grid;
+		place-items: center;
+		width: 18px;
+		height: 18px;
+		margin-top: -9px;
+		border-radius: 50%;
+		background: var(--mw-surface-card);
+		color: var(--mw-accent);
+		font-size: var(--mw-type-label-size);
+		font-weight: 800;
+		line-height: 1;
+	}
+
+	.exp-num {
+		display: grid;
+		place-items: center;
+		flex: 0 0 auto;
+		width: 22px;
+		height: 22px;
+		margin-right: var(--mw-space-2);
+		border-radius: 50%;
+		background: var(--mw-accent);
+		color: var(--mw-on-accent);
+		font-size: var(--mw-type-label-size);
+		font-weight: 800;
 	}
 
 	.tl-block small {
