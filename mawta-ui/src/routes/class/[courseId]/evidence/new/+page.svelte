@@ -232,6 +232,7 @@
 						min="1"
 						max="100"
 						bind:value={maxScore}
+						error={maxValid ? undefined : 'Indica un número entero entre 1 y 100.'}
 						class="narrow"
 					/>
 				{/if}
@@ -317,9 +318,14 @@
 					class="submit"
 					type="submit"
 					disabled={!canSubmit || submitting}
+					loading={submitting}
 				>
 					Guardar evidencia
 				</Button>
+				{#if !canSubmit}<p class="caption">
+						{#if title.trim() === ''}Falta el título.{:else if picked.size === 0}Elige al menos un
+							criterio.{:else}Revisa la nota máxima.{/if}
+					</p>{/if}
 				<p class="caption">
 					{#if current !== null}{current.code} · {picked.size}
 						{picked.size === 1 ? 'criterio' : 'criterios'}{/if}

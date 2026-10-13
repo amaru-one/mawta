@@ -6,7 +6,7 @@
 	import TopBar from '$lib/components/TopBar.svelte';
 	import VoiceNotePlayer from '$lib/components/VoiceNotePlayer.svelte';
 	import { hapticTap } from '$lib/haptics';
-	import { addNote, loadSession, removeNote } from '$lib/lesson';
+	import { addNote, loadSession, removeNote, retryNote } from '$lib/lesson';
 	import { MAX_RECORD_SEC, formatDuration } from '$lib/recorder';
 	import { currentCourse, currentSession, entryKey, notes, students } from '$lib/stores';
 	import { showToast } from '$lib/toast';
@@ -324,6 +324,7 @@
 				bind:phase
 				bind:elapsedSec
 				onrecorded={handleRecorded}
+				oncancelled={() => showToast('Grabación cancelada. Vuelve a grabar si la necesitas.')}
 			/>
 
 			<p class="hint" class:quiet={stage === 'searching'} aria-live="polite">{hint}</p>
@@ -337,7 +338,7 @@
 					<p class="eyebrow">Notas de hoy</p>
 					<div class="notelist">
 						{#each selectedNotes as note (note.id)}
-							<VoiceNotePlayer {note} ondelete={handleDelete} />
+							<VoiceNotePlayer {note} ondelete={handleDelete} onretry={(n) => void retryNote(n)} />
 						{/each}
 					</div>
 				</div>

@@ -150,3 +150,33 @@ test('leaving during a hold cancels capture and releases the microphone', async 
 	).toBeGreaterThan(0);
 	expect(api.writes.filter((w) => w.path.endsWith('/voice-notes'))).toHaveLength(0);
 });
+
+test('losing focus mid-hold cancels the take and says so', async ({ page, api }) => {
+	await media(page);
+	await page.clock.install();
+	const control = await selectStudent(page);
+	await control.dispatchEvent('pointerdown', { pointerId: 1, button: 0 });
+	await page.clock.runFor(500);
+	await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+	await expect(page.getByText('Grabación cancelada', { exact: false })).toBeVisible();
+	expect(api.writes.filter((w) => w.path.endsWith('/voice-notes'))).toHaveLength(0);
+});
+
+test('a refused upload keeps the note and its retry then saves it', async ({ page, api }) => {
+	const uploadPath = '/sessions/session-1/students/student-1/voice-notes';
+	api.failures.add(uploadPath);
+	await media(page);
+	await page.clock.install();
+	const control = await selectStudent(page);
+	await control.dispatchEvent('pointerdown', { pointerId: 1, button: 0 });
+	await page.clock.runFor(600);
+	await control.dispatchEvent('pointerup', { pointerId: 1, button: 0 });
+	await expect(page.getByRole('group', { name: 'Nota de voz' })).toHaveCount(1);
+	const retry = page.getByRole('button', { name: 'Reintentar guardar', exact: true });
+	await expect(retry).toBeVisible();
+
+	api.failures.delete(uploadPath);
+	await retry.click();
+	await expect(retry).toHaveCount(0);
+	await expect.poll(() => api.writes.filter((w) => w.path === uploadPath).length).toBe(1);
+});
