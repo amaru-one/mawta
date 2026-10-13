@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+	"unicode/utf8"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -232,6 +233,7 @@ type createExperienceRequest struct {
 	Title         string   `json:"title"`
 	IdeaText      string   `json:"idea_text"`
 	SituationText *string  `json:"situation_text"`
+	ContextText   *string  `json:"context_text"`
 	StartsOn      string   `json:"starts_on"`
 	EndsOn        string   `json:"ends_on"`
 	CompetencyIDs []string `json:"competency_ids"`
@@ -252,7 +254,11 @@ func (a *API) handleCreateExperience(w http.ResponseWriter, r *http.Request) {
 	if !decodeBody(w, r, &req) {
 		return
 	}
-	in := repo.ExperienceInput{Title: req.Title, IdeaText: req.IdeaText, SituationText: req.SituationText}
+	in := repo.ExperienceInput{Title: req.Title, IdeaText: req.IdeaText, SituationText: req.SituationText, ContextText: req.ContextText}
+	if in.ContextText != nil && utf8.RuneCountInString(*in.ContextText) > maxContextRunes {
+		badRequest(w, "context_text must be at most 300 characters")
+		return
+	}
 	if in.TermID, err = uuid.Parse(req.TermID); err != nil {
 		badRequest(w, "invalid term_id")
 		return

@@ -86,7 +86,7 @@ func prepareSessions(ctx context.Context, tx pgx.Tx, gen repo.AgentGeneration) (
 	}
 
 	var pr strings.Builder
-	fmt.Fprintf(&pr, "Experiencia: %s (del %s al %s)\nSituación: %s\n\n", exp.Title, exp.StartsOn, exp.EndsOn, deref(exp.SituationText))
+	fmt.Fprintf(&pr, "Experiencia: %s (del %s al %s)\nSituación: %s\n%s\n", exp.Title, exp.StartsOn, exp.EndsOn, deref(exp.SituationText), contextLine(exp.ContextText))
 	pr.WriteString("Criterios y los desempeños que aterrizan (fuente de los temas):\n")
 	for _, c := range exp.Criteria {
 		fmt.Fprintf(&pr, "- %s", c.Description)

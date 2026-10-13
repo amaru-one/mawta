@@ -719,6 +719,7 @@ type Experience struct {
 	Title         string                 `json:"title"`
 	IdeaText      string                 `json:"idea_text"`
 	SituationText *string                `json:"situation_text"`
+	ContextText   *string                `json:"context_text"`
 	StartsOn      string                 `json:"starts_on"`
 	EndsOn        string                 `json:"ends_on"`
 	Competencies  []ExperienceCompetency `json:"competencies"`
@@ -738,11 +739,11 @@ func GetExperience(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID) (Expe
 	var e Experience
 	var from, to time.Time
 	err := tx.QueryRow(ctx, `
-		select id, class_id, term_id, status, title, idea_text, situation_text, starts_on, ends_on
+		select id, class_id, term_id, status, title, idea_text, situation_text, context_text, starts_on, ends_on
 		  from learning_experiences
 		 where id = $1 and deleted_at is null
 	`, experienceID).Scan(&e.ID, &e.ClassID, &e.TermID, &e.Status, &e.Title, &e.IdeaText,
-		&e.SituationText, &from, &to)
+		&e.SituationText, &e.ContextText, &from, &to)
 	if err != nil {
 		return e, err
 	}
@@ -1061,6 +1062,8 @@ type ExperienceInput struct {
 	Title         string
 	IdeaText      string
 	SituationText *string
+	// ContextText is the event or context the teacher wrote; nil means none.
+	ContextText   *string
 	StartsOn      time.Time
 	EndsOn        time.Time
 	CompetencyIDs []uuid.UUID
@@ -1103,10 +1106,10 @@ func CreateExperience(ctx context.Context, tx pgx.Tx, classID uuid.UUID, in Expe
 	var id uuid.UUID
 	if err := tx.QueryRow(ctx, `
 		insert into learning_experiences
-		  (tenant_id, class_id, academic_year_id, term_id, title, idea_text, situation_text, starts_on, ends_on)
-		values (app.current_tenant_id(), $1, $2, $3, $4, $5, $6, $7, $8)
+		  (tenant_id, class_id, academic_year_id, term_id, title, idea_text, situation_text, context_text, starts_on, ends_on)
+		values (app.current_tenant_id(), $1, $2, $3, $4, $5, $6, $7, $8, $9)
 		returning id
-	`, classID, yearID, in.TermID, title, idea, trimmedOrNil(in.SituationText), in.StartsOn, in.EndsOn).Scan(&id); err != nil {
+	`, classID, yearID, in.TermID, title, idea, trimmedOrNil(in.SituationText), trimmedOrNil(in.ContextText), in.StartsOn, in.EndsOn).Scan(&id); err != nil {
 		return uuid.Nil, err
 	}
 	if _, err := tx.Exec(ctx, `

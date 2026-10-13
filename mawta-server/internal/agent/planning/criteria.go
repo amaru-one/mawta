@@ -99,7 +99,7 @@ func prepareCriteria(ctx context.Context, tx pgx.Tx, gen repo.AgentGeneration) (
 	}
 
 	var pr strings.Builder
-	fmt.Fprintf(&pr, "Experiencia: %s\nSituación: %s\n\n", exp.Title, deref(exp.SituationText))
+	fmt.Fprintf(&pr, "Experiencia: %s\nSituación: %s\n%s\n", exp.Title, deref(exp.SituationText), contextLine(exp.ContextText))
 	fmt.Fprintf(&pr, "Competencia: %s\n\nCapacidades:\n", compName)
 	for _, cap := range comp.Capabilities {
 		mark := "ya tiene criterio"
@@ -245,4 +245,13 @@ func deref(s *string) string {
 		return "(sin situación redactada)"
 	}
 	return *s
+}
+
+// contextLine states the teacher's event or context for a planning prompt. When
+// there is none it says so outright, so the agent has no room to invent an event.
+func contextLine(text *string) string {
+	if text != nil && strings.TrimSpace(*text) != "" {
+		return "Contexto del docente: " + strings.TrimSpace(*text) + "\n"
+	}
+	return "Contexto del docente: ninguno. No incluyas ningún evento, feria, aniversario, campaña ni actividad social.\n"
 }

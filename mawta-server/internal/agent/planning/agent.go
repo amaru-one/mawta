@@ -41,7 +41,7 @@ const (
 
 // promptVersion changes whenever the instructions in prompts/ change, so a
 // generation can be traced to the prompt that produced it.
-const promptVersion = "planning-2026-10-06.5"
+const promptVersion = "planning-2026-10-13.1"
 
 //go:embed prompts/*.md
 var promptFS embed.FS
@@ -65,8 +65,11 @@ func (a *Agent) PromptVersion() string { return promptVersion }
 
 // ExperienceInput is what a teacher sends to get an experience proposal.
 type ExperienceInput struct {
-	TermID        uuid.UUID   `json:"term_id"`
-	IdeaText      string      `json:"idea_text"`
+	TermID   uuid.UUID `json:"term_id"`
+	IdeaText string    `json:"idea_text"`
+	// ContextText is the event or context the teacher wrote, if any. It is the only
+	// source of an event the agent may use; empty means none.
+	ContextText   string      `json:"context_text,omitempty"`
 	CompetencyIDs []uuid.UUID `json:"competency_ids,omitempty"`
 }
 

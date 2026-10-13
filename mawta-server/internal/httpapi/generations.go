@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -68,8 +69,12 @@ func writeGeneration(w http.ResponseWriter, g repo.AgentGeneration) {
 type experienceProposalRequest struct {
 	TermID        string   `json:"term_id"`
 	IdeaText      string   `json:"idea_text"`
+	ContextText   string   `json:"context_text"`
 	CompetencyIDs []string `json:"competency_ids"`
 }
+
+// maxContextRunes caps the teacher's event/context text; it is prompt input.
+const maxContextRunes = 300
 
 // POST /classes/{classID}/experience-proposals
 //
@@ -87,7 +92,11 @@ func (a *API) handleCreateExperienceProposal(w http.ResponseWriter, r *http.Requ
 	if !decodeBody(w, r, &req) {
 		return
 	}
-	in := planning.ExperienceInput{IdeaText: strings.TrimSpace(req.IdeaText)}
+	in := planning.ExperienceInput{IdeaText: strings.TrimSpace(req.IdeaText), ContextText: strings.TrimSpace(req.ContextText)}
+	if utf8.RuneCountInString(in.ContextText) > maxContextRunes {
+		writeAppError(w, db.NewAppError(http.StatusBadRequest, "context_too_long", "el evento o contexto no puede pasar de 300 caracteres"))
+		return
+	}
 	if in.TermID, err = uuid.Parse(req.TermID); err != nil {
 		badRequest(w, "invalid term_id")
 		return
