@@ -131,17 +131,11 @@
 	background: var(--mw-accent-pressed);
 	border-color: var(--mw-accent-pressed);
 }
-.mw-root .mw-btn--secondary:hover:not(:disabled) {
-	background: var(--mw-surface-page);
-}
 .mw-root .mw-btn--danger {
 	background: var(--mw-danger);
 	border-color: var(--mw-danger);
 	color: var(--mw-on-accent);
 	box-shadow: var(--mw-shadow-action);
-}
-.mw-root .mw-btn--danger:active:not(:disabled) {
-	filter: brightness(0.9);
 }
 .mw-root .mw-error-notice {
 	display: grid;
@@ -149,10 +143,6 @@
 }
 .mw-root .mw-btn--block {
 	width: 100%;
-}
-.mw-root .mw-btn:disabled {
-	opacity: 0.55;
-	box-shadow: none;
 }
 .mw-root .mw-btn-row {
 	display: flex;
@@ -182,15 +172,6 @@
 .mw-root .mw-action--remove {
 	color: var(--mw-ink-muted);
 	margin-inline-start: auto;
-}
-.mw-root .mw-action:disabled,
-.mw-root .mw-action[aria-disabled='true'],
-.mw-root .mw-icon-button:disabled {
-	opacity: 0.55;
-}
-.mw-root .mw-action:hover:not(:disabled):not([aria-disabled='true']) {
-	text-decoration: underline;
-	text-underline-offset: 3px;
 }
 .mw-root .mw-icon-button {
 	width: var(--mw-touch-target);
@@ -870,9 +851,9 @@
 		color: var(--mw-accent);
 	}
 }
-.mw-root a.mw-list-row:focus-visible {
-	outline: 2px solid var(--mw-focus-ring);
-	outline-offset: 2px;
+.mw-root .pressable {
+	touch-action: manipulation;
+	transition: background-color var(--mw-duration-fast) var(--mw-ease);
 }
 .mw-root .mw-list-row--static {
 	min-height: 0;
@@ -903,8 +884,27 @@
 .mw-root .mw-disclosure__body {
 	padding-bottom: var(--mw-space-4);
 }
-.mw-root .mw-btn[aria-disabled='true'],
-.mw-root .mw-icon-button[aria-disabled='true'] {
+/* One interaction language for every control (plan lote 1).
+ * Hover: only the text takes the accent colour, and only where a pointer exists.
+ * Pressed: every control dims to 85%. The primary button keeps its solid
+ * colour swap above as the one documented exception.
+ * Disabled: one rule, for every control. Focus: the global ring above only. */
+@media (hover: hover) {
+	.mw-root
+		:where(.mw-btn--secondary, .mw-action, .mw-icon-button):hover:not(:disabled):not(
+			[aria-disabled='true']
+		) {
+		color: var(--mw-accent);
+	}
+}
+.mw-root
+	:where(.mw-btn, .mw-action, .mw-icon-button, .mw-list-row, .pressable):active:not(:disabled):not(
+		[aria-disabled='true']
+	):not(.mw-btn--primary) {
+	opacity: 0.85;
+}
+.mw-root :where(.mw-btn, .mw-action, .mw-icon-button):disabled,
+.mw-root :where(.mw-btn, .mw-action, .mw-icon-button)[aria-disabled='true'] {
 	opacity: 0.55;
 	box-shadow: none;
 }

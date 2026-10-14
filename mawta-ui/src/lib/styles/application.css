@@ -24,9 +24,6 @@
 .application :where(button, a, input, textarea, select) {
 	touch-action: manipulation;
 }
-.application :where(button, a)[aria-disabled='true'] {
-	opacity: 0.55;
-}
 .application :where(input, textarea, select) {
 	max-width: 100%;
 }
@@ -110,13 +107,6 @@
 	font-size: var(--mw-type-caption-size);
 	line-height: var(--mw-type-caption-line);
 	color: var(--mw-ink-muted);
-}
-.application .pressable {
-	touch-action: manipulation;
-	transition: background-color var(--mw-duration-fast) var(--mw-ease);
-}
-.application .pressable:active {
-	opacity: 0.85;
 }
 @media (prefers-reduced-motion: reduce) {
 	.application *,
