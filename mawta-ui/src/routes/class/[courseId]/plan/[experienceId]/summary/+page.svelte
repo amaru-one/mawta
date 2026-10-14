@@ -227,15 +227,10 @@
 						</span>
 					</a>
 				{/each}
-				<a
-					class="sum-row row pressable"
-					href={`${base}/criteria?from=summary`}
-					data-sveltekit-replacestate
-					onclick={hapticTap}
-				>
+				<div class="sum-row row">
 					<span class="grow">Criterios</span>
 					<span class="sum-value">{criteria.length}</span>
-				</a>
+				</div>
 				<a
 					class="sum-row row pressable"
 					href={`${base}/evidences?from=summary`}

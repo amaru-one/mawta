@@ -544,13 +544,15 @@ func experienceCoverage(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID) 
 // planCompetencies applies the contract's tracking rule to every competency
 // of the class's área:
 //
-//   - planificada: a non-deleted experience of this class in this term works it;
+//   - planificada: a confirmed (status planificada) experience of this class in this
+//     term works it;
 //   - toca: otherwise, when it still needs terms to reach two worked terms in
 //     the year and the terms left (this one included) are no more than it needs;
 //   - puede_esperar: otherwise.
 //
-// A worked term is a term of the year with a non-deleted experience of this
-// class working the competency, drafts included.
+// A worked term is a term of the year with a confirmed experience of this
+// class working the competency. A borrador is still being built, so it does
+// not count as work done, and the capacities it covers are not counted either.
 func planCompetencies(ctx context.Context, tx pgx.Tx, classID uuid.UUID, cc classContext, term PlanTerm) ([]PlanCompetency, error) {
 	rows, err := tx.Query(ctx, `
 		with worked as (
@@ -561,6 +563,7 @@ func planCompetencies(ctx context.Context, tx pgx.Tx, classID uuid.UUID, cc clas
 		    join experience_competencies ec on ec.experience_id = le.id and ec.deleted_at is null
 		    join terms t on t.id = le.term_id
 		   where le.class_id = $1 and le.academic_year_id = $4 and le.deleted_at is null
+		     and le.status = 'planificada'
 		   group by ec.competency_id
 		),
 		terms_left as (
@@ -577,6 +580,7 @@ func planCompetencies(ctx context.Context, tx pgx.Tx, classID uuid.UUID, cc clas
 		         and cr.deleted_at is null and cr.accepted_at is not null
 		    join evaluation_criterion_capabilities x on x.criterion_id = cr.id and x.deleted_at is null
 		   where le.class_id = $1 and le.term_id = $3 and le.deleted_at is null
+		     and le.status = 'planificada'
 		   group by cr.competency_id
 		)
 		select c.id, c.code, c.name,
