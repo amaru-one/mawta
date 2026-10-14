@@ -168,7 +168,13 @@
 		return busy.some((range) => date >= range.from && date <= range.to);
 	}
 
-	const classDates = $derived(list(calendar?.class_dates));
+	// The school week is Monday to Friday: weekend dates never reach the UI.
+	function isSchoolDay(date: string): boolean {
+		const day = fromISO(date).getDay();
+		return day >= 1 && day <= 5;
+	}
+
+	const classDates = $derived(list(calendar?.class_dates).filter(isSchoolDay));
 
 	// Class days on which an experience can start.
 	const startOptions = $derived(classDates.filter((date) => !isBusy(date)));
@@ -223,9 +229,7 @@
 		endsOn = to;
 	}
 
-	const rangeClassDates = $derived(
-		list(calendar?.class_dates).filter((date) => date >= startsOn && date <= endsOn)
-	);
+	const rangeClassDates = $derived(classDates.filter((date) => date >= startsOn && date <= endsOn));
 
 	// Which weekdays the class meets, from the calendar itself.
 	const classDaysText = $derived.by(() => {
