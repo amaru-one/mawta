@@ -376,10 +376,15 @@
 		color: var(--mw-ink-muted);
 	}
 
+	/* The row reaches 8px past the text on each side so a hover or press
+	 * highlight has room, and it keeps the 44px touch target. */
 	.sum-row {
-		align-items: baseline;
+		align-items: center;
 		gap: var(--mw-space-2);
-		padding: 8px 0;
+		min-height: var(--mw-touch-target);
+		margin: 0 calc(var(--mw-space-2) * -1);
+		padding: var(--mw-space-2);
+		border-radius: var(--mw-radius-md);
 		font-size: var(--mw-type-small-size);
 		line-height: 1.4;
 		color: var(--mw-ink);
@@ -388,6 +393,41 @@
 
 	.sum-row + .sum-row {
 		border-top: 1px solid var(--mw-line);
+	}
+
+	/* Only the rows that are links answer to the pointer, a press and the
+	 * keyboard; the plain "Criterios" row stays still. */
+	a.sum-row {
+		cursor: pointer;
+		transition: background-color var(--mw-duration-fast) var(--mw-ease);
+	}
+
+	@media (hover: hover) {
+		a.sum-row:hover {
+			background: color-mix(in srgb, var(--mw-accent) 8%, transparent);
+		}
+	}
+
+	a.sum-row:active {
+		background: color-mix(in srgb, var(--mw-accent) 14%, transparent);
+		opacity: 1;
+	}
+
+	a.sum-row:focus-visible {
+		outline: 2px solid var(--mw-focus-ring);
+		outline-offset: -2px;
+	}
+
+	/* The notices are one long link: underline it on hover and press. */
+	:global(.mw-notice) a {
+		color: inherit;
+		text-underline-offset: 3px;
+	}
+
+	:global(.mw-notice) a:hover,
+	:global(.mw-notice) a:hover .notice-text,
+	:global(.mw-notice) a:active .notice-text {
+		text-decoration: underline;
 	}
 
 	.sum-value {
