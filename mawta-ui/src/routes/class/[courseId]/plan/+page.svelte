@@ -351,7 +351,7 @@
 					<div class="stack">
 						{#each orderedExperiences as experience, index (experience.id)}
 							{@const coverage = coverageOf(experience)}
-							<button class="card exp pressable" onclick={() => openExperience(experience)}>
+							<Card onclick={() => openExperience(experience)}>
 								<div class="row exp-head">
 									<span class="exp-num"
 										><span class="mw-sr-only">Experiencia </span>{index + 1}</span
@@ -380,7 +380,7 @@
 											: `${experience.pending_proposals} propuestas de Mawta por revisar`}
 									</p>
 								{/if}
-							</button>
+							</Card>
 						{/each}
 					</div>
 				{:else}
@@ -629,19 +629,6 @@
 		gap: var(--mw-space-2);
 	}
 
-	.exp {
-		display: block;
-		width: 100%;
-		padding: var(--mw-space-3);
-		text-align: left;
-		font-family: inherit;
-		color: inherit;
-	}
-
-	.exp:disabled {
-		opacity: 0.6;
-	}
-
 	.row.exp-head {
 		gap: var(--mw-space-2);
 	}
@@ -660,10 +647,6 @@
 		font-size: var(--mw-type-caption-size);
 		font-weight: 600;
 		color: var(--mw-ink-secondary);
-	}
-
-	.exp .meta {
-		margin: var(--mw-space-1) 0 0;
 	}
 
 	.exp-comps {

@@ -219,13 +219,7 @@
 				<div class="list" class:switching>
 					{#each shown as r (r.student_id)}
 						<ListRow href={href(r)} onclick={hapticTap}>
-							<span class="lvl">
-								{#if r.level !== null}
-									<LevelBadge tier={r.level} />
-								{:else}
-									<span class="nolevel" aria-label="Sin nivel">Sin nivel</span>
-								{/if}
-							</span>
+							<span class="lvl"><LevelBadge tier={r.level} /></span>
 							<span class="grow">
 								<span class="name">{r.full_name}</span>
 								<span class="ev">{evidenceLabel(r.evidence_count)}</span>
@@ -318,21 +312,6 @@
 
 	/* Same footprint as the level pill, with a dashed outline so "no level"
 	 * is told apart by shape and text, not only by colour. */
-	.nolevel {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 60px;
-		height: 28px;
-		box-sizing: border-box;
-		padding: 0 4px;
-		border: 1px dashed var(--mw-line-control);
-		border-radius: var(--mw-radius-md);
-		font-size: 12px;
-		font-weight: 600;
-		color: var(--mw-ink-secondary);
-		white-space: nowrap;
-	}
 
 	.foot {
 		margin: 16px 4px 0;

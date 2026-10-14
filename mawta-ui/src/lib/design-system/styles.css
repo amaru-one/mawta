@@ -251,6 +251,35 @@
 	padding: var(--mw-space-4);
 	overflow-wrap: anywhere;
 }
+/* A card that opens another view: body and chevron on one row. */
+.mw-root .mw-card--action {
+	display: flex;
+	align-items: center;
+	gap: var(--mw-space-2);
+	width: 100%;
+	cursor: pointer;
+	color: var(--mw-ink);
+	text-align: left;
+}
+.mw-root .mw-card--action .mw-card__body {
+	flex: 1;
+	min-width: 0;
+	padding-right: 0;
+}
+.mw-root .mw-card__chev {
+	display: inline-flex;
+	flex: 0 0 auto;
+	padding-right: var(--mw-space-4);
+	color: var(--mw-ink-muted);
+}
+@media (hover: hover) {
+	.mw-root .mw-card--action:hover .mw-card__chev {
+		color: var(--mw-accent);
+	}
+}
+.mw-root .mw-card--action:active {
+	opacity: 0.85;
+}
 .mw-root .mw-card__actions {
 	display: flex;
 	align-items: center;
