@@ -312,17 +312,20 @@
 								{#if pendingBy.criteria > 0}<a
 										href={`${base}/criteria?from=summary&competency=${pendingCompetency ?? ''}`}
 										data-sveltekit-replacestate
-										onclick={hapticTap}>{pendingBy.criteria} en criterios</a
+										onclick={hapticTap}
+										>{pendingBy.criteria} en criterios<Icon name="chevron-right" size={14} /></a
 									>{/if}{#if pendingBy.criteria > 0 && pendingBy.evidences + pendingBy.sessions > 0},
 								{/if}{#if pendingBy.evidences > 0}<a
 										href={`${base}/evidences?from=summary`}
 										data-sveltekit-replacestate
-										onclick={hapticTap}>{pendingBy.evidences} en evidencias</a
+										onclick={hapticTap}
+										>{pendingBy.evidences} en evidencias<Icon name="chevron-right" size={14} /></a
 									>{/if}{#if pendingBy.evidences > 0 && pendingBy.sessions > 0},
 								{/if}{#if pendingBy.sessions > 0}<a
 										href={`${base}/sessions?from=summary`}
 										data-sveltekit-replacestate
-										onclick={hapticTap}>{pendingBy.sessions} en sesiones</a
+										onclick={hapticTap}
+										>{pendingBy.sessions} en sesiones<Icon name="chevron-right" size={14} /></a
 									>{/if}. Puedes guardar igual.
 							</span>
 						</Notice>

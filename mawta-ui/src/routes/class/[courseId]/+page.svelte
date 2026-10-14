@@ -103,7 +103,8 @@
 						</span>
 						<span class="chevron"><Icon name="chevron-right" size={18} /></span>
 					</span>
-				</a>
+					<Icon name="chevron-right" size={16} /></a
+				>
 			{/if}
 
 			<nav class="quiet">
@@ -155,7 +156,8 @@
 								<span class="lcard-topic">{s.topic ?? 'Clase'}</span>
 								<span class="lcard-sub">{timeRange(s)}</span>
 							</span>
-						</a>
+							<Icon name="chevron-right" size={16} /></a
+						>
 					{/each}
 				</div>
 			{/if}
@@ -182,7 +184,8 @@
 									<Icon name="mic" size={14} />
 								</span>
 							</span>
-						</a>
+							<Icon name="chevron-right" size={16} /></a
+						>
 					{/each}
 				</div>
 			{/if}

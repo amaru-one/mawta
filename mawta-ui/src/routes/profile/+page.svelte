@@ -111,7 +111,8 @@
 										{#if assignments.filter((item) => item.name === assignment.name).length > 1}
 											<span class="assignment-grade">{assignment.grade}</span>
 										{/if}
-									</a>
+										<Icon name="chevron-right" size={16} /></a
+									>
 								{/each}
 							</dd>
 						</div>
