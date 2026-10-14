@@ -1,5 +1,14 @@
 <script lang="ts">
-	import { Action, Button, Context, Icon, LoadingState, Notice } from '$lib/design-system';
+	import {
+		Action,
+		Button,
+		Context,
+		Icon,
+		ListRow,
+		LoadingState,
+		Notice,
+		Section,
+	} from '$lib/design-system';
 	import { pendingCounts } from '$lib/planning/pending';
 	// "Revisar y guardar": a compact summary of the experience and its notes.
 	// Notes never block: a capacidad without a criterio or proposals still to
@@ -212,115 +221,90 @@
 				<p class="situation">Evento o contexto: {experience.context_text}</p>
 			{/if}
 
-			<div class="group">
-				<p class="eyebrow group-title">Competencias</p>
+			<Section title="Competencias">
 				<Context>
 					{#each comps as competency (competency.id)}
-						<a
-							class="sum-row row pressable"
+						<ListRow
 							href={`${base}/criteria?from=summary&competency=${competency.id}`}
-							data-sveltekit-replacestate
 							onclick={hapticTap}
 						>
-							<span class="grow">{competency.name}</span>
-							<span class="sum-value">
-								{coveredOf(competency.id)} de {capabilitiesOf(competency.id).length} capacidades con criterio{#if pendingOf(competency.id) > 0}
-									· {pendingOf(competency.id)} por revisar{/if}
-							</span>
-							<span class="sum-chev" aria-hidden="true"
-								><Icon name="chevron-right" size={16} /></span
-							>
-						</a>
+							{competency.name}
+							{#snippet trailing()}<span class="meta"
+									>{coveredOf(competency.id)} de {capabilitiesOf(competency.id).length} capacidades con
+									criterio{#if pendingOf(competency.id) > 0}
+										· {pendingOf(competency.id)} por revisar{/if}</span
+								>{/snippet}
+						</ListRow>
 					{/each}
 				</Context>
-			</div>
+			</Section>
 
-			<div class="group">
-				<p class="eyebrow group-title">Resumen</p>
+			<Section title="Resumen">
 				<Context>
-					<div class="sum-row row">
-						<span class="grow">Criterios</span>
-						<span class="sum-value">{criteria.length}</span>
-					</div>
-					<a
-						class="sum-row row pressable"
-						href={`${base}/evidences?from=summary`}
-						data-sveltekit-replacestate
-						onclick={hapticTap}
-					>
-						<span class="grow">Evidencias</span>
-						<span class="sum-value">{evidences.length} · {placed} ubicadas en sesiones</span>
-						<span class="sum-chev" aria-hidden="true"><Icon name="chevron-right" size={16} /></span>
-					</a>
-					<a
-						class="sum-row row pressable"
-						href={`${base}/sessions?from=summary`}
-						data-sveltekit-replacestate
-						onclick={hapticTap}
-					>
-						<span class="grow">Sesiones</span>
-						<span class="sum-value">{sessions.length} de {dates.length} fechas</span>
-						<span class="sum-chev" aria-hidden="true"><Icon name="chevron-right" size={16} /></span>
-					</a>
+					<ListRow>
+						Criterios
+						{#snippet trailing()}<span class="meta">{criteria.length}</span>{/snippet}
+					</ListRow>
+					<ListRow href={`${base}/evidences?from=summary`} onclick={hapticTap}>
+						Evidencias
+						{#snippet trailing()}<span class="meta"
+								>{evidences.length} · {placed} ubicadas en sesiones</span
+							>{/snippet}
+					</ListRow>
+					<ListRow href={`${base}/sessions?from=summary`} onclick={hapticTap}>
+						Sesiones
+						{#snippet trailing()}<span class="meta">{sessions.length} de {dates.length} fechas</span
+							>{/snippet}
+					</ListRow>
 				</Context>
-			</div>
+			</Section>
 
 			{#if missingCapabilities.length > 0 || thinCompetencies.length > 0 || singleKindCompetencies.length > 0 || pendingBy.total > 0}
-				<div class="group">
-					<p class="eyebrow group-title">Avisos</p>
+				<Section title="Avisos">
 					{#if missingCapabilities.length > 0}
 						<Notice variant="attention">
-							<span class="notice-text">
-								{missingCapabilities.length === 1
-									? '1 capacidad sin criterio'
-									: `${missingCapabilities.length} capacidades sin criterio`}: {missingCapabilities.join(
-									', '
-								)}. Puedes guardar igual: es un aviso, no un bloqueo.
-							</span>
-							<a
-								class="notice-action"
-								href={`${base}/criteria?from=summary&competency=${gapCompetency ?? ''}`}
-								data-sveltekit-replacestate
-								onclick={hapticTap}>Revisar criterios <Icon name="chevron-right" size={14} /></a
-							>
+							{missingCapabilities.length === 1
+								? '1 capacidad sin criterio'
+								: `${missingCapabilities.length} capacidades sin criterio`}: {missingCapabilities.join(
+								', '
+							)}. Puedes guardar igual: es un aviso, no un bloqueo.
+							{#snippet action()}<a
+									href={`${base}/criteria?from=summary&competency=${gapCompetency ?? ''}`}
+									data-sveltekit-replacestate
+									onclick={hapticTap}>Revisar criterios <Icon name="chevron-right" size={14} /></a
+								>{/snippet}
 						</Notice>
 					{/if}
 					{#each thinCompetencies as warning (warning.competency_id)}
 						<Notice variant="attention">
-							<span class="notice-text">
-								{competencyName(warning.competency_id)}: {warning.count === 1
-									? '1 evidencia'
-									: `${warning.count} evidencias`} en el trimestre. Mawta necesita al menos 2 para proponer
-								su conclusión. Agrega otra aquí o en otra experiencia. Puedes guardar igual.
-							</span>
-							<a
-								class="notice-action"
-								href={`${base}/evidences?from=summary`}
-								data-sveltekit-replacestate
-								onclick={hapticTap}>Revisar evidencias <Icon name="chevron-right" size={14} /></a
-							>
+							{competencyName(warning.competency_id)}: {warning.count === 1
+								? '1 evidencia'
+								: `${warning.count} evidencias`} en el trimestre. Mawta necesita al menos 2 para proponer
+							su conclusión. Agrega otra aquí o en otra experiencia. Puedes guardar igual.
+							{#snippet action()}<a
+									href={`${base}/evidences?from=summary`}
+									data-sveltekit-replacestate
+									onclick={hapticTap}>Revisar evidencias <Icon name="chevron-right" size={14} /></a
+								>{/snippet}
 						</Notice>
 					{/each}
 					{#each singleKindCompetencies as warning (warning.competency_id)}
 						<Notice variant="attention">
-							<span class="notice-text">
-								{competencyName(warning.competency_id)}: todas sus evidencias son {warning.kind ===
-								'actuacion'
-									? 'actuaciones'
-									: 'producciones'}. El CNEB pide evidencia variada: considera una de otro tipo.
-								Puedes guardar igual.
-							</span>
-							<a
-								class="notice-action"
-								href={`${base}/evidences?from=summary`}
-								data-sveltekit-replacestate
-								onclick={hapticTap}>Revisar evidencias <Icon name="chevron-right" size={14} /></a
-							>
+							{competencyName(warning.competency_id)}: todas sus evidencias son {warning.kind ===
+							'actuacion'
+								? 'actuaciones'
+								: 'producciones'}. El CNEB pide evidencia variada: considera una de otro tipo.
+							Puedes guardar igual.
+							{#snippet action()}<a
+									href={`${base}/evidences?from=summary`}
+									data-sveltekit-replacestate
+									onclick={hapticTap}>Revisar evidencias <Icon name="chevron-right" size={14} /></a
+								>{/snippet}
 						</Notice>
 					{/each}
 					{#if pendingBy.total > 0}
 						<Notice variant="attention">
-							<span class="grow notice-text">
+							<span class="grow">
 								{pendingBy.total === 1
 									? '1 propuesta de Mawta sin revisar'
 									: `${pendingBy.total} propuestas de Mawta sin revisar`}:
@@ -342,7 +326,7 @@
 							</span>
 						</Notice>
 					{/if}
-				</div>
+				</Section>
 			{/if}
 
 			<div class="footer-action">
@@ -393,105 +377,6 @@
 
 	.situation.muted {
 		color: var(--mw-ink-muted);
-	}
-
-	/* The row reaches 8px past the text on each side so a hover or press
-	 * highlight has room, and it keeps the 44px touch target. */
-	.sum-row {
-		align-items: center;
-		gap: var(--mw-space-2);
-		min-height: var(--mw-touch-target);
-		margin: 0 calc(var(--mw-space-2) * -1);
-		padding: var(--mw-space-2);
-		border-radius: var(--mw-radius-md);
-		font-size: var(--mw-type-small-size);
-		line-height: 1.4;
-		color: var(--mw-ink);
-		text-decoration: none;
-	}
-
-	.sum-row + .sum-row {
-		border-top: 1px solid var(--mw-line);
-	}
-
-	/* Three titled groups (Competencias, Resumen, Avisos) with a clear gap
-	 * between them, so the sections read apart. */
-	.group + .group {
-		margin-top: var(--mw-space-6);
-	}
-
-	.group-title {
-		margin: 0 0 var(--mw-space-2);
-	}
-
-	/* The chevron marks the rows that open another view. Plain data rows have none. */
-	.sum-chev {
-		display: inline-flex;
-		flex-shrink: 0;
-		color: var(--mw-ink-muted);
-	}
-
-	/* A notice's action sits on its own line, as a real link. */
-	.notice-action {
-		display: inline-flex;
-		align-items: center;
-		gap: 2px;
-		margin-top: var(--mw-space-2);
-		font-size: var(--mw-type-small-size);
-		font-weight: 600;
-		color: var(--mw-accent);
-		text-decoration: none;
-	}
-
-	.notice-action:hover {
-		text-decoration: underline;
-		text-underline-offset: 3px;
-	}
-
-	/* Only the rows that are links answer to the pointer, a press and the
-	 * keyboard; the plain "Criterios" row stays still. */
-	a.sum-row {
-		cursor: pointer;
-		transition: background-color var(--mw-duration-fast) var(--mw-ease);
-	}
-
-	@media (hover: hover) {
-		a.sum-row:hover {
-			background: color-mix(in srgb, var(--mw-accent) 8%, transparent);
-		}
-	}
-
-	a.sum-row:active {
-		background: color-mix(in srgb, var(--mw-accent) 14%, transparent);
-		opacity: 1;
-	}
-
-	a.sum-row:focus-visible {
-		outline: 2px solid var(--mw-focus-ring);
-		outline-offset: -2px;
-	}
-
-	/* The inline links inside the pending-proposals notice keep the text colour. */
-	:global(.mw-notice) a:not(.notice-action) {
-		color: inherit;
-		text-underline-offset: 3px;
-	}
-
-	:global(.mw-notice) a:not(.notice-action):hover {
-		text-decoration: underline;
-	}
-
-	.sum-value {
-		flex-shrink: 0;
-		max-width: 55%;
-		text-align: right;
-		font-size: var(--mw-type-caption-size);
-		color: var(--mw-ink-secondary);
-	}
-
-	.notice-text {
-		font-size: var(--mw-type-small-size);
-		line-height: 1.4;
 	}
 
 	.footer-action {
