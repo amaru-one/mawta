@@ -512,26 +512,19 @@
 	flex: 1;
 	min-width: 0;
 }
-.mw-root .mw-status__head {
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: space-between;
-	gap: var(--mw-space-1) var(--mw-space-2);
-}
 .mw-root .mw-status__name {
+	margin: 0;
 	font-weight: 600;
 	overflow-wrap: anywhere;
 }
+/* The state is always on its own line under the name, in neutral ink, so
+ * its position never depends on the name's length. Only the marker carries
+ * the colour. */
 .mw-root .mw-status__label {
+	margin: 0;
 	font-size: 12px;
-	color: var(--mw-ink-muted);
-}
-.mw-root .mw-status__item--done .mw-status__label {
-	color: var(--mw-success);
-}
-.mw-root .mw-status__item--due .mw-status__label {
-	color: var(--mw-attention);
-	font-weight: 800;
+	line-height: 1.4;
+	color: var(--mw-ink-secondary);
 }
 .mw-root .mw-notice {
 	display: flex;
