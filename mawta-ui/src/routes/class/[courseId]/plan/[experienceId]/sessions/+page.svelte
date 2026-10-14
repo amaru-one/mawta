@@ -5,10 +5,12 @@
 		EmptyState,
 		Field,
 		Icon,
+		ItemActions,
 		LoadingState,
 		Notice,
 		SessionRow,
 		PendingDialog,
+		ProposalBar,
 	} from '$lib/design-system';
 	// The sessions step: a light outline, one row per class date of the
 	// experience. Every date starts without a session; the teacher creates,
@@ -277,18 +279,17 @@
 			{/if}
 
 			<div class="section">
-				{#if pending}{#if proposals.length > 1}<Button
-							variant="secondary"
-							block
-							disabled={acceptingAll !== null}
-							loading={acceptingAll !== null}
-							onclick={() => void acceptAll()}
-						>
-							{acceptingAll
-								? `Aceptando ${acceptingAll.done} de ${acceptingAll.total}…`
-								: `Aceptar todas (${proposals.length})`}
-						</Button>{/if}
-					<p class="meta help">Mawta propuso estas sesiones: acéptalas o edítalas.</p>
+				{#if pending}
+					<ProposalBar
+						message="Mawta propuso estas sesiones: acéptalas o edítalas."
+						count={proposals.length}
+						label="Aceptar todas"
+						loading={acceptingAll !== null}
+						progress={acceptingAll
+							? `Aceptando ${acceptingAll.done} de ${acceptingAll.total}…`
+							: undefined}
+						onaccept={() => void acceptAll()}
+					/>
 				{/if}
 				<div class="sessions">
 					{#each dates as date (date)}
@@ -339,15 +340,12 @@
 							editor={form?.date === date ? sessionEditor : undefined}
 						>
 							{#snippet actions()}{#if session}
-									{#if isProposal(session)}<Action
-											variant="main"
-											icon="check"
-											onclick={() => void accept(date)}>Aceptar</Action
-										>{/if}
-									<Action variant="link" onclick={() => openForm(date)}>Editar</Action>
-									<Action variant="remove" icon="trash" onclick={() => void remove(session)}
-										>Quitar</Action
-									>
+									<ItemActions
+										proposal={isProposal(session)}
+										onaccept={() => void accept(date)}
+										onedit={() => openForm(date)}
+										onremove={() => void remove(session)}
+									/>
 								{:else}<Action variant="link" icon="plus" onclick={() => openForm(date)}
 										>Crear</Action
 									>{/if}{/snippet}
@@ -396,10 +394,6 @@
 
 	.section {
 		margin-top: var(--mw-space-4);
-	}
-
-	.help {
-		margin: 0 0 6px;
 	}
 
 	.sessions {

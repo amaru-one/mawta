@@ -9,7 +9,9 @@
 		EmptyState,
 		Field,
 		Icon,
+		ItemActions,
 		LoadingState,
+		ProposalBar,
 		StepNav,
 	} from '$lib/design-system';
 	// The criteria step of a saved experience. One competencia at a time, with
@@ -251,6 +253,16 @@
 	// ---- proposals ----
 
 	// Accepts every pending proposal of this competencia, in order.
+	async function acceptOne(criterion: ExperienceCriterionDto): Promise<void> {
+		hapticTap();
+		try {
+			await acceptCriterion(criterion.id);
+			await reload();
+		} catch {
+			showToast('No se pudo aceptar el criterio');
+		}
+	}
+
 	async function acceptAll(): Promise<void> {
 		hapticTap();
 		try {
@@ -364,15 +376,12 @@
 			<div class="section">
 				<p class="eyebrow">Criterios · {criteria.length}</p>
 				{#if pending}
-					<div class="pending-bar">
-						<p class="meta">
-							Mawta propuso {pendingCount === 1 ? '1 criterio' : `${pendingCount} criterios`}:
-							revísalos o acéptalos.
-						</p>
-						<Button variant="secondary" onclick={() => void acceptAll()}>
-							<Icon name="check" size={15} /> Aceptar todos
-						</Button>
-					</div>
+					<ProposalBar
+						message={`Mawta propuso ${pendingCount === 1 ? '1 criterio' : `${pendingCount} criterios`}: revísalos o acéptalos.`}
+						count={pendingCount}
+						label="Aceptar todos"
+						onaccept={() => void acceptAll()}
+					/>
 				{/if}
 
 				{#if criteria.length === 0}
@@ -398,18 +407,15 @@
 									{joinY(list(criterion.capability_ids).map(capabilityName))}.
 								</p>
 								<p class="crit-from">{anchorOf(criterion)}</p>
-								<div class="crit-actions row">
-									<Action variant="link" onclick={() => openEdit(criterion)}>Editar</Action>
-									<Action
-										variant="remove"
-										onclick={() => {
-											hapticTap();
-											deletingId = criterion.id;
-										}}
-									>
-										<Icon name="trash" size={13} /> Quitar
-									</Action>
-								</div>
+								<ItemActions
+									proposal={isProposal(criterion)}
+									onaccept={() => void acceptOne(criterion)}
+									onedit={() => openEdit(criterion)}
+									onremove={() => {
+										hapticTap();
+										deletingId = criterion.id;
+									}}
+								/>
 							</Card>
 						{/if}
 					{/each}
@@ -693,19 +699,6 @@
 	}
 	.view :global(.to-summary) {
 		margin: 2px 0 6px;
-	}
-
-	.pending-bar {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		flex-wrap: wrap;
-		gap: var(--mw-space-2);
-		margin: 0 0 var(--mw-space-2);
-	}
-
-	.pending-bar p {
-		margin: 0;
 	}
 
 	.pick-head {

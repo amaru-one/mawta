@@ -6,6 +6,8 @@
 		Checkbox,
 		Field,
 		Icon,
+		ItemActions,
+		ProposalBar,
 		LoadingState,
 		Notice,
 		Segmented,
@@ -374,12 +376,12 @@
 			<div class="section">
 				<p class="eyebrow">Evidencias · {evidences.length}</p>
 				{#if pending}
-					<div class="pending-bar">
-						<p class="meta help">Mawta propuso estas evidencias: acéptalas o edítalas.</p>
-						<Button variant="secondary" onclick={() => void acceptAll()}>
-							<Icon name="check" size={15} /> Aceptar todos
-						</Button>
-					</div>
+					<ProposalBar
+						message="Mawta propuso estas evidencias: acéptalas o edítalas."
+						count={evidences.filter(isProposal).length}
+						label="Aceptar todas"
+						onaccept={() => void acceptAll()}
+					/>
 				{/if}
 
 				{#if evidences.length === 0}
@@ -417,17 +419,12 @@
 								{:else}
 									<p class="meta ev-none">Sin criterios: elige cuáles observarás.</p>
 								{/if}
-								<div class="ev-actions row">
-									{#if isProposal(evidence)}
-										<Action variant="main" onclick={() => void accept(evidence)}>
-											<Icon name="check" size={13} /> Aceptar
-										</Action>
-									{/if}
-									<Action variant="link" onclick={() => openEdit(evidence)}>Editar</Action>
-									<Action variant="remove" onclick={() => void remove(evidence.id)}>
-										<Icon name="trash" size={13} /> Quitar
-									</Action>
-								</div>
+								<ItemActions
+									proposal={isProposal(evidence)}
+									onaccept={() => void accept(evidence)}
+									onedit={() => openEdit(evidence)}
+									onremove={() => void remove(evidence.id)}
+								/>
 							</Card>
 						{/if}
 					{/each}
@@ -593,23 +590,6 @@
 
 	.section {
 		margin-top: var(--mw-space-6);
-	}
-
-	.pending-bar {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		flex-wrap: wrap;
-		gap: var(--mw-space-2);
-		margin: 0 0 var(--mw-space-2);
-	}
-
-	.pending-bar .help {
-		margin: 0;
-	}
-
-	.help {
-		margin: -4px 0 6px;
 	}
 
 	.stack {
