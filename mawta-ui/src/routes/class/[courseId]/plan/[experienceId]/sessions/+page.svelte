@@ -279,7 +279,7 @@
 				</p>
 			{/if}
 
-			<div class="section">
+			<div class="mw-section">
 				{#if pending}
 					<ProposalBar
 						message="Mawta propuso estas sesiones: acéptalas o edítalas."
@@ -320,7 +320,7 @@
 								{#if formError}
 									<p class="mw-field__error"><Icon name="alert" size={14} /> {formError}</p>
 								{/if}
-								<div class="actions row">
+								<div class="mw-btn-row">
 									<Action
 										variant="main"
 										disabled={form.title.trim() === '' || saving}
@@ -360,7 +360,7 @@
 
 			<p class="meta later">Antes de cada clase, Mawta podrá preparar el detalle de la sesión.</p>
 
-			<div class="footer-action">
+			<div class="mw-footer-action">
 				<PendingDialog
 					bind:open={pendingOpen}
 					count={proposals.length}
@@ -387,19 +387,10 @@
 		text-align: center;
 	}
 
-	.section {
-		margin-top: var(--mw-space-4);
-	}
-
 	.sessions {
 		border-top: 1px solid var(--mw-line);
 	}
 
-	.actions {
-		gap: 8px;
-		margin-top: 8px;
-		flex-wrap: wrap;
-	}
 	.view :global(.field) {
 		width: 100%;
 	}
@@ -409,10 +400,6 @@
 
 	.later {
 		margin-top: var(--mw-space-3);
-	}
-
-	.footer-action {
-		margin-top: var(--mw-space-6);
 	}
 
 	.view :global(.to-summary) {

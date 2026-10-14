@@ -213,7 +213,7 @@
 			     and a lettered exposición can share a week. This is what decides
 			     which control appears on the student's screen. -->
 				<div class="field">
-					<span class="lbl">Cómo se valora</span>
+					<span class="mw-field__label">Cómo se valora</span>
 					<Segmented
 						label="Cómo se valora"
 						value={scale}
@@ -361,14 +361,6 @@
 		flex-direction: column;
 		gap: 6px;
 		margin-bottom: 14px;
-	}
-	.lbl {
-		font-family: var(--mw-font-sans);
-		font-size: var(--mw-type-label-size);
-		font-weight: 700;
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
-		color: var(--mw-ink-muted);
 	}
 	.note {
 		margin: 10px 0 0;

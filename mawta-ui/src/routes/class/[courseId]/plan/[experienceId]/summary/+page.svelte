@@ -333,7 +333,7 @@
 				</Section>
 			{/if}
 
-			<div class="footer-action">
+			<div class="mw-footer-action">
 				<Button variant="primary" block disabled={saving} onclick={() => void save()}>
 					{planned ? 'Volver a Tu trimestre' : 'Guardar experiencia'}
 				</Button>
@@ -375,13 +375,5 @@
 
 	.situation.muted {
 		color: var(--mw-ink-muted);
-	}
-
-	.footer-action {
-		margin-top: var(--mw-space-6);
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: var(--mw-space-3);
 	}
 </style>

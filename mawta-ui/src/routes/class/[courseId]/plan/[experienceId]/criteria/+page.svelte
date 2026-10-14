@@ -386,7 +386,7 @@
 				</div>
 			{/if}
 
-			<div class="section">
+			<div class="mw-section">
 				<p class="eyebrow">Criterios · {criteria.length}</p>
 				{#if pending}
 					<ProposalBar
@@ -461,7 +461,7 @@
 				{/if}
 			</div>
 
-			<div class="footer-action">
+			<div class="mw-footer-action">
 				<Button variant="primary" block disabled={!editing && unseen > 0} onclick={next}>
 					{#if editing}Listo{:else}Continuar con las evidencias <Icon
 							name="chevron-right"
@@ -487,7 +487,7 @@
 	{#snippet editor()}
 		{#if form}
 			<Card>
-				<p class="f-label">Capacidades que mira</p>
+				<p class="mw-field__label">Capacidades que mira</p>
 				<div class="cap-options">
 					{#each capabilities as capability (capability.id)}
 						<Checkbox
@@ -511,7 +511,7 @@
 					<Disclosure bind:open={performanceOpen}>
 						{#snippet summary()}
 							<span class="pick-head">
-								<span class="pick-label">Desempeño del grado (opcional)</span>
+								<span class="mw-field__label">Desempeño del grado (opcional)</span>
 								<span class="pick-value">
 									{form?.performanceId ? performanceText(form.performanceId) : 'Sin desempeño'}
 								</span>
@@ -556,7 +556,7 @@
 					<p class="mw-field__error"><Icon name="alert" size={14} /> {formError}</p>
 				{/if}
 
-				<div class="crit-actions row">
+				<div class="mw-btn-row">
 					<Action variant="main" disabled={!canSave || saving} onclick={() => void save()}>
 						<Icon name="check" size={13} /> Guardar
 					</Action>
@@ -614,10 +614,6 @@
 		cursor: pointer;
 	}
 
-	.section {
-		margin-top: var(--mw-space-6);
-	}
-
 	.crit-text {
 		margin: 0;
 		font-size: var(--mw-type-body-size);
@@ -639,29 +635,12 @@
 		color: var(--mw-ink-muted);
 	}
 
-	.crit-actions {
-		gap: 8px;
-		margin-top: 12px;
-		flex-wrap: wrap;
-	}
-
-	.actions {
-		gap: 8px;
-		margin-top: 12px;
-	}
 	.view :global(.half) {
 		flex: 1;
 	}
 
 	.waiting {
 		margin: 8px 0 0;
-	}
-
-	.f-label {
-		margin: 0 0 6px;
-		font-size: var(--mw-type-caption-size);
-		font-weight: 700;
-		color: var(--mw-ink-secondary);
 	}
 
 	.view :global(.field) {
@@ -671,10 +650,6 @@
 	.cap-options {
 		display: flex;
 		flex-direction: column;
-	}
-
-	.footer-action {
-		margin-top: var(--mw-space-6);
 	}
 
 	.footer-help {
@@ -691,12 +666,6 @@
 		flex-direction: column;
 		gap: 2px;
 		text-align: left;
-	}
-
-	.pick-label {
-		font-size: var(--mw-type-caption-size);
-		font-weight: 700;
-		color: var(--mw-ink-secondary);
 	}
 
 	.pick-value {

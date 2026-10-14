@@ -527,7 +527,7 @@
 				{#if draft.trim() === ''}<p class="meta">
 						Escribe la conclusión para poder guardarla.
 					</p>{/if}
-				<div class="actions">
+				<div class="mw-btn-row">
 					<Button
 						variant="secondary"
 						type="button"
@@ -671,11 +671,5 @@
 		letter-spacing: 0.04em;
 		color: var(--mw-ink-muted);
 		font-family: var(--mw-font-sans);
-	}
-
-	.actions {
-		display: flex;
-		gap: var(--mw-space-3);
-		margin-top: var(--mw-space-4);
 	}
 </style>

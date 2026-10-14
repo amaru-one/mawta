@@ -251,7 +251,7 @@
 				{plan.class_dates_total} clases
 			</p>
 
-			<div class="section">
+			<div class="mw-section">
 				<p class="eyebrow">Tu trimestre por semanas</p>
 				<div class="timeline" style="--cols:{weekCount};--lanes:{lanes}">
 					<div class="timeline-actions">
@@ -325,7 +325,7 @@
 				</div>
 			</div>
 
-			<div class="section">
+			<div class="mw-section">
 				<Context>
 					<p class="eyebrow">Competencias este trimestre</p>
 					<StatusList
@@ -345,7 +345,7 @@
 				</Context>
 			</div>
 
-			<div class="section">
+			<div class="mw-section">
 				{#if experiences.length > 0}
 					<p class="eyebrow">Experiencias · {experiences.length}</p>
 					<div class="stack">
@@ -357,7 +357,11 @@
 										><span class="mw-sr-only">Experiencia </span>{index + 1}</span
 									>
 									<p class="grow exp-title">{experience.title}</p>
-									<p class="exp-status">
+									<p
+										class="mw-badge {experience.status === 'planificada'
+											? 'mw-badge--success'
+											: ''}"
+									>
 										{EXPERIENCE_STATUS[experience.status] ?? experience.status}
 									</p>
 								</div>
@@ -430,10 +434,6 @@
 
 	.screen-sub {
 		margin: 10px 0 0;
-	}
-
-	.section {
-		margin-top: var(--mw-space-6);
 	}
 
 	.timeline {
@@ -639,14 +639,6 @@
 		font-weight: 700;
 		letter-spacing: -0.01em;
 		line-height: 1.3;
-	}
-
-	.exp-status {
-		margin: 0;
-		flex-shrink: 0;
-		font-size: var(--mw-type-caption-size);
-		font-weight: 600;
-		color: var(--mw-ink-secondary);
 	}
 
 	.exp-comps {

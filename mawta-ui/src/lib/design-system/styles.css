@@ -149,6 +149,31 @@
 	flex-wrap: wrap;
 	gap: var(--mw-space-2);
 }
+/* The primary actions at the foot of a screen, stacked and centred. */
+.mw-root .mw-footer-action {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--mw-space-3);
+	margin-top: var(--mw-space-6);
+}
+/* A small status tag: neutral by default, success for a confirmed item. */
+.mw-root .mw-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 2px var(--mw-space-2);
+	border-radius: var(--mw-radius-full);
+	background: var(--mw-surface-tint);
+	color: var(--mw-ink-secondary);
+	font-size: var(--mw-type-caption-size);
+	font-weight: 600;
+	line-height: var(--mw-type-caption-line);
+	white-space: nowrap;
+}
+.mw-root .mw-badge--success {
+	background: var(--mw-success-soft);
+	color: var(--mw-success);
+}
 .mw-root .mw-btn-row > .mw-btn {
 	flex: 1 1 120px;
 }

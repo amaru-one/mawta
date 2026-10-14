@@ -437,7 +437,7 @@
 					{/if}
 				{/if}
 
-				<div class="section">
+				<div class="mw-section">
 					<p class="eyebrow">Competencias · opcional</p>
 					<p class="meta help">
 						Si las eliges, Mawta arma la experiencia con ellas; si no, las detecta de tu idea.
@@ -504,7 +504,7 @@
 				</p>
 				<h1 class="screen-title">Revisa la experiencia</h1>
 
-				<div class="section">
+				<div class="mw-section">
 					<Field
 						label="Nombre"
 						id="f-title"
@@ -513,7 +513,7 @@
 					/>
 				</div>
 
-				<div class="section">
+				<div class="mw-section">
 					{#if generating}
 						<Context>
 							<Icon name="sparkles" size={16} />
@@ -549,9 +549,9 @@
 					{/if}
 				</div>
 
-				<div class="section">
+				<div class="mw-section">
 					<div class="row label-row">
-						<p class="f-label grow">Competencias</p>
+						<p class="mw-field__label grow">Competencias</p>
 						<Action variant="link" onclick={() => (step = 'change')}>Cambiar</Action>
 					</div>
 					<p class="comp-sentence">
@@ -559,8 +559,8 @@
 					</p>
 				</div>
 
-				<div class="section">
-					<p class="f-label">¿Cuándo?</p>
+				<div class="mw-section">
+					<p class="mw-field__label">¿Cuándo?</p>
 					{#if startOptions.length === 0}
 						<Notice variant="attention">
 							<p>No quedan días de clase libres en este periodo para una experiencia nueva.</p>
@@ -668,16 +668,6 @@
 		color: var(--mw-ink-secondary);
 	}
 
-	.section {
-		margin-top: 20px;
-	}
-
-	.f-label {
-		margin: 0 0 6px;
-		font-size: var(--mw-type-caption-size);
-		font-weight: 700;
-		color: var(--mw-ink-secondary);
-	}
 	.view :global(.field) {
 		width: 100%;
 	}

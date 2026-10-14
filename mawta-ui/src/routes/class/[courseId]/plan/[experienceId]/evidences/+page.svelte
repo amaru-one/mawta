@@ -375,7 +375,7 @@
 				</Notice>
 			{/if}
 
-			<div class="section">
+			<div class="mw-section">
 				<p class="eyebrow">Evidencias · {evidences.length}</p>
 				{#if pending}
 					<ProposalBar
@@ -460,7 +460,7 @@
 				{/if}
 			</div>
 
-			<div class="footer-action">
+			<div class="mw-footer-action">
 				<Button
 					variant="primary"
 					block
@@ -552,7 +552,7 @@
 					<p id="ev-missing" class="meta missing">{missingText}</p>
 				{/if}
 
-				<div class="ev-actions row">
+				<div class="mw-btn-row">
 					<Action
 						variant="main"
 						disabled={!canSave || saving}
@@ -572,10 +572,6 @@
 	.intro {
 		margin: 10px 0 0;
 		line-height: 1.45;
-	}
-
-	.section {
-		margin-top: var(--mw-space-6);
 	}
 
 	.stack {
@@ -622,17 +618,6 @@
 		border-top: 1px solid var(--mw-line);
 	}
 
-	.ev-actions {
-		gap: 8px;
-		margin-top: 12px;
-		flex-wrap: wrap;
-	}
-
-	.actions {
-		gap: 8px;
-		margin-top: 12px;
-		flex-wrap: wrap;
-	}
 	.view :global(.half) {
 		flex: 1 1 150px;
 	}
@@ -663,10 +648,6 @@
 	.no-criteria {
 		margin: 0;
 		line-height: 1.45;
-	}
-
-	.footer-action {
-		margin-top: var(--mw-space-6);
 	}
 
 	.view :global(.to-summary) {
