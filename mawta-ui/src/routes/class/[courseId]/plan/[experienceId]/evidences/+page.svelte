@@ -369,7 +369,7 @@
 
 			{#if unobservedText !== null}
 				<Notice variant="attention">
-					<p class="grow notice-text">
+					<p>
 						Sin evidencia: {unobservedText}. Agrégalos a una evidencia para poder observarlos.
 					</p>
 				</Notice>
@@ -576,13 +576,6 @@
 	.intro {
 		margin: 10px 0 0;
 		line-height: 1.45;
-	}
-
-	.notice-text {
-		margin: 0;
-		font-size: var(--mw-type-small-size);
-		line-height: 1.45;
-		color: var(--mw-ink);
 	}
 
 	.section {

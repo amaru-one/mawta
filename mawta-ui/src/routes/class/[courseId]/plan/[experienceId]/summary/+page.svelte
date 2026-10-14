@@ -2,6 +2,7 @@
 	import {
 		Action,
 		Button,
+		ConfirmDialog,
 		Context,
 		ErrorNotice,
 		Icon,
@@ -28,7 +29,6 @@
 		getClassCurriculum,
 		getExperience,
 	} from '$lib/api/endpoints/planning';
-	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
 	import { showToast } from '$lib/toast';
@@ -351,6 +351,8 @@
 
 	{#if confirmingDelete}
 		<ConfirmDialog
+			open
+			tone="danger"
 			title="¿Eliminar esta experiencia?"
 			description="Se eliminan también sus criterios, evidencias y sesiones."
 			confirmLabel="Eliminar"

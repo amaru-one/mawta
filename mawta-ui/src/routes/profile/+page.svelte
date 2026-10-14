@@ -1,6 +1,7 @@
 <script lang="ts">
 	import {
 		Button,
+		ConfirmDialog,
 		Context,
 		ErrorNotice,
 		Icon,
@@ -14,7 +15,6 @@
 	import type { ProfileDto } from '$lib/api/dto';
 	import { logout } from '$lib/api/endpoints/auth';
 	import { getProfile } from '$lib/api/endpoints/profile';
-	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import { hapticTap } from '$lib/haptics';
 	import { session, teacher } from '$lib/stores';
 	import { showToast } from '$lib/toast';
@@ -137,6 +137,7 @@
 	{/if}
 	{#if showLogoutConfirm}
 		<ConfirmDialog
+			open
 			title="¿Cerrar sesión?"
 			description="Tendrás que iniciar sesión de nuevo para acceder a tus clases."
 			confirmLabel="Cerrar sesión"

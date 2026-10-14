@@ -1,12 +1,11 @@
 <script lang="ts">
-	import { Button, IconButton } from '$lib/design-system';
+	import { Button, ConfirmDialog, IconButton } from '$lib/design-system';
 	import { onDestroy } from 'svelte';
 
 	import { showToast } from '$lib/toast';
 	import { noteAudio } from '$lib/lesson';
 	import { audioContext, decodeBlob, formatDuration } from '$lib/recorder';
 	import type { Note } from '$lib/types';
-	import ConfirmDialog from './ConfirmDialog.svelte';
 
 	interface Props {
 		note: Note;
@@ -134,6 +133,7 @@
 
 {#if showDeleteConfirm && ondelete}
 	<ConfirmDialog
+		open
 		title="¿Eliminar esta nota?"
 		description="Esta acción no se puede deshacer."
 		confirmLabel="Eliminar"

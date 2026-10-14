@@ -4,6 +4,7 @@
 		Button,
 		Card,
 		Checkbox,
+		ConfirmDialog,
 		CoverageMeter,
 		Disclosure,
 		EmptyState,
@@ -43,7 +44,6 @@
 		getExperience,
 		updateCriterion,
 	} from '$lib/api/endpoints/planning';
-	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
 	import { showToast } from '$lib/toast';
@@ -560,7 +560,7 @@
 					<Action variant="main" disabled={!canSave || saving} onclick={() => void save()}>
 						<Icon name="check" size={13} /> Guardar
 					</Action>
-					<Action variant="remove" onclick={() => (form = null)}>Cancelar</Action>
+					<Action variant="neutral" onclick={() => (form = null)}>Cancelar</Action>
 				</div>
 			</Card>
 		{/if}
@@ -568,6 +568,8 @@
 
 	{#if deletingId}
 		<ConfirmDialog
+			open
+			tone="danger"
 			title="¿Quitar este criterio?"
 			description="Se quita también de las evidencias que lo usan."
 			confirmLabel="Quitar"

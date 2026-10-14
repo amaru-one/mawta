@@ -254,7 +254,7 @@
 
 			{#if loose.length > 0 && filled > 0}
 				<Notice variant="attention">
-					<p class="notice-text">
+					<p>
 						Evidencias sin sesión: {loose.map((evidence) => evidence.name).join(', ')}. Edita una
 						sesión para ubicarlas.
 					</p>
@@ -328,7 +328,7 @@
 									>
 										<Icon name="check" size={13} /> Guardar
 									</Action>
-									<Action variant="remove" onclick={() => (form = null)}>Cancelar</Action>
+									<Action variant="neutral" onclick={() => (form = null)}>Cancelar</Action>
 								</div>
 							{/if}{/snippet}
 						<SessionRow
@@ -408,12 +408,6 @@
 	}
 	.view :global(.field):global(.spaced) {
 		margin-top: 6px;
-	}
-
-	.notice-text {
-		margin: 0;
-		font-size: var(--mw-type-small-size);
-		line-height: 1.4;
 	}
 
 	.later {
