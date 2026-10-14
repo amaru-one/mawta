@@ -1,12 +1,20 @@
 <script lang="ts">
-	import { Button, Context, Icon, LoadingState, Notice, TopBar } from '$lib/design-system';
+	import {
+		Button,
+		ConfirmDialog,
+		Context,
+		ErrorNotice,
+		Icon,
+		LoadingState,
+		Notice,
+		TopBar,
+	} from '$lib/design-system';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { list } from '$lib/api/client';
 	import type { ProfileDto } from '$lib/api/dto';
 	import { logout } from '$lib/api/endpoints/auth';
 	import { getProfile } from '$lib/api/endpoints/profile';
-	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import { hapticTap } from '$lib/haptics';
 	import { session, teacher } from '$lib/stores';
 	import { showToast } from '$lib/toast';
@@ -71,7 +79,7 @@
 		{#if ready && profile}
 			<section class="identity" aria-label="Identidad del docente">
 				<span class="avatar" aria-hidden="true">{initials}</span>
-				<h1>{profile.display_name}</h1>
+				<h1 class="screen-title">{profile.display_name}</h1>
 				<p class="role">{profile.title || 'Docente'}</p>
 			</section>
 			<section class="profile-section" aria-labelledby="school-title">
@@ -103,7 +111,8 @@
 										{#if assignments.filter((item) => item.name === assignment.name).length > 1}
 											<span class="assignment-grade">{assignment.grade}</span>
 										{/if}
-									</a>
+										<Icon name="chevron-right" size={16} /></a
+									>
 								{/each}
 							</dd>
 						</div>
@@ -117,8 +126,7 @@
 				</section>
 			{/if}
 		{:else if loadError}
-			<Notice variant="danger" live>No se pudo cargar el perfil.</Notice>
-			<Button variant="secondary" onclick={load}>Reintentar</Button>
+			<ErrorNotice message="No se pudo cargar el perfil." onretry={load} />
 		{:else}<LoadingState label="Cargando perfil…" />{/if}
 	</main>
 	{#if ready && profile}
@@ -130,6 +138,7 @@
 	{/if}
 	{#if showLogoutConfirm}
 		<ConfirmDialog
+			open
 			title="¿Cerrar sesión?"
 			description="Tendrás que iniciar sesión de nuevo para acceder a tus clases."
 			confirmLabel="Cerrar sesión"

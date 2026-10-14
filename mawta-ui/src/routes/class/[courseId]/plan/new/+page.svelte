@@ -5,6 +5,7 @@
 		Card,
 		Checkbox,
 		Context,
+		ErrorNotice,
 		Field,
 		Icon,
 		LoadingState,
@@ -426,8 +427,8 @@
 				{/if}
 
 				{#if genError !== null}
-					<Notice variant="attention">
-						<p class="grow notice-text">{genError}</p>
+					<Notice variant="danger">
+						<p>{genError}</p>
 					</Notice>
 					{#if !$agentUnavailable}
 						<Button variant="secondary" class="retry" onclick={() => void generate()}>
@@ -436,7 +437,7 @@
 					{/if}
 				{/if}
 
-				<div class="section">
+				<div class="mw-section">
 					<p class="eyebrow">Competencias · opcional</p>
 					<p class="meta help">
 						Si las eliges, Mawta arma la experiencia con ellas; si no, las detecta de tu idea.
@@ -503,7 +504,7 @@
 				</p>
 				<h1 class="screen-title">Revisa la experiencia</h1>
 
-				<div class="section">
+				<div class="mw-section">
 					<Field
 						label="Nombre"
 						id="f-title"
@@ -512,7 +513,7 @@
 					/>
 				</div>
 
-				<div class="section">
+				<div class="mw-section">
 					{#if generating}
 						<Context>
 							<Icon name="sparkles" size={16} />
@@ -537,8 +538,8 @@
 					{/if}
 
 					{#if genError !== null}
-						<Notice variant="attention">
-							<p class="grow notice-text">{genError}</p>
+						<Notice variant="danger">
+							<p>{genError}</p>
 						</Notice>
 						{#if !$agentUnavailable}
 							<Button variant="secondary" class="retry" onclick={() => void generate()}>
@@ -548,9 +549,9 @@
 					{/if}
 				</div>
 
-				<div class="section">
+				<div class="mw-section">
 					<div class="row label-row">
-						<p class="f-label grow">Competencias</p>
+						<p class="mw-field__label grow">Competencias</p>
 						<Action variant="link" onclick={() => (step = 'change')}>Cambiar</Action>
 					</div>
 					<p class="comp-sentence">
@@ -558,13 +559,11 @@
 					</p>
 				</div>
 
-				<div class="section">
-					<p class="f-label">¿Cuándo?</p>
+				<div class="mw-section">
+					<p class="mw-field__label">¿Cuándo?</p>
 					{#if startOptions.length === 0}
 						<Notice variant="attention">
-							<p class="grow notice-text">
-								No quedan días de clase libres en este periodo para una experiencia nueva.
-							</p>
+							<p>No quedan días de clase libres en este periodo para una experiencia nueva.</p>
 						</Notice>
 					{:else}
 						<div class="pick-row" role="group" aria-label="Elegir qué fecha tocar">
@@ -605,8 +604,8 @@
 						{/if}
 					{/if}
 					{#if saveErrorText !== null}
-						<Notice variant="attention">
-							<p class="grow notice-text">{saveErrorText}</p>
+						<Notice variant="danger">
+							<p>{saveErrorText}</p>
 						</Notice>
 					{/if}
 				</div>
@@ -656,10 +655,7 @@
 				</Button>
 			{/if}
 		{:else if loadError}
-			<p class="empty">
-				No se pudo cargar…
-				<Button variant="secondary" onclick={load}>Reintentar</Button>
-			</p>
+			<ErrorNotice message="No se pudo cargar…" onretry={load} />
 		{:else}<LoadingState label="Cargando…" />{/if}
 	</div>
 </div>
@@ -672,16 +668,6 @@
 		color: var(--mw-ink-secondary);
 	}
 
-	.section {
-		margin-top: 20px;
-	}
-
-	.f-label {
-		margin: 0 0 6px;
-		font-size: var(--mw-type-caption-size);
-		font-weight: 700;
-		color: var(--mw-ink-secondary);
-	}
 	.view :global(.field) {
 		width: 100%;
 	}
@@ -761,11 +747,6 @@
 		color: var(--mw-ink-secondary);
 	}
 
-	.notice-text {
-		margin: 0;
-		font-size: var(--mw-type-small-size);
-		color: var(--mw-ink);
-	}
 	.view :global(.retry) {
 		margin-top: var(--mw-space-2);
 	}
@@ -778,11 +759,5 @@
 
 	.help {
 		margin: -4px 0 6px;
-	}
-
-	.empty {
-		margin: var(--mw-space-4) 0 0;
-		font-size: var(--mw-type-small-size);
-		color: var(--mw-ink-muted);
 	}
 </style>

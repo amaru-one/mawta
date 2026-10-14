@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, Icon, ListRow, LoadingState } from '$lib/design-system';
+	import { Button, ErrorNotice, Icon, ListRow, LoadingState } from '$lib/design-system';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { list } from '$lib/api/client';
@@ -82,7 +82,7 @@
 
 	<div class="body">
 		{#if ready && d}
-			<h1 class="clsname">{d.name}</h1>
+			<h1 class="screen-title">{d.name}</h1>
 			<span class="clscount">{d.roster_count} alumnos · {d.sessions_per_week} sesiones/semana</span>
 
 			{#if d.next_session}
@@ -103,7 +103,8 @@
 						</span>
 						<span class="chevron"><Icon name="chevron-right" size={18} /></span>
 					</span>
-				</a>
+					<Icon name="chevron-right" size={16} /></a
+				>
 			{/if}
 
 			<nav class="quiet">
@@ -155,7 +156,8 @@
 								<span class="lcard-topic">{s.topic ?? 'Clase'}</span>
 								<span class="lcard-sub">{timeRange(s)}</span>
 							</span>
-						</a>
+							<Icon name="chevron-right" size={16} /></a
+						>
 					{/each}
 				</div>
 			{/if}
@@ -182,15 +184,13 @@
 									<Icon name="mic" size={14} />
 								</span>
 							</span>
-						</a>
+							<Icon name="chevron-right" size={16} /></a
+						>
 					{/each}
 				</div>
 			{/if}
 		{:else if loadError}
-			<p class="clscount">
-				No se pudo cargar el panel.
-				<Button variant="secondary" onclick={load}>Reintentar</Button>
-			</p>
+			<ErrorNotice message="No se pudo cargar el panel." onretry={load} />
 		{:else}<LoadingState label="Cargando…" />{/if}
 	</div>
 </div>
@@ -198,20 +198,6 @@
 <style>
 	.body {
 		padding: 18px var(--mw-space-5) 30px;
-	}
-
-	.eyebrow {
-		margin: 0 0 var(--mw-space-3);
-	}
-
-	.clsname {
-		margin: 0;
-		padding-bottom: 14px;
-
-		font-size: var(--mw-type-title-size);
-		font-weight: 700;
-		letter-spacing: -0.02em;
-		line-height: 1.1;
 	}
 
 	.clscount {

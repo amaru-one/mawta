@@ -288,10 +288,12 @@ type EvidenceTally struct {
 }
 
 // termEvidenceByCompetency counts, per competency, the distinct evidences of
-// the class in the term that observe it: accepted planned evidences (drafts
-// included, as the plan does) and hand-added assessments. Assessments synced
-// from a planned evidence are left out, so a planned evidence is counted once.
-func termEvidenceByCompetency(ctx context.Context, tx pgx.Tx, classID, termID uuid.UUID) (map[uuid.UUID]EvidenceTally, error) {
+// the class in the term that observe it: accepted planned evidences and
+// hand-added assessments. Assessments synced from a planned evidence are left
+// out, so a planned evidence is counted once. With confirmedOnly, evidences of
+// a borrador experience are left out (the term overview); without it they
+// count, so an experience's own summary sees what it is about to save.
+func termEvidenceByCompetency(ctx context.Context, tx pgx.Tx, classID, termID uuid.UUID, confirmedOnly bool) (map[uuid.UUID]EvidenceTally, error) {
 	rows, err := tx.Query(ctx, `
 		select u.competency_id, count(distinct u.evidence_id), array_agg(distinct u.kind order by u.kind)
 		  from (
@@ -303,6 +305,7 @@ func termEvidenceByCompetency(ctx context.Context, tx pgx.Tx, classID, termID uu
 		       and cr.deleted_at is null and cr.accepted_at is not null
 		     where le.class_id = $1 and le.term_id = $2
 		       and pe.deleted_at is null and pe.accepted_at is not null
+		       and (not $3 or le.status = 'planificada')
 		    union all
 		    select a.id, cr.competency_id, a.kind
 		      from assessments a
@@ -313,7 +316,7 @@ func termEvidenceByCompetency(ctx context.Context, tx pgx.Tx, classID, termID uu
 		       and a.status in ('published', 'closed') and a.deleted_at is null
 		  ) u
 		 group by u.competency_id
-	`, classID, termID)
+	`, classID, termID, confirmedOnly)
 	if err != nil {
 		return nil, err
 	}
@@ -332,7 +335,7 @@ func termEvidenceByCompetency(ctx context.Context, tx pgx.Tx, classID, termID uu
 
 // fillEvidenceTallies sets the term evidence fields of each competency in comps.
 func fillEvidenceTallies(ctx context.Context, tx pgx.Tx, classID, termID uuid.UUID, comps []PlanCompetency) error {
-	tally, err := termEvidenceByCompetency(ctx, tx, classID, termID)
+	tally, err := termEvidenceByCompetency(ctx, tx, classID, termID, true)
 	if err != nil {
 		return err
 	}
@@ -342,6 +345,7 @@ func fillEvidenceTallies(ctx context.Context, tx pgx.Tx, classID, termID uuid.UU
 		  join learning_experiences le on le.id = ec.experience_id
 		 where le.class_id = $1 and le.term_id = $2
 		   and le.deleted_at is null and ec.deleted_at is null
+		   and le.status = 'planificada'
 	`, classID, termID)
 	if err != nil {
 		return err
@@ -544,13 +548,15 @@ func experienceCoverage(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID) 
 // planCompetencies applies the contract's tracking rule to every competency
 // of the class's área:
 //
-//   - planificada: a non-deleted experience of this class in this term works it;
+//   - planificada: a confirmed (status planificada) experience of this class in this
+//     term works it;
 //   - toca: otherwise, when it still needs terms to reach two worked terms in
 //     the year and the terms left (this one included) are no more than it needs;
 //   - puede_esperar: otherwise.
 //
-// A worked term is a term of the year with a non-deleted experience of this
-// class working the competency, drafts included.
+// A worked term is a term of the year with a confirmed experience of this
+// class working the competency. A borrador is still being built, so it does
+// not count as work done, and the capacities it covers are not counted either.
 func planCompetencies(ctx context.Context, tx pgx.Tx, classID uuid.UUID, cc classContext, term PlanTerm) ([]PlanCompetency, error) {
 	rows, err := tx.Query(ctx, `
 		with worked as (
@@ -561,6 +567,7 @@ func planCompetencies(ctx context.Context, tx pgx.Tx, classID uuid.UUID, cc clas
 		    join experience_competencies ec on ec.experience_id = le.id and ec.deleted_at is null
 		    join terms t on t.id = le.term_id
 		   where le.class_id = $1 and le.academic_year_id = $4 and le.deleted_at is null
+		     and le.status = 'planificada'
 		   group by ec.competency_id
 		),
 		terms_left as (
@@ -577,6 +584,7 @@ func planCompetencies(ctx context.Context, tx pgx.Tx, classID uuid.UUID, cc clas
 		         and cr.deleted_at is null and cr.accepted_at is not null
 		    join evaluation_criterion_capabilities x on x.criterion_id = cr.id and x.deleted_at is null
 		   where le.class_id = $1 and le.term_id = $3 and le.deleted_at is null
+		     and le.status = 'planificada'
 		   group by cr.competency_id
 		)
 		select c.id, c.code, c.name,
@@ -1104,7 +1112,7 @@ func experienceWarnings(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID) 
 		experienceID).Scan(&classID, &termID); err != nil {
 		return nil, err
 	}
-	tally, err := termEvidenceByCompetency(ctx, tx, classID, termID)
+	tally, err := termEvidenceByCompetency(ctx, tx, classID, termID, false)
 	if err != nil {
 		return nil, err
 	}

@@ -6,6 +6,7 @@
 		Checkbox,
 		ConfirmDialog,
 		EmptyState,
+		ErrorNotice,
 		Field,
 		Icon,
 		LoadingState,
@@ -401,8 +402,8 @@
 
 	<div class="body">
 		{#if ready}
-			<h1 class="title">{studentName}</h1>
-			{#if courseName}<span class="sub">{courseName}</span>{/if}
+			<h1 class="screen-title">{studentName}</h1>
+			{#if courseName}<span class="screen-sub">{courseName}</span>{/if}
 
 			{#if indexItems.length > 0}
 				<div class="idx">
@@ -419,8 +420,8 @@
 
 				{#if evidence.length === 0}
 					<EmptyState
-						title="Esta competencia no tiene evidencia este periodo. Se registra desde el área, en «Añadir
-					evidencia», enlazándola a sus criterios."
+						title="Esta competencia no tiene evidencia este periodo."
+						description="Se registra desde el área, en «Añadir evidencia», enlazándola a sus criterios."
 					/>
 				{:else}
 					<div class="cards" class:switching>
@@ -526,7 +527,7 @@
 				{#if draft.trim() === ''}<p class="meta">
 						Escribe la conclusión para poder guardarla.
 					</p>{/if}
-				<div class="actions">
+				<div class="mw-btn-row">
 					<Button
 						variant="secondary"
 						type="button"
@@ -542,10 +543,7 @@
 				</div>
 			{/if}
 		{:else if loadError}
-			<p class="empty">
-				No se pudo cargar al alumno.
-				<Button variant="secondary" onclick={load}>Reintentar</Button>
-			</p>
+			<ErrorNotice message="No se pudo cargar al alumno." onretry={load} />
 		{:else}<LoadingState label="Cargando…" />{/if}
 	</div>
 </div>
@@ -584,30 +582,6 @@
 />
 
 <style>
-	.body {
-		padding: 20px 20px 32px;
-	}
-
-	.title {
-		margin: 0;
-		padding-bottom: 14px;
-
-		font-size: var(--mw-type-title-size);
-		font-weight: 800;
-		letter-spacing: -0.03em;
-		line-height: var(--mw-type-title-line);
-		text-wrap: pretty;
-	}
-
-	.sub {
-		display: block;
-		margin: 10px 0 0;
-		font-family: var(--mw-font-sans);
-		font-size: var(--mw-type-label-size);
-		text-transform: uppercase;
-		color: var(--mw-ink-muted);
-	}
-
 	.idx {
 		margin-top: 14px;
 	}
@@ -619,15 +593,6 @@
 		line-height: 1.3;
 		letter-spacing: -0.01em;
 		text-wrap: pretty;
-	}
-
-	.eyebrow {
-		margin: 30px 0 4px;
-		font-size: var(--mw-type-label-size);
-		font-weight: 600;
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
-		color: var(--mw-ink-muted);
 	}
 
 	.eyebrow.gap {
@@ -706,19 +671,5 @@
 		letter-spacing: 0.04em;
 		color: var(--mw-ink-muted);
 		font-family: var(--mw-font-sans);
-	}
-
-	.actions {
-		display: flex;
-		gap: var(--mw-space-3);
-		margin-top: var(--mw-space-4);
-	}
-
-	.empty {
-		margin: 12px 0 0;
-		font-size: var(--mw-type-body-size);
-		line-height: 1.45;
-		color: var(--mw-ink-muted);
-		text-wrap: pretty;
 	}
 </style>

@@ -5,6 +5,7 @@
 		Checkbox,
 		ConfirmDialog,
 		EmptyState,
+		ErrorNotice,
 		Field,
 		Icon,
 		LoadingState,
@@ -184,8 +185,8 @@
 
 	<div class="body">
 		{#if ready}
-			<h1 class="title">Nueva evidencia</h1>
-			{#if courseName}<span class="sub">{courseName}</span>{/if}
+			<h1 class="screen-title">Nueva evidencia</h1>
+			{#if courseName}<span class="screen-sub">{courseName}</span>{/if}
 			<p class="lede">
 				{#if scopeStudentId === null}
 					Registras una evidencia para toda la clase: una producción (un informe, una prueba
@@ -212,7 +213,7 @@
 			     and a lettered exposición can share a week. This is what decides
 			     which control appears on the student's screen. -->
 				<div class="field">
-					<span class="lbl">Cómo se valora</span>
+					<span class="mw-field__label">Cómo se valora</span>
 					<Segmented
 						label="Cómo se valora"
 						value={scale}
@@ -332,10 +333,7 @@
 				</p>
 			</form>
 		{:else if loadError}
-			<p class="warn">
-				No se pudo cargar el formulario.
-				<Button variant="secondary" onclick={load}>Reintentar</Button>
-			</p>
+			<ErrorNotice message="No se pudo cargar el formulario." onretry={load} />
 		{:else}<LoadingState label="Cargando…" />{/if}
 	</div>
 </div>
@@ -345,28 +343,6 @@
 		display: grid;
 		gap: var(--mw-space-4);
 	}
-	.body {
-		padding: 20px 20px 32px;
-	}
-
-	.title {
-		margin: 0;
-		padding-bottom: 14px;
-
-		font-size: var(--mw-type-title-size);
-		font-weight: 800;
-		letter-spacing: -0.03em;
-		line-height: var(--mw-type-title-line);
-	}
-
-	.sub {
-		display: block;
-		margin: 10px 0 0;
-		font-family: var(--mw-font-sans);
-		font-size: var(--mw-type-label-size);
-		text-transform: uppercase;
-		color: var(--mw-ink-muted);
-	}
 
 	.lede {
 		margin: 10px 0 0;
@@ -374,15 +350,6 @@
 		line-height: 1.45;
 		color: var(--mw-ink-secondary);
 		text-wrap: pretty;
-	}
-
-	.eyebrow {
-		margin: 26px 0 12px;
-		font-size: var(--mw-type-label-size);
-		font-weight: 600;
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
-		color: var(--mw-ink-muted);
 	}
 
 	.eyebrow.gap {
@@ -394,14 +361,6 @@
 		flex-direction: column;
 		gap: 6px;
 		margin-bottom: 14px;
-	}
-	.lbl {
-		font-family: var(--mw-font-sans);
-		font-size: var(--mw-type-label-size);
-		font-weight: 700;
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
-		color: var(--mw-ink-muted);
 	}
 	.note {
 		margin: 10px 0 0;
@@ -512,12 +471,5 @@
 		text-align: center;
 		color: var(--mw-ink-muted);
 		font-family: var(--mw-font-sans);
-	}
-
-	.warn {
-		margin: 0;
-		font-size: var(--mw-type-small-size);
-		line-height: 1.45;
-		color: var(--mw-ink-muted);
 	}
 </style>

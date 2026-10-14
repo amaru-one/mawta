@@ -4,9 +4,11 @@
 		Button,
 		Card,
 		Checkbox,
+		ConfirmDialog,
 		CoverageMeter,
 		Disclosure,
 		EmptyState,
+		ErrorNotice,
 		Field,
 		Icon,
 		ItemActions,
@@ -42,7 +44,6 @@
 		getExperience,
 		updateCriterion,
 	} from '$lib/api/endpoints/planning';
-	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
 	import { showToast } from '$lib/toast';
@@ -357,7 +358,7 @@
 				onprevious={() => go(-1)}
 				onnext={() => go(1)}
 			/>
-			<h1 class="screen-title comp-title">{current.name}</h1>
+			<h1 class="screen-title">{current.name}</h1>
 
 			<CoverageMeter
 				capabilities={capabilities.map((capability) => ({
@@ -385,7 +386,7 @@
 				</div>
 			{/if}
 
-			<div class="section">
+			<div class="mw-section">
 				<p class="eyebrow">Criterios · {criteria.length}</p>
 				{#if pending}
 					<ProposalBar
@@ -397,12 +398,10 @@
 				{/if}
 
 				{#if criteria.length === 0}
-					<Card>
-						<p class="empty-title">Aún no hay criterios para esta competencia.</p>
-						<p class="meta">
-							Mawta puede proponerlos a partir del estándar del ciclo, o puedes crearlos tú.
-						</p>
-					</Card>
+					<EmptyState
+						title="Aún no hay criterios para esta competencia."
+						description="Mawta puede proponerlos a partir del estándar del ciclo, o puedes crearlos tú."
+					/>
 				{/if}
 
 				<div class="stack">
@@ -462,7 +461,7 @@
 				{/if}
 			</div>
 
-			<div class="footer-action">
+			<div class="mw-footer-action">
 				<Button variant="primary" block disabled={!editing && unseen > 0} onclick={next}>
 					{#if editing}Listo{:else}Continuar con las evidencias <Icon
 							name="chevron-right"
@@ -481,17 +480,14 @@
 		{:else if ready && experience}
 			<EmptyState title="Esta experiencia no tiene competencias." />
 		{:else if loadError}
-			<p class="empty">
-				No se pudo cargar la experiencia.
-				<Button variant="secondary" onclick={load}>Reintentar</Button>
-			</p>
+			<ErrorNotice message="No se pudo cargar la experiencia." onretry={load} />
 		{:else}<LoadingState label="Cargando…" />{/if}
 	</div>
 
 	{#snippet editor()}
 		{#if form}
 			<Card>
-				<p class="f-label">Capacidades que mira</p>
+				<p class="mw-field__label">Capacidades que mira</p>
 				<div class="cap-options">
 					{#each capabilities as capability (capability.id)}
 						<Checkbox
@@ -515,7 +511,7 @@
 					<Disclosure bind:open={performanceOpen}>
 						{#snippet summary()}
 							<span class="pick-head">
-								<span class="pick-label">Desempeño del grado (opcional)</span>
+								<span class="mw-field__label">Desempeño del grado (opcional)</span>
 								<span class="pick-value">
 									{form?.performanceId ? performanceText(form.performanceId) : 'Sin desempeño'}
 								</span>
@@ -557,14 +553,14 @@
 				{/if}
 
 				{#if formError}
-					<p class="form-error"><Icon name="alert" size={14} /> {formError}</p>
+					<p class="mw-field__error"><Icon name="alert" size={14} /> {formError}</p>
 				{/if}
 
-				<div class="crit-actions row">
+				<div class="mw-btn-row">
 					<Action variant="main" disabled={!canSave || saving} onclick={() => void save()}>
 						<Icon name="check" size={13} /> Guardar
 					</Action>
-					<Action variant="remove" onclick={() => (form = null)}>Cancelar</Action>
+					<Action variant="neutral" onclick={() => (form = null)}>Cancelar</Action>
 				</div>
 			</Card>
 		{/if}
@@ -572,6 +568,8 @@
 
 	{#if deletingId}
 		<ConfirmDialog
+			open
+			tone="danger"
 			title="¿Quitar este criterio?"
 			description="Se quita también de las evidencias que lo usan."
 			confirmLabel="Quitar"
@@ -582,11 +580,6 @@
 </div>
 
 <style>
-	.comp-title {
-		font-size: var(--mw-type-title-size);
-		line-height: 1.2;
-	}
-
 	.standard {
 		margin-top: var(--mw-space-4);
 	}
@@ -621,16 +614,6 @@
 		cursor: pointer;
 	}
 
-	.section {
-		margin-top: var(--mw-space-6);
-	}
-
-	.empty-title {
-		margin: 0 0 4px;
-		font-size: var(--mw-type-body-size);
-		font-weight: 700;
-	}
-
 	.crit-text {
 		margin: 0;
 		font-size: var(--mw-type-body-size);
@@ -652,29 +635,12 @@
 		color: var(--mw-ink-muted);
 	}
 
-	.crit-actions {
-		gap: 8px;
-		margin-top: 12px;
-		flex-wrap: wrap;
-	}
-
-	.actions {
-		gap: 8px;
-		margin-top: 12px;
-	}
 	.view :global(.half) {
 		flex: 1;
 	}
 
 	.waiting {
 		margin: 8px 0 0;
-	}
-
-	.f-label {
-		margin: 0 0 6px;
-		font-size: var(--mw-type-caption-size);
-		font-weight: 700;
-		color: var(--mw-ink-secondary);
 	}
 
 	.view :global(.field) {
@@ -686,29 +652,11 @@
 		flex-direction: column;
 	}
 
-	.form-error {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		margin: 10px 0 0;
-		font-size: var(--mw-type-caption-size);
-		color: var(--mw-ink);
-	}
-
-	.footer-action {
-		margin-top: var(--mw-space-6);
-	}
-
 	.footer-help {
 		margin: 8px 0 0;
 		text-align: center;
 	}
 
-	.empty {
-		margin: var(--mw-space-4) 0 0;
-		font-size: var(--mw-type-small-size);
-		color: var(--mw-ink-muted);
-	}
 	.view :global(.to-summary) {
 		margin: 2px 0 6px;
 	}
@@ -718,12 +666,6 @@
 		flex-direction: column;
 		gap: 2px;
 		text-align: left;
-	}
-
-	.pick-label {
-		font-size: var(--mw-type-caption-size);
-		font-weight: 700;
-		color: var(--mw-ink-secondary);
 	}
 
 	.pick-value {

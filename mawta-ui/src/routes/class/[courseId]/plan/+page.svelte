@@ -3,6 +3,8 @@
 		Button,
 		Card,
 		Context,
+		EmptyState,
+		ErrorNotice,
 		Icon,
 		IconButton,
 		LoadingState,
@@ -233,10 +235,6 @@
 		if (terms.length === 0) return 'Aún no se trabaja este año.';
 		return `Ya se trabajó en ${terms.map((term) => `T${term}`).join(' y ')}.`;
 	}
-
-	const dueCount = $derived(
-		competencies.filter((competency) => competency.status === 'toca').length
-	);
 </script>
 
 <svelte:head>
@@ -253,7 +251,7 @@
 				{plan.class_dates_total} clases
 			</p>
 
-			<div class="section">
+			<div class="mw-section">
 				<p class="eyebrow">Tu trimestre por semanas</p>
 				<div class="timeline" style="--cols:{weekCount};--lanes:{lanes}">
 					<div class="timeline-actions">
@@ -327,12 +325,9 @@
 				</div>
 			</div>
 
-			<div class="section">
+			<div class="mw-section">
 				<Context>
-					<div class="label-row">
-						<p class="eyebrow">Competencias este trimestre</p>
-						<p class="meta">{dueCount > 0 ? `${dueCount} por trabajar` : 'al día'}</p>
-					</div>
+					<p class="eyebrow">Competencias este trimestre</p>
 					<StatusList
 						items={competencies.map((competency) => ({
 							id: competency.id,
@@ -350,19 +345,23 @@
 				</Context>
 			</div>
 
-			<div class="section">
+			<div class="mw-section">
 				{#if experiences.length > 0}
 					<p class="eyebrow">Experiencias · {experiences.length}</p>
 					<div class="stack">
 						{#each orderedExperiences as experience, index (experience.id)}
 							{@const coverage = coverageOf(experience)}
-							<button class="card exp pressable" onclick={() => openExperience(experience)}>
+							<Card onclick={() => openExperience(experience)}>
 								<div class="row exp-head">
 									<span class="exp-num"
 										><span class="mw-sr-only">Experiencia </span>{index + 1}</span
 									>
 									<p class="grow exp-title">{experience.title}</p>
-									<p class="exp-status">
+									<p
+										class="mw-badge {experience.status === 'planificada'
+											? 'mw-badge--success'
+											: ''}"
+									>
 										{EXPERIENCE_STATUS[experience.status] ?? experience.status}
 									</p>
 								</div>
@@ -385,21 +384,16 @@
 											: `${experience.pending_proposals} propuestas de Mawta por revisar`}
 									</p>
 								{/if}
-							</button>
+							</Card>
 						{/each}
 					</div>
 				{:else}
 					<Card>
-						<div class="row empty-row">
-							<span class="icon-tile"><Icon name="calendar" size={18} /></span>
-							<span class="grow">
-								<p class="empty-title">Aún no hay experiencias en este trimestre</p>
-								<p class="empty-text">
-									Cuéntale a Mawta tu idea: detecta las competencias y arma la propuesta con
-									criterios, evidencias y sesiones.
-								</p>
-							</span>
-						</div>
+						<EmptyState
+							icon="calendar"
+							title="Aún no hay experiencias en este trimestre"
+							description="Cuéntale a Mawta tu idea: detecta las competencias y arma la propuesta con criterios, evidencias y sesiones."
+						/>
 					</Card>
 				{/if}
 
@@ -414,10 +408,7 @@
 				</Button>
 			</div>
 		{:else if loadError}
-			<p class="empty">
-				No se pudo cargar…
-				<Button variant="secondary" onclick={load}>Reintentar</Button>
-			</p>
+			<ErrorNotice message="No se pudo cargar…" onretry={load} />
 		{:else}<LoadingState label="Cargando…" />{/if}
 	</div>
 </div>
@@ -443,10 +434,6 @@
 
 	.screen-sub {
 		margin: 10px 0 0;
-	}
-
-	.section {
-		margin-top: var(--mw-space-6);
 	}
 
 	.timeline {
@@ -636,35 +623,10 @@
 		border: 1px solid var(--mw-line);
 	}
 
-	.label-row {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: var(--mw-space-2);
-		margin-bottom: var(--mw-space-1);
-	}
-
-	.label-row .eyebrow {
-		margin: 0;
-	}
-
 	.stack {
 		display: flex;
 		flex-direction: column;
 		gap: var(--mw-space-2);
-	}
-
-	.exp {
-		display: block;
-		width: 100%;
-		padding: var(--mw-space-3);
-		text-align: left;
-		font-family: inherit;
-		color: inherit;
-	}
-
-	.exp:disabled {
-		opacity: 0.6;
 	}
 
 	.row.exp-head {
@@ -677,18 +639,6 @@
 		font-weight: 700;
 		letter-spacing: -0.01em;
 		line-height: 1.3;
-	}
-
-	.exp-status {
-		margin: 0;
-		flex-shrink: 0;
-		font-size: var(--mw-type-caption-size);
-		font-weight: 600;
-		color: var(--mw-ink-secondary);
-	}
-
-	.exp .meta {
-		margin: var(--mw-space-1) 0 0;
 	}
 
 	.exp-comps {
@@ -704,30 +654,7 @@
 		color: var(--mw-ink-muted);
 	}
 
-	.row.empty-row {
-		align-items: flex-start;
-	}
-
-	.empty-title {
-		margin: 0;
-		font-size: var(--mw-type-body-size);
-		font-weight: 700;
-		line-height: 1.3;
-	}
-
-	.empty-text {
-		margin: 6px 0 0;
-		font-size: var(--mw-type-small-size);
-		line-height: 1.45;
-		color: var(--mw-ink-muted);
-	}
 	.view :global(.create) {
 		margin-top: var(--mw-space-3);
-	}
-
-	.empty {
-		margin: var(--mw-space-4) 0 0;
-		font-size: var(--mw-type-small-size);
-		color: var(--mw-ink-muted);
 	}
 </style>

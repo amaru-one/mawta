@@ -4,12 +4,14 @@
 		Button,
 		Card,
 		Checkbox,
+		EmptyState,
+		ErrorNotice,
 		Field,
 		Icon,
 		ItemActions,
-		ProposalBar,
 		LoadingState,
 		Notice,
+		ProposalBar,
 		Segmented,
 	} from '$lib/design-system';
 	// The evidences step of a saved experience: where the teacher will observe
@@ -359,7 +361,7 @@
 	<div class="body">
 		{#if ready && experience}
 			<p class="eyebrow">{experience.title} · Evidencias</p>
-			<h1 class="screen-title sm">¿Dónde observarás tus criterios?</h1>
+			<h1 class="screen-title">¿Dónde observarás tus criterios?</h1>
 			<p class="meta intro">
 				Producciones o actuaciones de tus estudiantes. Una evidencia puede reunir criterios de
 				varias competencias.
@@ -367,13 +369,13 @@
 
 			{#if unobservedText !== null}
 				<Notice variant="attention">
-					<p class="grow notice-text">
+					<p>
 						Sin evidencia: {unobservedText}. Agrégalos a una evidencia para poder observarlos.
 					</p>
 				</Notice>
 			{/if}
 
-			<div class="section">
+			<div class="mw-section">
 				<p class="eyebrow">Evidencias · {evidences.length}</p>
 				{#if pending}
 					<ProposalBar
@@ -385,12 +387,10 @@
 				{/if}
 
 				{#if evidences.length === 0}
-					<Card>
-						<p class="empty-title">Aún no hay evidencias.</p>
-						<p class="meta">
-							Mawta puede proponerlas a partir de tus criterios, o puedes agregarlas tú.
-						</p>
-					</Card>
+					<EmptyState
+						title="Aún no hay evidencias."
+						description="Mawta puede proponerlas a partir de tus criterios, o puedes agregarlas tú."
+					/>
 				{/if}
 
 				<div class="stack">
@@ -460,7 +460,7 @@
 				{/if}
 			</div>
 
-			<div class="footer-action">
+			<div class="mw-footer-action">
 				<Button
 					variant="primary"
 					block
@@ -472,10 +472,7 @@
 				</Button>
 			</div>
 		{:else if loadError}
-			<p class="empty">
-				No se pudo cargar la experiencia.
-				<Button variant="secondary" onclick={load}>Reintentar</Button>
-			</p>
+			<ErrorNotice message="No se pudo cargar la experiencia." onretry={load} />
 		{:else}<LoadingState label="Cargando…" />{/if}
 	</div>
 
@@ -548,14 +545,14 @@
 				</fieldset>
 
 				{#if formError}
-					<p class="form-error"><Icon name="alert" size={14} /> {formError}</p>
+					<p class="mw-field__error"><Icon name="alert" size={14} /> {formError}</p>
 				{/if}
 
 				{#if missingText}
 					<p id="ev-missing" class="meta missing">{missingText}</p>
 				{/if}
 
-				<div class="ev-actions row">
+				<div class="mw-btn-row">
 					<Action
 						variant="main"
 						disabled={!canSave || saving}
@@ -572,36 +569,15 @@
 </div>
 
 <style>
-	.screen-title.sm {
-		font-size: var(--mw-type-title-size);
-	}
-
 	.intro {
 		margin: 10px 0 0;
 		line-height: 1.45;
-	}
-
-	.notice-text {
-		margin: 0;
-		font-size: var(--mw-type-small-size);
-		line-height: 1.45;
-		color: var(--mw-ink);
-	}
-
-	.section {
-		margin-top: var(--mw-space-6);
 	}
 
 	.stack {
 		display: flex;
 		flex-direction: column;
 		gap: var(--mw-space-2);
-	}
-
-	.empty-title {
-		margin: 0 0 4px;
-		font-size: var(--mw-type-body-size);
-		font-weight: 700;
 	}
 
 	.ev-name {
@@ -642,17 +618,6 @@
 		border-top: 1px solid var(--mw-line);
 	}
 
-	.ev-actions {
-		gap: 8px;
-		margin-top: 12px;
-		flex-wrap: wrap;
-	}
-
-	.actions {
-		gap: 8px;
-		margin-top: 12px;
-		flex-wrap: wrap;
-	}
 	.view :global(.half) {
 		flex: 1 1 150px;
 	}
@@ -685,24 +650,6 @@
 		line-height: 1.45;
 	}
 
-	.form-error {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		margin: 10px 0 0;
-		font-size: var(--mw-type-caption-size);
-		color: var(--mw-ink);
-	}
-
-	.footer-action {
-		margin-top: var(--mw-space-6);
-	}
-
-	.empty {
-		margin: var(--mw-space-4) 0 0;
-		font-size: var(--mw-type-small-size);
-		color: var(--mw-ink-muted);
-	}
 	.view :global(.to-summary) {
 		margin: 2px 0 6px;
 	}

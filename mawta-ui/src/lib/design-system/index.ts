@@ -18,6 +18,7 @@ export { default as Icon } from './Icon.svelte';
 export { default as IconButton } from './IconButton.svelte';
 export { default as LoadingState } from './LoadingState.svelte';
 export { default as Notice } from './Notice.svelte';
+export { default as Section } from './Section.svelte';
 export { default as Segmented } from './Segmented.svelte';
 export { default as SessionRow } from './SessionRow.svelte';
 export { default as StatusList } from './StatusList.svelte';

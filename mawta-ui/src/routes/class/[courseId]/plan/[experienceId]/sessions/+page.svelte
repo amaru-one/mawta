@@ -3,14 +3,15 @@
 		Action,
 		Button,
 		EmptyState,
+		ErrorNotice,
 		Field,
 		Icon,
 		ItemActions,
 		LoadingState,
 		Notice,
-		SessionRow,
 		PendingDialog,
 		ProposalBar,
+		SessionRow,
 	} from '$lib/design-system';
 	// The sessions step: a light outline, one row per class date of the
 	// experience. Every date starts without a session; the teacher creates,
@@ -246,14 +247,14 @@
 	<div class="body">
 		{#if ready && experience}
 			<p class="eyebrow">{experience.title} · Paso 3 de 4 · Sesiones</p>
-			<h1 class="screen-title title">{dates.length} clases</h1>
+			<h1 class="screen-title">{dates.length} clases</h1>
 			<p class="screen-sub">
 				{filled} de {dates.length} con sesión · contadas por fecha según tu horario
 			</p>
 
 			{#if loose.length > 0 && filled > 0}
 				<Notice variant="attention">
-					<p class="notice-text">
+					<p>
 						Evidencias sin sesión: {loose.map((evidence) => evidence.name).join(', ')}. Edita una
 						sesión para ubicarlas.
 					</p>
@@ -278,7 +279,7 @@
 				</p>
 			{/if}
 
-			<div class="section">
+			<div class="mw-section">
 				{#if pending}
 					<ProposalBar
 						message="Mawta propuso estas sesiones: acéptalas o edítalas."
@@ -317,9 +318,9 @@
 									{/each}
 								</Field>
 								{#if formError}
-									<p class="form-error"><Icon name="alert" size={14} /> {formError}</p>
+									<p class="mw-field__error"><Icon name="alert" size={14} /> {formError}</p>
 								{/if}
-								<div class="actions row">
+								<div class="mw-btn-row">
 									<Action
 										variant="main"
 										disabled={form.title.trim() === '' || saving}
@@ -327,7 +328,7 @@
 									>
 										<Icon name="check" size={13} /> Guardar
 									</Action>
-									<Action variant="remove" onclick={() => (form = null)}>Cancelar</Action>
+									<Action variant="neutral" onclick={() => (form = null)}>Cancelar</Action>
 								</div>
 							{/if}{/snippet}
 						<SessionRow
@@ -359,7 +360,7 @@
 
 			<p class="meta later">Antes de cada clase, Mawta podrá preparar el detalle de la sesión.</p>
 
-			<div class="footer-action">
+			<div class="mw-footer-action">
 				<PendingDialog
 					bind:open={pendingOpen}
 					count={proposals.length}
@@ -371,18 +372,12 @@
 				</Button>
 			</div>
 		{:else if loadError}
-			<p class="empty">
-				No se pudo cargar la experiencia.
-				<Button variant="secondary" onclick={load}>Reintentar</Button>
-			</p>
+			<ErrorNotice message="No se pudo cargar la experiencia." onretry={load} />
 		{:else}<LoadingState label="Cargando…" />{/if}
 	</div>
 </div>
 
 <style>
-	.title {
-		font-size: var(--mw-type-title-size);
-	}
 	.view :global(.gen) {
 		margin-top: var(--mw-space-3);
 	}
@@ -392,19 +387,10 @@
 		text-align: center;
 	}
 
-	.section {
-		margin-top: var(--mw-space-4);
-	}
-
 	.sessions {
 		border-top: 1px solid var(--mw-line);
 	}
 
-	.actions {
-		gap: 8px;
-		margin-top: 8px;
-		flex-wrap: wrap;
-	}
 	.view :global(.field) {
 		width: 100%;
 	}
@@ -412,34 +398,10 @@
 		margin-top: 6px;
 	}
 
-	.form-error {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		margin: 8px 0 0;
-		font-size: var(--mw-type-caption-size);
-		color: var(--mw-ink);
-	}
-
-	.notice-text {
-		margin: 0;
-		font-size: var(--mw-type-small-size);
-		line-height: 1.4;
-	}
-
 	.later {
 		margin-top: var(--mw-space-3);
 	}
 
-	.footer-action {
-		margin-top: var(--mw-space-6);
-	}
-
-	.empty {
-		margin: var(--mw-space-4) 0 0;
-		font-size: var(--mw-type-small-size);
-		color: var(--mw-ink-muted);
-	}
 	.view :global(.to-summary) {
 		margin: 2px 0 6px;
 	}

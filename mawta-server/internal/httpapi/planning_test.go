@@ -387,8 +387,17 @@ func TestPlanTracksCompetenciesAcrossTerms(t *testing.T) {
 	exp := createExperience(t, h, token, env, classID, "2026-06-01", "2026-06-30", env.Fx.CompetencyC1)
 	createCriterion(t, h, token, exp.ID, env.Fx.CompetencyC1, planPerfC1a, planCapC1a)
 
+	// A borrador is still being built: it does not count as work done.
 	p := getPlan(t, h, token, classID, env.Fx.TermII)
 	c1, _ := competencyStatus(p, env.Fx.CompetencyC1)
+	if c1.Status != "toca" || len(c1.TermsWorked) != 0 || c1.CapabilitiesCoveredThisTerm != 0 {
+		t.Errorf("MAT-C1 with only a borrador = %+v, want toca, nothing worked", c1)
+	}
+
+	// Confirming the experience makes it count.
+	mustDo(t, h, token, "POST", "/api/v1/experiences/"+exp.ID.String()+"/confirm", "", http.StatusOK)
+	p = getPlan(t, h, token, classID, env.Fx.TermII)
+	c1, _ = competencyStatus(p, env.Fx.CompetencyC1)
 	if c1.Status != "planificada" || len(c1.TermsWorked) != 1 || c1.TermsWorked[0] != 2 || c1.CapabilitiesCoveredThisTerm != 1 {
 		t.Errorf("MAT-C1 = %+v, want planificada, worked in term 2, 1 capability covered", c1)
 	}
@@ -400,7 +409,7 @@ func TestPlanTracksCompetenciesAcrossTerms(t *testing.T) {
 		t.Fatalf("experiences = %+v, want one", p.Experiences)
 	}
 	e := p.Experiences[0]
-	if e.ID != exp.ID || e.Status != "borrador" || e.ClassDates != len(expectedClassDates("2026-06-01", "2026-06-30")) ||
+	if e.ID != exp.ID || e.Status != "planificada" || e.ClassDates != len(expectedClassDates("2026-06-01", "2026-06-30")) ||
 		len(e.Competencies) != 1 || e.Competencies[0].CapabilitiesTotal != 2 || e.Competencies[0].CapabilitiesWithCriteria != 1 ||
 		e.PendingProposals != 0 {
 		t.Errorf("experience = %+v", e)
@@ -642,11 +651,12 @@ func TestPlanningAnExperience(t *testing.T) {
 		t.Errorf("warnings = %+v, want competency_few_evidences with count 1", got.Warnings)
 	}
 
-	// The term plan carries the same count, and marks MAT-C1 as planned this term.
+	// The experience is still a borrador: the term plan does not count its
+	// evidence nor mark MAT-C1 as planned this term.
 	termPlan := getPlan(t, h, token, classID, fx.TermII)
 	for _, c := range termPlan.Competencies {
-		if c.ID == fx.CompetencyC1 && (c.EvidencesThisTerm != 1 || !c.InTerm || len(c.EvidenceKinds) != 1) {
-			t.Errorf("plan competency MAT-C1 = %+v, want one evidence of one kind, planned this term", c)
+		if c.ID == fx.CompetencyC1 && (c.EvidencesThisTerm != 0 || c.InTerm || len(c.EvidenceKinds) != 0) {
+			t.Errorf("plan competency MAT-C1 with a borrador = %+v, want no evidence and not planned this term", c)
 		}
 	}
 
@@ -662,6 +672,14 @@ func TestPlanningAnExperience(t *testing.T) {
 	decodeInto(t, w, &got)
 	if got.Status != "planificada" || len(warningsWithCode(got.Warnings, "capability_without_criterion")) != 1 {
 		t.Errorf("confirmed experience = %+v, want planificada with its warning", got)
+	}
+
+	// Once confirmed, the term plan counts the evidence and marks MAT-C1.
+	termPlan = getPlan(t, h, token, classID, fx.TermII)
+	for _, c := range termPlan.Competencies {
+		if c.ID == fx.CompetencyC1 && (c.EvidencesThisTerm != 1 || !c.InTerm || len(c.EvidenceKinds) != 1) {
+			t.Errorf("plan competency MAT-C1 confirmed = %+v, want one evidence of one kind, planned this term", c)
+		}
 	}
 
 	// Deleting a criterion takes it out of the evidences that observe it.

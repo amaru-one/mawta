@@ -11,11 +11,8 @@
 				>{#if item.status === 'done'}<Icon name="check" />{/if}</span
 			>
 			<div class="mw-status__content">
-				<div class="mw-status__head">
-					<span class="mw-status__name">{item.name}</span><span class="mw-status__label"
-						>{item.label}</span
-					>
-				</div>
+				<p class="mw-status__name">{item.name}</p>
+				<p class="mw-status__label">{item.label}</p>
 				{#if item.detail}<p class="mw-meta">{item.detail}</p>{/if}
 			</div>
 		</li>{/each}

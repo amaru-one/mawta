@@ -286,7 +286,7 @@
 
 		{#if thin}
 			<Notice variant="attention">
-				<p class="notice-text">
+				<p>
 					Hay poca evidencia para proponer una conclusión: {thin.graded_count} de {thin.minimum}
 					evidencias valoradas como mínimo. Puedes escribirla a mano.
 				</p>
@@ -322,7 +322,7 @@
 			</div>
 
 			{#each warnings as w (w.code)}
-				<Notice variant="attention"><p class="notice-text">{warningText(w)}</p></Notice>
+				<Notice variant="attention"><p>{warningText(w)}</p></Notice>
 			{/each}
 		{/if}
 
@@ -387,17 +387,10 @@
 		text-wrap: pretty;
 	}
 
-	.notice-text {
-		margin: 0;
-		font-size: var(--mw-type-small-size);
-		line-height: 1.4;
-		text-wrap: pretty;
-	}
-
 	.proposal {
 		padding: var(--mw-space-4);
 		border: 1px dashed var(--mw-ink-muted);
-		border-radius: var(--mw-radius-2, 8px);
+		border-radius: var(--mw-radius-md);
 	}
 
 	.eyebrow {

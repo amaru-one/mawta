@@ -1,5 +1,16 @@
 <script lang="ts">
-	import { Action, Button, Context, Icon, LoadingState, Notice } from '$lib/design-system';
+	import {
+		Action,
+		Button,
+		ConfirmDialog,
+		Context,
+		ErrorNotice,
+		Icon,
+		ListRow,
+		LoadingState,
+		Notice,
+		Section,
+	} from '$lib/design-system';
 	import { pendingCounts } from '$lib/planning/pending';
 	// "Revisar y guardar": a compact summary of the experience and its notes.
 	// Notes never block: a capacidad without a criterio or proposals still to
@@ -18,7 +29,6 @@
 		getClassCurriculum,
 		getExperience,
 	} from '$lib/api/endpoints/planning';
-	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { hapticTap } from '$lib/haptics';
 	import { showToast } from '$lib/toast';
@@ -198,7 +208,7 @@
 	<div class="body">
 		{#if ready && experience}
 			<p class="eyebrow">{planned ? 'Experiencia planificada' : 'Revisar y guardar'}</p>
-			<h1 class="screen-title title">{experience.title}</h1>
+			<h1 class="screen-title">{experience.title}</h1>
 			<p class="screen-sub">
 				{fmtDate(experience.starts_on)} – {fmtDate(experience.ends_on)} · {dates.length} clases
 			</p>
@@ -212,126 +222,118 @@
 				<p class="situation">Evento o contexto: {experience.context_text}</p>
 			{/if}
 
-			<Context>
-				{#each comps as competency (competency.id)}
-					<a
-						class="sum-row row pressable"
-						href={`${base}/criteria?from=summary&competency=${competency.id}`}
-						data-sveltekit-replacestate
-						onclick={hapticTap}
-					>
-						<span class="grow">{competency.name}</span>
-						<span class="sum-value">
-							{coveredOf(competency.id)} de {capabilitiesOf(competency.id).length} capacidades con criterio{#if pendingOf(competency.id) > 0}
-								· {pendingOf(competency.id)} por revisar{/if}
-						</span>
-					</a>
-				{/each}
-				<a
-					class="sum-row row pressable"
-					href={`${base}/criteria?from=summary`}
-					data-sveltekit-replacestate
-					onclick={hapticTap}
-				>
-					<span class="grow">Criterios</span>
-					<span class="sum-value">{criteria.length}</span>
-				</a>
-				<a
-					class="sum-row row pressable"
-					href={`${base}/evidences?from=summary`}
-					data-sveltekit-replacestate
-					onclick={hapticTap}
-				>
-					<span class="grow">Evidencias</span>
-					<span class="sum-value">{evidences.length} · {placed} ubicadas en sesiones</span>
-				</a>
-				<a
-					class="sum-row row pressable"
-					href={`${base}/sessions?from=summary`}
-					data-sveltekit-replacestate
-					onclick={hapticTap}
-				>
-					<span class="grow">Sesiones</span>
-					<span class="sum-value">{sessions.length} de {dates.length} fechas</span>
-				</a>
-			</Context>
+			<Section title="Competencias">
+				<Context>
+					{#each comps as competency (competency.id)}
+						<ListRow
+							href={`${base}/criteria?from=summary&competency=${competency.id}`}
+							onclick={hapticTap}
+						>
+							{competency.name}
+							{#snippet trailing()}<span class="meta"
+									>{coveredOf(competency.id)} de {capabilitiesOf(competency.id).length} capacidades con
+									criterio{#if pendingOf(competency.id) > 0}
+										· {pendingOf(competency.id)} por revisar{/if}</span
+								>{/snippet}
+						</ListRow>
+					{/each}
+				</Context>
+			</Section>
 
-			{#if missingCapabilities.length > 0}
-				<Notice variant="attention"
-					><a
-						href={`${base}/criteria?from=summary&competency=${gapCompetency ?? ''}`}
-						data-sveltekit-replacestate
-						onclick={hapticTap}
-					>
-						<span class="grow notice-text">
+			<Section title="Resumen">
+				<Context>
+					<ListRow>
+						Criterios
+						{#snippet trailing()}<span class="meta">{criteria.length}</span>{/snippet}
+					</ListRow>
+					<ListRow href={`${base}/evidences?from=summary`} onclick={hapticTap}>
+						Evidencias
+						{#snippet trailing()}<span class="meta"
+								>{evidences.length} · {placed} ubicadas en sesiones</span
+							>{/snippet}
+					</ListRow>
+					<ListRow href={`${base}/sessions?from=summary`} onclick={hapticTap}>
+						Sesiones
+						{#snippet trailing()}<span class="meta">{sessions.length} de {dates.length} fechas</span
+							>{/snippet}
+					</ListRow>
+				</Context>
+			</Section>
+
+			{#if missingCapabilities.length > 0 || thinCompetencies.length > 0 || singleKindCompetencies.length > 0 || pendingBy.total > 0}
+				<Section title="Avisos">
+					{#if missingCapabilities.length > 0}
+						<Notice variant="attention">
 							{missingCapabilities.length === 1
 								? '1 capacidad sin criterio'
 								: `${missingCapabilities.length} capacidades sin criterio`}: {missingCapabilities.join(
 								', '
 							)}. Puedes guardar igual: es un aviso, no un bloqueo.
-						</span>
-					</a></Notice
-				>
-			{/if}
-			{#each thinCompetencies as warning (warning.competency_id)}
-				<Notice variant="attention"
-					><a
-						href={`${base}/evidences?from=summary`}
-						data-sveltekit-replacestate
-						onclick={hapticTap}
-					>
-						<span class="grow notice-text">
+							{#snippet action()}<a
+									href={`${base}/criteria?from=summary&competency=${gapCompetency ?? ''}`}
+									data-sveltekit-replacestate
+									onclick={hapticTap}>Revisar criterios <Icon name="chevron-right" size={14} /></a
+								>{/snippet}
+						</Notice>
+					{/if}
+					{#each thinCompetencies as warning (warning.competency_id)}
+						<Notice variant="attention">
 							{competencyName(warning.competency_id)}: {warning.count === 1
 								? '1 evidencia'
 								: `${warning.count} evidencias`} en el trimestre. Mawta necesita al menos 2 para proponer
 							su conclusión. Agrega otra aquí o en otra experiencia. Puedes guardar igual.
-						</span>
-					</a></Notice
-				>
-			{/each}
-			{#each singleKindCompetencies as warning (warning.competency_id)}
-				<Notice variant="attention"
-					><a
-						href={`${base}/evidences?from=summary`}
-						data-sveltekit-replacestate
-						onclick={hapticTap}
-					>
-						<span class="grow notice-text">
+							{#snippet action()}<a
+									href={`${base}/evidences?from=summary`}
+									data-sveltekit-replacestate
+									onclick={hapticTap}>Revisar evidencias <Icon name="chevron-right" size={14} /></a
+								>{/snippet}
+						</Notice>
+					{/each}
+					{#each singleKindCompetencies as warning (warning.competency_id)}
+						<Notice variant="attention">
 							{competencyName(warning.competency_id)}: todas sus evidencias son {warning.kind ===
 							'actuacion'
 								? 'actuaciones'
 								: 'producciones'}. El CNEB pide evidencia variada: considera una de otro tipo.
 							Puedes guardar igual.
-						</span>
-					</a></Notice
-				>
-			{/each}
-			{#if pendingBy.total > 0}
-				<Notice variant="attention">
-					<span class="grow notice-text">
-						{pendingBy.total === 1
-							? '1 propuesta de Mawta sin revisar'
-							: `${pendingBy.total} propuestas de Mawta sin revisar`}:
-						{#if pendingBy.criteria > 0}<a
-								href={`${base}/criteria?from=summary&competency=${pendingCompetency ?? ''}`}
-								data-sveltekit-replacestate
-								onclick={hapticTap}>{pendingBy.criteria} en criterios</a
-							>{/if}{#if pendingBy.criteria > 0 && pendingBy.evidences + pendingBy.sessions > 0},
-						{/if}{#if pendingBy.evidences > 0}<a
-								href={`${base}/evidences?from=summary`}
-								data-sveltekit-replacestate
-								onclick={hapticTap}>{pendingBy.evidences} en evidencias</a
-							>{/if}{#if pendingBy.evidences > 0 && pendingBy.sessions > 0},
-						{/if}{#if pendingBy.sessions > 0}<a
-								href={`${base}/sessions?from=summary`}
-								data-sveltekit-replacestate
-								onclick={hapticTap}>{pendingBy.sessions} en sesiones</a
-							>{/if}. Puedes guardar igual.
-					</span>
-				</Notice>
+							{#snippet action()}<a
+									href={`${base}/evidences?from=summary`}
+									data-sveltekit-replacestate
+									onclick={hapticTap}>Revisar evidencias <Icon name="chevron-right" size={14} /></a
+								>{/snippet}
+						</Notice>
+					{/each}
+					{#if pendingBy.total > 0}
+						<Notice variant="attention">
+							<span class="grow">
+								{pendingBy.total === 1
+									? '1 propuesta de Mawta sin revisar'
+									: `${pendingBy.total} propuestas de Mawta sin revisar`}:
+								{#if pendingBy.criteria > 0}<a
+										href={`${base}/criteria?from=summary&competency=${pendingCompetency ?? ''}`}
+										data-sveltekit-replacestate
+										onclick={hapticTap}
+										>{pendingBy.criteria} en criterios<Icon name="chevron-right" size={14} /></a
+									>{/if}{#if pendingBy.criteria > 0 && pendingBy.evidences + pendingBy.sessions > 0},
+								{/if}{#if pendingBy.evidences > 0}<a
+										href={`${base}/evidences?from=summary`}
+										data-sveltekit-replacestate
+										onclick={hapticTap}
+										>{pendingBy.evidences} en evidencias<Icon name="chevron-right" size={14} /></a
+									>{/if}{#if pendingBy.evidences > 0 && pendingBy.sessions > 0},
+								{/if}{#if pendingBy.sessions > 0}<a
+										href={`${base}/sessions?from=summary`}
+										data-sveltekit-replacestate
+										onclick={hapticTap}
+										>{pendingBy.sessions} en sesiones<Icon name="chevron-right" size={14} /></a
+									>{/if}. Puedes guardar igual.
+							</span>
+						</Notice>
+					{/if}
+				</Section>
 			{/if}
 
-			<div class="footer-action">
+			<div class="mw-footer-action">
 				<Button variant="primary" block disabled={saving} onclick={() => void save()}>
 					{planned ? 'Volver a Tu trimestre' : 'Guardar experiencia'}
 				</Button>
@@ -346,15 +348,14 @@
 				</Action>
 			</div>
 		{:else if loadError}
-			<p class="empty">
-				No se pudo cargar la experiencia.
-				<Button variant="secondary" onclick={load}>Reintentar</Button>
-			</p>
+			<ErrorNotice message="No se pudo cargar la experiencia." onretry={load} />
 		{:else}<LoadingState label="Cargando…" />{/if}
 	</div>
 
 	{#if confirmingDelete}
 		<ConfirmDialog
+			open
+			tone="danger"
 			title="¿Eliminar esta experiencia?"
 			description="Se eliminan también sus criterios, evidencias y sesiones."
 			confirmLabel="Eliminar"
@@ -365,11 +366,6 @@
 </div>
 
 <style>
-	.title {
-		font-size: var(--mw-type-title-size);
-		line-height: 1.15;
-	}
-
 	.situation {
 		margin: var(--mw-space-3) 0 0;
 		font-size: var(--mw-type-body-size);
@@ -378,47 +374,6 @@
 	}
 
 	.situation.muted {
-		color: var(--mw-ink-muted);
-	}
-
-	.sum-row {
-		align-items: baseline;
-		gap: var(--mw-space-2);
-		padding: 8px 0;
-		font-size: var(--mw-type-small-size);
-		line-height: 1.4;
-		color: var(--mw-ink);
-		text-decoration: none;
-	}
-
-	.sum-row + .sum-row {
-		border-top: 1px solid var(--mw-line);
-	}
-
-	.sum-value {
-		flex-shrink: 0;
-		max-width: 55%;
-		text-align: right;
-		font-size: var(--mw-type-caption-size);
-		color: var(--mw-ink-secondary);
-	}
-
-	.notice-text {
-		font-size: var(--mw-type-small-size);
-		line-height: 1.4;
-	}
-
-	.footer-action {
-		margin-top: var(--mw-space-6);
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: var(--mw-space-3);
-	}
-
-	.empty {
-		margin: var(--mw-space-4) 0 0;
-		font-size: var(--mw-type-small-size);
 		color: var(--mw-ink-muted);
 	}
 </style>

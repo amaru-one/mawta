@@ -1,6 +1,15 @@
 <script lang="ts">
 	import { showError } from '$lib/toast';
-	import { Button, Field, Icon, IconButton, ListRow, LoadingState } from '$lib/design-system';
+	import {
+		Button,
+		EmptyState,
+		ErrorNotice,
+		Field,
+		Icon,
+		IconButton,
+		ListRow,
+		LoadingState,
+	} from '$lib/design-system';
 	// The class list. It navigates and it reports — it does NOT evaluate.
 	//
 	// Everything on screen is scoped to one competencia, chosen in the index at
@@ -172,7 +181,7 @@
 	<div class="body">
 		{#if ready}
 			<div class="titlerow">
-				<h1 class="title">Alumnos</h1>
+				<h1 class="screen-title">Alumnos</h1>
 				<IconButton
 					icon="search"
 					label={searching ? 'Cerrar búsqueda' : 'Buscar por apellido'}
@@ -180,7 +189,7 @@
 					onclick={toggleSearch}
 				/>
 			</div>
-			<span class="sub">{className} · {rows.length} alumnos</span>
+			<span class="screen-sub">{className} · {rows.length} alumnos</span>
 
 			{#if searching}
 				<div class="search-wrap">
@@ -203,18 +212,14 @@
 			{/if}
 
 			{#if shown.length === 0}
-				<p class="empty">
-					{query.trim() === '' ? 'Esta clase no tiene alumnos.' : 'Ningún alumno coincide.'}
-				</p>
+				<EmptyState
+					title={query.trim() === '' ? 'Esta clase no tiene alumnos.' : 'Ningún alumno coincide.'}
+				/>
 			{:else}
 				<div class="list" class:switching>
 					{#each shown as r (r.student_id)}
 						<ListRow href={href(r)} onclick={hapticTap}>
-							{#if r.level !== null}
-								<LevelBadge tier={r.level} size={26} />
-							{:else}
-								<span class="nolevel">Sin valorar</span>
-							{/if}
+							<span class="lvl"><LevelBadge tier={r.level} /></span>
 							<span class="grow">
 								<span class="name">{r.full_name}</span>
 								<span class="ev">{evidenceLabel(r.evidence_count)}</span>
@@ -229,40 +234,17 @@
 				</p>
 			{/if}
 		{:else if loadError}
-			<p class="empty">
-				No se pudo cargar la lista.
-				<Button variant="secondary" onclick={load}>Reintentar</Button>
-			</p>
+			<ErrorNotice message="No se pudo cargar la lista." onretry={load} />
 		{:else}<LoadingState label="Cargando…" />{/if}
 	</div>
 </div>
 
 <style>
-	.body {
-		padding: 20px 20px 32px;
-	}
-
 	.titlerow {
 		display: flex;
 		align-items: flex-start;
 		justify-content: space-between;
 		padding-bottom: 14px;
-	}
-
-	.title {
-		margin: 0;
-		font-size: var(--mw-type-title-size);
-		font-weight: 800;
-		letter-spacing: -0.03em;
-		line-height: 1.12;
-	}
-
-	.sub {
-		display: block;
-		margin-top: 8px;
-		font-size: var(--mw-type-small-size);
-		color: var(--mw-ink-muted);
-		font-family: var(--mw-font-sans);
 	}
 
 	.search-wrap {
@@ -315,10 +297,17 @@
 		color: var(--mw-ink-muted);
 	}
 
-	.nolevel {
-		font-size: var(--mw-type-caption-size);
-		color: var(--mw-ink-muted);
+	/* A fixed, centred slot for the level, so names line up whether the student
+	 * has a level or not. The slot is wider than the 60px pill on purpose. */
+	.lvl {
+		flex: 0 0 64px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
+
+	/* Same footprint as the level pill, with a dashed outline so "no level"
+	 * is told apart by shape and text, not only by colour. */
 
 	.foot {
 		margin: 16px 4px 0;
@@ -326,12 +315,5 @@
 		line-height: 1.45;
 		color: var(--mw-ink-muted);
 		text-wrap: pretty;
-	}
-
-	.empty {
-		margin: 24px 0 0;
-		font-size: var(--mw-type-body-size);
-		line-height: 1.45;
-		color: var(--mw-ink-secondary);
 	}
 </style>
