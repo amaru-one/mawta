@@ -572,8 +572,9 @@
 	text-decoration: underline;
 	text-underline-offset: 3px;
 }
-/* A titled group of a screen. Groups are separated by the same gap everywhere. */
-.mw-root .mw-section + .mw-section {
+/* A titled group of a screen. Every section starts with the same gap above it,
+ * so a section never sits directly under the text before it. */
+.mw-root .mw-section {
 	margin-top: var(--mw-space-6);
 }
 .mw-root .mw-section__title {
