@@ -210,11 +210,13 @@
 				<div class="list" class:switching>
 					{#each shown as r (r.student_id)}
 						<ListRow href={href(r)} onclick={hapticTap}>
-							{#if r.level !== null}
-								<LevelBadge tier={r.level} size={26} />
-							{:else}
-								<span class="nolevel">Sin valorar</span>
-							{/if}
+							<span class="lvl">
+								{#if r.level !== null}
+									<LevelBadge tier={r.level} size={26} />
+								{:else}
+									<span class="nolevel">Sin valorar</span>
+								{/if}
+							</span>
 							<span class="grow">
 								<span class="name">{r.full_name}</span>
 								<span class="ev">{evidenceLabel(r.evidence_count)}</span>
@@ -315,9 +317,18 @@
 		color: var(--mw-ink-muted);
 	}
 
+	/* A fixed slot for the level, so names line up whether the student has a
+	 * level or not. 64px fits "Sin valorar" on one line. */
+	.lvl {
+		flex: 0 0 64px;
+		display: flex;
+		align-items: center;
+	}
+
 	.nolevel {
 		font-size: var(--mw-type-caption-size);
 		color: var(--mw-ink-muted);
+		white-space: nowrap;
 	}
 
 	.foot {
