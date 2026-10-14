@@ -3,6 +3,7 @@
 		Button,
 		Card,
 		Context,
+		ErrorNotice,
 		Icon,
 		IconButton,
 		LoadingState,
@@ -407,10 +408,7 @@
 				</Button>
 			</div>
 		{:else if loadError}
-			<p class="empty">
-				No se pudo cargar…
-				<Button variant="secondary" onclick={load}>Reintentar</Button>
-			</p>
+			<ErrorNotice message="No se pudo cargar…" onretry={load} />
 		{:else}<LoadingState label="Cargando…" />{/if}
 	</div>
 </div>

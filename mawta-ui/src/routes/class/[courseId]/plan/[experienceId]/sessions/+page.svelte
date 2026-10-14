@@ -3,14 +3,15 @@
 		Action,
 		Button,
 		EmptyState,
+		ErrorNotice,
 		Field,
 		Icon,
 		ItemActions,
 		LoadingState,
 		Notice,
-		SessionRow,
 		PendingDialog,
 		ProposalBar,
+		SessionRow,
 	} from '$lib/design-system';
 	// The sessions step: a light outline, one row per class date of the
 	// experience. Every date starts without a session; the teacher creates,
@@ -317,7 +318,7 @@
 									{/each}
 								</Field>
 								{#if formError}
-									<p class="form-error"><Icon name="alert" size={14} /> {formError}</p>
+									<p class="mw-field__error"><Icon name="alert" size={14} /> {formError}</p>
 								{/if}
 								<div class="actions row">
 									<Action
@@ -371,10 +372,7 @@
 				</Button>
 			</div>
 		{:else if loadError}
-			<p class="empty">
-				No se pudo cargar la experiencia.
-				<Button variant="secondary" onclick={load}>Reintentar</Button>
-			</p>
+			<ErrorNotice message="No se pudo cargar la experiencia." onretry={load} />
 		{:else}<LoadingState label="Cargando…" />{/if}
 	</div>
 </div>
@@ -412,15 +410,6 @@
 		margin-top: 6px;
 	}
 
-	.form-error {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		margin: 8px 0 0;
-		font-size: var(--mw-type-caption-size);
-		color: var(--mw-ink);
-	}
-
 	.notice-text {
 		margin: 0;
 		font-size: var(--mw-type-small-size);
@@ -435,11 +424,6 @@
 		margin-top: var(--mw-space-6);
 	}
 
-	.empty {
-		margin: var(--mw-space-4) 0 0;
-		font-size: var(--mw-type-small-size);
-		color: var(--mw-ink-muted);
-	}
 	.view :global(.to-summary) {
 		margin: 2px 0 6px;
 	}

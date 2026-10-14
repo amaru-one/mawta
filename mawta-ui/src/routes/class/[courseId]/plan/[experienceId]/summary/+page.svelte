@@ -3,6 +3,7 @@
 		Action,
 		Button,
 		Context,
+		ErrorNotice,
 		Icon,
 		ListRow,
 		LoadingState,
@@ -344,10 +345,7 @@
 				</Action>
 			</div>
 		{:else if loadError}
-			<p class="empty">
-				No se pudo cargar la experiencia.
-				<Button variant="secondary" onclick={load}>Reintentar</Button>
-			</p>
+			<ErrorNotice message="No se pudo cargar la experiencia." onretry={load} />
 		{:else}<LoadingState label="Cargando…" />{/if}
 	</div>
 
@@ -385,11 +383,5 @@
 		flex-direction: column;
 		align-items: center;
 		gap: var(--mw-space-3);
-	}
-
-	.empty {
-		margin: var(--mw-space-4) 0 0;
-		font-size: var(--mw-type-small-size);
-		color: var(--mw-ink-muted);
 	}
 </style>

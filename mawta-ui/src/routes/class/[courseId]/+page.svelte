@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, Icon, ListRow, LoadingState } from '$lib/design-system';
+	import { Button, ErrorNotice, Icon, ListRow, LoadingState } from '$lib/design-system';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { list } from '$lib/api/client';
@@ -187,10 +187,7 @@
 				</div>
 			{/if}
 		{:else if loadError}
-			<p class="clscount">
-				No se pudo cargar el panel.
-				<Button variant="secondary" onclick={load}>Reintentar</Button>
-			</p>
+			<ErrorNotice message="No se pudo cargar el panel." onretry={load} />
 		{:else}<LoadingState label="Cargando…" />{/if}
 	</div>
 </div>

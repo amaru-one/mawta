@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, Field, Icon, IconButton, LoadingState } from '$lib/design-system';
+	import { Button, ErrorNotice, Field, Icon, IconButton, LoadingState } from '$lib/design-system';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import RecordingControl, { type RecordPhase } from '$lib/components/RecordingControl.svelte';
@@ -345,10 +345,7 @@
 			{/if}
 
 			{#if loadError}
-				<p class="loaderr">
-					No se pudo cargar la sesión.
-					<Button variant="secondary" onclick={load}>Reintentar</Button>
-				</p>
+				<ErrorNotice message="No se pudo cargar la sesión." onretry={load} />
 			{/if}
 		</div>
 	</div>
@@ -485,8 +482,5 @@
 	.notelist {
 		display: grid;
 		gap: var(--mw-space-3);
-	}
-	.loaderr {
-		color: var(--mw-danger);
 	}
 </style>

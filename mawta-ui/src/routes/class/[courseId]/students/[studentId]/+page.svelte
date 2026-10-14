@@ -6,6 +6,7 @@
 		Checkbox,
 		ConfirmDialog,
 		EmptyState,
+		ErrorNotice,
 		Field,
 		Icon,
 		LoadingState,
@@ -542,10 +543,7 @@
 				</div>
 			{/if}
 		{:else if loadError}
-			<p class="empty">
-				No se pudo cargar al alumno.
-				<Button variant="secondary" onclick={load}>Reintentar</Button>
-			</p>
+			<ErrorNotice message="No se pudo cargar al alumno." onretry={load} />
 		{:else}<LoadingState label="Cargando…" />{/if}
 	</div>
 </div>
@@ -712,13 +710,5 @@
 		display: flex;
 		gap: var(--mw-space-3);
 		margin-top: var(--mw-space-4);
-	}
-
-	.empty {
-		margin: 12px 0 0;
-		font-size: var(--mw-type-body-size);
-		line-height: 1.45;
-		color: var(--mw-ink-muted);
-		text-wrap: pretty;
 	}
 </style>

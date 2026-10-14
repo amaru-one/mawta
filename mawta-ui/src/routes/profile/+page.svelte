@@ -1,5 +1,13 @@
 <script lang="ts">
-	import { Button, Context, Icon, LoadingState, Notice, TopBar } from '$lib/design-system';
+	import {
+		Button,
+		Context,
+		ErrorNotice,
+		Icon,
+		LoadingState,
+		Notice,
+		TopBar,
+	} from '$lib/design-system';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { list } from '$lib/api/client';
@@ -117,8 +125,7 @@
 				</section>
 			{/if}
 		{:else if loadError}
-			<Notice variant="danger" live>No se pudo cargar el perfil.</Notice>
-			<Button variant="secondary" onclick={load}>Reintentar</Button>
+			<ErrorNotice message="No se pudo cargar el perfil." onretry={load} />
 		{:else}<LoadingState label="Cargando perfil…" />{/if}
 	</main>
 	{#if ready && profile}

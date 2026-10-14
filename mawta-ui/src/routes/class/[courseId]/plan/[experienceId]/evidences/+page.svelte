@@ -4,12 +4,13 @@
 		Button,
 		Card,
 		Checkbox,
+		ErrorNotice,
 		Field,
 		Icon,
 		ItemActions,
-		ProposalBar,
 		LoadingState,
 		Notice,
+		ProposalBar,
 		Segmented,
 	} from '$lib/design-system';
 	// The evidences step of a saved experience: where the teacher will observe
@@ -472,10 +473,7 @@
 				</Button>
 			</div>
 		{:else if loadError}
-			<p class="empty">
-				No se pudo cargar la experiencia.
-				<Button variant="secondary" onclick={load}>Reintentar</Button>
-			</p>
+			<ErrorNotice message="No se pudo cargar la experiencia." onretry={load} />
 		{:else}<LoadingState label="Cargando…" />{/if}
 	</div>
 
@@ -548,7 +546,7 @@
 				</fieldset>
 
 				{#if formError}
-					<p class="form-error"><Icon name="alert" size={14} /> {formError}</p>
+					<p class="mw-field__error"><Icon name="alert" size={14} /> {formError}</p>
 				{/if}
 
 				{#if missingText}
@@ -685,24 +683,10 @@
 		line-height: 1.45;
 	}
 
-	.form-error {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		margin: 10px 0 0;
-		font-size: var(--mw-type-caption-size);
-		color: var(--mw-ink);
-	}
-
 	.footer-action {
 		margin-top: var(--mw-space-6);
 	}
 
-	.empty {
-		margin: var(--mw-space-4) 0 0;
-		font-size: var(--mw-type-small-size);
-		color: var(--mw-ink-muted);
-	}
 	.view :global(.to-summary) {
 		margin: 2px 0 6px;
 	}

@@ -5,6 +5,7 @@
 		Card,
 		Checkbox,
 		Context,
+		ErrorNotice,
 		Field,
 		Icon,
 		LoadingState,
@@ -426,8 +427,8 @@
 				{/if}
 
 				{#if genError !== null}
-					<Notice variant="attention">
-						<p class="grow notice-text">{genError}</p>
+					<Notice variant="danger">
+						<p>{genError}</p>
 					</Notice>
 					{#if !$agentUnavailable}
 						<Button variant="secondary" class="retry" onclick={() => void generate()}>
@@ -537,8 +538,8 @@
 					{/if}
 
 					{#if genError !== null}
-						<Notice variant="attention">
-							<p class="grow notice-text">{genError}</p>
+						<Notice variant="danger">
+							<p>{genError}</p>
 						</Notice>
 						{#if !$agentUnavailable}
 							<Button variant="secondary" class="retry" onclick={() => void generate()}>
@@ -562,9 +563,7 @@
 					<p class="f-label">¿Cuándo?</p>
 					{#if startOptions.length === 0}
 						<Notice variant="attention">
-							<p class="grow notice-text">
-								No quedan días de clase libres en este periodo para una experiencia nueva.
-							</p>
+							<p>No quedan días de clase libres en este periodo para una experiencia nueva.</p>
 						</Notice>
 					{:else}
 						<div class="pick-row" role="group" aria-label="Elegir qué fecha tocar">
@@ -605,8 +604,8 @@
 						{/if}
 					{/if}
 					{#if saveErrorText !== null}
-						<Notice variant="attention">
-							<p class="grow notice-text">{saveErrorText}</p>
+						<Notice variant="danger">
+							<p>{saveErrorText}</p>
 						</Notice>
 					{/if}
 				</div>
@@ -656,10 +655,7 @@
 				</Button>
 			{/if}
 		{:else if loadError}
-			<p class="empty">
-				No se pudo cargar…
-				<Button variant="secondary" onclick={load}>Reintentar</Button>
-			</p>
+			<ErrorNotice message="No se pudo cargar…" onretry={load} />
 		{:else}<LoadingState label="Cargando…" />{/if}
 	</div>
 </div>
@@ -761,11 +757,6 @@
 		color: var(--mw-ink-secondary);
 	}
 
-	.notice-text {
-		margin: 0;
-		font-size: var(--mw-type-small-size);
-		color: var(--mw-ink);
-	}
 	.view :global(.retry) {
 		margin-top: var(--mw-space-2);
 	}
@@ -778,11 +769,5 @@
 
 	.help {
 		margin: -4px 0 6px;
-	}
-
-	.empty {
-		margin: var(--mw-space-4) 0 0;
-		font-size: var(--mw-type-small-size);
-		color: var(--mw-ink-muted);
 	}
 </style>

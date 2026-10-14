@@ -7,6 +7,7 @@
 		CoverageMeter,
 		Disclosure,
 		EmptyState,
+		ErrorNotice,
 		Field,
 		Icon,
 		ItemActions,
@@ -481,10 +482,7 @@
 		{:else if ready && experience}
 			<EmptyState title="Esta experiencia no tiene competencias." />
 		{:else if loadError}
-			<p class="empty">
-				No se pudo cargar la experiencia.
-				<Button variant="secondary" onclick={load}>Reintentar</Button>
-			</p>
+			<ErrorNotice message="No se pudo cargar la experiencia." onretry={load} />
 		{:else}<LoadingState label="Cargando…" />{/if}
 	</div>
 
@@ -557,7 +555,7 @@
 				{/if}
 
 				{#if formError}
-					<p class="form-error"><Icon name="alert" size={14} /> {formError}</p>
+					<p class="mw-field__error"><Icon name="alert" size={14} /> {formError}</p>
 				{/if}
 
 				<div class="crit-actions row">
@@ -686,15 +684,6 @@
 		flex-direction: column;
 	}
 
-	.form-error {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		margin: 10px 0 0;
-		font-size: var(--mw-type-caption-size);
-		color: var(--mw-ink);
-	}
-
 	.footer-action {
 		margin-top: var(--mw-space-6);
 	}
@@ -704,11 +693,6 @@
 		text-align: center;
 	}
 
-	.empty {
-		margin: var(--mw-space-4) 0 0;
-		font-size: var(--mw-type-small-size);
-		color: var(--mw-ink-muted);
-	}
 	.view :global(.to-summary) {
 		margin: 2px 0 6px;
 	}

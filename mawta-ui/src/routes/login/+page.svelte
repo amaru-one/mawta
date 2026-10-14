@@ -88,7 +88,7 @@
 			/>
 
 			{#if error}
-				<p class="error" role="alert">{error}</p>
+				<p class="mw-field__error" role="alert">{error}</p>
 			{/if}
 
 			<Button variant="primary" block type="submit" disabled={!canSubmit}>
@@ -113,11 +113,5 @@
 		flex-direction: column;
 		gap: var(--mw-space-4);
 		margin-top: var(--mw-space-6);
-	}
-
-	.error {
-		margin: 0;
-		font-size: var(--mw-type-small-size);
-		color: var(--mw-danger);
 	}
 </style>

@@ -1,6 +1,14 @@
 <script lang="ts">
 	import { showError } from '$lib/toast';
-	import { Button, Field, Icon, IconButton, ListRow, LoadingState } from '$lib/design-system';
+	import {
+		Button,
+		ErrorNotice,
+		Field,
+		Icon,
+		IconButton,
+		ListRow,
+		LoadingState,
+	} from '$lib/design-system';
 	// The class list. It navigates and it reports — it does NOT evaluate.
 	//
 	// Everything on screen is scoped to one competencia, chosen in the index at
@@ -231,10 +239,7 @@
 				</p>
 			{/if}
 		{:else if loadError}
-			<p class="empty">
-				No se pudo cargar la lista.
-				<Button variant="secondary" onclick={load}>Reintentar</Button>
-			</p>
+			<ErrorNotice message="No se pudo cargar la lista." onretry={load} />
 		{:else}<LoadingState label="Cargando…" />{/if}
 	</div>
 </div>

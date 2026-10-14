@@ -5,6 +5,7 @@
 		Checkbox,
 		ConfirmDialog,
 		EmptyState,
+		ErrorNotice,
 		Field,
 		Icon,
 		LoadingState,
@@ -332,10 +333,7 @@
 				</p>
 			</form>
 		{:else if loadError}
-			<p class="warn">
-				No se pudo cargar el formulario.
-				<Button variant="secondary" onclick={load}>Reintentar</Button>
-			</p>
+			<ErrorNotice message="No se pudo cargar el formulario." onretry={load} />
 		{:else}<LoadingState label="Cargando…" />{/if}
 	</div>
 </div>
@@ -512,12 +510,5 @@
 		text-align: center;
 		color: var(--mw-ink-muted);
 		font-family: var(--mw-font-sans);
-	}
-
-	.warn {
-		margin: 0;
-		font-size: var(--mw-type-small-size);
-		line-height: 1.45;
-		color: var(--mw-ink-muted);
 	}
 </style>
