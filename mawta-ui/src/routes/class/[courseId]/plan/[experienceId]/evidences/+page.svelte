@@ -258,6 +258,18 @@
 		}
 	}
 
+	async function acceptAll(): Promise<void> {
+		hapticTap();
+		try {
+			for (const evidence of evidences.filter(isProposal)) {
+				await acceptEvidence(evidence.id);
+			}
+		} catch {
+			showToast('No se pudieron aceptar todas las evidencias');
+		}
+		await reload();
+	}
+
 	// ---- remove, with "Deshacer" ----
 
 	// No confirmation: "Deshacer" in the toast is the way back.
@@ -362,7 +374,12 @@
 			<div class="section">
 				<p class="eyebrow">Evidencias · {evidences.length}</p>
 				{#if pending}
-					<p class="meta help">Mawta propuso estas evidencias: acéptalas o edítalas.</p>
+					<div class="pending-bar">
+						<p class="meta help">Mawta propuso estas evidencias: acéptalas o edítalas.</p>
+						<Button variant="secondary" onclick={() => void acceptAll()}>
+							<Icon name="check" size={15} /> Aceptar todos
+						</Button>
+					</div>
 				{/if}
 
 				{#if evidences.length === 0}
@@ -576,6 +593,19 @@
 
 	.section {
 		margin-top: var(--mw-space-6);
+	}
+
+	.pending-bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		gap: var(--mw-space-2);
+		margin: 0 0 var(--mw-space-2);
+	}
+
+	.pending-bar .help {
+		margin: 0;
 	}
 
 	.help {
