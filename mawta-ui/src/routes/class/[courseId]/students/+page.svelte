@@ -240,10 +240,6 @@
 </div>
 
 <style>
-	.body {
-		padding: 20px 20px 32px;
-	}
-
 	.titlerow {
 		display: flex;
 		align-items: flex-start;

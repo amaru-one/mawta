@@ -343,9 +343,6 @@
 		display: grid;
 		gap: var(--mw-space-4);
 	}
-	.body {
-		padding: 20px 20px 32px;
-	}
 
 	.lede {
 		margin: 10px 0 0;

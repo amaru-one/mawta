@@ -582,10 +582,6 @@
 />
 
 <style>
-	.body {
-		padding: 20px 20px 32px;
-	}
-
 	.idx {
 		margin-top: 14px;
 	}

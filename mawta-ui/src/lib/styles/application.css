@@ -55,21 +55,6 @@
 	font-size: var(--mw-type-small-size);
 	line-height: var(--mw-type-small-line);
 }
-.application .card {
-	background: var(--mw-surface-card);
-	border: 1px solid var(--mw-line);
-	border-radius: var(--mw-radius-xl);
-}
-.application .stat {
-	background: var(--mw-surface-tint);
-	border-radius: var(--mw-radius-xl);
-	padding: var(--mw-space-4);
-}
-.application .grid3 {
-	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
-	gap: var(--mw-space-2);
-}
 .application .icon-tile {
 	width: 40px;
 	height: 40px;
@@ -80,19 +65,6 @@
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
-}
-.application .context-card {
-	background: var(--mw-surface-tint);
-	border-radius: var(--mw-radius-xl);
-	padding: var(--mw-space-4);
-}
-.application .dot {
-	width: 8px;
-	height: 8px;
-	border-radius: 50%;
-}
-.application .divider {
-	border-top: 1px solid var(--mw-line);
 }
 .application .row {
 	display: flex;
