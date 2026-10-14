@@ -398,12 +398,10 @@
 				{/if}
 
 				{#if criteria.length === 0}
-					<Card>
-						<p class="empty-title">Aún no hay criterios para esta competencia.</p>
-						<p class="meta">
-							Mawta puede proponerlos a partir del estándar del ciclo, o puedes crearlos tú.
-						</p>
-					</Card>
+					<EmptyState
+						title="Aún no hay criterios para esta competencia."
+						description="Mawta puede proponerlos a partir del estándar del ciclo, o puedes crearlos tú."
+					/>
 				{/if}
 
 				<div class="stack">
@@ -621,12 +619,6 @@
 
 	.section {
 		margin-top: var(--mw-space-6);
-	}
-
-	.empty-title {
-		margin: 0 0 4px;
-		font-size: var(--mw-type-body-size);
-		font-weight: 700;
 	}
 
 	.crit-text {

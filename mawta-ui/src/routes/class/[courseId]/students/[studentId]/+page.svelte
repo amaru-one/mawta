@@ -420,8 +420,8 @@
 
 				{#if evidence.length === 0}
 					<EmptyState
-						title="Esta competencia no tiene evidencia este periodo. Se registra desde el área, en «Añadir
-					evidencia», enlazándola a sus criterios."
+						title="Esta competencia no tiene evidencia este periodo."
+						description="Se registra desde el área, en «Añadir evidencia», enlazándola a sus criterios."
 					/>
 				{:else}
 					<div class="cards" class:switching>

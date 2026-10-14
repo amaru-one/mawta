@@ -3,6 +3,7 @@
 		Button,
 		Card,
 		Context,
+		EmptyState,
 		ErrorNotice,
 		Icon,
 		IconButton,
@@ -384,16 +385,11 @@
 					</div>
 				{:else}
 					<Card>
-						<div class="row empty-row">
-							<span class="icon-tile"><Icon name="calendar" size={18} /></span>
-							<span class="grow">
-								<p class="empty-title">Aún no hay experiencias en este trimestre</p>
-								<p class="empty-text">
-									Cuéntale a Mawta tu idea: detecta las competencias y arma la propuesta con
-									criterios, evidencias y sesiones.
-								</p>
-							</span>
-						</div>
+						<EmptyState
+							icon="calendar"
+							title="Aún no hay experiencias en este trimestre"
+							description="Cuéntale a Mawta tu idea: detecta las competencias y arma la propuesta con criterios, evidencias y sesiones."
+						/>
 					</Card>
 				{/if}
 
@@ -683,30 +679,7 @@
 		color: var(--mw-ink-muted);
 	}
 
-	.row.empty-row {
-		align-items: flex-start;
-	}
-
-	.empty-title {
-		margin: 0;
-		font-size: var(--mw-type-body-size);
-		font-weight: 700;
-		line-height: 1.3;
-	}
-
-	.empty-text {
-		margin: 6px 0 0;
-		font-size: var(--mw-type-small-size);
-		line-height: 1.45;
-		color: var(--mw-ink-muted);
-	}
 	.view :global(.create) {
 		margin-top: var(--mw-space-3);
-	}
-
-	.empty {
-		margin: var(--mw-space-4) 0 0;
-		font-size: var(--mw-type-small-size);
-		color: var(--mw-ink-muted);
 	}
 </style>

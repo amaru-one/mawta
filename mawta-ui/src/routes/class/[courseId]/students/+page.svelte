@@ -2,6 +2,7 @@
 	import { showError } from '$lib/toast';
 	import {
 		Button,
+		EmptyState,
 		ErrorNotice,
 		Field,
 		Icon,
@@ -211,9 +212,9 @@
 			{/if}
 
 			{#if shown.length === 0}
-				<p class="empty">
-					{query.trim() === '' ? 'Esta clase no tiene alumnos.' : 'Ningún alumno coincide.'}
-				</p>
+				<EmptyState
+					title={query.trim() === '' ? 'Esta clase no tiene alumnos.' : 'Ningún alumno coincide.'}
+				/>
 			{:else}
 				<div class="list" class:switching>
 					{#each shown as r (r.student_id)}
@@ -355,12 +356,5 @@
 		line-height: 1.45;
 		color: var(--mw-ink-muted);
 		text-wrap: pretty;
-	}
-
-	.empty {
-		margin: 24px 0 0;
-		font-size: var(--mw-type-body-size);
-		line-height: 1.45;
-		color: var(--mw-ink-secondary);
 	}
 </style>

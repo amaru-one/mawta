@@ -4,6 +4,7 @@
 		Button,
 		Card,
 		Checkbox,
+		EmptyState,
 		ErrorNotice,
 		Field,
 		Icon,
@@ -386,12 +387,10 @@
 				{/if}
 
 				{#if evidences.length === 0}
-					<Card>
-						<p class="empty-title">Aún no hay evidencias.</p>
-						<p class="meta">
-							Mawta puede proponerlas a partir de tus criterios, o puedes agregarlas tú.
-						</p>
-					</Card>
+					<EmptyState
+						title="Aún no hay evidencias."
+						description="Mawta puede proponerlas a partir de tus criterios, o puedes agregarlas tú."
+					/>
 				{/if}
 
 				<div class="stack">
@@ -594,12 +593,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--mw-space-2);
-	}
-
-	.empty-title {
-		margin: 0 0 4px;
-		font-size: var(--mw-type-body-size);
-		font-weight: 700;
 	}
 
 	.ev-name {
