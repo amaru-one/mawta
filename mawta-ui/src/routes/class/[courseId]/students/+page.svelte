@@ -212,9 +212,9 @@
 						<ListRow href={href(r)} onclick={hapticTap}>
 							<span class="lvl">
 								{#if r.level !== null}
-									<LevelBadge tier={r.level} size={26} />
+									<LevelBadge tier={r.level} />
 								{:else}
-									<span class="nolevel">Sin valorar</span>
+									<span class="nolevel" aria-label="Sin nivel">Sin nivel</span>
 								{/if}
 							</span>
 							<span class="grow">
@@ -317,17 +317,30 @@
 		color: var(--mw-ink-muted);
 	}
 
-	/* A fixed slot for the level, so names line up whether the student has a
-	 * level or not. 64px fits "Sin valorar" on one line. */
+	/* A fixed, centred slot for the level, so names line up whether the student
+	 * has a level or not. The slot is wider than the 60px pill on purpose. */
 	.lvl {
 		flex: 0 0 64px;
 		display: flex;
 		align-items: center;
+		justify-content: center;
 	}
 
+	/* Same footprint as the level pill, with a dashed outline so "no level"
+	 * is told apart by shape and text, not only by colour. */
 	.nolevel {
-		font-size: var(--mw-type-caption-size);
-		color: var(--mw-ink-muted);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 60px;
+		height: 28px;
+		box-sizing: border-box;
+		padding: 0 4px;
+		border: 1px dashed var(--mw-line-control);
+		border-radius: var(--mw-radius-md);
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--mw-ink-secondary);
 		white-space: nowrap;
 	}
 
