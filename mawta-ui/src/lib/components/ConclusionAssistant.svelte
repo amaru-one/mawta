@@ -397,7 +397,7 @@
 	.proposal {
 		padding: var(--mw-space-4);
 		border: 1px dashed var(--mw-ink-muted);
-		border-radius: var(--mw-radius-2, 8px);
+		border-radius: var(--mw-radius-md);
 	}
 
 	.eyebrow {

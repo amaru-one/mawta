@@ -35,6 +35,10 @@
 	--mw-radius-lg: 12px;
 	--mw-radius-xl: 14px;
 	--mw-radius-full: 999px;
+	--mw-weight-regular: 400;
+	--mw-weight-medium: 500;
+	--mw-weight-semibold: 600;
+	--mw-weight-bold: 700;
 	--mw-shadow-card: 0 1px 2px rgb(15 23 42 / 5%);
 	--mw-shadow-action: 0 1px 2px rgb(15 23 42 / 12%), 0 4px 12px rgb(79 70 229 / 22%);
 	--mw-shadow-raised: 0 1px 3px rgb(15 23 42 / 8%), 0 24px 48px rgb(15 23 42 / 10%);
@@ -111,7 +115,7 @@
 	padding: var(--mw-space-3) var(--mw-space-4);
 	border: 1px solid var(--mw-line-control);
 	border-radius: var(--mw-radius-lg);
-	font-size: 15px;
+	font-size: var(--mw-type-body-size);
 	font-weight: 700;
 	line-height: 22px;
 	background: var(--mw-surface-card);
@@ -166,7 +170,7 @@
 	border-radius: 0;
 	background: transparent;
 	color: var(--mw-ink-secondary);
-	font-size: 13px;
+	font-size: var(--mw-type-small-size);
 	font-weight: 500;
 	line-height: 18px;
 }
@@ -293,7 +297,7 @@
 }
 .mw-root .mw-field__label {
 	color: var(--mw-ink-secondary);
-	font-size: 13px;
+	font-size: var(--mw-type-small-size);
 	font-weight: 500;
 	line-height: 18px;
 }
@@ -307,7 +311,7 @@
 	background: var(--mw-surface-card);
 	color: var(--mw-ink);
 	padding: var(--mw-space-3);
-	font-size: 15px;
+	font-size: var(--mw-type-body-size);
 	line-height: 22px;
 }
 .mw-root textarea.mw-input {
@@ -329,7 +333,7 @@
 .mw-root .mw-field__help,
 .mw-root .mw-field__error {
 	margin: 0;
-	font-size: 12px;
+	font-size: var(--mw-type-caption-size);
 	line-height: 16px;
 	color: var(--mw-ink-muted);
 }
@@ -406,7 +410,7 @@
 .mw-root .mw-check__description {
 	display: block;
 	color: var(--mw-ink-muted);
-	font-size: 12px;
+	font-size: var(--mw-type-caption-size);
 	font-weight: 400;
 	line-height: 16px;
 	margin-top: var(--mw-space-1);
@@ -426,7 +430,7 @@
 	border-radius: var(--mw-radius-md);
 	padding: var(--mw-space-2);
 	background: transparent;
-	font-size: 13px;
+	font-size: var(--mw-type-small-size);
 	font-weight: 500;
 	line-height: 18px;
 	color: var(--mw-ink-secondary);
@@ -452,7 +456,7 @@
 .mw-root .mw-meter__seg {
 	min-width: 0;
 	text-align: center;
-	font-size: 12px;
+	font-size: var(--mw-type-caption-size);
 	line-height: 16px;
 	color: var(--mw-ink-muted);
 	overflow-wrap: anywhere;
@@ -522,7 +526,7 @@
  * the colour. */
 .mw-root .mw-status__label {
 	margin: 0;
-	font-size: 12px;
+	font-size: var(--mw-type-caption-size);
 	line-height: 1.4;
 	color: var(--mw-ink-secondary);
 }
@@ -533,7 +537,7 @@
 	padding: var(--mw-space-3) var(--mw-space-4);
 	border-radius: var(--mw-radius-xl);
 	background: var(--mw-surface-tint);
-	font-size: 13px;
+	font-size: var(--mw-type-small-size);
 	line-height: 18px;
 	color: var(--mw-ink-secondary);
 	overflow-wrap: anywhere;
@@ -615,7 +619,7 @@
 	border: 0;
 	background: transparent;
 	color: var(--mw-on-inverse-action);
-	font-size: 13px;
+	font-size: var(--mw-type-small-size);
 	font-weight: 800;
 }
 .mw-root .mw-topbar {
@@ -650,7 +654,7 @@
 	border-radius: var(--mw-radius-full);
 	background: var(--mw-surface-tint);
 	color: var(--mw-accent);
-	font-size: 12px;
+	font-size: var(--mw-type-caption-size);
 	font-weight: 800;
 }
 .mw-root .mw-topbar__who {
@@ -701,14 +705,14 @@
 }
 .mw-root .mw-session__day {
 	display: block;
-	font-size: 24px;
+	font-size: var(--mw-type-title-size);
 	font-weight: 800;
 	line-height: 28px;
 	font-variant-numeric: tabular-nums;
 }
 .mw-root .mw-session__dow {
 	display: block;
-	font-size: 11px;
+	font-size: var(--mw-type-label-size);
 	line-height: 14px;
 	text-transform: uppercase;
 	color: var(--mw-ink-muted);
@@ -728,7 +732,7 @@
 	gap: var(--mw-space-1);
 	margin: var(--mw-space-2) 0 0;
 	color: var(--mw-accent);
-	font-size: 13px;
+	font-size: var(--mw-type-small-size);
 	font-weight: 700;
 	line-height: 18px;
 	text-decoration: none;
