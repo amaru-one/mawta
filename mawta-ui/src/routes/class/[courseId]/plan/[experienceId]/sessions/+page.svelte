@@ -247,7 +247,7 @@
 	<div class="body">
 		{#if ready && experience}
 			<p class="eyebrow">{experience.title} · Paso 3 de 4 · Sesiones</p>
-			<h1 class="screen-title title">{dates.length} clases</h1>
+			<h1 class="screen-title">{dates.length} clases</h1>
 			<p class="screen-sub">
 				{filled} de {dates.length} con sesión · contadas por fecha según tu horario
 			</p>
@@ -378,9 +378,6 @@
 </div>
 
 <style>
-	.title {
-		font-size: var(--mw-type-title-size);
-	}
 	.view :global(.gen) {
 		margin-top: var(--mw-space-3);
 	}

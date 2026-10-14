@@ -208,7 +208,7 @@
 	<div class="body">
 		{#if ready && experience}
 			<p class="eyebrow">{planned ? 'Experiencia planificada' : 'Revisar y guardar'}</p>
-			<h1 class="screen-title title">{experience.title}</h1>
+			<h1 class="screen-title">{experience.title}</h1>
 			<p class="screen-sub">
 				{fmtDate(experience.starts_on)} – {fmtDate(experience.ends_on)} · {dates.length} clases
 			</p>
@@ -366,11 +366,6 @@
 </div>
 
 <style>
-	.title {
-		font-size: var(--mw-type-title-size);
-		line-height: 1.15;
-	}
-
 	.situation {
 		margin: var(--mw-space-3) 0 0;
 		font-size: var(--mw-type-body-size);

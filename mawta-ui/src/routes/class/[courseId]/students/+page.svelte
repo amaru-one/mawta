@@ -181,7 +181,7 @@
 	<div class="body">
 		{#if ready}
 			<div class="titlerow">
-				<h1 class="title">Alumnos</h1>
+				<h1 class="screen-title">Alumnos</h1>
 				<IconButton
 					icon="search"
 					label={searching ? 'Cerrar búsqueda' : 'Buscar por apellido'}
@@ -189,7 +189,7 @@
 					onclick={toggleSearch}
 				/>
 			</div>
-			<span class="sub">{className} · {rows.length} alumnos</span>
+			<span class="screen-sub">{className} · {rows.length} alumnos</span>
 
 			{#if searching}
 				<div class="search-wrap">
@@ -255,22 +255,6 @@
 		align-items: flex-start;
 		justify-content: space-between;
 		padding-bottom: 14px;
-	}
-
-	.title {
-		margin: 0;
-		font-size: var(--mw-type-title-size);
-		font-weight: 800;
-		letter-spacing: -0.03em;
-		line-height: 1.12;
-	}
-
-	.sub {
-		display: block;
-		margin-top: 8px;
-		font-size: var(--mw-type-small-size);
-		color: var(--mw-ink-muted);
-		font-family: var(--mw-font-sans);
 	}
 
 	.search-wrap {

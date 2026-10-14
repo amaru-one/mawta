@@ -402,8 +402,8 @@
 
 	<div class="body">
 		{#if ready}
-			<h1 class="title">{studentName}</h1>
-			{#if courseName}<span class="sub">{courseName}</span>{/if}
+			<h1 class="screen-title">{studentName}</h1>
+			{#if courseName}<span class="screen-sub">{courseName}</span>{/if}
 
 			{#if indexItems.length > 0}
 				<div class="idx">
@@ -586,26 +586,6 @@
 		padding: 20px 20px 32px;
 	}
 
-	.title {
-		margin: 0;
-		padding-bottom: 14px;
-
-		font-size: var(--mw-type-title-size);
-		font-weight: 800;
-		letter-spacing: -0.03em;
-		line-height: var(--mw-type-title-line);
-		text-wrap: pretty;
-	}
-
-	.sub {
-		display: block;
-		margin: 10px 0 0;
-		font-family: var(--mw-font-sans);
-		font-size: var(--mw-type-label-size);
-		text-transform: uppercase;
-		color: var(--mw-ink-muted);
-	}
-
 	.idx {
 		margin-top: 14px;
 	}
@@ -617,15 +597,6 @@
 		line-height: 1.3;
 		letter-spacing: -0.01em;
 		text-wrap: pretty;
-	}
-
-	.eyebrow {
-		margin: 30px 0 4px;
-		font-size: var(--mw-type-label-size);
-		font-weight: 600;
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
-		color: var(--mw-ink-muted);
 	}
 
 	.eyebrow.gap {

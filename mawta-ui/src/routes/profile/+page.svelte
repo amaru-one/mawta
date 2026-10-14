@@ -79,7 +79,7 @@
 		{#if ready && profile}
 			<section class="identity" aria-label="Identidad del docente">
 				<span class="avatar" aria-hidden="true">{initials}</span>
-				<h1>{profile.display_name}</h1>
+				<h1 class="screen-title">{profile.display_name}</h1>
 				<p class="role">{profile.title || 'Docente'}</p>
 			</section>
 			<section class="profile-section" aria-labelledby="school-title">

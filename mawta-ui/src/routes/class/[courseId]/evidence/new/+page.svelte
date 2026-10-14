@@ -185,8 +185,8 @@
 
 	<div class="body">
 		{#if ready}
-			<h1 class="title">Nueva evidencia</h1>
-			{#if courseName}<span class="sub">{courseName}</span>{/if}
+			<h1 class="screen-title">Nueva evidencia</h1>
+			{#if courseName}<span class="screen-sub">{courseName}</span>{/if}
 			<p class="lede">
 				{#if scopeStudentId === null}
 					Registras una evidencia para toda la clase: una producción (un informe, una prueba
@@ -347,40 +347,12 @@
 		padding: 20px 20px 32px;
 	}
 
-	.title {
-		margin: 0;
-		padding-bottom: 14px;
-
-		font-size: var(--mw-type-title-size);
-		font-weight: 800;
-		letter-spacing: -0.03em;
-		line-height: var(--mw-type-title-line);
-	}
-
-	.sub {
-		display: block;
-		margin: 10px 0 0;
-		font-family: var(--mw-font-sans);
-		font-size: var(--mw-type-label-size);
-		text-transform: uppercase;
-		color: var(--mw-ink-muted);
-	}
-
 	.lede {
 		margin: 10px 0 0;
 		font-size: var(--mw-type-small-size);
 		line-height: 1.45;
 		color: var(--mw-ink-secondary);
 		text-wrap: pretty;
-	}
-
-	.eyebrow {
-		margin: 26px 0 12px;
-		font-size: var(--mw-type-label-size);
-		font-weight: 600;
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
-		color: var(--mw-ink-muted);
 	}
 
 	.eyebrow.gap {

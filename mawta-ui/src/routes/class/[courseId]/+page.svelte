@@ -82,7 +82,7 @@
 
 	<div class="body">
 		{#if ready && d}
-			<h1 class="clsname">{d.name}</h1>
+			<h1 class="screen-title">{d.name}</h1>
 			<span class="clscount">{d.roster_count} alumnos · {d.sessions_per_week} sesiones/semana</span>
 
 			{#if d.next_session}
@@ -198,20 +198,6 @@
 <style>
 	.body {
 		padding: 18px var(--mw-space-5) 30px;
-	}
-
-	.eyebrow {
-		margin: 0 0 var(--mw-space-3);
-	}
-
-	.clsname {
-		margin: 0;
-		padding-bottom: 14px;
-
-		font-size: var(--mw-type-title-size);
-		font-weight: 700;
-		letter-spacing: -0.02em;
-		line-height: 1.1;
 	}
 
 	.clscount {

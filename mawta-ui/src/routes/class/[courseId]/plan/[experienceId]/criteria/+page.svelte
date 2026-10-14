@@ -358,7 +358,7 @@
 				onprevious={() => go(-1)}
 				onnext={() => go(1)}
 			/>
-			<h1 class="screen-title comp-title">{current.name}</h1>
+			<h1 class="screen-title">{current.name}</h1>
 
 			<CoverageMeter
 				capabilities={capabilities.map((capability) => ({
@@ -580,11 +580,6 @@
 </div>
 
 <style>
-	.comp-title {
-		font-size: var(--mw-type-title-size);
-		line-height: 1.2;
-	}
-
 	.standard {
 		margin-top: var(--mw-space-4);
 	}

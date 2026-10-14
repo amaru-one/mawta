@@ -361,7 +361,7 @@
 	<div class="body">
 		{#if ready && experience}
 			<p class="eyebrow">{experience.title} · Evidencias</p>
-			<h1 class="screen-title sm">¿Dónde observarás tus criterios?</h1>
+			<h1 class="screen-title">¿Dónde observarás tus criterios?</h1>
 			<p class="meta intro">
 				Producciones o actuaciones de tus estudiantes. Una evidencia puede reunir criterios de
 				varias competencias.
@@ -569,10 +569,6 @@
 </div>
 
 <style>
-	.screen-title.sm {
-		font-size: var(--mw-type-title-size);
-	}
-
 	.intro {
 		margin: 10px 0 0;
 		line-height: 1.45;
