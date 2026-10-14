@@ -283,7 +283,7 @@
 					<ProposalBar
 						message="Mawta propuso estas sesiones: acéptalas o edítalas."
 						count={proposals.length}
-						label="Aceptar todas"
+						label="Aceptar propuestas"
 						loading={acceptingAll !== null}
 						progress={acceptingAll
 							? `Aceptando ${acceptingAll.done} de ${acceptingAll.total}…`

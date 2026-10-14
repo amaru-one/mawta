@@ -89,6 +89,15 @@
 	// ---- one competencia at a time ----
 
 	let compIdx = $state(0);
+
+	// A link from the summary can name the competencia to open first.
+	let requestedCompetency = page.url.searchParams.get('competency');
+	$effect(() => {
+		if (!requestedCompetency || comps.length === 0) return;
+		const index = comps.findIndex((c) => c.id === requestedCompetency);
+		if (index >= 0) compIdx = index;
+		requestedCompetency = null;
+	});
 	let visited = $state<string[]>([]);
 
 	const comps = $derived(list(experience?.competencies));
@@ -275,6 +284,9 @@
 		await reload();
 	}
 
+	// Quitar asks first, unlike evidencias and sesiones: removing a criterio also
+	// removes its tag from every evidencia that uses it, and "Deshacer" would
+	// recreate the criterio without those tags.
 	let deletingId = $state<string | null>(null);
 
 	async function remove(id: string): Promise<void> {
@@ -379,7 +391,7 @@
 					<ProposalBar
 						message={`Mawta propuso ${pendingCount === 1 ? '1 criterio' : `${pendingCount} criterios`}: revísalos o acéptalos.`}
 						count={pendingCount}
-						label="Aceptar todos"
+						label="Aceptar propuestas"
 						onaccept={() => void acceptAll()}
 					/>
 				{/if}

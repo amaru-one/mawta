@@ -379,7 +379,7 @@
 					<ProposalBar
 						message="Mawta propuso estas evidencias: acéptalas o edítalas."
 						count={evidences.filter(isProposal).length}
-						label="Aceptar todas"
+						label="Aceptar propuestas"
 						onaccept={() => void acceptAll()}
 					/>
 				{/if}
