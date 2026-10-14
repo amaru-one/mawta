@@ -288,10 +288,12 @@ type EvidenceTally struct {
 }
 
 // termEvidenceByCompetency counts, per competency, the distinct evidences of
-// the class in the term that observe it: accepted planned evidences (drafts
-// included, as the plan does) and hand-added assessments. Assessments synced
-// from a planned evidence are left out, so a planned evidence is counted once.
-func termEvidenceByCompetency(ctx context.Context, tx pgx.Tx, classID, termID uuid.UUID) (map[uuid.UUID]EvidenceTally, error) {
+// the class in the term that observe it: accepted planned evidences and
+// hand-added assessments. Assessments synced from a planned evidence are left
+// out, so a planned evidence is counted once. With confirmedOnly, evidences of
+// a borrador experience are left out (the term overview); without it they
+// count, so an experience's own summary sees what it is about to save.
+func termEvidenceByCompetency(ctx context.Context, tx pgx.Tx, classID, termID uuid.UUID, confirmedOnly bool) (map[uuid.UUID]EvidenceTally, error) {
 	rows, err := tx.Query(ctx, `
 		select u.competency_id, count(distinct u.evidence_id), array_agg(distinct u.kind order by u.kind)
 		  from (
@@ -303,6 +305,7 @@ func termEvidenceByCompetency(ctx context.Context, tx pgx.Tx, classID, termID uu
 		       and cr.deleted_at is null and cr.accepted_at is not null
 		     where le.class_id = $1 and le.term_id = $2
 		       and pe.deleted_at is null and pe.accepted_at is not null
+		       and (not $3 or le.status = 'planificada')
 		    union all
 		    select a.id, cr.competency_id, a.kind
 		      from assessments a
@@ -313,7 +316,7 @@ func termEvidenceByCompetency(ctx context.Context, tx pgx.Tx, classID, termID uu
 		       and a.status in ('published', 'closed') and a.deleted_at is null
 		  ) u
 		 group by u.competency_id
-	`, classID, termID)
+	`, classID, termID, confirmedOnly)
 	if err != nil {
 		return nil, err
 	}
@@ -332,7 +335,7 @@ func termEvidenceByCompetency(ctx context.Context, tx pgx.Tx, classID, termID uu
 
 // fillEvidenceTallies sets the term evidence fields of each competency in comps.
 func fillEvidenceTallies(ctx context.Context, tx pgx.Tx, classID, termID uuid.UUID, comps []PlanCompetency) error {
-	tally, err := termEvidenceByCompetency(ctx, tx, classID, termID)
+	tally, err := termEvidenceByCompetency(ctx, tx, classID, termID, true)
 	if err != nil {
 		return err
 	}
@@ -342,6 +345,7 @@ func fillEvidenceTallies(ctx context.Context, tx pgx.Tx, classID, termID uuid.UU
 		  join learning_experiences le on le.id = ec.experience_id
 		 where le.class_id = $1 and le.term_id = $2
 		   and le.deleted_at is null and ec.deleted_at is null
+		   and le.status = 'planificada'
 	`, classID, termID)
 	if err != nil {
 		return err
@@ -1108,7 +1112,7 @@ func experienceWarnings(ctx context.Context, tx pgx.Tx, experienceID uuid.UUID) 
 		experienceID).Scan(&classID, &termID); err != nil {
 		return nil, err
 	}
-	tally, err := termEvidenceByCompetency(ctx, tx, classID, termID)
+	tally, err := termEvidenceByCompetency(ctx, tx, classID, termID, false)
 	if err != nil {
 		return nil, err
 	}
