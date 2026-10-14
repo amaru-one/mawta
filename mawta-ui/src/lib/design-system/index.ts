@@ -30,3 +30,5 @@ export type { IconName } from './icons';
 
 export { default as ListRow } from './ListRow.svelte';
 export { default as Disclosure } from './Disclosure.svelte';
+export { default as ItemActions } from './ItemActions.svelte';
+export { default as ProposalBar } from './ProposalBar.svelte';

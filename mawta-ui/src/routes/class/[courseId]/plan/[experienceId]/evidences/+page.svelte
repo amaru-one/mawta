@@ -6,6 +6,8 @@
 		Checkbox,
 		Field,
 		Icon,
+		ItemActions,
+		ProposalBar,
 		LoadingState,
 		Notice,
 		Segmented,
@@ -258,6 +260,18 @@
 		}
 	}
 
+	async function acceptAll(): Promise<void> {
+		hapticTap();
+		try {
+			for (const evidence of evidences.filter(isProposal)) {
+				await acceptEvidence(evidence.id);
+			}
+		} catch {
+			showToast('No se pudieron aceptar todas las evidencias');
+		}
+		await reload();
+	}
+
 	// ---- remove, with "Deshacer" ----
 
 	// No confirmation: "Deshacer" in the toast is the way back.
@@ -362,7 +376,12 @@
 			<div class="section">
 				<p class="eyebrow">Evidencias · {evidences.length}</p>
 				{#if pending}
-					<p class="meta help">Mawta propuso estas evidencias: acéptalas o edítalas.</p>
+					<ProposalBar
+						message="Mawta propuso estas evidencias: acéptalas o edítalas."
+						count={evidences.filter(isProposal).length}
+						label="Aceptar propuestas"
+						onaccept={() => void acceptAll()}
+					/>
 				{/if}
 
 				{#if evidences.length === 0}
@@ -400,17 +419,12 @@
 								{:else}
 									<p class="meta ev-none">Sin criterios: elige cuáles observarás.</p>
 								{/if}
-								<div class="ev-actions row">
-									{#if isProposal(evidence)}
-										<Action variant="main" onclick={() => void accept(evidence)}>
-											<Icon name="check" size={13} /> Aceptar
-										</Action>
-									{/if}
-									<Action variant="link" onclick={() => openEdit(evidence)}>Editar</Action>
-									<Action variant="remove" onclick={() => void remove(evidence.id)}>
-										<Icon name="trash" size={13} /> Quitar
-									</Action>
-								</div>
+								<ItemActions
+									proposal={isProposal(evidence)}
+									onaccept={() => void accept(evidence)}
+									onedit={() => openEdit(evidence)}
+									onremove={() => void remove(evidence.id)}
+								/>
 							</Card>
 						{/if}
 					{/each}
@@ -576,10 +590,6 @@
 
 	.section {
 		margin-top: var(--mw-space-6);
-	}
-
-	.help {
-		margin: -4px 0 6px;
 	}
 
 	.stack {

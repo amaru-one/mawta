@@ -83,6 +83,15 @@
 		).length;
 	}
 
+	// The competencia to open from the notices: the first one with a gap or a
+	// pending criterio, so the link lands where the problem is.
+	const gapCompetency = $derived(
+		warnings.find((w) => w.code === 'capability_without_criterion')?.competency_id ?? null
+	);
+	const pendingCompetency = $derived(
+		criteria.find((c) => c.accepted_at === null)?.competency_id ?? null
+	);
+
 	const missingCapabilities = $derived(
 		warnings
 			.filter(
@@ -207,7 +216,7 @@
 				{#each comps as competency (competency.id)}
 					<a
 						class="sum-row row pressable"
-						href={`${base}/criteria?from=summary`}
+						href={`${base}/criteria?from=summary&competency=${competency.id}`}
 						data-sveltekit-replacestate
 						onclick={hapticTap}
 					>
@@ -250,7 +259,7 @@
 			{#if missingCapabilities.length > 0}
 				<Notice variant="attention"
 					><a
-						href={`${base}/criteria?from=summary`}
+						href={`${base}/criteria?from=summary&competency=${gapCompetency ?? ''}`}
 						data-sveltekit-replacestate
 						onclick={hapticTap}
 					>
@@ -304,7 +313,7 @@
 							? '1 propuesta de Mawta sin revisar'
 							: `${pendingBy.total} propuestas de Mawta sin revisar`}:
 						{#if pendingBy.criteria > 0}<a
-								href={`${base}/criteria?from=summary`}
+								href={`${base}/criteria?from=summary&competency=${pendingCompetency ?? ''}`}
 								data-sveltekit-replacestate
 								onclick={hapticTap}>{pendingBy.criteria} en criterios</a
 							>{/if}{#if pendingBy.criteria > 0 && pendingBy.evidences + pendingBy.sessions > 0},
