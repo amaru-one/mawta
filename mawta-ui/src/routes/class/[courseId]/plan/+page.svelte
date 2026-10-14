@@ -233,10 +233,6 @@
 		if (terms.length === 0) return 'Aún no se trabaja este año.';
 		return `Ya se trabajó en ${terms.map((term) => `T${term}`).join(' y ')}.`;
 	}
-
-	const dueCount = $derived(
-		competencies.filter((competency) => competency.status === 'toca').length
-	);
 </script>
 
 <svelte:head>
@@ -329,10 +325,7 @@
 
 			<div class="section">
 				<Context>
-					<div class="label-row">
-						<p class="eyebrow">Competencias este trimestre</p>
-						<p class="meta">{dueCount > 0 ? `${dueCount} por trabajar` : 'al día'}</p>
-					</div>
+					<p class="eyebrow">Competencias este trimestre</p>
 					<StatusList
 						items={competencies.map((competency) => ({
 							id: competency.id,
@@ -634,18 +627,6 @@
 		border-radius: 3px;
 		background: var(--mw-surface-card);
 		border: 1px solid var(--mw-line);
-	}
-
-	.label-row {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: var(--mw-space-2);
-		margin-bottom: var(--mw-space-1);
-	}
-
-	.label-row .eyebrow {
-		margin: 0;
 	}
 
 	.stack {
