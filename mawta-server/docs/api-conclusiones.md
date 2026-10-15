@@ -145,7 +145,7 @@ A generation can still fail with `level_required`, `insufficient_evidence` or
 
 ```json
 {
-  "body": "Explica…\n\nAún confunde…\n\nSe le recomienda…",
+  "body": "Explica… Aún confunde… Se le recomienda…",
   "level": "B",
   "requirement": "level_b",
   "progress":        [{ "text": "…", "evidence_ids": ["…"], "voice_note_ids": ["…"] }],
@@ -178,15 +178,23 @@ The two evidence codes appear only from the minimum of graded evidence on, and
 only about graded evidence. Evidence the teacher added by hand has no
 experience, so it never proves a single experience on its own.
 
-`body` is progress, difficulties, the justification or supports
-when the norm asks for them, and recommendations, one paragraph each.
+`body` is the conclusion as SIAGIE receives it: one paragraph with progress,
+difficulties, the justification or supports when the norm asks for them, and
+recommendations. SIAGIE accepts 10 to 350 characters, so the agent writes
+within that range from the start (`internal/domain/conclusion.go`).
 
 What the server enforces on the model's answer (otherwise one repair round,
 then the generation fails):
 
 - every progress and difficulty cites at least one evidence or voice note it
   was given (`E1…`, `N1…` references, mapped back to ids);
-- at least one recommendation (RVM 094-2020, 5.1.1.3 p.7);
+- at least one progress, one difficulty and one recommendation: the norm asks
+  every conclusion to state all three (RM 281-2016, CNEB VII; RVM 094-2020,
+  5.1.1.3 p.7). Only at level AD, when the material shows no difficulty, the
+  difficulty is the fixed sentence "No presenta dificultades significativas en
+  esta competencia." (`NoDifficultiesAD`); at any other level that sentence is
+  rejected;
+- `body` is at most 350 characters (counted in characters, not bytes);
 - `no_progress_justification` for `consecutive_c`, `supports_provided` for
   `inclusion_support`;
 - no replacement token and no name of a student on the roster anywhere in the
@@ -204,7 +212,15 @@ Unchanged, plus an optional `generation_id`: the proposal the teacher started
 from. It must be a completed `conclusions` generation for the same student,
 competency and term (`422 generation_mismatch` otherwise) and is stored in
 `descriptive_conclusions.generation_id`. The text is the teacher's
-(`authored_by_id`); the link makes it traceable to what the agent read.
+(`authored_by_id`); the link makes it traceable to what the agent read. When
+that generation used at least one voice note (`used_voice_note_ids`), the
+server sets `descriptive_conclusions.generated_from_voice_notes`; the client
+never sends it.
+
+`body` is normalized (NFC, one paragraph, whitespace collapsed) and must be 10
+to 350 characters, **draft or final**: `422 conclusion_too_short` or
+`422 conclusion_too_long`, with the count in the message. The check
+`dc_body_siagie` enforces the same in the database.
 
 ## Privacy
 

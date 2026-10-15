@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -32,6 +33,11 @@ type CompetencyLevelRow struct {
 	ConclusionRequirement string  `json:"conclusion_requirement"`
 	ConclusionBody        *string `json:"conclusion_body"`
 	ConclusionStatus      *string `json:"conclusion_status"`
+	// GradesChanged says the competency's evidence scores changed after the
+	// live conclusion was written (a new mark, a correction, a removal): the
+	// conclusion may no longer match the evidence, so it can be saved again
+	// even when its text did not change.
+	GradesChanged bool `json:"grades_changed"`
 }
 
 // classifyConclusionRequirement decides why a conclusión descriptiva is (or
@@ -116,21 +122,36 @@ func ListClassCompetencyLevels(ctx context.Context, tx pgx.Tx, classID, studentI
 		     and ctl.superseded_at is null and ctl.deleted_at is null
 		),
 		concl as (
-		  select competency_id, body, status
+		  select competency_id, body, status, authored_at
 		    from descriptive_conclusions
 		   where student_id = $2 and term_id = $3
 		     and superseded_at is null and deleted_at is null
+		),
+		-- Last change to any score of the student in this term, per competency.
+		-- Scores are append-only: a new mark, a correction and a removal each
+		-- touch created_at, superseded_at or deleted_at. greatest() ignores nulls.
+		grades as (
+		  select ec.competency_id,
+		         max(greatest(s.created_at, s.superseded_at, s.deleted_at)) as last_change
+		    from scores s
+		    join assessment_criteria ac on ac.assessment_id = s.assessment_id
+		     and ac.deleted_at is null
+		    join evaluation_criteria ec on ec.id = ac.criterion_id
+		   where s.student_id = $2 and s.term_id = $3
+		   group by ec.competency_id
 		)
 		select c.id, c.code, c.name, c.kind, c.subject_id,
 		       lvl.level_code, lvl.scale_level_id,
 		       to_char(lvl.asserted_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
 		       s.inclusion_support, prev_c.competency_id is not null,
-		       concl.body, concl.status
+		       concl.body, concl.status,
+		       coalesce(grades.last_change > concl.authored_at, false)
 		  from competencies c
 		  cross join students s
 		  left join lvl on lvl.competency_id = c.id
 		  left join prev_c on prev_c.competency_id = c.id
 		  left join concl on concl.competency_id = c.id
+		  left join grades on grades.competency_id = c.id
 		 where s.id = $2
 		   and c.subject_id = (select subject_id from cls)
 		   and c.is_active and c.deleted_at is null
@@ -148,7 +169,7 @@ func ListClassCompetencyLevels(ctx context.Context, tx pgx.Tx, classID, studentI
 		if err := rows.Scan(&r.CompetencyID, &r.Code, &r.Name, &r.Kind, &r.SubjectID,
 			&r.Level, &r.LevelID, &r.AssertedAt,
 			&inclusionSupport, &consecutiveC,
-			&r.ConclusionBody, &r.ConclusionStatus); err != nil {
+			&r.ConclusionBody, &r.ConclusionStatus, &r.GradesChanged); err != nil {
 			return nil, err
 		}
 		r.ConclusionRequirement = classifyConclusionRequirement(inclusionSupport, stage, cycle, r.Level, consecutiveC)
@@ -219,29 +240,40 @@ func AssertCompetencyLevel(ctx context.Context, tx pgx.Tx, classID, studentID, c
 //
 // requirement is derived here, never taken from the request: whether a
 // conclusion is mandatory is a fact about the student's level, not a claim the
-// client gets to make. RVM 094-2020 5.1.1.3 p.7 requires every conclusión to
-// carry personalised recommendations, but that lives in body's free text —
-// there is no separate flag to validate, because nothing can verify text
-// actually contains a recommendation.
+// client gets to make.
+//
+// body is stored as SIAGIE receives it (domain.NormalizeConclusion) and must
+// fit SIAGIE's 10 to 350 characters, draft or final: no conclusion is ever
+// held that could not be exported.
 //
 // generationID, when set, is the Mawta proposal the teacher started from: it
 // must be a completed conclusions generation for this same student,
-// competency and term. The text is still the teacher's.
+// competency and term. The text is still the teacher's. When that proposal
+// read at least one voice note, generated_from_voice_notes is set: the flag
+// is read from the generation, never from the request.
 func UpsertConclusion(ctx context.Context, tx pgx.Tx, classID, studentID, competencyID, termID, teacherID uuid.UUID, body string, status string, generationID *uuid.UUID) (uuid.UUID, error) {
+	body = domain.NormalizeConclusion(body)
+	if err := CheckConclusionLength(body); err != nil {
+		return uuid.Nil, err
+	}
+
+	fromVoiceNotes := false
 	if generationID != nil {
-		var ok bool
+		var ok, usedVoiceNotes bool
 		if err := tx.QueryRow(ctx, `
-			select exists (
-			  select 1 from agent_generations
-			   where id = $1 and agent = 'conclusions' and status = 'completed'
-			     and student_id = $2 and competency_id = $3 and term_id = $4)
-		`, *generationID, studentID, competencyID, termID).Scan(&ok); err != nil {
+			select true, coalesce(jsonb_typeof(result -> 'used_voice_note_ids') = 'array'
+			                      and jsonb_array_length(result -> 'used_voice_note_ids') > 0, false)
+			  from agent_generations
+			 where id = $1 and agent = 'conclusions' and status = 'completed'
+			   and student_id = $2 and competency_id = $3 and term_id = $4
+		`, *generationID, studentID, competencyID, termID).Scan(&ok, &usedVoiceNotes); err != nil && err != pgx.ErrNoRows {
 			return uuid.Nil, err
 		}
 		if !ok {
 			return uuid.Nil, db.NewAppError(http.StatusUnprocessableEntity, "generation_mismatch",
 				"La propuesta de Mawta no corresponde a esta competencia y periodo.")
 		}
+		fromVoiceNotes = usedVoiceNotes
 	}
 
 	requirement, err := conclusionRequirement(ctx, tx, classID, studentID, competencyID, termID)
@@ -269,13 +301,27 @@ func UpsertConclusion(ctx context.Context, tx pgx.Tx, classID, studentID, compet
 	err = tx.QueryRow(ctx, `
 		insert into descriptive_conclusions
 		  (tenant_id, student_id, competency_id, academic_year_id, term_id, class_id, body,
-		   requirement, status, authored_by_id, supersedes_id, generation_id)
-		select app.current_tenant_id(), $1, $2, c.academic_year_id, $3, $4, $5, $6, $7, $8, $9, $10
+		   requirement, status, authored_by_id, supersedes_id, generation_id, generated_from_voice_notes)
+		select app.current_tenant_id(), $1, $2, c.academic_year_id, $3, $4, $5, $6, $7, $8, $9, $10, $11
 		  from classes c where c.id = $4
 		returning id
 	`, studentID, competencyID, termID, classID, body,
-		requirement, status, teacherID, supersedesID, generationID).Scan(&newID)
+		requirement, status, teacherID, supersedesID, generationID, fromVoiceNotes).Scan(&newID)
 	return newID, err
+}
+
+// CheckConclusionLength rejects a normalized conclusion SIAGIE would not
+// accept, telling the teacher how far off it is.
+func CheckConclusionLength(body string) error {
+	switch n := domain.ConclusionLength(body); {
+	case n < domain.ConclusionMinChars:
+		return db.NewAppError(http.StatusUnprocessableEntity, "conclusion_too_short",
+			fmt.Sprintf("La conclusión tiene %d caracteres; SIAGIE pide al menos %d.", n, domain.ConclusionMinChars))
+	case n > domain.ConclusionMaxChars:
+		return db.NewAppError(http.StatusUnprocessableEntity, "conclusion_too_long",
+			fmt.Sprintf("La conclusión tiene %d caracteres; SIAGIE acepta como máximo %d. Acórtala en %d.", n, domain.ConclusionMaxChars, n-domain.ConclusionMaxChars))
+	}
+	return nil
 }
 
 // conclusionRequirement classifies why a conclusion is (or is not) mandatory

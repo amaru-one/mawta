@@ -3,6 +3,7 @@ module mawta-server
 go 1.26.6
 
 require (
+	github.com/anthropics/anthropic-sdk-go v1.78.0
 	github.com/go-chi/chi/v5 v5.3.1
 	github.com/go-chi/cors v1.2.2
 	github.com/google/uuid v1.6.0
@@ -11,10 +12,10 @@ require (
 	github.com/pressly/goose/v3 v3.27.3
 	golang.org/x/crypto v0.57.0
 	golang.org/x/term v0.46.0
+	golang.org/x/text v0.42.0
 )
 
 require (
-	github.com/anthropics/anthropic-sdk-go v1.78.0 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/buger/jsonparser v1.1.2 // indirect
 	github.com/invopop/jsonschema v0.14.0 // indirect
@@ -33,5 +34,4 @@ require (
 	go.yaml.in/yaml/v4 v4.0.0-rc.2 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
-	golang.org/x/text v0.42.0 // indirect
 )

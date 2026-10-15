@@ -3,12 +3,15 @@ package repo_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
+	"mawta-server/internal/db"
 	"mawta-server/internal/dbtest"
 	"mawta-server/internal/repo"
 )
@@ -147,15 +150,85 @@ func TestVoiceNoteSweepAndConclusionContext(t *testing.T) {
 			t.Fatalf("LatestConclusionGeneration = %v, %v, %v", latest.ID, ok, err)
 		}
 		if _, err := repo.UpsertConclusion(ctx, tx, fx.ClassMat5B, student, fx.CompetencyC2, termID, fx.TeacherQuispe,
-			"Texto.", "draft", &concl.ID); err == nil {
+			"Explica sus procedimientos.", "draft", &concl.ID); err == nil {
 			t.Fatal("a pending generation must not be accepted as the source of a conclusion")
 		}
 		if err := repo.CompleteGeneration(ctx, tx, concl.ID, json.RawMessage(`{"body":"x"}`), repo.Usage{}); err != nil {
 			t.Fatalf("CompleteGeneration: %v", err)
 		}
 		if _, err := repo.UpsertConclusion(ctx, tx, fx.ClassMat5B, student, fx.CompetencyC2, termID, fx.TeacherQuispe,
-			"Texto.", "draft", &concl.ID); err != nil {
+			"Explica sus procedimientos.", "draft", &concl.ID); err != nil {
 			t.Fatalf("UpsertConclusion with generation: %v", err)
 		}
+		// A proposal that read no voice note does not flag the conclusion.
+		if flag := fromVoiceNotes(t, ctx, tx, concl.ID); flag {
+			t.Fatal("a proposal with no voice notes must not set generated_from_voice_notes")
+		}
+
+		// A proposal that read a voice note does: the flag comes from the
+		// generation's result, never from the request.
+		withVoice, _, err := repo.CreateGeneration(ctx, tx, repo.NewGeneration{
+			Agent: "conclusions", Kind: "conclusion", ClassID: fx.ClassMat5B,
+			StudentID: &sid, CompetencyID: &cid, TermID: &tid,
+			RequestedBy: fx.TeacherQuispe, TargetKey: "test:conclusion-voice", Deadline: time.Minute,
+		})
+		if err != nil {
+			t.Fatalf("CreateGeneration(conclusions, voice): %v", err)
+		}
+		result := json.RawMessage(`{"used_voice_note_ids":["` + vid.String() + `"]}`)
+		if err := repo.CompleteGeneration(ctx, tx, withVoice.ID, result, repo.Usage{}); err != nil {
+			t.Fatalf("CompleteGeneration(voice): %v", err)
+		}
+		if _, err := repo.UpsertConclusion(ctx, tx, fx.ClassMat5B, student, fx.CompetencyC2, termID, fx.TeacherQuispe,
+			"Explica sus procedimientos con voz.", "draft", &withVoice.ID); err != nil {
+			t.Fatalf("UpsertConclusion from a voice proposal: %v", err)
+		}
+		if flag := fromVoiceNotes(t, ctx, tx, withVoice.ID); !flag {
+			t.Fatal("a proposal that read a voice note must set generated_from_voice_notes")
+		}
+
+		// SIAGIE's 10 to 350 characters hold for drafts too, counted in
+		// characters after normalizing to one paragraph.
+		for _, c := range []struct {
+			body, code string
+		}{
+			{"Corto.", "conclusion_too_short"},
+			{strings.Repeat("ñ", 351), "conclusion_too_long"},
+		} {
+			_, err := repo.UpsertConclusion(ctx, tx, fx.ClassMat5B, student, fx.CompetencyC2, termID, fx.TeacherQuispe,
+				c.body, "draft", nil)
+			var appErr *db.AppError
+			if !errors.As(err, &appErr) || appErr.Code != c.code {
+				t.Fatalf("UpsertConclusion(%d chars) = %v, want %s", len([]rune(c.body)), err, c.code)
+			}
+		}
+		// 350 "ñ" are 700 bytes but 350 characters: accepted. Line breaks
+		// collapse to one space before counting and storing.
+		id, err := repo.UpsertConclusion(ctx, tx, fx.ClassMat5B, student, fx.CompetencyC2, termID, fx.TeacherQuispe,
+			strings.Repeat("ñ", 340)+"\n\n  fin", "draft", nil)
+		if err != nil {
+			t.Fatalf("UpsertConclusion(344 chars with line breaks): %v", err)
+		}
+		var stored string
+		if err := tx.QueryRow(ctx, `select body from descriptive_conclusions where id = $1`, id).Scan(&stored); err != nil {
+			t.Fatalf("read body: %v", err)
+		}
+		if want := strings.Repeat("ñ", 340) + " fin"; stored != want {
+			t.Fatalf("stored body = %q, want one normalized paragraph", stored)
+		}
 	})
+}
+
+// fromVoiceNotes reads the flag of the live conclusion written from one
+// generation.
+func fromVoiceNotes(t *testing.T, ctx context.Context, tx pgx.Tx, generationID uuid.UUID) bool {
+	t.Helper()
+	var flag bool
+	if err := tx.QueryRow(ctx, `
+		select generated_from_voice_notes from descriptive_conclusions
+		 where generation_id = $1 and superseded_at is null and deleted_at is null
+	`, generationID).Scan(&flag); err != nil {
+		t.Fatalf("read generated_from_voice_notes: %v", err)
+	}
+	return flag
 }

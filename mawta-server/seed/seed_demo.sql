@@ -527,9 +527,9 @@ select md5('ctl-tr:' || st.id::text)::uuid,
 --     lleva una en TODO periodo sin importar el nivel, y debe indicar los
 --     apoyos y ajustes razonables brindados (5.1.1.3 p.7).
 --
--- Toda conclusión incluye recomendaciones personalizadas dentro del propio
--- body: no hay columna que lo afirme, porque nada puede verificar que un
--- texto libre realmente contenga una recomendación.
+-- Toda conclusión señala avances, dificultades y recomendaciones dentro del
+-- propio body (RM 281-2016, CNEB VII), y cabe en los 10 a 350 caracteres que
+-- acepta SIAGIE, en una sola línea (check dc_body_siagie).
 --
 -- Precedencia aplicada cuando concurren varias razones:
 --   consecutive_c > inclusion_support > level_c > optional
@@ -581,40 +581,24 @@ select md5('dc:' || cl.student_id::text || ':' || cl.competency_id::text || ':' 
        cl.class_id,
        case cl.requisito
          when 'consecutive_c' then
-           cl.given_name || ' se mantiene en "En inicio" en «' || cl.comp_name ||
-           '» por segundo periodo consecutivo. El trabajo del periodo muestra que '||
-           'reconoce la tarea pero no logra sostener el procedimiento hasta el final, '||
-           'y la dificultad es la misma que en el periodo anterior: no llega a apoyarse '||
-           'en la representación previa antes de operar, así que las estrategias nuevas '||
-           'no se afianzan sobre las anteriores. El apoyo brindado hasta ahora fue de '||
-           'refuerzo grupal, insuficiente para este caso. Recomendaciones: '||
-           'acompañamiento individual dos veces por semana centrado en representar '||
-           'antes de calcular; retomar la evidencia del periodo anterior para que '||
-           'compare sus propios procedimientos; y coordinación con la familia para '||
-           'asegurar tiempo de trabajo en casa.'
+           cl.given_name || ' reconoce la tarea, pero no sostiene el procedimiento hasta '||
+           'el final. Sigue en inicio por segundo periodo: no representa antes de operar '||
+           'y el refuerzo grupal no bastó. Se recomienda acompañamiento individual dos '||
+           'veces por semana para representar antes de calcular.'
          when 'inclusion_support' then
-           cl.given_name || ' alcanza el nivel "' || cl.nivel_label || '" en «' ||
-           cl.comp_name || '». Durante el periodo se brindaron los siguientes apoyos y '||
-           'ajustes razonables: tiempo adicional en las evaluaciones escritas, '||
-           'consignas segmentadas en pasos y ubicación preferente en el aula. '||
-           'Con esos apoyos participa de forma sostenida y completa las tareas. '||
-           'Recomendaciones: mantener los ajustes el próximo periodo, incorporar '||
-           'organizadores visuales para las tareas de varios pasos, y revisar con '||
-           'la familia y el equipo SAANEE la pertinencia de los apoyos actuales.'
+           cl.given_name || ' alcanza el nivel ' || cl.nivel_code || ' y completa las tareas '||
+           'con tiempo adicional y consignas segmentadas en pasos. Aún necesita apoyo en '||
+           'las tareas de varios pasos. Se recomienda mantener los ajustes e incorporar '||
+           'organizadores visuales.'
          when 'level_c' then
-           cl.given_name || ' se ubica en "En inicio" en «' || cl.comp_name ||
-           '». Participa en las actividades y entrega sus trabajos, pero la evidencia '||
-           'del periodo muestra que aún requiere acompañamiento para sostener el '||
-           'procedimiento completo sin ayuda. Recomendaciones: retomar las tareas '||
-           'entregadas señalando el punto exacto donde se interrumpe el razonamiento, '||
-           'y practicar con situaciones de menor complejidad antes de volver a las '||
-           'del nivel del grado.'
+           cl.given_name || ' participa y entrega sus trabajos. Aún requiere acompañamiento '||
+           'para sostener el procedimiento completo sin ayuda. Se recomienda retomar sus '||
+           'tareas señalando dónde se interrumpe el razonamiento y practicar con '||
+           'situaciones de menor complejidad.'
          else
-           cl.given_name || ' alcanza el nivel "' || cl.nivel_label || '" en «' ||
-           cl.comp_name || '»: resuelve con autonomía y fundamenta sus decisiones '||
-           'apoyándose en la evidencia trabajada. Recomendaciones: proponerle '||
-           'situaciones de mayor demanda cognitiva y darle un rol de apoyo entre '||
-           'pares, cuidando que ello no reemplace su propio avance.'
+           cl.given_name || ' resuelve con autonomía y fundamenta sus decisiones con la '||
+           'evidencia trabajada. No presenta dificultades significativas en esta '||
+           'competencia. Se recomienda proponerle situaciones de mayor demanda cognitiva.'
        end,
        cl.requisito,
        -- Una sola queda en draft, para que ese camino tenga datos: un draft no

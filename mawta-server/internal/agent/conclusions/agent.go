@@ -27,8 +27,13 @@ import (
 	"mawta-server/internal/agent"
 	"mawta-server/internal/agent/llm"
 	"mawta-server/internal/db"
+	"mawta-server/internal/domain"
 	"mawta-server/internal/repo"
 )
+
+// NoDifficultiesAD is the one difficulty a student at AD may have when the
+// material shows none: the norm still asks every conclusion to state them.
+const NoDifficultiesAD = "No presenta dificultades significativas en esta competencia."
 
 // Name is the agent_generations.agent value of this agent.
 const Name = "conclusions"
@@ -37,7 +42,7 @@ const Name = "conclusions"
 const KindConclusion = "conclusion"
 
 // promptVersion changes whenever prompts/ change.
-const promptVersion = "conclusions-2026-10-09.1"
+const promptVersion = "conclusions-2026-10-14.1"
 
 //go:embed prompts/*.md
 var promptFS embed.FS
@@ -82,11 +87,11 @@ func pointItems(description string) map[string]any {
 
 var conclusionTool = llm.Tool{
 	Name:        "proponer_conclusion",
-	Description: "Records the proposed descriptive conclusion: progress, difficulties and recommendations, each grounded in the material.",
+	Description: "Records the proposed descriptive conclusion: progress, difficulties and recommendations, each grounded in the material. Joined into one paragraph, it must fit SIAGIE's 350 characters.",
 	Properties: map[string]any{
-		"avances":                    pointItems("One sentence on something the student achieved, grounded in the cited material."),
-		"dificultades":               pointItems("One sentence on something the student still finds difficult, grounded in the cited material."),
-		"recomendaciones":            pointItems("One personalised, actionable recommendation to keep developing the competency."),
+		"avances":                    pointItems("One short sentence on something the student achieved, grounded in the cited material."),
+		"dificultades":               pointItems("One short sentence on something the student still finds difficult, grounded in the cited material. At least one is required."),
+		"recomendaciones":            pointItems("One short, personalised, actionable recommendation to keep developing the competency."),
 		"justificacion_sin_progreso": map[string]any{"type": "string", "description": "Only for C in consecutive terms: why there was no progress. Empty otherwise."},
 		"apoyos_brindados":           map[string]any{"type": "string", "description": "Only for inclusion support: the supports and reasonable adjustments provided. Empty otherwise."},
 		"notas_no_usadas": map[string]any{
@@ -271,8 +276,20 @@ func (a *Agent) Apply(ctx context.Context, tx pgx.Tx, gen repo.AgentGeneration, 
 	if res.Recommendations, err = convert("una recomendación", ans.Recomendaciones, false); err != nil {
 		return nil, err
 	}
-	if len(res.Progress)+len(res.Difficulties) == 0 {
-		return nil, agent.Invalid("la conclusión no señala ningún avance ni dificultad")
+	// RM 281-2016 (CNEB, VII): a conclusion "debe […] señalar avances,
+	// dificultades y recomendaciones". All three, every time.
+	if len(res.Progress) == 0 {
+		return nil, agent.Invalid("la conclusión debe señalar al menos un avance")
+	}
+	if len(res.Difficulties) == 0 {
+		return nil, agent.Invalid("la conclusión debe señalar al menos una dificultad; si el nivel es AD y el material no muestra ninguna, escribe «%s»", NoDifficultiesAD)
+	}
+	if *m.Level != "AD" {
+		for _, d := range res.Difficulties {
+			if strings.EqualFold(sentence(d.Text), NoDifficultiesAD) {
+				return nil, agent.Invalid("el nivel es %s: «%s» solo vale en AD; señala una dificultad que muestre el material", *m.Level, NoDifficultiesAD)
+			}
+		}
 	}
 	if len(res.Recommendations) == 0 {
 		return nil, agent.Invalid("toda conclusión debe incluir al menos una recomendación personalizada (5.1.1.3 p.7)")
@@ -298,33 +315,33 @@ func (a *Agent) Apply(ctx context.Context, tx pgx.Tx, gen repo.AgentGeneration, 
 	}
 
 	res.Body = compose(res)
+	if n := domain.ConclusionLength(res.Body); n > domain.ConclusionMaxChars {
+		return nil, agent.Invalid("la conclusión tiene %d caracteres y SIAGIE acepta como máximo %d: acórtala en al menos %d sin quitar el avance, la dificultad ni la recomendación",
+			n, domain.ConclusionMaxChars, n-domain.ConclusionMaxChars)
+	}
 	return json.Marshal(res)
 }
 
-// compose writes the conclusion as the teacher will edit it: progress,
-// difficulties, the justification or supports when the norm asks for them,
-// and the recommendations, one paragraph each.
+// compose writes the conclusion as SIAGIE receives it and the teacher edits
+// it: one paragraph with progress, difficulties, the justification or supports
+// when the norm asks for them, and the recommendations.
 func compose(r Result) string {
-	var paragraphs []string
+	var sentences []string
 	add := func(points []Point) {
-		var texts []string
 		for _, p := range points {
-			texts = append(texts, sentence(p.Text))
-		}
-		if len(texts) > 0 {
-			paragraphs = append(paragraphs, strings.Join(texts, " "))
+			sentences = append(sentences, sentence(p.Text))
 		}
 	}
 	add(r.Progress)
 	add(r.Difficulties)
 	if r.NoProgressJustification != "" {
-		paragraphs = append(paragraphs, sentence(r.NoProgressJustification))
+		sentences = append(sentences, sentence(r.NoProgressJustification))
 	}
 	if r.SupportsProvided != "" {
-		paragraphs = append(paragraphs, sentence(r.SupportsProvided))
+		sentences = append(sentences, sentence(r.SupportsProvided))
 	}
 	add(r.Recommendations)
-	return strings.Join(paragraphs, "\n\n")
+	return domain.NormalizeConclusion(strings.Join(sentences, " "))
 }
 
 // sentence ends a text with a period when it has no closing punctuation.

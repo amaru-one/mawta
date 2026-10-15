@@ -43,12 +43,13 @@ func TestComposeOrdersSectionsAndClosesSentences(t *testing.T) {
 		NoProgressJustification: "No logró aplicar la estrategia en situaciones nuevas",
 		Recommendations:         []Point{{Text: "Practicar con material concreto"}, {Text: "Explicar en voz alta cada paso."}},
 	})
+	// One paragraph, as SIAGIE receives it.
 	want := strings.Join([]string{
 		"Explica el problema con sus palabras.",
 		"Aún confunde fracciones equivalentes.",
 		"No logró aplicar la estrategia en situaciones nuevas.",
 		"Practicar con material concreto. Explicar en voz alta cada paso.",
-	}, "\n\n")
+	}, " ")
 	if body != want {
 		t.Fatalf("body:\n%s\n--- want ---\n%s", body, want)
 	}
