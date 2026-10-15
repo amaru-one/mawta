@@ -248,6 +248,13 @@ func (e *panicError) Error() string {
 // teacher profile exactly as the old tenantAuth query did, inside a real
 // tenant transaction.
 func (a *API) sessionAuth(next http.Handler) http.Handler {
+	return a.authenticate(a.requireTeacher(next))
+}
+
+// authenticate is the role-independent half of sessionAuth: it validates the
+// session and stores the tenant context without a teacher. Routes open to
+// every logged-in role (GET /me) mount it directly.
+func (a *API) authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		reqID := requestIDFrom(r)
 
@@ -308,10 +315,24 @@ func (a *API) sessionAuth(next http.Handler) http.Handler {
 		}
 
 		tc := db.TenantCtx{TenantID: session.TenantID, ActorID: session.UserID, RequestID: reqID, Role: session.Role}
+		ctx := context.WithValue(r.Context(), tenantCtxKey, tc)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// requireTeacher is the teacher half of sessionAuth: it resolves the teacher
+// profile of an authenticated session. Any other role gets 403.
+func (a *API) requireTeacher(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		tc := tenantCtxFrom(r)
+		if tc.Role != domain.RoleTeacher {
+			writeAppError(w, db.NewAppError(http.StatusForbidden, "not_a_member", "actor has no active teaching membership in this tenant"))
+			return
+		}
 		var teacherID uuid.UUID
-		err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		err := a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
 			var err error
-			teacherID, err = repo.ResolveTeacher(r.Context(), tx, session.UserID)
+			teacherID, err = repo.ResolveTeacher(r.Context(), tx, tc.ActorID)
 			return err
 		})
 		if err != nil {

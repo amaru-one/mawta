@@ -40,7 +40,12 @@
 				shortName: name,
 				school: me.tenant.name,
 			});
+			// A director only has /direccion; a teacher never sees it.
+			const onDirector = page.url.pathname.startsWith('/direccion');
+			if (me.role === 'director' && !onDirector) await goto('/direccion', { replaceState: true });
+			if (me.role !== 'director' && onDirector) await goto('/', { replaceState: true });
 			session.set({ status: 'authenticated', role: me.role });
+			if (me.role === 'director') return;
 
 			// Only loads once signed in — an unconditional load would spam
 			// /notifications with 401s (each one re-triggering the redirect)

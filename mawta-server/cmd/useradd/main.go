@@ -42,7 +42,7 @@ func run() error {
 		givenName        = flag.String("given-name", "", "required")
 		familyName       = flag.String("family-name", "", "required")
 		displayName      = flag.String("display-name", "", "defaults to \"given family\"")
-		role             = flag.String("role", "teacher", "teacher|student|supervisor|admin")
+		role             = flag.String("role", "teacher", "teacher|student|supervisor|admin|director")
 		title            = flag.String("title", "Docente de Secundaria", "teachers.title")
 		hiredOn          = flag.String("hired-on", "", "teachers.hired_on, YYYY-MM-DD")
 		employeeCode     = flag.String("employee-code", "", "teachers.employee_code")
@@ -116,7 +116,7 @@ func run() error {
 		return errors.New("-email, -given-name and -family-name are required")
 	}
 	if !isValidRole(*role) {
-		return fmt.Errorf("-role must be one of teacher|student|supervisor|admin, got %q", *role)
+		return fmt.Errorf("-role must be one of teacher|student|supervisor|admin|director, got %q", *role)
 	}
 	dName := *displayName
 	if dName == "" {
@@ -229,7 +229,7 @@ func resetUserPassword(ctx context.Context, database *db.DB, username, password 
 
 func isValidRole(role string) bool {
 	switch role {
-	case "teacher", "student", "supervisor", "admin":
+	case "teacher", "student", "supervisor", "admin", "director":
 		return true
 	default:
 		return false

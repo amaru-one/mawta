@@ -52,7 +52,11 @@
 				school: me.tenant.name,
 			});
 			session.set({ status: 'authenticated', role: me.role });
-			await goto(safeNext(page.url.searchParams.get('next')) ?? '/', { replaceState: true });
+			const next =
+				me.role === 'director'
+					? '/direccion'
+					: (safeNext(page.url.searchParams.get('next')) ?? '/');
+			await goto(next, { replaceState: true });
 		} catch (err) {
 			error = messageFor(err);
 			submitting = false;
