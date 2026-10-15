@@ -46,12 +46,16 @@ func (a *API) Router() http.Handler {
 		r.Post("/auth/login", a.handleLogin)
 		r.Post("/auth/logout", a.handleLogout)
 
+		// Open to every logged-in role; handleMe answers by role.
+		r.Group(func(r chi.Router) {
+			r.Use(a.authenticate)
+			r.Get("/me", a.handleMe)
+		})
+
 		// chi panics on Use() after routes are registered on the same
 		// router, so the protected surface needs its own Group.
 		r.Group(func(r chi.Router) {
 			r.Use(a.sessionAuth)
-
-			r.Get("/me", a.handleMe)
 
 			r.Get("/home", a.handleHome)
 

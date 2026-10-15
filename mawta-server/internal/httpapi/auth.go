@@ -117,6 +117,14 @@ func (a *API) handleLogin(w http.ResponseWriter, r *http.Request) {
 	tc := db.TenantCtx{TenantID: membership.TenantID, ActorID: candidate.UserID, RequestID: reqID, Role: membership.Role}
 	var meResp repo.MeResponse
 	err = a.db.WithTenantTx(r.Context(), tc, func(tx pgx.Tx) error {
+		if membership.Role == domain.RoleDirector {
+			var err error
+			meResp, err = repo.GetDirectorMe(r.Context(), tx, candidate.UserID)
+			if err != nil {
+				return err
+			}
+			return repo.LogEvent(r.Context(), tx, "auth.login", "user", &tc.ActorID, nil, nil, nil, nil)
+		}
 		teacherID, err := repo.ResolveTeacher(r.Context(), tx, candidate.UserID)
 		if err != nil {
 			return err

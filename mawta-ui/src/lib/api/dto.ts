@@ -14,7 +14,7 @@ export type NotificationKind = 'alert' | 'reminder';
 // memberships.role / user_sessions.role — mirrors internal/domain/consts.go.
 // Only 'teacher' can complete a login today; the other three are modelled
 // for later.
-export type Role = 'teacher' | 'student' | 'supervisor' | 'admin';
+export type Role = 'teacher' | 'student' | 'supervisor' | 'admin' | 'director';
 
 // ---- identity ----
 

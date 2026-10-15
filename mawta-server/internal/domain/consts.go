@@ -118,6 +118,7 @@ const (
 	RoleStudent    = "student"
 	RoleSupervisor = "supervisor"
 	RoleAdmin      = "admin"
+	RoleDirector   = "director"
 )
 
 // LoginEnabledRoles is the whole of the role gate on login. Adding a role
@@ -125,7 +126,8 @@ const (
 // (sessionAuth, handleLogin) is written against the session's role
 // generically rather than against RoleTeacher specifically.
 var LoginEnabledRoles = map[string]bool{
-	RoleTeacher: true,
+	RoleTeacher:  true,
+	RoleDirector: true,
 }
 
 // user_sessions.revoked_reason
