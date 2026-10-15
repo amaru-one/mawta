@@ -298,6 +298,9 @@ export type CompetencyLevelDto = {
 	conclusion_requirement: ConclusionRequirement;
 	conclusion_body: string | null;
 	conclusion_status: ConclusionStatus | null;
+	// A score of this competency changed after the live conclusion was written:
+	// the conclusion can be saved again even if its text did not change.
+	grades_changed: boolean;
 };
 
 export type CompetencyLevelsDto = { competencies: CompetencyLevelDto[] | null };
@@ -312,9 +315,6 @@ export type AssertCompetencyLevelDto = {
 export type ConclusionCreateDto = {
 	competency_id: string;
 	body: string;
-	// Every conclusion must carry personalised recommendations (5.1.1.3 p.7);
-	// the server rejects a 'final' one that does not.
-	includes_recommendations: boolean;
 	status: ConclusionStatus;
 	term_id?: string;
 	// The Mawta proposal the teacher started from, if any. The text is still

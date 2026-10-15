@@ -37,8 +37,7 @@ export function assertCompetencyLevel(
 	);
 }
 
-// Writes a conclusión descriptiva. A 'final' one without
-// includes_recommendations is rejected with 422 missing_recommendations.
+// Writes a conclusión descriptiva.
 export function upsertConclusion(
 	classId: string,
 	studentId: string,

@@ -38,6 +38,12 @@
 	import { getClassCriteria } from '$lib/api/endpoints/criteria';
 	import { correctScore, createScore } from '$lib/api/endpoints/scores';
 	import { getStudentEvidence } from '$lib/api/endpoints/students';
+	import {
+		CONCLUSION_MAX_CHARS,
+		CONCLUSION_MIN_CHARS,
+		conclusionLength,
+		normalizeConclusion,
+	} from '$lib/conclusion';
 	import CompetencyIndex from '$lib/components/CompetencyIndex.svelte';
 	import ConclusionAssistant from '$lib/components/ConclusionAssistant.svelte';
 	import LevelSelector from '$lib/components/LevelSelector.svelte';
@@ -218,6 +224,11 @@
 						})
 					: await correctScore(existing.score_id, { status, raw_value: rawValue, level });
 			applyScore(e.assessment_id, res.id, status, rawValue, level);
+			// The evidence on screen belongs to `selected`: its conclusion may
+			// no longer match the evidence, so it can be saved again.
+			levels = levels.map((l) =>
+				l.competency_id === selected ? { ...l, grades_changed: true } : l
+			);
 		} catch (err) {
 			showToast(err instanceof ApiError ? err.message : 'No se pudo guardar — revisa tu conexión');
 		} finally {
@@ -281,7 +292,6 @@
 	// and for a student at level C or with inclusion support it is mandatory —
 	// hiding it behind a tap is how it goes unwritten.
 	let draft = $state('');
-	let withRecs = $state(false);
 	let savingConclusion = $state(false);
 	// The Mawta proposal the draft started from, sent along when it is saved
 	// so the conclusion stays traceable to what the agent read.
@@ -290,7 +300,6 @@
 	let replaceOpen = $state(false);
 	let switchTo = $state<string | null>(null);
 	let switchOpen = $state(false);
-	let recsError = $state(false);
 	// The draft differs from what the server holds for this competencia.
 	const conclusionDirty = (): boolean =>
 		draft.trim() !== (currentLevel?.conclusion_body ?? '').trim();
@@ -298,14 +307,11 @@
 
 	// Re-seed the draft when the competencia changes, from whatever is on the
 	// server. `untrack` so typing does not re-seed it on every keystroke.
-	// `includes_recommendations` is not on the DTO, so the box always starts
-	// unticked — see this route's SPEC.md.
 	$effect(() => {
 		const competencyId = selected;
 		if (!ready || competencyId === '') return;
 		untrack(() => {
 			draft = currentLevel?.conclusion_body ?? '';
-			withRecs = false;
 			generationId = null;
 		});
 	});
@@ -325,8 +331,6 @@
 	function applyProposal(body: string, fromGeneration: string): void {
 		draft = body;
 		generationId = fromGeneration;
-		// Every Mawta proposal carries at least one recommendation.
-		withRecs = true;
 		pendingProposal = null;
 		showToast('Propuesta copiada al borrador: revísala antes de guardar');
 	}
@@ -334,26 +338,50 @@
 	const evidenceTitle = (assessmentId: string): string | undefined =>
 		evidence.find((e) => e.assessment_id === assessmentId)?.title;
 
+	// SIAGIE's range holds for drafts too: the server rejects anything outside
+	// it, so neither button saves a text that does not fit.
+	const conclusionChars = $derived(conclusionLength(normalizeConclusion(draft)));
+	const conclusionFits = $derived(
+		conclusionChars >= CONCLUSION_MIN_CHARS && conclusionChars <= CONCLUSION_MAX_CHARS
+	);
+	const conclusionError = $derived(
+		conclusionChars > CONCLUSION_MAX_CHARS
+			? `Supera el máximo de SIAGIE: quita ${conclusionChars - CONCLUSION_MAX_CHARS} caracteres.`
+			: conclusionChars > 0 && conclusionChars < CONCLUSION_MIN_CHARS
+				? `SIAGIE pide al menos ${CONCLUSION_MIN_CHARS} caracteres.`
+				: undefined
+	);
+	// What the buttons compare against: the text the server holds and whether
+	// a score of this competency changed since it was written.
+	const hasSavedConclusion = $derived(currentLevel?.conclusion_status != null);
+	const conclusionChanged = $derived(
+		normalizeConclusion(draft) !== (currentLevel?.conclusion_body ?? '') ||
+			(currentLevel?.grades_changed ?? false)
+	);
+	// Guardar borrador: needs something new to save. Marcar como final: also
+	// valid on a draft that has not changed, to promote it.
+	const canSaveDraft = $derived(conclusionFits && (!hasSavedConclusion || conclusionChanged));
+	const canMarkFinal = $derived(
+		conclusionFits &&
+			(!hasSavedConclusion || conclusionChanged || currentLevel?.conclusion_status === 'draft')
+	);
+
 	async function saveConclusion(status: 'draft' | 'final'): Promise<void> {
-		if (savingConclusion || selected === '' || draft.trim() === '') return;
-		// Mirrors the server's 422 missing_recommendations rather than letting the
-		// teacher lose the text to a rejection.
-		recsError = status === 'final' && !withRecs;
-		if (recsError) {
-			return;
-		}
+		if (savingConclusion || selected === '' || !conclusionFits) return;
+		// Saved as SIAGIE receives it: one paragraph.
+		const body = normalizeConclusion(draft);
 		savingConclusion = true;
 		try {
 			await upsertConclusion(courseId, studentId, {
 				competency_id: selected,
-				body: draft.trim(),
-				includes_recommendations: withRecs,
+				body,
 				status,
 				generation_id: generationId ?? undefined,
 			});
+			draft = body;
 			levels = levels.map((l) =>
 				l.competency_id === selected
-					? { ...l, conclusion_body: draft.trim(), conclusion_status: status }
+					? { ...l, conclusion_body: body, conclusion_status: status, grades_changed: false }
 					: l
 			);
 			showToast(status === 'final' ? 'Conclusión guardada como final' : 'Borrador guardado');
@@ -415,7 +443,6 @@
 				<p class="comp">{current.name}</p>
 
 				<!-- READ -->
-				<p class="eyebrow">Evidencias del periodo</p>
 				<p class="hint">Cada evidencia se valora en su propia escala. Se guarda al tocar.</p>
 
 				{#if evidence.length === 0}
@@ -517,12 +544,11 @@
 					rows={4}
 					bind:value={draft}
 					placeholder="Qué logró, qué le falta y cómo seguir."
+					help="{conclusionChars}/{CONCLUSION_MAX_CHARS} caracteres (máximo de SIAGIE)"
+					error={conclusionError}
 				/>
-				<Checkbox bind:checked={withRecs}>
-					<span class="grow">Incluye recomendaciones personalizadas</span>
-				</Checkbox>
-				{#if recsError}<p class="mw-field__error" role="alert">
-						Para marcarla como final, incluye recomendaciones personalizadas.
+				{#if hasSavedConclusion && currentLevel?.grades_changed}<p class="meta">
+						Hubo cambios en las calificaciones desde que guardaste esta conclusión.
 					</p>{/if}
 				{#if draft.trim() === ''}<p class="meta">
 						Escribe la conclusión para poder guardarla.
@@ -531,13 +557,13 @@
 					<Button
 						variant="secondary"
 						type="button"
-						disabled={savingConclusion || draft.trim() === ''}
+						disabled={savingConclusion || !canSaveDraft}
 						onclick={() => void saveConclusion('draft')}>Guardar borrador</Button
 					>
 					<Button
 						variant="primary"
 						type="button"
-						disabled={savingConclusion || draft.trim() === ''}
+						disabled={savingConclusion || !canMarkFinal}
 						onclick={() => void saveConclusion('final')}>Marcar como final</Button
 					>
 				</div>
