@@ -10,6 +10,7 @@ import (
 
 	"github.com/joho/godotenv"
 
+	"mawta-server/internal/chattoken"
 	"mawta-server/internal/logging"
 )
 
@@ -68,6 +69,14 @@ type Config struct {
 	LoginMaxFailures    int
 	LoginLockout        time.Duration
 	BcryptCost          int
+
+	// The director's token for the chat service (GET /auth/chat-token). The
+	// key is a base64 32-byte Ed25519 seed, made with cmd/chatkey. Empty is
+	// valid: the route answers chat_unavailable. A key that is set but
+	// invalid refuses to boot.
+	ChatTokenSigningKey string
+	ChatTokenKeyID      string
+	ChatTokenTTL        time.Duration
 }
 
 func Load() (Config, error) {
@@ -115,10 +124,20 @@ func Load() (Config, error) {
 		LoginMaxFailures:    getint("LOGIN_MAX_FAILURES", 8),
 		LoginLockout:        getdur("LOGIN_LOCKOUT", 15*time.Minute),
 		BcryptCost:          getint("BCRYPT_COST", 12),
+
+		ChatTokenSigningKey: getenv("CHAT_TOKEN_SIGNING_KEY", ""),
+		ChatTokenKeyID:      getenv("CHAT_TOKEN_KEY_ID", ""),
+		ChatTokenTTL:        getdur("CHAT_TOKEN_TTL", time.Hour),
 	}
 
 	if cfg.DatabaseURL == "" {
 		return cfg, fmt.Errorf("config: DATABASE_URL is required")
+	}
+
+	if cfg.ChatTokenSigningKey != "" {
+		if _, err := chattoken.NewIssuer(cfg.ChatTokenSigningKey, cfg.ChatTokenKeyID, cfg.ChatTokenTTL); err != nil {
+			return cfg, fmt.Errorf("config: CHAT_TOKEN_SIGNING_KEY / CHAT_TOKEN_KEY_ID / CHAT_TOKEN_TTL: %w", err)
+		}
 	}
 
 	// AllowCredentials with a wildcard origin is rejected by every browser
