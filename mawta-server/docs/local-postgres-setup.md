@@ -66,6 +66,14 @@ before `DATABASE_URL` above can connect as it:
 docker exec mawta-pg psql -U postgres -d mawta -c "alter role mawta_app login password 'mawta_app';"
 ```
 
+`00006` does the same for `mawta_chat`, the role the director chat service
+connects as (it can read only the `chat_api` views and write only the `chat`
+schema). Give it a password before running that service locally:
+
+```sh
+docker exec mawta-pg psql -U postgres -d mawta -c "alter role mawta_chat password 'mawta_chat';"
+```
+
 ## Connecting as the application
 
 RLS is **forced** on every tenant table. `cmd/api`'s own pool connects
