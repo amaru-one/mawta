@@ -349,3 +349,15 @@ func (a *API) requireTeacher(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
+
+// requireDirector admits only a director's session. It sits behind
+// authenticate, like requireTeacher.
+func (a *API) requireDirector(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if tenantCtxFrom(r).Role != domain.RoleDirector {
+			writeAppError(w, db.NewAppError(http.StatusForbidden, "not_a_director", "solo la dirección puede usar esta función"))
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}

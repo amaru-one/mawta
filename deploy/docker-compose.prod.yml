@@ -56,6 +56,12 @@ services:
       # and teachers plan by hand.
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       PLANNING_AGENT_MODEL: ${PLANNING_AGENT_MODEL:-claude-sonnet-5-5}
+      # The director's token for the chat service (GET /api/v1/auth/chat-token).
+      # Generate with `go run ./cmd/chatkey -kid k1`. Optional: without it the
+      # route answers chat_unavailable; a set but invalid key stops the API
+      # from starting.
+      CHAT_TOKEN_SIGNING_KEY: ${CHAT_TOKEN_SIGNING_KEY:-}
+      CHAT_TOKEN_KEY_ID: ${CHAT_TOKEN_KEY_ID:-}
       # Lets `docker compose run --rm --entrypoint goose api up` migrate with
       # zero CLI args — no shell needed to expand a $DATABASE_URL argument
       # over SSH, and the distroless image has no shell to do it anyway.

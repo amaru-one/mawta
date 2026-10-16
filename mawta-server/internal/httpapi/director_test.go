@@ -11,11 +11,12 @@ import (
 	"mawta-server/internal/dbtest"
 )
 
-// A director logs in without a teacher profile, reads /me, and is kept out
-// of every teacher route.
-func TestDirectorLogsInWithoutATeacherProfile(t *testing.T) {
-	env := dbtest.Setup(t)
-	h := newAPI(t, env)
+const directorUsername = "rhuaman-directora"
+
+// insertDirector adds a director (membership role director, no teachers row)
+// to tenant A, with testPassword, and removes it when the test ends.
+func insertDirector(t *testing.T, env *dbtest.Env) uuid.UUID {
+	t.Helper()
 	ctx := context.Background()
 
 	var userID uuid.UUID
@@ -39,9 +40,18 @@ func TestDirectorLogsInWithoutATeacherProfile(t *testing.T) {
 		values ($1, $2, 'director', 'active', now())`, env.Fx.TenantA, userID); err != nil {
 		t.Fatalf("insert membership: %v", err)
 	}
-	setPassword(t, env, "rhuaman-directora")
+	setPassword(t, env, directorUsername)
+	return userID
+}
 
-	w := postLogin(t, h, "rhuaman-directora", testPassword)
+// A director logs in without a teacher profile, reads /me, and is kept out
+// of every teacher route.
+func TestDirectorLogsInWithoutATeacherProfile(t *testing.T) {
+	env := dbtest.Setup(t)
+	h := newAPI(t, env)
+	insertDirector(t, env)
+
+	w := postLogin(t, h, directorUsername, testPassword)
 	if w.Code != http.StatusOK {
 		t.Fatalf("login: got %d (%s), want 200", w.Code, strings.TrimSpace(w.Body.String()))
 	}

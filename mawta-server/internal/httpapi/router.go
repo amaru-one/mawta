@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 
+	"mawta-server/internal/chattoken"
 	"mawta-server/internal/config"
 	"mawta-server/internal/db"
 )
@@ -18,10 +19,23 @@ type API struct {
 	db     *db.DB
 	cfg    config.Config
 	logger *slog.Logger
+	// chatTokens is nil when no chat signing key is configured.
+	chatTokens *chattoken.Issuer
 }
 
 func New(database *db.DB, cfg config.Config, logger *slog.Logger) *API {
-	return &API{db: database, cfg: cfg, logger: logger}
+	a := &API{db: database, cfg: cfg, logger: logger}
+	if cfg.ChatTokenSigningKey != "" {
+		// config.Load already refuses an invalid key; this only fails for a
+		// Config built by hand, and then the route answers chat_unavailable.
+		issuer, err := chattoken.NewIssuer(cfg.ChatTokenSigningKey, cfg.ChatTokenKeyID, cfg.ChatTokenTTL)
+		if err != nil {
+			logger.Error("chat token issuer", "error", err)
+		} else {
+			a.chatTokens = issuer
+		}
+	}
+	return a
 }
 
 func (a *API) Router() http.Handler {
@@ -50,6 +64,12 @@ func (a *API) Router() http.Handler {
 		r.Group(func(r chi.Router) {
 			r.Use(a.authenticate)
 			r.Get("/me", a.handleMe)
+		})
+
+		// The director's token for the chat service.
+		r.Group(func(r chi.Router) {
+			r.Use(a.authenticate, a.requireDirector)
+			r.Get("/auth/chat-token", a.handleChatToken)
 		})
 
 		// chi panics on Use() after routes are registered on the same
