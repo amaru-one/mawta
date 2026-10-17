@@ -19,3 +19,9 @@ mawta-ui/node_modules/
 mawta-ui/.svelte-kit/
 mawta-ui/build/
 mawta-ui/dist/
+
+# mawta-chat
+mawta-chat/.venv/
+mawta-chat/.pytest_cache/
+mawta-chat/.ruff_cache/
+__pycache__/
