@@ -191,3 +191,26 @@ func TestMawtaAppHasNoChatAccess(t *testing.T) {
 		}
 	}
 }
+
+// Every table with a student_id must declare itself in the personal-data
+// registry (privacy.minor_data_tables reads table comments). A new table that
+// forgets fails here instead of silently missing from retention and deletion.
+func TestEveryStudentReferenceIsDeclared(t *testing.T) {
+	env := dbtest.Setup(t)
+	rows, err := env.Admin.Pool.Query(context.Background(),
+		`select table_name, column_name from privacy.undeclared_student_references`)
+	if err != nil {
+		t.Fatalf("query: %v", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var table, column string
+		if err := rows.Scan(&table, &column); err != nil {
+			t.Fatalf("scan: %v", err)
+		}
+		t.Errorf("%s.%s references a student but the table is not declared as holding minors' data", table, column)
+	}
+	if err := rows.Err(); err != nil {
+		t.Fatalf("rows: %v", err)
+	}
+}

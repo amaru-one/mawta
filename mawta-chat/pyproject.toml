@@ -1,0 +1,49 @@
+[project]
+name = "mawta-chat"
+version = "0.1.0"
+description = "Director chat service for Mawta"
+readme = "README.md"
+authors = [
+    { name = "amaru", email = "amaruorihuela@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "anthropic>=1.15.0",
+    "fastapi>=0.143.3",
+    "langgraph>=1.2.16",
+    "langgraph-checkpoint-postgres>=3.2.0",
+    "psycopg[binary,pool]>=3.3.6",
+    "pydantic-settings>=2.16.0",
+    "pyjwt[crypto]>=2.15.1",
+    "sse-starlette>=3.5.0",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[project.scripts]
+mawta-chat = "mawta_chat:main"
+
+[build-system]
+requires = ["uv_build>=0.13.1,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.17.1",
+]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "SIM", "UP"]
+ignore = ["E501"]  # long SQL and prompt lines; the formatter handles code
+
+[tool.ruff.lint.isort]
+known-first-party = ["mawta_chat", "conftest"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
