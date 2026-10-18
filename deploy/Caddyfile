@@ -7,6 +7,14 @@
 		reverse_proxy api:8080
 	}
 
+	# The director chat service. handle_path strips /chat-api, and
+	# flush_interval -1 sends each Server-Sent Event as soon as it arrives.
+	handle_path /chat-api/* {
+		reverse_proxy chat:8001 {
+			flush_interval -1
+		}
+	}
+
 	handle {
 		root * /srv/ui
 		try_files {path} /index.html

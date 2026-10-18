@@ -1,6 +1,7 @@
-# Production stack: Postgres (pgvector), the Go API, and Caddy serving the
-# built SPA + reverse-proxying /api and /healthz to the API — same origin,
-# so the browser never needs CORS. Run from /srv/mawta (see ../DEPLOY.md).
+# Production stack: Postgres (pgvector), the Go API, the director chat
+# service, and Caddy serving the built SPA + reverse-proxying /api and
+# /healthz to the API and /chat-api to the chat — same origin, so the
+# browser never needs CORS. Run from /srv/mawta (see ../DEPLOY.md).
 #
 # Usage:
 #   docker compose --env-file /srv/mawta/.env -f docker-compose.prod.yml up -d
@@ -72,11 +73,42 @@ services:
     volumes:
       - /srv/mawta/audio:/data/audio
 
+  # The director chat service (mawta-chat). Reached only through Caddy at
+  # /chat-api/*. Its variables are required: a deploy without them fails
+  # loudly instead of shipping a chat that cannot start.
+  chat:
+    image: ${CHAT_IMAGE:-mawta-chat:local}
+    build:
+      context: ../mawta-chat
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # The mawta database as mawta_chat: reads chat_api, writes chat (00006).
+      CHAT_DATABASE_URL: postgres://mawta_chat:${MAWTA_CHAT_PASSWORD:?set MAWTA_CHAT_PASSWORD in .env}@postgres:5432/mawta?sslmode=disable
+      # LangGraph's own database, owned by mawta_langgraph (created by hand,
+      # see mawta-chat/README.md); LangGraph creates its tables on startup.
+      LANGGRAPH_DATABASE_URL: postgres://mawta_langgraph:${LANGGRAPH_PASSWORD:?set LANGGRAPH_PASSWORD in .env}@postgres:5432/langgraph?sslmode=disable
+      # {"kid": "<base64 public key>"} matching CHAT_TOKEN_SIGNING_KEY above.
+      CHAT_TOKEN_PUBLIC_KEYS: ${CHAT_TOKEN_PUBLIC_KEYS:?set CHAT_TOKEN_PUBLIC_KEYS in .env}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?set ANTHROPIC_API_KEY in .env}
+      CHAT_MODEL: ${CHAT_MODEL:-claude-sonnet-5-5}
+    # A small droplet (2 GB, 1 CPU): the chat must not starve Postgres or the API.
+    mem_limit: 512m
+    healthcheck:
+      test: ['CMD', 'python', '-c', "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
     depends_on:
       - api
+      - chat
     environment:
       DOMAIN: ${DOMAIN:?set DOMAIN in .env}
     ports:

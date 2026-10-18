@@ -59,3 +59,35 @@ jobs:
       - run: bunx playwright install --with-deps chromium webkit
       - run: bun run test:components
       - run: bun run build
+
+  chat:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mawta-chat
+    # Same contract as the server job: the chat tests migrate their own
+    # throwaway databases from mawta-server/migrations and skip without
+    # MAWTA_TEST_ADMIN_URL, so setting it is what makes them count.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.13.1'
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run pytest
+        env:
+          MAWTA_TEST_ADMIN_URL: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable

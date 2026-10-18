@@ -53,6 +53,32 @@ uv run mawta-chat      # http://127.0.0.1:8001
 
 `CHAT_TOKEN_PUBLIC_KEYS` must hold the public key matching the `CHAT_TOKEN_SIGNING_KEY` your local `mawta-server` uses (`go run ./cmd/chatkey -kid k-local` in `mawta-server` prints both).
 
+Or in a container, next to the rest of the local stack: `docker compose -f docker-compose.local.yml --profile chat up`.
+
+## Production
+
+Deployed with the rest of Mawta on every push to `main` (`.github/workflows/deploy.yml`): the image `ghcr.io/amaru-one/mawta-chat:<sha>` runs as the `chat` service of `deploy/docker-compose.prod.yml`, with a 512 MB memory limit, and Caddy serves it at `https://<domain>/chat-api/*` (prefix stripped, SSE flushed immediately). The deploy smoke test checks `/chat-api/health` and that `/chat-api/threads` refuses a request without a token.
+
+`/srv/mawta/.env` on the droplet must define (the compose file refuses to start without them):
+
+| Variable | |
+|---|---|
+| `MAWTA_CHAT_PASSWORD` | Password of the `mawta_chat` role (migration `00006` creates the role without one) |
+| `LANGGRAPH_PASSWORD` | Password of the `mawta_langgraph` role, owner of the `langgraph` database |
+| `CHAT_TOKEN_PUBLIC_KEYS` | `{"k1":"<base64 public key>"}`, matching `CHAT_TOKEN_SIGNING_KEY` / `CHAT_TOKEN_KEY_ID` |
+| `ANTHROPIC_API_KEY` | Shared with `mawta-server`'s agents |
+
+The `langgraph` database is not a goose migration (it is not part of the `mawta` database). It was created once, by hand:
+
+```sh
+docker exec -i mawta-postgres-1 psql -U postgres <<'SQL'
+create role mawta_langgraph login connection limit 5 password '<LANGGRAPH_PASSWORD>';
+create database langgraph owner mawta_langgraph;
+SQL
+```
+
+**Rotating the token key** (chat-director D002): generate a pair with a new `-kid`, add its public key to `CHAT_TOKEN_PUBLIC_KEYS` next to the old one and redeploy, switch `CHAT_TOKEN_SIGNING_KEY` / `CHAT_TOKEN_KEY_ID`, and remove the old public key after an hour.
+
 ## Tests
 
 ```sh
