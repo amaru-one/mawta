@@ -1,40 +1,37 @@
 <script lang="ts">
-	import { Button } from '$lib/design-system';
 	import { goto } from '$app/navigation';
-	import { logout } from '$lib/api/endpoints/auth';
-	import { session, teacher } from '$lib/stores';
+	import { chatList } from '$lib/chat/state.svelte';
+	import Welcome from '$lib/chat/Welcome.svelte';
+	import { showToast } from '$lib/toast';
 
-	// Placeholder until the director chat exists.
-	async function handleLogout(): Promise<void> {
+	let starting = $state(false);
+
+	// A suggestion opens a new chat and is sent from there.
+	async function start(question: string): Promise<void> {
+		starting = true;
 		try {
-			await logout();
+			const thread = await chatList.create();
+			chatList.pendingQuestion = question;
+			await goto(`/direccion/${thread.id}`);
 		} catch {
-			// handleLogout is idempotent and clears the cookie either way.
+			showToast('No pudimos crear el chat. Inténtalo de nuevo.');
+			starting = false;
 		}
-		session.set({ status: 'anonymous' });
-		teacher.set(null);
-		await goto('/login', { replaceState: true });
 	}
 </script>
 
 <svelte:head>
 	<title>Dirección</title>
 </svelte:head>
-<div class="view">
-	<div class="body screen">
-		<h1 class="screen-title">Hola, {$teacher?.shortName ?? ''}</h1>
-		<p class="screen-sub">{$teacher?.school ?? ''}</p>
-		<p>El chat de dirección estará disponible pronto.</p>
-		<Button variant="secondary" block icon="logout" onclick={handleLogout}>Cerrar sesión</Button>
-	</div>
+
+<div class="home">
+	<Welcome onpick={start} disabled={starting || chatList.status !== 'ready'} />
 </div>
 
 <style>
-	.screen {
-		display: flex;
-		flex-direction: column;
-		gap: var(--mw-space-4);
-		max-width: var(--mw-shell-width);
-		margin: 0 auto;
+	.home {
+		flex: 1;
+		overflow-y: auto;
+		padding: var(--mw-space-6) var(--mw-space-4) var(--mw-space-8);
 	}
 </style>

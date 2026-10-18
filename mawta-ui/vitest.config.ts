@@ -7,7 +7,7 @@ export default defineConfig({
 	resolve: { alias: { $lib: fileURLToPath(new URL('./src/lib', import.meta.url)) } },
 	plugins: [svelte({ configFile: false })],
 	test: {
-		include: ['tests/design-system/**/*.test.ts'],
+		include: ['tests/design-system/**/*.test.ts', 'tests/chat/**/*.test.ts'],
 		browser: {
 			enabled: true,
 			headless: true,

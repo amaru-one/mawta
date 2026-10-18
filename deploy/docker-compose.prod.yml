@@ -116,7 +116,11 @@ services:
       - '443:443'
       - '443:443/udp'
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # The directory, not the file: the deploy replaces the Caddyfile with a
+      # new file, and a file bind mount keeps showing the container the old
+      # one, so `caddy reload` re-read stale config (2026-10-18). A directory
+      # mount sees the new file.
+      - ./caddy:/etc/caddy:ro
       - /srv/mawta/ui:/srv/ui:ro
       - caddy_data:/data
       - caddy_config:/config
