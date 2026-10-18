@@ -11,6 +11,10 @@
 	margin: 0 auto;
 	background: var(--mw-surface-card);
 }
+/* The director's chat is used on computers too: it lays out its own two columns. */
+.application .app-shell.wide {
+	max-width: none;
+}
 .application :where(button) {
 	border: 0;
 	padding: 0;

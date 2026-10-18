@@ -10,6 +10,7 @@
 	import { ApiError, setUnauthorizedHandler } from '$lib/api/client';
 	import { loginHref } from '$lib/auth';
 	import { loadNotifications } from '$lib/notifications';
+	import { forgetChatToken } from '$lib/chat/token';
 	import { session, teacher } from '$lib/stores';
 
 	let { children } = $props();
@@ -21,6 +22,7 @@
 	function goAnonymous(): void {
 		session.set({ status: 'anonymous' });
 		teacher.set(null);
+		forgetChatToken();
 		if (page.url.pathname !== '/login')
 			void goto(loginHref(page.url.pathname + page.url.search), { replaceState: true });
 	}
@@ -87,7 +89,7 @@
 </svelte:head>
 
 <DesignSystem class="application">
-	<div class="app-shell">
+	<div class="app-shell" class:wide={page.url.pathname.startsWith('/direccion')}>
 		{#if $session.status !== 'unknown'}
 			{@render children()}
 		{:else if bootFailed}

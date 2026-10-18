@@ -25,6 +25,11 @@ export default defineConfig({
 		proxy: {
 			'/api': process.env.API_PROXY_TARGET ?? 'http://localhost:8080',
 			'/healthz': process.env.API_PROXY_TARGET ?? 'http://localhost:8080',
+			// The director chat service (mawta-chat), as Caddy routes it in production.
+			'/chat-api': {
+				target: process.env.CHAT_PROXY_TARGET ?? 'http://localhost:8001',
+				rewrite: (path) => path.replace(/^\/chat-api/, ''),
+			},
 		},
 	},
 });

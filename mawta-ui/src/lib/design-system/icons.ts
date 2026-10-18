@@ -37,5 +37,12 @@ export const glyphs = {
 	presentation:
 		'<path d="M3 4h18" />\n\t\t<path d="M4 4v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V4" />\n\t\t<path d="M12 16v4" />\n\t\t<path d="M9 20h6" />',
 	'chevron-left': '<path d="M15 6l-6 6 6 6" />',
+	'arrow-up': '<path d="M12 19V5" />\n\t\t<path d="M6 11l6-6 6 6" />',
+	'arrow-down': '<path d="M12 5v14" />\n\t\t<path d="M6 13l6 6 6-6" />',
+	stop: '<rect x="7" y="7" width="10" height="10" rx="2" fill="currentColor" stroke="none" />',
+	dots: '<circle cx="5" cy="12" r="1" fill="currentColor" />\n\t\t<circle cx="12" cy="12" r="1" fill="currentColor" />\n\t\t<circle cx="19" cy="12" r="1" fill="currentColor" />',
+	pencil: '<path d="M4 20h4L18.5 9.5a2.8 2.8 0 0 0-4-4L4 16z" />\n\t\t<path d="M13.5 6.5l4 4" />',
+	chart:
+		'<path d="M4 20h16" />\n\t\t<path d="M7 16v-5" />\n\t\t<path d="M12 16V8" />\n\t\t<path d="M17 16v-3" />',
 } as const;
 export type IconName = keyof typeof glyphs;
