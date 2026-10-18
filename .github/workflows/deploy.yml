@@ -99,7 +99,7 @@ jobs:
           ssh "$SSH_TARGET" "cd /srv/mawta && export API_IMAGE=$API_IMAGE CHAT_IMAGE=$CHAT_IMAGE && \
             docker compose --env-file .env -f deploy/docker-compose.prod.yml pull api chat caddy postgres && \
             docker compose --env-file .env -f deploy/docker-compose.prod.yml run --rm --entrypoint /usr/local/bin/goose api up && \
-            docker compose --env-file .env -f deploy/docker-compose.prod.yml up -d && \
+            docker compose --env-file .env -f deploy/docker-compose.prod.yml up -d --wait && \
             docker compose --env-file .env -f deploy/docker-compose.prod.yml exec -T caddy caddy reload --config /etc/caddy/Caddyfile"
 
       # Every deploy pulls new images and nothing removed the old ones: by
@@ -115,7 +115,9 @@ jobs:
         env:
           DOMAIN: ${{ secrets.DOMAIN }}
         run: |
-          curl -fsS "https://$DOMAIN/healthz"
+          # --retry covers a transient 502/503 while a container is still starting
+          # (api and caddy have no healthcheck for `up --wait` to use).
+          curl -fsS --retry 5 --retry-delay 3 "https://$DOMAIN/healthz"
           # No credential in CI: real auth means there's nothing to log in
           # as here, so the smoke test just confirms the route requires a
           # session rather than trusting a header.
@@ -124,7 +126,7 @@ jobs:
             echo "expected 401 (no session) from /api/v1/me, got $status" >&2
             exit 1
           fi
-          curl -fsS "https://$DOMAIN/chat-api/health"
+          curl -fsS --retry 5 --retry-delay 3 "https://$DOMAIN/chat-api/health"
           status=$(curl -s -o /dev/null -w '%{http_code}' "https://$DOMAIN/chat-api/threads")
           if [ "$status" != "401" ]; then
             echo "expected 401 (no chat token) from /chat-api/threads, got $status" >&2
