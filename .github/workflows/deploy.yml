@@ -29,6 +29,26 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/mawta-api:latest
             ghcr.io/${{ github.repository_owner }}/mawta-api:${{ github.sha }}
 
+  build-chat-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: mawta-chat
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/mawta-chat:latest
+            ghcr.io/${{ github.repository_owner }}/mawta-chat:${{ github.sha }}
+
   build-ui:
     runs-on: ubuntu-latest
     steps:
@@ -48,7 +68,7 @@ jobs:
           path: mawta-ui/build
 
   deploy:
-    needs: [build-api-image, build-ui]
+    needs: [build-api-image, build-chat-image, build-ui]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -70,15 +90,26 @@ jobs:
           SSH_TARGET: ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}
         run: rsync -az deploy/ "$SSH_TARGET:/srv/mawta/deploy/"
 
-      - name: Pull the new API image, migrate, restart
+      - name: Pull the new images, migrate, restart
         env:
           SSH_TARGET: ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}
           API_IMAGE: ghcr.io/${{ github.repository_owner }}/mawta-api:${{ github.sha }}
+          CHAT_IMAGE: ghcr.io/${{ github.repository_owner }}/mawta-chat:${{ github.sha }}
         run: |
-          ssh "$SSH_TARGET" "cd /srv/mawta && export API_IMAGE=$API_IMAGE && \
-            docker compose --env-file .env -f deploy/docker-compose.prod.yml pull api caddy postgres && \
+          ssh "$SSH_TARGET" "cd /srv/mawta && export API_IMAGE=$API_IMAGE CHAT_IMAGE=$CHAT_IMAGE && \
+            docker compose --env-file .env -f deploy/docker-compose.prod.yml pull api chat caddy postgres && \
             docker compose --env-file .env -f deploy/docker-compose.prod.yml run --rm --entrypoint /usr/local/bin/goose api up && \
-            docker compose --env-file .env -f deploy/docker-compose.prod.yml up -d"
+            docker compose --env-file .env -f deploy/docker-compose.prod.yml up -d && \
+            docker compose --env-file .env -f deploy/docker-compose.prod.yml exec -T caddy caddy reload --config /etc/caddy/Caddyfile"
+
+      # Every deploy pulls new images and nothing removed the old ones: by
+      # 2026-10-18 they filled 34 GB of the 48 GB disk. Images no container
+      # uses, older than 3 days, go; rollback re-pulls from ghcr.io.
+      - name: Remove old images
+        env:
+          SSH_TARGET: ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}
+        run: |
+          ssh "$SSH_TARGET" "docker image prune -af --filter until=72h && docker builder prune -af --filter until=72h && df -h /"
 
       - name: Smoke test
         env:
@@ -91,5 +122,11 @@ jobs:
           status=$(curl -s -o /dev/null -w '%{http_code}' "https://$DOMAIN/api/v1/me")
           if [ "$status" != "401" ]; then
             echo "expected 401 (no session) from /api/v1/me, got $status" >&2
+            exit 1
+          fi
+          curl -fsS "https://$DOMAIN/chat-api/health"
+          status=$(curl -s -o /dev/null -w '%{http_code}' "https://$DOMAIN/chat-api/threads")
+          if [ "$status" != "401" ]; then
+            echo "expected 401 (no chat token) from /chat-api/threads, got $status" >&2
             exit 1
           fi
