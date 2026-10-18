@@ -27,7 +27,7 @@ from mawta_chat.llm import ModelTurn
 from mawta_chat.main import create_app
 from mawta_chat.settings import Settings
 
-SERVER = Path(__file__).resolve().parents[2] / "mawta-server"
+SERVER = Path(__file__).resolve().parents[2] / "mawta-api"
 
 # Rows of internal/dbtest/fixture.sql.
 TENANT_A = UUID("a0000000-0000-4000-8000-000000000001")  # I.E. Cristo Rey
@@ -57,7 +57,7 @@ def databases() -> Any:
     with psycopg.connect(make_conninfo(**{**base, "dbname": mawta_db}), autocommit=True) as conn:
         for migration in sorted((SERVER / "migrations").glob("*.sql")):
             conn.execute(goose_up(migration.read_text()))
-        conn.execute((SERVER / "internal/dbtest/fixture.sql").read_text())
+        conn.execute((SERVER / "tests/fixture.sql").read_text())
         conn.execute("alter role mawta_chat password 'chat-test'")
     yield (
         make_conninfo(

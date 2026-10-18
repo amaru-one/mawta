@@ -117,7 +117,7 @@ section "3. Synthetic HTTP traffic"
 REQ_ID="smoke-$(date +%s)-$$"
 echo "  generating traffic with X-Request-ID: ${REQ_ID}"
 
-# /healthz is a real route (router.go mounts the request logger globally), so
+# /healthz is a real route (the request logger is mounted globally), so
 # each curl produces one http.request event with route=/healthz. A second,
 # unmatched URL produces one with the raw path as its route. Neither touches
 # student data, sessions, or transcription.

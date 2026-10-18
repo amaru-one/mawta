@@ -1,4 +1,4 @@
-# Production stack: Postgres (pgvector), the Go API, the director chat
+# Production stack: Postgres (pgvector), the Python API, the director chat
 # service, and Caddy serving the built SPA + reverse-proxying /api and
 # /healthz to the API and /chat-api to the chat — same origin, so the
 # browser never needs CORS. Run from /srv/mawta (see ../DEPLOY.md).
@@ -28,7 +28,7 @@ services:
   api:
     image: ${API_IMAGE:-mawta-api:local}
     build:
-      context: ../mawta-server
+      context: ../mawta-api
     restart: unless-stopped
     depends_on:
       postgres:
@@ -58,7 +58,7 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       PLANNING_AGENT_MODEL: ${PLANNING_AGENT_MODEL:-claude-sonnet-5-5}
       # The director's token for the chat service (GET /api/v1/auth/chat-token).
-      # Generate with `go run ./cmd/chatkey -kid k1`. Optional: without it the
+      # Generate with `uv run chatkey --kid k1` (in mawta-api). Optional: without it the
       # route answers chat_unavailable; a set but invalid key stops the API
       # from starting.
       CHAT_TOKEN_SIGNING_KEY: ${CHAT_TOKEN_SIGNING_KEY:-}
