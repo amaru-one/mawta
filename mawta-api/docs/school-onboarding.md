@@ -132,7 +132,7 @@ values exactly as specified below.
 
 Each row's id derives from its identity:
 `md5('<type>:<modular code>:<key>')::uuid`, for example
-`md5('class:0723519:2026:MAT-1A')::uuid` (see `src/mawta_api/onboarding/__init__.py`).
+`md5('class:0723519:2026:MAT-1A')::uuid` (see `src/onboarding/__init__.py`).
 Loading the same file into an empty database produces the same ids.
 
 ## Updating an existing school's curriculum

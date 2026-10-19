@@ -8,11 +8,11 @@ import psycopg
 import pytest
 from psycopg.rows import dict_row
 
-from mawta_api import curriculum
-from mawta_api.onboarding import derive_id
-from mawta_api.onboarding import load as loader
-from mawta_api.onboarding import spec as spec_mod
-from mawta_api.onboarding.validate import ValidationErrors, validate
+import curriculum
+from onboarding import derive_id
+from onboarding import load as loader
+from onboarding import spec as spec_mod
+from onboarding.validate import ValidationErrors, validate
 
 SEED = Path(__file__).resolve().parents[1] / "seed" / "onboarding"
 EXAMPLE = SEED / "ejemplo-san-felipe.json"
@@ -110,7 +110,7 @@ def test_load_creates_the_school_and_rolls_back(databases, cat):
 
 
 def test_sync_is_idempotent_on_a_freshly_loaded_school(databases, cat):
-    from mawta_api.onboarding import sync as syncer
+    from onboarding import sync as syncer
 
     spec = example_spec()
     grade_map = {g.codigo: g.grado_cneb for g in spec.grados}

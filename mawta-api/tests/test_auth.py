@@ -8,7 +8,7 @@ hash on the user first (cost 4, the minimum).
 import psycopg
 import pytest
 
-from mawta_api import auth as authpkg
+import auth as authpkg
 from tests.conftest import COOKIE_NAME, FX, error_code
 
 TEST_PASSWORD = "una contraseña larga"
