@@ -17,7 +17,7 @@
 --   El cargador deriva cada id de lo que la fila es:
 --   md5('<tipo>:<código modular>:<clave>')::uuid, por ejemplo
 --   md5('class:0723519:2026:MAT-1A')::uuid. Por eso este archivo puede
---   nombrar las filas del colegio sin buscarlas (src/mawta_api/onboarding/__init__.py).
+--   nombrar las filas del colegio sin buscarlas (src/onboarding/__init__.py).
 --
 -- CÓMO SE EJECUTA
 --   Como superusuario, contra la base que ya tiene la estructura:

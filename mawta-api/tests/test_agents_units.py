@@ -8,14 +8,14 @@ import uuid
 import httpx
 import pytest
 
-from mawta_api import applog
-from mawta_api.agent.conclusions.guard import guard, name_words
-from mawta_api.agent.llm import LLMError
-from mawta_api.agent.llm.anthropic import classify, strict_schema
-from mawta_api.agent.redaction.replace import Fragment, LocateError, attribution, locate, redact
-from mawta_api.repo import redaction as rrepo
-from mawta_api.stt import Client, SttError, SttPermanentError
-from mawta_api.worker.handlers.transcribe import voice_note_transcribe
+import applog
+from agent.conclusions.guard import guard, name_words
+from agent.llm import LLMError
+from agent.llm.anthropic import classify, strict_schema
+from agent.redaction.replace import Fragment, LocateError, attribution, locate, redact
+from repo import redaction as rrepo
+from stt import Client, SttError, SttPermanentError
+from worker.handlers.transcribe import voice_note_transcribe
 
 
 def frag(text, refers_to="other_person", key=""):
@@ -185,7 +185,7 @@ async def insert_note(admin, audio=b"fake"):
 
 
 async def run_handler(client, handler, note):
-    from mawta_api.db import TenantCtx
+    from db import TenantCtx
     from tests.conftest import FX
 
     db = client.app.state.api.db

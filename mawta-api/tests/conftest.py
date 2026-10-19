@@ -24,9 +24,9 @@ from psycopg.conninfo import conninfo_to_dict, make_conninfo
 from psycopg.rows import dict_row
 from starlette.applications import Starlette
 
-from mawta_api import auth as authpkg
-from mawta_api.main import create_app
-from mawta_api.settings import Settings
+import auth as authpkg
+from main import create_app
+from settings import Settings
 
 ROOT = Path(__file__).resolve().parents[1]
 COOKIE_NAME = "mawta_session"

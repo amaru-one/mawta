@@ -53,8 +53,8 @@ contains passwords, tokens, cookies, API keys, request bodies (unless the opt-in
 ## Layout
 
 ```
-src/mawta_api/
-  main.py settings.py http.py applog.py db.py errors.py     app factory, config, plumbing
+src/
+  main.py settings.py web.py applog.py db.py errors.py     app factory, config, plumbing
   auth/ chattoken.py authz.py                               sessions, chat token, per-class guards
   repo/                                                     hand-written SQL, one module per area
   routes/                                                   HTTP handlers, one module per screen

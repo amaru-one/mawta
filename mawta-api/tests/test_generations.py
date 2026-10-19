@@ -10,12 +10,12 @@ import uuid
 
 import pytest
 
-from mawta_api.agent import MAX_ATTEMPTS
-from mawta_api.agent.llm import LLMError, Prices, Request, Response, Usage
-from mawta_api.agent.llm.fake import Fake, FakeReply
-from mawta_api.agent.planning import PlanningAgent
-from mawta_api.agent.runner import MSG_INVALID_ANSWER, MSG_RETRY_LATER, Outcome, Runner
-from mawta_api.repo import agent_generations as gens
+from agent import MAX_ATTEMPTS
+from agent.llm import LLMError, Prices, Request, Response, Usage
+from agent.llm.fake import Fake, FakeReply
+from agent.planning import PlanningAgent
+from agent.runner import MSG_INVALID_ANSWER, MSG_RETRY_LATER, Outcome, Runner
+from repo import agent_generations as gens
 from tests.conftest import FX, error_code
 from tests.planning_helpers import PLAN_CAP_C1A, PLAN_CAP_C1B, PLAN_PERF_C1A, PLAN_PERF_C1B
 from tests.test_authz import callers  # noqa: F401  (fixture)

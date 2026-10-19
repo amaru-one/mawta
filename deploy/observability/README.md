@@ -153,7 +153,7 @@ The dashboard has a "JSON parse failures" panel for exactly this.
 ## Example sanitized log events
 
 The API writes one JSON object per line to stdout. Sanitized examples of the
-three event types (see `mawta-api/src/mawta_api/applog.py` for the
+three event types (see `mawta-api/src/applog.py` for the
 complete vocabulary):
 
 ```json
@@ -170,7 +170,7 @@ complete vocabulary):
 
 No log entry contains passwords, session tokens, cookies, API keys,
 authorization headers, audio, transcripts, or student data — the API's
-capture policy (see `mawta-api/src/mawta_api/applog.py`) guarantees
+capture policy (see `mawta-api/src/applog.py`) guarantees
 that before the line ever reaches stdout, and the collector adds nothing.
 
 ## The dashboard

@@ -181,7 +181,7 @@ experience, so it never proves a single experience on its own.
 `body` is the conclusion as SIAGIE receives it: one paragraph with progress,
 difficulties, the justification or supports when the norm asks for them, and
 recommendations. SIAGIE accepts 10 to 350 characters, so the agent writes
-within that range from the start (`src/mawta_api/domain.py`).
+within that range from the start (`src/domain.py`).
 
 What the server enforces on the model's answer (otherwise one repair round,
 then the generation fails):

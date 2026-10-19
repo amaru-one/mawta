@@ -17,14 +17,19 @@ dependencies = [
 ]
 
 [project.scripts]
-mawta-api = "mawta_api.main:run"
-useradd = "mawta_api.cli.useradd:main"
-onboard = "mawta_api.cli.onboard:main"
-chatkey = "mawta_api.cli.chatkey:main"
+mawta-api = "main:run"
+useradd = "cli.useradd:main"
+onboard = "cli.onboard:main"
+chatkey = "cli.chatkey:main"
 
 [build-system]
-requires = ["uv_build>=0.13.1,<0.14.0"]
-build-backend = "uv_build"
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+# The modules live directly under src/ (no package wrapper): ship everything there at the wheel root.
+only-include = ["src"]
+sources = ["src"]
 
 [dependency-groups]
 dev = [
@@ -35,6 +40,8 @@ dev = [
 
 [tool.ruff]
 line-length = 100
+# Top-level modules live under src/, so it is first-party code for the import sorter.
+src = [".", "src"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]

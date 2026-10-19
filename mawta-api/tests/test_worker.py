@@ -7,10 +7,10 @@ import uuid
 
 import pytest
 
-from mawta_api import applog
-from mawta_api.worker import claim, dispatch
-from mawta_api.worker.registry import Job, Registry
+import applog
 from tests.conftest import FX
+from worker import claim, dispatch
+from worker.registry import Job, Registry
 
 
 @pytest.fixture

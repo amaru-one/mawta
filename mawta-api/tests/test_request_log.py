@@ -10,8 +10,8 @@ from starlette.middleware import Middleware
 from starlette.responses import PlainTextResponse
 from starlette.routing import Route
 
-from mawta_api import applog
-from mawta_api.http import RequestLogMiddleware, handle
+import applog
+from web import RequestLogMiddleware, handle
 
 
 def build(capture: bool = False):

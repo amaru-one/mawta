@@ -8,8 +8,8 @@ import pytest
 import pytest_asyncio
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
-from mawta_api import auth as authpkg
-from mawta_api import chattoken
+import auth as authpkg
+import chattoken
 from tests.conftest import COOKIE_NAME, FX, error_code
 from tests.test_auth import TEST_PASSWORD, post_login, set_password
 
