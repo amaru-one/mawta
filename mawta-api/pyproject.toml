@@ -1,0 +1,48 @@
+[project]
+name = "mawta-api"
+version = "0.1.0"
+description = "Mawta API: gradebook, classroom evidence, worker and agents"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "anthropic>=1.15.0",
+    "bcrypt>=4.2.0",
+    "httpx>=0.28.1",
+    "psycopg[binary,pool]>=3.3.6",
+    "pydantic-settings>=2.16.0",
+    "pyjwt[crypto]>=2.15.1",
+    "python-multipart>=0.0.20",
+    "starlette>=0.50.0",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[project.scripts]
+mawta-api = "mawta_api.main:run"
+useradd = "mawta_api.cli.useradd:main"
+onboard = "mawta_api.cli.onboard:main"
+chatkey = "mawta_api.cli.chatkey:main"
+
+[build-system]
+requires = ["uv_build>=0.13.1,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.17.1",
+]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+# Long lines are SQL and Spanish prompt/message text; the formatter handles code.
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+testpaths = ["tests"]

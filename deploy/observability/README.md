@@ -1,7 +1,7 @@
 # Local observability stack (Grafana, Loki, Alloy)
 
 This directory holds the local log-observability stack for Mawta: it collects
-the `mawta-server` API's structured JSON stdout logs and makes them searchable
+the `mawta-api` service's structured JSON stdout logs (the `service` label stays `mawta-server` so dashboards keep working) and makes them searchable
 in a local Grafana, without leaving the developer's machine.
 
 ```
@@ -25,7 +25,7 @@ deployment is described below** — see
   compose plugin. The stack is developed against the repository's Docker
   Desktop workflow: the same `docker compose -f docker-compose.local.yml up`
   command used for the app starts Grafana, Loki, and Alloy alongside it.
-- The Postgres prerequisite from `mawta-server/docs/local-postgres-setup.md`
+- The Postgres prerequisite from `mawta-api/docs/local-postgres-setup.md`
   (`mawta-pg` running, migrations applied) — unchanged by this stack.
 - `curl` and `python3` on the host for the smoke check (URL-encoding the
   LogQL queries).
@@ -153,7 +153,7 @@ The dashboard has a "JSON parse failures" panel for exactly this.
 ## Example sanitized log events
 
 The API writes one JSON object per line to stdout. Sanitized examples of the
-three event types (see `mawta-server/internal/logging/logging.go` for the
+three event types (see `mawta-api/src/mawta_api/applog.py` for the
 complete vocabulary):
 
 ```json
@@ -170,7 +170,7 @@ complete vocabulary):
 
 No log entry contains passwords, session tokens, cookies, API keys,
 authorization headers, audio, transcripts, or student data — the API's
-capture policy (see `mawta-server/internal/logging/logging.go`) guarantees
+capture policy (see `mawta-api/src/mawta_api/applog.py`) guarantees
 that before the line ever reaches stdout, and the collector adds nothing.
 
 ## The dashboard

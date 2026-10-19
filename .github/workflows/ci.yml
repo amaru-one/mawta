@@ -6,11 +6,11 @@ on:
     branches: [main]
 
 jobs:
-  server:
+  api:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: mawta-server
+        working-directory: mawta-api
     # The tests create their own throwaway database inside this service and
     # drop it again; they never touch the `postgres` database itself. Setting
     # MAWTA_TEST_ADMIN_URL here is what makes a false baseline unmergeable:
@@ -30,18 +30,15 @@ jobs:
           --health-retries 10
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: astral-sh/setup-uv@v6
         with:
-          go-version: '1.26'
-          cache-dependency-path: mawta-server/go.sum
-      # internal/media shells out to ffmpeg on the voice-note request path.
+          version: '0.13.1'
+      # The transcoding path shells out to ffmpeg.
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
-      - run: go vet ./...
-      - run: go build ./...
-      # -shuffle=on because the suite shares one database per package: it has
-      # already caught one order-dependent assertion, and it is the only thing
-      # that would catch the next.
-      - run: go test ./... -count=1 -race -shuffle=on
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run pytest
         env:
           MAWTA_TEST_ADMIN_URL: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
 
@@ -66,7 +63,7 @@ jobs:
       run:
         working-directory: mawta-chat
     # Same contract as the server job: the chat tests migrate their own
-    # throwaway databases from mawta-server/migrations and skip without
+    # throwaway databases from mawta-api/migrations and skip without
     # MAWTA_TEST_ADMIN_URL, so setting it is what makes them count.
     services:
       postgres:

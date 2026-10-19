@@ -2,9 +2,9 @@
 
 The director chat service: a school director asks questions about their school and gets answers built from Mawta's data, streamed over Server-Sent Events.
 
-Python 3.13, FastAPI, LangGraph and the Anthropic SDK, managed with [`uv`](https://docs.astral.sh/uv/). It is a separate service from `mawta-server` (Go) and shares only:
+Python 3.13, FastAPI, LangGraph and the Anthropic SDK, managed with [`uv`](https://docs.astral.sh/uv/). It is a separate service from `mawta-api` (Python) and shares only:
 
-- **the login** — the director signs in to Mawta, and `mawta-server` issues a short-lived chat token (`GET /api/v1/auth/chat-token`, Ed25519). This service only verifies it with the public key;
+- **the login** — the director signs in to Mawta, and `mawta-api` issues a short-lived chat token (`GET /api/v1/auth/chat-token`, Ed25519). This service only verifies it with the public key;
 - **the `mawta` database** — connected as the `mawta_chat` role, which can read only the `chat_api` views and write only the `chat` schema (migration `00006`). Postgres RLS limits every query to the director's school and chats.
 
 LangGraph's checkpoints (the conversation state of each chat) live in their own database, `langgraph`, which LangGraph creates and migrates with `.setup()` at startup.
@@ -40,7 +40,7 @@ Streamed events (`protocol.py`): `estado`, `texto` (`delta`), `tabla`, `grafico`
 
 ## Running it locally
 
-Against the local Postgres container from `mawta-server/docs/local-postgres-setup.md` (`mawta-pg`, migrated to at least `00006`):
+Against the local Postgres container from `mawta-api/docs/local-postgres-setup.md` (`mawta-pg`, migrated to at least `00006`):
 
 ```sh
 # once: a password for mawta_chat, and LangGraph's own database
@@ -51,7 +51,7 @@ cp .env.example .env   # then fill in the values
 uv run mawta-chat      # http://127.0.0.1:8001
 ```
 
-`CHAT_TOKEN_PUBLIC_KEYS` must hold the public key matching the `CHAT_TOKEN_SIGNING_KEY` your local `mawta-server` uses (`go run ./cmd/chatkey -kid k-local` in `mawta-server` prints both).
+`CHAT_TOKEN_PUBLIC_KEYS` must hold the public key matching the `CHAT_TOKEN_SIGNING_KEY` your local `mawta-api` uses (`uv run chatkey --kid k-local` in `mawta-api` prints both).
 
 Or in a container, next to the rest of the local stack: `docker compose -f docker-compose.local.yml --profile chat up`.
 
@@ -66,7 +66,7 @@ Deployed with the rest of Mawta on every push to `main` (`.github/workflows/depl
 | `MAWTA_CHAT_PASSWORD` | Password of the `mawta_chat` role (migration `00006` creates the role without one) |
 | `LANGGRAPH_PASSWORD` | Password of the `mawta_langgraph` role, owner of the `langgraph` database |
 | `CHAT_TOKEN_PUBLIC_KEYS` | `{"k1":"<base64 public key>"}`, matching `CHAT_TOKEN_SIGNING_KEY` / `CHAT_TOKEN_KEY_ID` |
-| `ANTHROPIC_API_KEY` | Shared with `mawta-server`'s agents |
+| `ANTHROPIC_API_KEY` | Shared with `mawta-api`'s agents |
 
 The `langgraph` database is not a goose migration (it is not part of the `mawta` database). It was created once, by hand:
 
@@ -86,4 +86,4 @@ uv run ruff check . && uv run ruff format --check .
 MAWTA_TEST_ADMIN_URL='postgres://postgres:postgres@localhost:55499/postgres?sslmode=disable' uv run pytest
 ```
 
-The tests create two throwaway databases, apply `mawta-server`'s migrations and test fixture (`internal/dbtest/fixture.sql`), and replace Claude with a scripted fake, so they never call the API. Without `MAWTA_TEST_ADMIN_URL` the database tests are skipped.
+The tests create two throwaway databases, apply `mawta-api`'s migrations and test fixture (`tests/fixture.sql`), and replace Claude with a scripted fake, so they never call the API. Without `MAWTA_TEST_ADMIN_URL` the database tests are skipped.

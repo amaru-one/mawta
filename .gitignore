@@ -6,8 +6,8 @@
 .env.local
 *.local
 
-# mawta-server
-mawta-server/data/
+# mawta-api
+mawta-api/data/
 mawta-server/cmd/api/data/
 # Filled-in onboarding files carry teacher passwords and minors' data.
 mawta-server/seed/onboarding/colegios/

@@ -1,8 +1,8 @@
-# Local dev stack: the Go API and the SvelteKit dev server, both containerized,
+# Local dev stack: the Python API and the SvelteKit dev server, both containerized,
 # plus the local observability stack (Grafana, Loki, Alloy) that collects the
 # API's JSON stdout logs. See deploy/observability/README.md.
 #
-# Connects to the Postgres container started per mawta-server/docs/local-postgres-setup.md
+# Connects to the Postgres container started per mawta-api/docs/local-postgres-setup.md
 # (`mawta-pg`, published on host port 55432) rather than starting its own —
 # that container isn't part of this (or any) compose project, so both
 # services reach it through host.docker.internal instead of a service name.
@@ -11,7 +11,7 @@
 #   docker compose -f docker-compose.local.yml up --build
 #
 # Prerequisite: mawta-pg running with migrations applied and mawta_app
-# passworded, per mawta-server/docs/local-postgres-setup.md.
+# passworded, per mawta-api/docs/local-postgres-setup.md.
 
 name: mawta-local
 
@@ -26,11 +26,11 @@ x-logging: &default-logging
 services:
   api:
     build:
-      context: ./mawta-server
+      context: ./mawta-api
     ports:
       - '8080:8080'
     env_file:
-      - ./mawta-server/.env # picks up TRANSCRIBE_OPENROUTER_API_KEY; environment: below overrides the rest for the containerized DB host
+      - ./mawta-api/.env # picks up TRANSCRIBE_OPENROUTER_API_KEY; environment: below overrides the rest for the containerized DB host
     environment:
       DATABASE_URL: postgres://mawta_app:mawta_app@host.docker.internal:55432/mawta?sslmode=disable
       ADMIN_DATABASE_URL: postgres://postgres:mawta@host.docker.internal:55432/mawta?sslmode=disable
@@ -51,7 +51,7 @@ services:
   # --profile chat up`. Needs, once, on mawta-pg: a password for mawta_chat
   # and the langgraph database (see mawta-chat/README.md), and in
   # mawta-chat/.env the public key of the CHAT_TOKEN_SIGNING_KEY in
-  # mawta-server/.env.
+  # mawta-api/.env.
   chat:
     profiles: ['chat']
     build:
