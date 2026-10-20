@@ -23,9 +23,9 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 from psycopg.conninfo import conninfo_to_dict, make_conninfo
 
-from mawta_chat.llm import ModelTurn
-from mawta_chat.main import create_app
-from mawta_chat.settings import Settings
+from llm import ModelTurn
+from main import create_app
+from settings import Settings
 
 SERVER = Path(__file__).resolve().parents[2] / "mawta-api"
 

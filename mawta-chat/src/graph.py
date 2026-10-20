@@ -20,8 +20,8 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.config import get_stream_writer
 from langgraph.graph import END, START, StateGraph
 
-from mawta_chat.llm import LLM
-from mawta_chat.tools import TOOL_STATUS, TOOLS, ToolOutcome, run_tool
+from llm import LLM
+from tools import TOOL_STATUS, TOOLS, ToolOutcome, run_tool
 
 log = logging.getLogger(__name__)
 
