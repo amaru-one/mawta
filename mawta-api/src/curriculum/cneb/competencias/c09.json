@@ -55,6 +55,56 @@
   ],
   "desempenos": [
     {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Adecúa el texto a la situación comunicativa considerando el propósito comunicativo, el tipo textual, así como el formato y el soporte. Mantiene el registro formal e informal; para ello, se adapta a los destinatarios y selecciona algunas fuentes de información complementaria."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Escribe textos de forma coherente y cohesionada. Ordena las ideas en torno a un tema, las jerarquiza en subtemas de acuerdo a párrafos, y las desarrolla para ampliar la información, sin digresiones o vacíos. Establece relaciones entre las ideas, como causa-efecto, consecuencia y contraste, a través de algunos referentes y conectores. Incorpora de forma pertinente vocabulario que incluye sinónimos y algunos términos propios de los campos del saber."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Utiliza recursos gramaticales y ortográficos (por ejemplo, el punto aparte para separar párrafos) que contribuyen a dar sentido a su texto, e incorpora algunos recursos textuales (como uso de negritas o comillas) para reforzar dicho sentido. Emplea algunas figuras retóricas, (personificaciones y adjetivaciones) para caracterizar personas, personajes y escenarios, o para elaborar patrones rítmicos o versos libres, con el fin de expresar sus experiencias y emociones."
+    },
+    {
+      "grado": "5P",
+      "orden": 4,
+      "texto": "Evalúa de manera permanente el texto, para determinar si se ajusta a la situación comunicativa, si existen reiteraciones innecesarias o digresiones que afectan la coherencia entre las ideas, o si el uso de conectores y referentes asegura la cohesión entre ellas. También, evalúa la utilidad de los recursos ortográficos empleados y la pertinencia del vocabulario, para mejorar el texto y garantizar su sentido."
+    },
+    {
+      "grado": "5P",
+      "orden": 5,
+      "texto": "Evalúa el efecto de su texto en los lectores, a partir de los recursos textuales y estilísticos utilizados, y considerando su propósito al momento de escribirlo. Compara y contrasta los aspectos gramaticales y ortográficos más comunes cuando evalúa el texto."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Adecúa el texto a la situación comunicativa considerando el propósito comunicativo, el tipo textual y algunas características del género discursivo, así como el formato y el soporte. Mantiene el registro formal e informal; para ello, se adapta a los destinatarios y selecciona algunas fuentes de información complementaria."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Escribe textos de forma coherente y cohesionada. Ordena las ideas en torno a un tema, las jerarquiza en subtemas e ideas principales de acuerdo a párrafos, y las desarrolla para ampliar la información, sin digresiones o vacíos. Establece relaciones entre las ideas, como causa-efecto, consecuencia y contraste, a través de algunos referentes y conectores. Incorpora de forma pertinente vocabulario que incluye sinónimos y diversos términos propios de los campos del saber."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Utiliza recursos gramaticales y ortográficos (por ejemplo, el punto aparte para separar párrafos) que contribuyen a dar sentido a su texto, e incorpora algunos recursos textuales (como uso de negritas o comillas) para reforzar dicho sentido. Emplea algunas figuras retóricas (personificaciones e hipérboles) para caracterizar personas, personajes y escenarios, o para elaborar patrones rítmicos y versos libres, con el fin de producir efectos en el lector (el entretenimiento o el suspenso, por ejemplo)."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Evalúa de manera permanente el texto, para determinar si se ajusta a la situación comunicativa, si existen digresiones o vacíos de información que afectan la coherencia entre las ideas, o si el uso de conectores y referentes asegura la cohesión entre ellas. También, evalúa la utilidad de los recursos ortográficos empleados y la pertinencia del vocabulario, para mejorar el texto y garantizar su sentido."
+    },
+    {
+      "grado": "6P",
+      "orden": 5,
+      "texto": "Evalúa el efecto de su texto en los lectores, a partir de los recursos textuales y estilísticos utilizados, y considerando su propósito al momento de escribirlo. Compara y contrasta los aspectos gramaticales y ortográficos más comunes, así como las características de tipos textuales, cuando evalúa el texto."
+    },
+    {
       "grado": "1S",
       "orden": 1,
       "texto": "Adecúa el texto a la situación comunicativa considerando el propósito comunicativo, el tipo textual y algunas características del género discursivo, así como el formato y el soporte. Mantiene el registro formal o informal adaptándose a los destinatarios y seleccionando diversas fuentes de información complementaria."

@@ -136,6 +136,7 @@
       "codigo": "COM",
       "nombre": "Comunicación",
       "niveles": [
+        "primaria",
         "secundaria"
       ],
       "competencias": [
