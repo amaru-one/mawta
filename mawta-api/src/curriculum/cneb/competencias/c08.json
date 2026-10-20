@@ -51,6 +51,66 @@
   ],
   "desempenos": [
     {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Identifica información explícita, relevante y complementaria que se encuentra en distintas partes del texto. Selecciona datos específicos e integra información explícita cuando se encuentra en distintas partes del texto con varios elementos complejos en su estructura, así como con vocabulario variado, de acuerdo a las temáticas abordadas."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Deduce características implícitas de personajes, seres, objetos, hechos y lugares, y determina el significado de palabras, según el contexto, y de expresiones con sentido figurado. Establece relaciones lógicas entre las ideas del texto escrito, como intención-finalidad, tema y subtemas, causa-efecto, semejanza-diferencia y enseñanza y propósito, a partir de información relevante explícita e implícita."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Predice de qué tratará el texto, a partir de algunos indicios como subtítulos, colores y dimensiones de las imágenes, índice, tipografía, negritas, subrayado, fotografías, reseñas, etc.; asimismo, contrasta la información del texto que lee."
+    },
+    {
+      "grado": "5P",
+      "orden": 4,
+      "texto": "Explica el tema, el propósito, los puntos de vista y las motivaciones de personas y personajes, las comparaciones e hipérboles, el problema central, las enseñanzas y los valores del texto, clasificando y sintetizando la información, para interpretar el sentido global del texto."
+    },
+    {
+      "grado": "5P",
+      "orden": 5,
+      "texto": "Opina sobre el contenido del texto, la organización textual, la intención de algunos recursos textuales (negritas, esquemas) y el efecto del texto en los lectores, a partir de su experiencia y del contexto sociocultural en que se desenvuelve."
+    },
+    {
+      "grado": "5P",
+      "orden": 6,
+      "texto": "Justifica la elección o recomendación de textos de su preferencia, de acuerdo a sus necesidades, intereses y la relación con otros textos leídos; sustenta su posición sobre los textos cuando los comparte con otros; y compara textos entre sí para indicar algunas similitudes y diferencias entre tipos textuales."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Identifica información explícita, relevante y complementaria que se encuentra en distintas partes del texto. Selecciona datos específicos e integra información explícita cuando se encuentra en distintas partes del texto, o al realizar una lectura intertextual de diversos tipos de textos con varios elementos complejos en su estructura, así como con vocabulario variado, de acuerdo a las temáticas abordadas."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Deduce características implícitas de seres, objetos, hechos y lugares, y determina el significado de palabras, según el contexto, y de expresiones con sentido figurado. Establece relaciones lógicas entre las ideas del texto escrito, como intención-finalidad, tema y subtemas, causa-efecto, semejanza-diferencia y enseñanza y propósito, a partir de información relevante y complementaria, y al realizar una lectura intertextual."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Predice de qué tratará el texto, a partir de algunos indicios como subtítulos, colores y dimensiones de las imágenes, índice, tipografía, negritas, subrayado, fotografías, reseñas (solapa, contratapa), notas del autor, biografía del autor o ilustrador, etc.; asimismo, contrasta la información del texto que lee."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Explica el tema, el propósito, los puntos de vista y las motivaciones de personas y personajes, las comparaciones e hipérboles, el problema central, las enseñanzas, los valores y la intención del autor, clasificando y sintetizando la información, y elabora conclusiones sobre el texto para interpretar su sentido global."
+    },
+    {
+      "grado": "6P",
+      "orden": 5,
+      "texto": "Opina sobre el contenido y la organización del texto, la intención de diversos recursos textuales, la intención del autor y el efecto que produce en los lectores, a partir de su experiencia y de los contextos socioculturales en que se desenvuelve."
+    },
+    {
+      "grado": "6P",
+      "orden": 6,
+      "texto": "Justifica la elección o recomendación de textos de su preferencia, de acuerdo a sus necesidades, intereses y la relación con otros textos leídos; sustenta su posición sobre los valores presentes en los textos, cuando los comparte con otros; y compara textos entre sí para indicar algunas similitudes y diferencias entre tipos textuales y géneros discursivos (por ejemplo: diferencias y semejanzas entre cuento y fábula)."
+    },
+    {
       "grado": "1S",
       "orden": 1,
       "texto": "Identifica información explícita, relevante y complementaria seleccionando datos específicos y algunos detalles en diversos tipos de texto con varios elementos complejos en su estructura, así como vocabulario variado. Integra información explícita cuando se encuentra en distintas partes del texto, o en distintos textos al realizar una lectura intertextual."

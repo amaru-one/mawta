@@ -9,8 +9,10 @@
 # mawta-api
 mawta-api/data/
 mawta-server/cmd/api/data/
-# Filled-in onboarding files carry teacher passwords and minors' data.
-mawta-server/seed/onboarding/colegios/
+# Filled-in onboarding files carry teacher passwords and minors' data; only
+# the folder's README is tracked.
+mawta-api/seed/onboarding/colegios/*
+!mawta-api/seed/onboarding/colegios/README.md
 __debug_bin*
 *.log
 

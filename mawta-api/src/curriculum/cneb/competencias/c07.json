@@ -63,6 +63,106 @@
   ],
   "desempenos": [
     {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Recupera información explícita de textos orales que escucha seleccionando datos específicos. Integra esta información cuando es dicha en distintos momentos en textos que incluyen expresiones con sentido figurado, y vocabulario que incluye sinónimos y términos propios de los campos del saber."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Explica el tema y el propósito comunicativo del texto oral. Distingue lo relevante de lo complementario clasificando y sintetizando la información. Establece conclusiones sobre lo comprendido; para ello, vincula el texto con su experiencia y el contexto sociocultural en que se desenvuelve."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Deduce relaciones lógicas (causa-efecto, semejanza-diferencia, etc.) entre las ideas del texto oral, a partir de información explícita e implícita del mismo. Señala las características y cualidades implícitas de personas, personajes, animales, objetos, hechos y lugares, y determina el significado de palabras según el contexto y de expresiones con sentido figurado (refranes, moralejas) cuando hay algunas pistas en el texto."
+    },
+    {
+      "grado": "5P",
+      "orden": 4,
+      "texto": "Explica las intenciones de sus interlocutores considerando recursos verbales, no verbales y paraverbales. Asimismo, los puntos de vista y las motivaciones de personas y personajes, así como figuras retóricas (por ejemplo, la hipérbole) considerando algunas características del tipo textual y género discursivo."
+    },
+    {
+      "grado": "5P",
+      "orden": 5,
+      "texto": "Adecúa su texto oral a la situación comunicativa considerando el propósito comunicativo y algunas características del género discursivo. Elige el registro formal e informal de acuerdo con sus interlocutores y el contexto; para ello, recurre a su experiencia y a algunas fuentes de información complementaria."
+    },
+    {
+      "grado": "5P",
+      "orden": 6,
+      "texto": "Expresa oralmente ideas y emociones de forma coherente y cohesionada. Ordena y jerarquiza las ideas en torno a un tema y las desarrolla para ampliar la información o mantener el hilo temático. Establece relaciones lógicas entre ellas (en especial, de causa-efecto, consecuencia y contraste), a través de algunos referentes y conectores. Incorpora un vocabulario que incluye sinónimos y algunos términos propios de los campos del saber."
+    },
+    {
+      "grado": "5P",
+      "orden": 7,
+      "texto": "Emplea gestos y movimientos corporales que enfatizan lo que dice. Mantiene la distancia física con sus interlocutores, así como el volumen, la entonación y el ritmo de su voz para transmitir emociones, caracterizar personajes o producir efectos en el público, como el suspenso y el entretenimiento."
+    },
+    {
+      "grado": "5P",
+      "orden": 8,
+      "texto": "Participa en diversos intercambios orales alternando los roles de hablante y oyente. Recurre a sus saberes previos y aporta nueva información para argumentar, explicar y complementar las ideas expuestas. Considera normas y modos de cortesía según el contexto sociocultural."
+    },
+    {
+      "grado": "5P",
+      "orden": 9,
+      "texto": "Opina como hablante y oyente sobre ideas, hechos y temas, de textos orales del ámbito escolar, social o de medios de comunicación. Justifica su posición sobre lo que dice el texto oral considerando su experiencia y el contexto en que se desenvuelve."
+    },
+    {
+      "grado": "5P",
+      "orden": 10,
+      "texto": "Evalúa la adecuación de textos orales a la situación comunicativa, así como la coherencia de ideas y la cohesión entre ellas; también, la utilidad de recursos verbales, no verbales y paraverbales de acuerdo al propósito comunicativo."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Recupera información explícita de textos orales que escucha seleccionando datos específicos. Integra esta información cuando es dicha en distintos momentos y por distintos interculores en textos que incluyen expresiones con sentido figurado, y vocabulario que incluye sinónimos y términos propios de los campos del saber."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Explica el tema y el propósito comunicativo del texto oral. Distingue lo relevante de lo complementario clasificando y sintetizando la información. Establece conclusiones sobre lo comprendido; para ello, vincula el texto con su experiencia y los contextos socioculturales en que se desenvuelve."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Deduce relaciones lógicas (causa-efecto, semejanza-diferencia, etc.) entre las ideas del texto oral, a partir de información explícita e implícita del mismo. Señala las características y cualidades implícitas de personas, personajes, animales, objetos, hechos y lugares, y determina el significado de palabras según el contexto y de expresiones con sentido figurado (expresiones irónicas) cuando hay algunas pistas en el texto."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Explica la intención de sus interlocutores considerando recursos verbales, no verbales y paraverbales. Asimismo, los puntos de vista y las motivaciones de personas y personajes, así como algunas figuras retóricas (por ejemplo, la hipérbole) considerando algunas características del tipo textual y género discursivo."
+    },
+    {
+      "grado": "6P",
+      "orden": 5,
+      "texto": "Adecúa su texto oral a la situación comunicativa considerando el propósito comunicativo y algunas características del género discursivo, manteniendo el registro formal e informal y adaptándose a sus interlocutores y al contexto; para ello, recurre a su experiencia y a algunas fuentes de información complementaria."
+    },
+    {
+      "grado": "6P",
+      "orden": 6,
+      "texto": "Expresa oralmente ideas y emociones de forma coherente y cohesionada. Ordena y jerarquiza las ideas en torno a un tema y las desarrolla para ampliar la información o mantener el hilo temático. Establece relaciones lógicas entre ellas (en especial, de causa-efecto, consecuencia y contraste), a través de algunos referentes y conectores. Incorpora un vocabulario que incluye sinónimos y algunos términos propios de los campos del saber."
+    },
+    {
+      "grado": "6P",
+      "orden": 7,
+      "texto": "Emplea gestos y movimientos corporales que enfatizan lo que dice. Mantiene la distancia física con sus interlocutores, así como el volumen, la entonación y el ritmo de su voz para transmitir emociones, caracterizar personajes o producir efectos en el público, como el suspenso y el entretenimiento."
+    },
+    {
+      "grado": "6P",
+      "orden": 8,
+      "texto": "Participa en diversos intercambios orales alternando los roles de hablante y oyente. Recurre a sus saberes previos, usa lo dicho por sus interlocutores y aporta nueva información relevante para argumentar, explicar y complementar ideas. Considera normas y modos de cortesía según el contexto sociocultural."
+    },
+    {
+      "grado": "6P",
+      "orden": 9,
+      "texto": "Opina como hablante y oyente sobre ideas, hechos y temas, de textos orales del ámbito escolar, social o de medios de comunicación. Justifica su posición sobre lo que dice el texto oral considerando su experiencia y el contexto en que se desenvuelve."
+    },
+    {
+      "grado": "6P",
+      "orden": 10,
+      "texto": "Evalúa la adecuación de textos orales a la situación comunicativa, así como la coherencia de ideas y la cohesión entre ellas; también, la utilidad de recursos verbales, no verbales y paraverbales de acuerdo al propósito comunicativo."
+    },
+    {
       "grado": "1S",
       "orden": 1,
       "texto": "Recupera información explícita de los textos orales que escucha seleccionando datos específicos. Integra esta información cuando es dicha en distintos momentos, o por distintos interlocutores, en textos orales que presentan sinónimos y expresiones con sentido figurado."
