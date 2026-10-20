@@ -7,7 +7,7 @@ from uuid import UUID
 from psycopg import AsyncConnection
 from psycopg.types.json import Jsonb
 
-from mawta_chat.auth import Principal
+from auth import Principal
 
 DEFAULT_TITLE = "Nuevo chat"
 TITLE_MAX = 60

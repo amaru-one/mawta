@@ -1,4 +1,4 @@
-// Protocol v1 between mawta-chat and this UI (mawta-chat/src/mawta_chat/protocol.py).
+// Protocol v1 between mawta-chat and this UI (mawta-chat/src/protocol.py).
 // Saved blocks and streamed events share their shapes; a streamed `texto`
 // carries a `delta`, a saved one the whole `md`.
 

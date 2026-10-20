@@ -6,8 +6,8 @@ import json
 import pytest
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
+from auth import InvalidToken, TokenVerifier
 from conftest import TENANT_A, USER_QUISPE
-from mawta_chat.auth import InvalidToken, TokenVerifier
 
 
 @pytest.fixture

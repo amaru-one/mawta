@@ -6,25 +6,27 @@ token mawta-server issues at GET /api/v1/auth/chat-token.
 
 import json
 import logging
+import os
 import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Annotated, Any
 from uuid import UUID
 
+import uvicorn
 from fastapi import Depends, FastAPI, Request
 from fastapi.responses import JSONResponse, Response
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from pydantic import BaseModel, Field
 from sse_starlette import EventSourceResponse
 
-from mawta_chat import repo
-from mawta_chat.auth import InvalidToken, Principal, TokenVerifier
-from mawta_chat.db import Database
-from mawta_chat.graph import SYSTEM_PROMPT, build_graph, thread_key
-from mawta_chat.llm import LLM, AnthropicLLM
-from mawta_chat.protocol import event, to_sse
-from mawta_chat.settings import Settings
+import repo
+from auth import InvalidToken, Principal, TokenVerifier
+from db import Database
+from graph import SYSTEM_PROMPT, build_graph, thread_key
+from llm import LLM, AnthropicLLM
+from protocol import event, to_sse
+from settings import Settings
 
 log = logging.getLogger("mawta_chat")
 
@@ -242,3 +244,10 @@ def create_app(settings: Settings | None = None, llm: LLM | None = None) -> Fast
         yield to_sse(event("fin", message_id=str(message_id)))
 
     return app
+
+
+def run() -> None:
+    """Run the service with uvicorn (`uv run mawta-chat`)."""
+    host = os.environ.get("HOST", "127.0.0.1")
+    port = int(os.environ.get("PORT", "8001"))
+    uvicorn.run(create_app(), host=host, port=port)

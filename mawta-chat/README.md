@@ -13,14 +13,14 @@ LangGraph's checkpoints (the conversation state of each chat) live in their own 
 
 | File | What it does |
 |---|---|
-| `src/mawta_chat/main.py` | FastAPI app and routes |
-| `src/mawta_chat/auth.py` | Chat token verification |
-| `src/mawta_chat/db.py` | `mawta_chat` pool; `tenant_tx` sets `app.tenant_id` / `app.actor_id` per transaction |
-| `src/mawta_chat/graph.py` | LangGraph graph (agent ↔ tools) and the system prompt |
-| `src/mawta_chat/llm.py` | Claude through the Anthropic SDK, behind a small interface |
-| `src/mawta_chat/tools.py` | The chat's tools (reads `chat_api` only) |
-| `src/mawta_chat/protocol.py` | Protocol v1 events streamed to the UI |
-| `src/mawta_chat/repo.py` | Queries on the `chat` schema |
+| `src/main.py` | FastAPI app and routes |
+| `src/auth.py` | Chat token verification |
+| `src/db.py` | `mawta_chat` pool; `tenant_tx` sets `app.tenant_id` / `app.actor_id` per transaction |
+| `src/graph.py` | LangGraph graph (agent ↔ tools) and the system prompt |
+| `src/llm.py` | Claude through the Anthropic SDK, behind a small interface |
+| `src/tools.py` | The chat's tools (reads `chat_api` only) |
+| `src/protocol.py` | Protocol v1 events streamed to the UI |
+| `src/repo.py` | Queries on the `chat` schema |
 
 ## API
 

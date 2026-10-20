@@ -12,7 +12,7 @@ from psycopg import AsyncConnection
 from psycopg.rows import dict_row
 from psycopg_pool import AsyncConnectionPool
 
-from mawta_chat.auth import Principal
+from auth import Principal
 
 
 class Database:
