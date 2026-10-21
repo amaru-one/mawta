@@ -16,21 +16,21 @@
     },
     {
       "numero": 4,
-      "nombre": "Reflexiona y evalúa la forma, el contenido y el contexto del texto escrito"
+      "nombre": "Reflexiona y evalúa la forma, el contenido y contexto del texto escrito"
     }
   ],
   "estandares": [
     {
       "nivel": 1,
-      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Se comunica oralmente en su lengua materna”."
+      "texto": "Este nivel tiene como base principalmente el nivel 1 de la competencia “Se comunica oralmente en su lengua materna”."
     },
     {
       "nivel": 2,
-      "texto": "Este nivel tiene como base el nivel 2 de la competencia “Se comunica oralmente en su lengua materna”."
+      "texto": "Este nivel tiene como base principalmente el nivel 2 de la competencia “Se comunica oralmente en su lengua materna”."
     },
     {
       "nivel": 3,
-      "texto": "Este nivel tiene como base el nivel 3 de la competencia “Se comunica oralmente en inglés como lengua extranjera”."
+      "texto": "Este nivel tiene como base principalmente el nivel 3 de la competencia “Se comunica oralmente en inglés como lengua extranjera”."
     },
     {
       "nivel": 4,
@@ -38,11 +38,11 @@
     },
     {
       "nivel": 5,
-      "texto": "Escribe diversos tipos de textos de extensión breve en inglés. Adecúa su texto al destinatario y propósito a partir de su experiencia previa. Organiza y desarrolla sus ideas en torno a un tema central y los estructura en un párrafo. Relaciona sus ideas a través del uso de algunos recursos cohesivos (sinónimos, pronominalización y conectores aditivos, adversativos y temporales) con vocabulario cotidiano y pertinente y construcciones gramaticales simples. Utiliza algunos recursos ortográficos que permiten claridad en sus textos. Reflexiona y evalúa sobre su texto escrito."
+      "texto": "Escribe diversos tipos de textos de extensión breve en inglés. Adecúa su texto al destinatario y propósito a partir de su experiencia previa. Organiza y desarrolla sus ideas en torno a un tema central y las estructura en un párrafo. Relaciona sus ideas a través del uso de algunos recursos cohesivos (sinónimos, pronominalización y conectores aditivos, adversativos y temporales) con vocabulario cotidiano y construcciones gramaticales simples. Utiliza algunos recursos ortográficos que permiten claridad en sus textos. Reflexiona y evalúa sobre su texto escrito."
     },
     {
       "nivel": 6,
-      "texto": "Escribe diversos tipos de textos de mediana extensión en inglés. Adecúa su texto al destinatario, propósito y registro a partir de su experiencia previa y fuentes de información básica. Organiza y desarrolla sus ideas en torno a un tema central y los estructura en uno o dos párrafos. Relaciona sus ideas a través del uso de algunos recursos cohesivos (sinónimos, pronominalización y conectores aditivos, adversativos, temporales y causales) con vocabulario cotidiano y pertinente y construcciones gramaticales simples y de mediana complejidad. Utiliza recursos ortográficos que permiten claridad en sus textos. Reflexiona sobre el contenido del texto y evalúa el uso de algunos recursos formales."
+      "texto": "Escribe diversos tipos de textos de mediana extensión en inglés. Adecúa su texto al destinatario, propósito y registro a partir de su experiencia previa y fuentes de información básica. Organiza y desarrolla sus ideas en torno a un tema central y las estructura en uno o dos párrafos. Relaciona sus ideas a través del uso de algunos recursos cohesivos (sinónimos, pronominalización y conectores aditivos, adversativos, temporales y causales) con vocabulario cotidiano y pertinente y construcciones gramaticales simples y de mediana complejidad. Utiliza recursos ortográficos que permiten claridad en sus textos. Reflexiona sobre el contenido del texto y evalúa el uso de algunos recursos formales."
     },
     {
       "nivel": 7,
@@ -54,6 +54,86 @@
     }
   ],
   "desempenos": [
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Adecúa el texto que escribe en inglés a la situación comunicativa considerando el propósito (obtener información de contacto; deletrear nombres; hablar acerca de habilidades, preguntar y responder acerca de las habilidades de los animales; preguntar y responder acerca de rutinas diarias, discutir acciones habituales y rutinas; preguntar acerca de la frecuencia de las actividades; decir la hora; hablar acerca de las partes de la casa, artefactos y muebles, y preguntar y responder acerca de la ubicación de objetos en un cuarto) y el destinatario."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Produce textos escritos en inglés en torno a un tema con coherencia, cohesión y fluidez de acuerdo a su nivel, y organiza sus ideas para establecer relaciones lógicas (adición y contraste); amplía información de forma pertinente con vocabulario apropiado (animales, habilidades, verbos de acción, actividades diarias, días de la semana, adverbios de frecuencia, lugares donde vivir, habitaciones y objetos de la casa)."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Emplea algunas convenciones del lenguaje escrito, como recursos ortográficos y gramaticales básicos, que dan claridad al tema (modal verb can - yes / no questions and answers; coordinating conjunctions - and, but; verb to be; present simple; action verbs; wh-questions - what time, what, where, when, how often; there is / are; prepositions - in, on, under, between, next to)."
+    },
+    {
+      "grado": "3P",
+      "orden": 4,
+      "texto": "Revisa su texto en inglés para mejorarlo; considera algunos aspectos gramaticales y ortográficos básicos para dar sentido al texto."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Adecúa el texto que escribe en inglés a la situación comunicativa considerando el propósito (obtener información de contacto; deletrear nombres; describir y comparar animales, preguntar y responder acerca de los hábitats de los animales; pedir y dar consejo para tratar enfermedades; describir dolores y malestares o síntomas; contar a alguien un evento pasado, describir actividades pasadas, y preguntar y responder acerca de actividades pasadas) y el destinatario."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Produce textos escritos en inglés en torno a un tema con coherencia, cohesión y fluidez de acuerdo a su nivel; organiza sus ideas para establecer relaciones lógicas (adición, contraste, semejanza y diferencia); amplía información de forma pertinente con vocabulario apropiado (animales, hábitats, partes del cuerpo, enfermedades y medicinas, adjetivos calificativos y expresiones de tiempo pasado)."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Emplea algunas convenciones del lenguaje escrito, como recursos ortográficos y gramaticales básicos, que dan claridad al tema (present simple - affirmative, yes / no questions and answers; wh-questions - where, which one, what, when, how; comparative adjectives; modal verb should, simple present - hurt; past tense be - was)."
+    },
+    {
+      "grado": "4P",
+      "orden": 4,
+      "texto": "Revisa su texto en inglés para mejorarlo; considera algunos aspectos gramaticales y ortográficos básicos para dar sentido al texto."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Adecúa el texto que escribe en inglés a la situación comunicativa considerando el propósito (presentar a otros y a sí mismo; obtener información de contacto; deletrear nombres; preguntar y responder acerca de hobbies; expresar preferencias musicales y deportivas; preguntar y responder acerca de comidas, nombrar los ingredientes para una receta, discutir sus preferencia alimenticias, identificar alimentos saludables y no saludables; preguntar y responder acerca de eventos pasados, describir eventos pasados), el tipo textual, el formato y el soporte. Elige el registro formal e informal, así como el género discursivo, según los destinatarios."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Produce textos escritos en inglés en torno a un tema con coherencia, cohesión y fluidez de acuerdo a su nivel; organiza sus ideas para establecer relaciones lógicas (adición, contraste, secuencia, semejanza y diferencia); amplía información de forma pertinente con vocabulario apropiado (actividades de ocio y hobbies, deportes, instrumentos musicales, comida en casa, frutas y vegetales, comida saludable, verbos regulares e irregulares)."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Emplea algunas convenciones del lenguaje escrito, como recursos ortográficos y gramaticales simples y algunos de mediana complejidad, que dan claridad al tema (wh-questions - what, how many, how much; simple present; there is - are, some - any; gerunds like, have, be good at +-ing; simple past- yes / no questions and answers)."
+    },
+    {
+      "grado": "5P",
+      "orden": 4,
+      "texto": "Evalúa su texto en inglés para mejorarlo; considera aspectos gramaticales y ortográficos básicos vinculados con el lenguaje escrito para dar sentido al texto."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Adecúa el texto que escribe en inglés a la situación comunicativa considerando el propósito (presentar a otros y a sí mismo; deletrear nombres; obtener información de contacto; hablar acerca de precios; expresar preferencias acerca de equipos electrónicos, comparar características; responder y preguntar acerca de ocupaciones; hablar acerca de las ocupaciones y las obligaciones en el trabajo; describir la importancia de un evento particular; hablar sobre la fecha de un evento y los planes para este; preguntar y responder acerca de los días feriados), el tipo textual, el formato y el soporte. Elige el registro formal e informal, así como el género discursivo, según los destinatarios."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Produce textos escritos en inglés en torno a un tema con coherencia, cohesión y fluidez de acuerdo a su nivel; organiza sus ideas para establecer relaciones lógicas (adición, contraste, secuencia, semejanza-diferencia y causa); amplía información de forma pertinente con vocabulario apropiado (tecnología, precios, carreras profesionales, ocupaciones y trabajos, obligaciones en el trabajo, feriados y festividades, actividades de entretenimiento)."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Emplea algunas convenciones del lenguaje escrito, como recursos ortográficos y gramaticales simples y algunos de mediana complejidad, que dan claridad al tema (wh-questions - how much, which one, when, what, where, why; comparative and superlative adjectives; simple present- yes / no questions and answers; infinitives - want to; prepositions of time -in, on; future with be going to; connectors - because)."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Evalúa su texto en inglés para mejorarlo; considera aspectos gramaticales y ortográficos básicos vinculados con el lenguaje escrito para dar sentido al texto."
+    },
     {
       "grado": "1S",
       "orden": 1,

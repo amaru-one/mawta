@@ -14,15 +14,15 @@
   "estandares": [
     {
       "nivel": 1,
-      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Construye su identidad”."
+      "texto": "Este nivel tiene como base principalmente el nivel 1 de la competencia “Construye su identidad”."
     },
     {
       "nivel": 2,
-      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Construye su identidad”."
+      "texto": "Este nivel tiene como base principalmente el nivel 1 de la competencia “Construye su identidad”."
     },
     {
       "nivel": 3,
-      "texto": "Expresa coherencia en sus acciones cotidianas descubriendo el amor de Dios. Comprende su dimensión religiosa, espiritual y trascendente que le permita poner en practicar actitudes evangélicas. Interioriza la presencia de Dios en su entorno más cercano desarrollando virtudes evangélicas. Asume actitudes de agradecimiento a Dios respetando lo creado."
+      "texto": "Expresa coherencia en sus acciones cotidianas descubriendo el amor de Dios. Comprende su dimensión religiosa, espiritual y trascendente que le permite poner en práctica actitudes evangélicas. Interioriza la presencia de Dios en su entorno más cercano desarrollando virtudes evangélicas. Asume actitudes de agradecimiento a Dios respetando lo creado."
     },
     {
       "nivel": 4,
@@ -30,7 +30,7 @@
     },
     {
       "nivel": 5,
-      "texto": "Expresa coherencia entre lo que cree, dice y hace en su compromiso personal a la luz de textos bíblicos. Comprende su dimensión religiosa, espiritual y trascendente que le permita asumir cambios de comportamiento en diversos contextos a la luz del Evangelio. Interioriza la presencia de Dios viviendo el encuentro personal y comunitario, para colaborar en la construcción de una comunidad de fe guiada por las enseñanzas de Jesucristo. Asume su rol protagónico mediante actitudes concretas a imagen de Jesucristo colaborando en el cambio que necesita la sociedad."
+      "texto": "Expresa coherencia entre lo que cree, dice y hace en su compromiso personal a la luz de textos bíblicos. Comprende su dimensión religiosa, espiritual y trascendente que le permita asumir cambios de comportamientoen diversos contextos a la luz del Evangelio. Interioriza la presencia de Dios viviendo el encuentro personal y comunitario, para colaborar en la construcción de una comunidad de fe guiada por las enseñanzas de Jesucristo. Asume su rol protagónico mediante actitudes concretas a imagen de Jesucristo y colabora en el camhio que necesita la sociedad."
     },
     {
       "nivel": 6,
@@ -46,6 +46,126 @@
     }
   ],
   "desempenos": [
+    {
+      "grado": "1P",
+      "orden": 1,
+      "texto": "Descubre el amor de Dios con diversas acciones en su familia, institución educativa y entorno."
+    },
+    {
+      "grado": "1P",
+      "orden": 2,
+      "texto": "Muestra en forma oral, gráfica y corporal el amor a su amigo Jesús."
+    },
+    {
+      "grado": "1P",
+      "orden": 3,
+      "texto": "Practica el silencio y la oración como medios para comunicarse con Dios."
+    },
+    {
+      "grado": "1P",
+      "orden": 4,
+      "texto": "Agradece a Dios por la Creación y por todos los dones recibidos."
+    },
+    {
+      "grado": "2P",
+      "orden": 1,
+      "texto": "Expresa el amor de Dios con diversas acciones, siguiendo el ejemplo de su amigo Jesús, en su familia, institución educativa y entorno."
+    },
+    {
+      "grado": "2P",
+      "orden": 2,
+      "texto": "Expresa en forma oral, gráfica, escrita y corporal el amor a su amigo Jesús."
+    },
+    {
+      "grado": "2P",
+      "orden": 3,
+      "texto": "Practica el silencio y la oración en celebraciones de fe para comunicarse con Dios."
+    },
+    {
+      "grado": "2P",
+      "orden": 4,
+      "texto": "Agradece a Dios por la naturaleza, la vida y los dones recibidos asumiendo un compromiso de cuidado y respeto."
+    },
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Muestra su fe mediante acciones concretas en la convivencia cotidiana, en coherencia con relatos bíblicos y la vida de los santos."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Descubre el amor de Dios proponiendo acciones para mejorar la relación con su familia y la institución educativa."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Participa en momentos de encuentro con Dios, personal y comunitariamente, y celebra su fe con gratitud."
+    },
+    {
+      "grado": "3P",
+      "orden": 4,
+      "texto": "Participa responsablemente en el cuidado de sí mismo, del prójimo y de la naturaleza como creación de Dios."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Expresa su fe mediante acciones concretas en la convivencia diaria; para ello, aplica las enseñanzas bíblicas y de los santos."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Reconoce el amor de Dios asumiendo acciones para mejorar la relación con su familia, institución educativa y comunidad."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Interioriza la acción de Dios en su vida personal y en su entorno, y celebra su fe con confianza y gratitud."
+    },
+    {
+      "grado": "4P",
+      "orden": 4,
+      "texto": "Participa activamente y motiva a los demás en el respeto y cuidado de sí mismos, del prójimo y de la naturaleza como creación de Dios."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Relaciona el amor de Dios con sus experiencias de vida, para actuar con coherencia."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Acepta las enseñanzas de Jesucristo, para asumir cambios de comportamiento al interactuar con los demás."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Participa en espacios de encuentro personal y comunitario con Dios y fortalece así su fe como miembro activo de su familia, Iglesia y comunidad."
+    },
+    {
+      "grado": "5P",
+      "orden": 4,
+      "texto": "Participa proactivamente en acciones de cambio a imagen de Jesucristo, para alcanzar una convivencia justa y fraterna con los demás."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Expresa el amor de Dios desde sus vivencias, coherentes con su fe, en su entorno familiar y comunitario."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Reconoce que las enseñanzas de Jesucristo le permiten desarrollar actitudes de cambio a nivel personal y comunitario."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Cultiva el encuentro personal y comunitario con Dios mediante la búsqueda de espacios de oración y reflexión que lo ayuden a fortalecer su fe como miembro activo de su familia, Iglesia y comunidad desde las enseñanzas de Jesucristo."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Actúa con liderazgo realizando y proponiendo acciones a imagen de Jesucristo, para alcanzar una convivencia justa, fraterna y solidaria con los demás."
+    },
     {
       "grado": "1S",
       "orden": 1,

@@ -22,11 +22,11 @@
   "estandares": [
     {
       "nivel": 1,
-      "texto": "Este nivel tiene como base el nivel 1 de las competencias “Resuelve problemas de cantidad” y “Resuelve problemas de regularidad, equivalencia y cambio”."
+      "texto": "Este nivel tiene como base principalmente el nivel 1 de las competencias “Resuelve problemas de cantidad” y \"Resuelve problemas de forma, movimiento y localización\"."
     },
     {
       "nivel": 2,
-      "texto": "Este nivel tiene como base el nivel 2 de las competencias “Resuelve problemas de cantidad” y “Resuelve problemas de regularidad, equivalencia y cambio”."
+      "texto": "Este nivel tiene como base principalmente el nivel 2 de las competencias “Resuelve problemas de cantidad” y \"Resuelve problemas de forma, movimiento y localización\"."
     },
     {
       "nivel": 3,

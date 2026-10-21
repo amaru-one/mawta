@@ -18,11 +18,11 @@
   "estandares": [
     {
       "nivel": 1,
-      "texto": "Este nivel tiene principalmente como base el nivel 1 de la competencia “Crea proyectos desde los lenguajes artísticos”."
+      "texto": "Este nivel tiene como base principalmente el nivel 1 de la competencia de indagación."
     },
     {
       "nivel": 2,
-      "texto": "Este nivel tiene principalmente como base el nivel 2 de la competencia “Crea proyectos desde los lenguajes artísticos”."
+      "texto": "Este nivel tiene como base principalmente el nivel 2 de la competencia “Crea proyectos desde los lenguajes artísticos”."
     },
     {
       "nivel": 3,
@@ -34,11 +34,11 @@
     },
     {
       "nivel": 5,
-      "texto": "Aprecia de manera crítica manifestaciones artístico-culturales al interpretar las cualidades expresivas de los elementos del arte, la estructura y los medios utilizados en una manifestación artístico-cultural y explica cómo transmite mensajes, ideas y sentimientos. Investiga los contextos donde se originan manifestaciones artístico-culturales tradicionales y contemporáneas e identifica cómo los cambios, las creencias y los valores revelan la manera en que una determinada persona o sociedad ha vivido. Genera hipótesis sobre el significado y las diversas intenciones que puede tener una manifestación creada en contextos históricos y culturales diferentes."
+      "texto": "Aprecia de manera crítica manifestaciones artístico-culturales al interpretar las cualidades expresivas de los elementos del arte, la estructura y los medios utilizados en una manifestación artístico-cultural y explica cómo transmite mensajes, ideas y sentimientos. Investiga los contextos donde se originan manifestaciones artístico-culturales tradicionales y contemporáneas e identifica cómo los cambios, las tradiciones, las creencias y los valores revelan la manera en que una determinada persona o sociedad ha vivido. Genera hipótesis sobre el significado y las diversas intenciones que puede tener una manifestación creada en contextos históricos y culturales diferentes."
     },
     {
       "nivel": 6,
-      "texto": "Aprecia de manera crítica manifestaciones artístico-culturales cuando describe las características fundamentales de los diversos lenguajes del arte y las culturas que los producen, y los asocia a experiencias, mensajes, emociones e ideas, siendo consciente de que generan diferentes reacciones e interpretaciones en las personas. Investiga las creencias, cosmovisiones, tradiciones y la función social de manifestaciones artístico-culturales de diversos tiempos y lugares y distingue las diferentes maneras en que se usa el arte para representar y reflejar la identidad de un grupo de personas. Integra la información recogida para describir la complejidad y la riqueza de la obra, así como para generar hipótesis sobre el significado y la intención del artista. Evalúa la eficacia del uso de las técnicas utilizadas en relación a las intenciones específicas."
+      "texto": "Aprecia de manera crítica manifestaciones artístico-culturales cuando describe las características fundamentales de los diversos lenguajes del arte y las culturas que los producen, y las asocia a experiencias, mensajes, emociones e ideas, siendo consciente de que generan diferentes reacciones e interpretaciones en las personas. Investiga las creencias, cosmovisiones, tradiciones y la función social de manifestaciones artístico-culturales de diversos tiempos y lugares y distingue las diferentes maneras en que se usa el arte para representar y reflejar la identidad de un grupo de personas. Integra la información recogida para describir la complejidad y la riqueza de la obra, así como para generar hipótesis sobre el significado y la intención del artista. Evalúa la eficacia del uso de las técnicas utilizadas en relación a las intenciones específicas."
     },
     {
       "nivel": 7,
@@ -50,6 +50,96 @@
     }
   ],
   "desempenos": [
+    {
+      "grado": "1P",
+      "orden": 1,
+      "texto": "Usa los sentidos para identificar, con la ayuda del docente, los elementos visuales, táctiles, sonoros y kinestésicos que hay en la naturaleza, el entorno y diversas manifestaciones artísticas de su contexto local."
+    },
+    {
+      "grado": "1P",
+      "orden": 2,
+      "texto": "Menciona y describe las experiencias que tiene con manifestaciones artísticas en su entorno familiar y en su comunidad. Ejemplo: El estudiante conversa sobre situaciones, eventos u ocasiones donde ha tenido oportunidad de vivir o experimentar la música (cuando su mamá le canta o cuando oye música para bailar en su casa, en fiestas o en celebraciones de su barrio)."
+    },
+    {
+      "grado": "1P",
+      "orden": 3,
+      "texto": "Explica sus ideas y expresa sus emociones y sentimientos cuando entra en contacto con la naturaleza o manifestaciones artístico-culturales de su entorno."
+    },
+    {
+      "grado": "2P",
+      "orden": 1,
+      "texto": "Describe o registra líneas, formas, sonidos y movimientos que encuentra en la naturaleza, el entorno y en diversas manifestaciones artísticas, y los asocia con ideas y sentimientos. Ejemplo: El estudiante describe y compara diversos sonidos que escucha en el entorno (las bocinas de los carros, el silbido de un pájaro, el sonido de las hojas de los árboles) y explica cómo lo hacen sentir."
+    },
+    {
+      "grado": "2P",
+      "orden": 2,
+      "texto": "Mantiene conversaciones y hace registros sobre los contextos históricos y culturales de manifestaciones artístico-culturales con las que interactúa. Ejemplo: El estudiante conversa sobre las similitudes y diferencias entre las danzas peruanas que ha observado. Registra de manera visual y escrita cómo se lleva a cabo cada danza, la forma en que visten los danzantes y con qué música o sonidos se acompañan."
+    },
+    {
+      "grado": "2P",
+      "orden": 3,
+      "texto": "Explica sus ideas y expresa los sentimientos que le generan las manifestaciones artístico-culturales, con base en sus observaciones y experiencias. Ejemplo: El estudiante comparte con sus compañeros lo que siente y piensa sobre los personajes de una obra de teatro, y lo asocia con el tema de la historia."
+    },
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Identifica y describe los elementos básicos del arte que encuentra en su entorno y en manifestaciones artístico-culturales diversas. Reconoce que los elementos pueden transmitir múltiples sensaciones."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Especula sobre los procesos que el artista ha seguido para crear su obra e identifica los distintos usos y propósitos de manifestaciones artístico-culturales de su comunidad (ritual, recreativo, comercial, decorativo, utilitario, etc.)."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Comenta sobre los posibles significados de una obra de arte, con base en lo observado y lo investigado acerca del autor, y emite una opinión personal sobre ella."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Describe y analiza los elementos del arte que identifica en el entorno y en manifestaciones artístico-culturales, e identifica los medios utilizados. Relaciona elementos con ideas, mensajes y sentimientos. Ejemplo: El estudiante describe qué instrumentos se usan en la música tradicional peruana que está escuchando, cómo es el sonido del tambor, el ritmo constante, qué sonidos le llaman la atención, qué le hace sentir, qué le hace pensar, entre otros."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Investiga el significado de los símbolos y características principales de manifestaciones artístico-culturales de diferentes lugares y tiempos, y comprende que cumplen diversos propósitos y comunican ideas sobre la cultura en la que fueron creados. Ejemplo: El estudiante investiga las formas y los propósitos de la cerámica Moche y cómo los motivos y diseños usados representan el carácter de los personajes o las figuras que allí aparecen."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Comenta sobre la manera en que los elementos, los procesos, los medios y las técnicas usadas comunican ideas, y genera hipótesis sobre el significado y la intención del artista."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Describe las características de manifestaciones artístico-culturales que observa, analiza sus elementos e interpreta las ideas y sentimientos que transmiten."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Identifica y describe los contextos de diversas manifestaciones artístico-culturales e identifica cómo el arte cumple diversas funciones (socializar, entretener, contar historias, celebrar) y ayuda a conocer las creencias, los valores o las actitudes de un artista o una sociedad. Ejemplo: El estudiante explica qué representa la danza Chuño Saruy para las comunidades que la realizan, por qué la hacen, de qué lugar es, entre otros."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Genera hipótesis sobre el significado y la intención de una manifestación artístico-cultural e incorpora la opinión de los demás para reformular sus puntos de vista sobre ella."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Describe y analiza las cualidades de los elementos visuales, táctiles, sonoros y kinestésicos que percibe en manifestaciones artístico-culturales, y establece relaciones entre sus hallazgos y las ideas y emociones que ellas le generan."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Investiga en diversas fuentes acerca del origen y las formas en que manifestaciones artístico-culturales tradicionales y contemporáneas transmiten las características de una sociedad."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Desarrolla y aplica criterios relevantes para evaluar una manifestación artística, con base en la información que maneja sobre su forma y contexto de creación, y ensaya una postura personal frente a ella. Ejemplo: El estudiante explica qué es un retablo y lo relaciona con eventos históricos sobre los que ha estudiado y explica qué partes del retablo son más efectivas en transmitir sus ideas. Explica cómo ha cambiado su reacción inicial frente al retablo, después de haberlo observado con detenimiento e indagado sobre el contexto en que fue creado."
+    },
     {
       "grado": "1S",
       "orden": 1,

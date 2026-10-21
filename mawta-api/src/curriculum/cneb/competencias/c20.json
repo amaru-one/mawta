@@ -1,10 +1,10 @@
 {
   "numero_cneb": 20,
-  "nombre": "Indaga mediante métodos científicos para construir conocimientos",
+  "nombre": "Indaga mediante métodos científicos para construir sus conocimientos",
   "capacidades": [
     {
       "numero": 1,
-      "nombre": "Problematiza situaciones"
+      "nombre": "Problematiza situaciones para hacer indagación"
     },
     {
       "numero": 2,
@@ -34,7 +34,7 @@
     },
     {
       "nivel": 3,
-      "texto": "Indaga al explorar objetos o fenómenos, al hacer preguntas, proponer posibles respuestas y actividades para obtener información sobre las características y relaciones que establece entre estos. Sigue un procedimiento para observar, manipular, describir y comparar sus ensayos y los utiliza para elaborar conclusiones. Expresa en forma oral, escrita o gráfica lo realizado, aprendido y las dificultades de su indagación."
+      "texto": "Indaga al explorar objetos o fenómenos, al hacer preguntas, proponer posibles respuestas y actividades para obtener información sobre las características y relaciones que establece sobre estos. Sigue un procedimiento para observar, manipular, describir y comparar sus ensayos y los utiliza para elaborar conclusiones. Expresa en forma oral, escrita o gráfica lo realizado, aprendido y las dificultades de su indagación."
     },
     {
       "nivel": 4,
@@ -58,6 +58,156 @@
     }
   ],
   "desempenos": [
+    {
+      "grado": "1P",
+      "orden": 1,
+      "texto": "Hace preguntas acerca de hechos, fenómenos u objetos naturales y tecnológicos que explora y observa en su entorno. Propone posibles respuestas con base en sus experiencias. Ejemplo: El estudiante observa cómo un caracol sube por el tronco de un árbol, y pregunta: “¿Por qué el caracol no se cae?”. Propone posibles respuestas, como: “Tiene baba pegajosa como la goma”."
+    },
+    {
+      "grado": "1P",
+      "orden": 2,
+      "texto": "Propone acciones que le permiten responder a la pregunta. Busca información, selecciona los materiales e instrumentos que necesitará para explorar y observar objetos, hechos o fenómenos y recoger datos. Ejemplo: El estudiante podría decir: “Salgamos al patio a buscar otros caracoles; llevaremos lupas para mirarlos”, “Tengo un libro que trata sobre caracoles”, etc."
+    },
+    {
+      "grado": "1P",
+      "orden": 3,
+      "texto": "Obtiene datos a partir de la observación y exploración de objetos, hechos o fenómenos; y los registra en organizadores mediante dibujos o primeras formas de escritura. Ejemplo: El estudiante hace dibujos con detalles de las formas del caracol, del camino que recorrió, etc."
+    },
+    {
+      "grado": "1P",
+      "orden": 4,
+      "texto": "Describe las características del hecho, fenómeno u objeto natural y tecnológico que registró, para comprobar si su respuesta es verdadera o no. Ejemplo: El estudiante describe los caracoles: forma, color, si tienen patas, qué estaban haciendo y lo que sucedió cuando se acercó a observarlos. Después de que el docente lea un texto sobre los caracoles, podrá comparar si lo que observó concuerda con lo que dice el texto, por qué, etc."
+    },
+    {
+      "grado": "1P",
+      "orden": 5,
+      "texto": "Comunica las respuestas que dio a la pregunta, lo que aprendió, así como sus logros y dificultades, mediante diversas formas de expresión: gráficas, orales o a través de su nivel de escritura. Ejemplo: El estudiante comenta si los caracoles tenían patas, cómo era su cuerpo, así como las dificultades que tuvo para observarlos y lo que haría para estudiarlos mejor después de esta experiencia. Podría dibujar en una hoja lo que le pareció más importante y, además, comentar qué parte del trabajo y de lo aprendido le gustó más."
+    },
+    {
+      "grado": "2P",
+      "orden": 1,
+      "texto": "Hace preguntas que buscan la descripción de las características de los hechos, fenómenos u objetos naturales y tecnológicos que explora y observa en su entorno. Propone posibles respuestas basándose en el reconocimiento de regularidades identificadas en su experiencia."
+    },
+    {
+      "grado": "2P",
+      "orden": 2,
+      "texto": "Propone acciones que le permiten responder a la pregunta y las ordena secuencialmente; selecciona los materiales, instrumentos y herramientas necesarios para explorar, observar y recoger datos sobre los hechos, fenómenos u objetos naturales o tecnológicos."
+    },
+    {
+      "grado": "2P",
+      "orden": 3,
+      "texto": "Obtiene y registra datos, a partir de las acciones que realizó para responder a la pregunta. Utiliza algunos organizadores de información o representa los datos mediante dibujos o sus primeras formas de escritura."
+    },
+    {
+      "grado": "2P",
+      "orden": 4,
+      "texto": "Compara y establece si hay diferencia entre la respuesta que propuso y los datos o la información obtenida en su observación o experimentación. Elabora sus conclusiones."
+    },
+    {
+      "grado": "2P",
+      "orden": 5,
+      "texto": "Comunica las respuestas que dio a la pregunta, lo que aprendió, así como sus logros y dificultades, mediante diversas formas de expresión: gráficas, orales o a través de su nivel de escritura."
+    },
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Hace preguntas sobre hechos, fenómenos u objetos naturales y tecnológicos que explora y observa en su entorno. Propone posibles respuestas con base en el reconocimiento de regularidades identificadas en situaciones similares. Ejemplo: El estudiante podría preguntar: “¿Por qué una vela encendida se derrite y no ocurre lo mismo con un mechero?”. Y podría responder: “La cera se consume más rápido que el kerosene”."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Propone un plan donde describe las acciones y los procedimientos que utilizará para responder a la pregunta. Selecciona los materiales e instrumentos que necesitará para su indagación, así como las fuentes de información que le permitan comprobar la respuesta."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Obtiene datos cualitativos o cuantitativos al llevar a cabo el plan que propuso para responder la pregunta. Usa unidades de medida convencionales y no convencionales, registra los datos y los representa en organizadores. Ejemplo: Cuando el estudiante observa cómo se derriten unos cubos de hielo, puede medir la temperatura a la que están inicialmente y, luego, medir la temperatura del líquido, el tiempo que pasó para que se derritan, así como hacer una representación gráfica de lo sucedido."
+    },
+    {
+      "grado": "3P",
+      "orden": 4,
+      "texto": "Establece relaciones que expliquen el fenómeno estudiado. Utiliza los datos obtenidos y los compara con la respuesta que propuso, así como con la información científica que posee. Elabora sus conclusiones. Ejemplo: Cuando el estudiante dice “en un día caluroso, los cubos de hielo se derriten más rápido; y en un día frío, demoran en derretirse”, utiliza los datos tomados para confirmar sus afirmaciones, así como los resúmenes que explican el tema."
+    },
+    {
+      "grado": "3P",
+      "orden": 5,
+      "texto": "Comunica las conclusiones de su indagación y lo que aprendió usando conocimientos científicos, así como el procedimiento, los logros y las dificultades que tuvo durante su desarrollo. Propone algunas mejoras. Da a conocer su indagación en forma oral o escrita."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Hace preguntas sobre hechos, fenómenos u objetos naturales o tecnológicos que explora. Elabora una posible explicación como respuesta, donde establece una relación entre los hechos y los factores que producen los cambios. Ejemplo: El estudiante podría preguntar: “¿Por qué algunos globos inflados se elevan y otros caen al suelo? Y, luego, responder: “El aire que contienen tiene diferente peso y por eso unos caen al suelo mientras otros siguen elevándose”."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Propone un plan donde describe las acciones y los procedimientos que utilizará para recoger información acerca de los factores relacionados con el problema en su indagación. Selecciona materiales, instrumentos y fuentes de información científica que le permiten comprobar la respuesta."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Obtiene datos cualitativos o cuantitativos al llevar a cabo el plan que propuso para responder la pregunta. Usa unidades de medida convencionales y no convencionales, registra los datos y los representa en organizadores."
+    },
+    {
+      "grado": "4P",
+      "orden": 4,
+      "texto": "Establece relaciones que expliquen el fenómeno estudiado. Utiliza los datos cualitativos y cuantitativos que obtuvo y los compara con la respuesta que propuso, así como con información científica. Elabora sus conclusiones."
+    },
+    {
+      "grado": "4P",
+      "orden": 5,
+      "texto": "Comunica las conclusiones de su indagación y lo que aprendió usando conocimientos científicos, así como el procedimiento, los logros y las dificultades que tuvo durante su desarrollo. Propone algunas mejoras. Da a conocer su indagación en forma oral o escrita."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Formula preguntas acerca de las variables que influyen en un hecho, fenómeno u objeto natural o tecnológico. Plantea hipótesis que expresan la relación causa-efecto y determina las variables involucradas. Ejemplo: El estudiante podría preguntar: “¿Qué le sucedería a una planta si la encerramos en una caja con un huequito por donde entre la luz?”. La hipótesis podría ser: “Las plantas puestas en oscuridad mueren rápido y se les caen las hojas porque necesitan luz para vivir”."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Propone un plan que le permita observar las variables involucradas, a fin de obtener datos para comprobar sus hipótesis. Selecciona materiales, instrumentos y fuentes que le brinden información científica. Considera el tiempo para el desarrollo del plan y las medidas de seguridad necesarias. Ejemplo: Si se está indagando sobre el comportamiento de las plantas y la luz, el estudiante podría decir: “Necesitaremos una planta en un macetero y una caja de cartón para cubrirla. Haremos un huequito en la caja, la dejaremos cubierta por 5 días y anotaremos qué sucede. Buscaremos información en libros e internet”."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Obtiene datos cualitativos o cuantitativos que evidencian la relación entre las variables que utiliza para responder la pregunta. Registra los datos y los representa en diferentes organizadores. Ejemplo: Al revisar diariamente lo que sucede con la planta cubierta por una caja con un huequito, el estudiante tomará nota para identificar si el color de las hojas se mantiene, si el tallo sigue en la misma dirección o si cambió, y hará resúmenes con la información que encontró en los libros e internet."
+    },
+    {
+      "grado": "5P",
+      "orden": 4,
+      "texto": "Compara los datos cualitativos o cuantitativos para probar sus hipótesis y las contrasta con información científica. Elabora sus conclusiones. Ejemplo: El estudiante podría decir: “Nuestra hipótesis es que las plantas puestas en la oscuridad mueren rápido y se les caen las hojas”; “Experimentando, obtuvimos estos datos: a los ‘x’ días las hojas de la planta cambiaron de color, a los ‘y’ días el tallo de la planta se dobló hacia la fuente de luz”; “Según los libros, el movimiento de las plantas hacia la luz se llama fototropismo positivo y su raíz tiene fototropismo negativo”."
+    },
+    {
+      "grado": "5P",
+      "orden": 5,
+      "texto": "Comunica sus conclusiones y lo que aprendió usando conocimientos científicos. Evalúa si los procedimientos seguidos en su indagación ayudaron a comprobar sus hipótesis. Menciona las dificultades que tuvo y propone mejoras. Da a conocer su indagación en forma oral o escrita. Ejemplo: El estudiante podría decir: “Las plantas buscan las fuentes de luz y a eso se le llama fototropismo positivo, por ello, se torció el tallo hacia la fuente de luz”; “Las plantas no mueren en la oscuridad, pero el color de sus hojas sí cambia”; “Tendríamos que haber contado con una planta igualita, pero expuesta a la luz, para compararlas”."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Formula preguntas acerca de las variables que influyen en un hecho, fenómeno u objeto natural o tecnológico. Plantea hipótesis que expresan la relación causa-efecto y determina las variables involucradas."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Propone un plan para observar las variables del problema de indagación y controlar aquellas que pueden modificar la experimentación, con la finalidad de obtener datos para comprobar sus hipótesis. Selecciona instrumentos, materiales y herramientas, así como fuentes que le brinden información científica. Considera el tiempo para el desarrollo del plan y las medidas de seguridad necesarias."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Obtiene datos cualitativos o cuantitativos que evidencian la relación entre las variables que utiliza para responder la pregunta. Organiza los datos, hace cálculos de moda, proporcionalidad directa y otros, y los representa en diferentes organizadores."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Utiliza los datos cualitativos o cuantitativos para probar sus hipótesis y las contrasta con información científica. Elabora sus conclusiones."
+    },
+    {
+      "grado": "6P",
+      "orden": 5,
+      "texto": "Comunica sus conclusiones y lo que aprendió usando conocimientos científicos. Evalúa si los procedimientos seguidos en su indagación ayudaron a comprobar sus hipótesis. Menciona las dificultades que tuvo y propone mejoras. Da a conocer su indagación en forma oral o escrita."
+    },
     {
       "grado": "1S",
       "orden": 1,

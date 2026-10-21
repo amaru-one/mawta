@@ -22,11 +22,11 @@
   "estandares": [
     {
       "nivel": 1,
-      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Se comunica oralmente en su lengua materna”."
+      "texto": "Este nivel tiene como base principalmente el nivel 1 de la competencia “Se comunica oralmente en su lengua materna”."
     },
     {
       "nivel": 2,
-      "texto": "Este nivel tiene como base el nivel 2 de la competencia “Se comunica oralmente en su lengua materna”."
+      "texto": "Este nivel tiene como base principalmente el nivel 2 de la competencia “Se comunica oralmente en su lengua materna”."
     },
     {
       "nivel": 3,
@@ -50,10 +50,160 @@
     },
     {
       "nivel": 8,
-      "texto": "Escribe diversos tipos de texto de forma reflexiva. Adecúa su texto al destinatario, propósito y registro utilizando fuentes de información complementaria y/o divergente entre sí y en relación con otros contextos socioculturales e históricos. Organiza y desarrolla sus ideas en torno al género discursivo y al tema, usando vocabulario especializado. Relaciona ideas del texto a través de recursos gramaticales y recursos ortográficos para darle claridad y sentido. Reflexiona sobre el contenido del texto, la organización y el contexto donde se desarrolla; evalúa los usos del lenguaje para persuadir e influir."
+      "texto": "Escribe diversos tipos de textos de forma reflexiva. Adecúa su texto al destinatario, propósito y registro utilizando fuentes de información complementaria y/o divergente entre sí y en relación con otros contextos socioculturales e históricos. Organiza y desarrolla sus ideas en torno al género discursivo y al tema, usando vocabulario especializado. Relaciona ideas del texto a través de recursos gramaticales y recursos ortográficos para darle claridad y sentido. Reflexiona sobre el contenido del texto, la organización y el contexto donde se desarrolla; evalúa los usos del lenguaje para persuadir e influir."
     }
   ],
   "desempenos": [
+    {
+      "grado": "1P",
+      "orden": 1,
+      "texto": "Escribe palabras sueltas. Por ejemplo, nombres de objetos: mesa, sapo, pato, etc."
+    },
+    {
+      "grado": "2P",
+      "orden": 1,
+      "texto": "Escribe frases y oraciones para construir un texto sobre temas cercanos a sus vivencias, teniendo en cuenta el propósito comunicativo y sus experiencias previas."
+    },
+    {
+      "grado": "2P",
+      "orden": 2,
+      "texto": "Escribe usando algunos conectores. Utiliza vocabulario de uso frecuente."
+    },
+    {
+      "grado": "2P",
+      "orden": 3,
+      "texto": "Utiliza algunos recursos ortográficos, como el punto y la coma."
+    },
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Adecúa el texto a la situación comunicativa (del ámbito cotidiano) considerando el propósito. Incluye en sus escritos alguna fuente de información oral o escrita."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Escribe textos en torno a un tema, aunque presenta reiteración de información o algunas digresiones que no afectan el sentido del texto."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Relaciona las ideas usando algunos conectores de adición, como “y”, además de algunos referentes."
+    },
+    {
+      "grado": "3P",
+      "orden": 4,
+      "texto": "Utiliza algunos recursos ortográficos, como la coma, el punto final, entre otros."
+    },
+    {
+      "grado": "3P",
+      "orden": 5,
+      "texto": "Utiliza vocabulario frecuente."
+    },
+    {
+      "grado": "3P",
+      "orden": 6,
+      "texto": "Evalúa, con ayuda del docente, si el contenido de su texto se adecúa al propósito y tema, con el fin de mejorarlo."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Adecúa el texto a la situación comunicativa (del ámbito cotidiano) considerando el propósito. Incluye en sus escritos alguna fuente de información oral o escrita."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Escribe textos en torno a un tema, aunque presenta reiteración de información o algunas digresiones que no afectan el sentido del texto. Ordena las ideas en párrafos."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Relaciona las ideas usando algunos conectores de adición, como “y”, además de algunos referentes."
+    },
+    {
+      "grado": "4P",
+      "orden": 4,
+      "texto": "Utiliza algunos recursos ortográficos para que su texto sea claro, como la coma, el punto seguido, el punto final, entre otros."
+    },
+    {
+      "grado": "4P",
+      "orden": 5,
+      "texto": "Utiliza vocabulario frecuente."
+    },
+    {
+      "grado": "4P",
+      "orden": 6,
+      "texto": "Evalúa si el contenido de su texto y el registro usado se adecúan a la situación comunicativa, con el fin de mejorarlo."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Adecúa su texto, sobre temas variados, al destinatario y propósito comunicativo considerando más de una fuente de información oral o escrita."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Escribe textos en torno a un tema, aunque presenta algunas digresiones que no afectan el sentido del texto. Ordena las ideas en párrafos."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Relaciona las ideas usando conectores (consecuencia, contraste, comparación, entre otros) y referentes."
+    },
+    {
+      "grado": "5P",
+      "orden": 4,
+      "texto": "Utiliza diversos recursos ortográficos para que su texto sea claro."
+    },
+    {
+      "grado": "5P",
+      "orden": 5,
+      "texto": "Utiliza vocabulario variado, además de expresiones formulaicas como “había una vez”, entre otras."
+    },
+    {
+      "grado": "5P",
+      "orden": 6,
+      "texto": "Evalúa si el contenido de su texto y el registro usado se adecúan a la situación comunicativa, con el fin de mejorarlo."
+    },
+    {
+      "grado": "5P",
+      "orden": 7,
+      "texto": "Evalúa si los recursos ortográficos que utiliza en su texto tienen algún efecto en su lector."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Adecúa su texto, sobre temas variados, al destinatario, registro formal e informal y propósito comunicativo considerando más de una fuente de información oral o escrita."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Escribe textos en torno a un tema, aunque presenta algunas digresiones que no afectan el sentido del texto. Ordena las ideas en párrafos."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Relaciona las ideas usando conectores (consecuencia, contraste, comparación, entre otros) y referentes."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Utiliza diversos recursos ortográficos para que su texto sea claro."
+    },
+    {
+      "grado": "6P",
+      "orden": 5,
+      "texto": "Utiliza vocabulario variado, además de diversas expresiones formulaicas."
+    },
+    {
+      "grado": "6P",
+      "orden": 6,
+      "texto": "Evalúa si el contenido de su texto, el vocabulario y el registro usado se adecúan a la situación comunicativa, con el fin de mejorarlo."
+    },
+    {
+      "grado": "6P",
+      "orden": 7,
+      "texto": "Evalúa si los recursos ortográficos que utiliza en su texto tienen algún efecto en su lector."
+    },
     {
       "grado": "1S",
       "orden": 1,

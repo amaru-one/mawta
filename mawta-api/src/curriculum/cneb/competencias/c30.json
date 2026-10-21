@@ -14,7 +14,7 @@
   "estandares": [
     {
       "nivel": 1,
-      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Construye su identidad”."
+      "texto": "Este nivel tiene como base principalmente el nivel 1 de la competencia “Construye su identidad”."
     },
     {
       "nivel": 2,
@@ -46,6 +46,126 @@
     }
   ],
   "desempenos": [
+    {
+      "grado": "1P",
+      "orden": 1,
+      "texto": "Identifica que Dios manifiesta su amor en la Creación y lo relaciona con el amor que recibe de sus padres, docentes y amigos."
+    },
+    {
+      "grado": "1P",
+      "orden": 2,
+      "texto": "Comprende los principales hechos de la Historia de la Salvación y los relaciona con su familia y su institución educativa."
+    },
+    {
+      "grado": "1P",
+      "orden": 3,
+      "texto": "Se relaciona con su prójimo de manera fraterna y respeta las expresiones de fe de los demás."
+    },
+    {
+      "grado": "1P",
+      "orden": 4,
+      "texto": "Reconoce lo bueno y lo malo de sus acciones, y asume actitudes de cambio para imitar a Jesús."
+    },
+    {
+      "grado": "2P",
+      "orden": 1,
+      "texto": "Descubre que Dios nos creó, por amor, a su imagen y semejanza, y valora sus características personales como hijo de Dios."
+    },
+    {
+      "grado": "2P",
+      "orden": 2,
+      "texto": "Explica los principales hechos de la Historia de la Salvación y los relaciona con su entorno."
+    },
+    {
+      "grado": "2P",
+      "orden": 3,
+      "texto": "Establece relaciones fraternas y respetuosas con los demás en diferentes escenarios, y participa en celebraciones religiosas de su comunidad."
+    },
+    {
+      "grado": "2P",
+      "orden": 4,
+      "texto": "Discrimina lo bueno y lo malo de sus acciones, y asume actitudes de cambio y compromiso para imitar a Jesús."
+    },
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Identifica la acción de Dios en diversos acontecimientos de la Historia de la Salvación."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Conoce a Dios Padre, que se manifiesta en las Sagradas Escrituras, y acepta el mensaje que le da a conocer para vivir en armonía con Él y con los demás."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Expresa su fe al participar en su comunidad y respeta a sus compañeros y a los que profesan diferentes credos."
+    },
+    {
+      "grado": "3P",
+      "orden": 4,
+      "texto": "Se compromete a una convivencia cristiana basada en el diálogo y el respeto mutuo."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Relaciona sus experiencias de vida con los acontecimientos de la Historia de la Salvación como manifestación del amor de Dios."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Conoce a Dios Padre y se reconoce como hijo amado según las Sagradas Escrituras para vivir en armonía con su entorno."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Participa en la Iglesia como comunidad de fe y amor, y respeta la integridad de las personas y las diversas manifestaciones religiosas."
+    },
+    {
+      "grado": "4P",
+      "orden": 4,
+      "texto": "Promueve la convivencia cristiana basada en el diálogo, el respeto, la comprensión y el amor fraterno."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Explica el amor de Dios presente en la Creación y se compromete a cuidarla."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Reconoce el amor de Dios presente en la Historia de la Salvación respetándose a sí mismo y a los demás."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Expresa su amor a Dios y al prójimo realizando acciones que fomentan el respeto por la vida humana."
+    },
+    {
+      "grado": "5P",
+      "orden": 4,
+      "texto": "Promueve la convivencia armónica en su entorno más cercano y fortalece su identidad como hijo de Dios."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Comprende el amor de Dios desde el cuidado de la Creación y respeta la dignidad y la libertad de la persona humana."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Comprende la acción de Dios revelada en la Historia de la Salvación y en su propia historia, que respeta la dignidad y la libertad de la persona humana."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Demuestra su amor a Dios atendiendo las necesidades del prójimo y fortalece así su crecimiento personal y espiritual."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Fomenta en toda ocasión y lugar una convivencia cristiana basada en el diálogo, el respeto, la comprensión y el amor fraterno."
+    },
     {
       "grado": "1S",
       "orden": 1,

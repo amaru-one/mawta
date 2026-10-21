@@ -12,33 +12,33 @@
     },
     {
       "numero": 3,
-      "nombre": "Reflexiona y evalúa la forma, el contenido y el contexto del texto escrito"
+      "nombre": "Reflexiona y evalúa la forma, el contenido y contexto del texto"
     }
   ],
   "estandares": [
     {
       "nivel": 1,
-      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Se comunica oralmente en su lengua materna”."
+      "texto": "Este nivel tiene como base principalmente el nivel 1 de la competencia “Se comunica oralmente en su lengua materna”."
     },
     {
       "nivel": 2,
-      "texto": "Este nivel tiene como base el nivel 2 de la competencia “Se comunica oralmente en su lengua materna”."
+      "texto": "Este nivel tiene como base principalmente el nivel 2 de la competencia “Se comunica oralmente en su lengua materna”."
     },
     {
       "nivel": 3,
-      "texto": "Este nivel tiene como base el nivel 3 de la competencia “Se comunica oralmente en inglés como lengua extranjera”."
+      "texto": "Este nivel tiene como base principalmente el nivel 3 de la competencia “Se comunica oralmente en inglés como lengua extranjera”."
     },
     {
       "nivel": 4,
-      "texto": "Lee diversos tipos de texto en inglés que presentan estructura simple en los que predominan expresiones conocidas e ilustraciones que apoyan las ideas centrales. Obtiene información explícita y relevante ubicada en lugares evidentes del texto. Realiza inferencias locales partir de información explícita e interpreta el texto relacionando información recurrente. Opina sobre lo que más le gustó del texto leído."
+      "texto": "Lee diversos tipos de texto en inglés que presentan estructura simple en los que predominan expresiones conocidas e ilustraciones que apoyan las ideas centrales. Obtiene información explícita y relevante ubicada en lugares evidentes del texto. Realiza inferencias locales a partir de información explícita e interpreta el texto relacionando información recurrente. Opina sobre lo que más le gustó del texto leído."
     },
     {
       "nivel": 5,
-      "texto": "Lee diversos tipos de textos en inglés que presentan estructura simple con vocabulario de uso frecuente. Obtiene información poco evidente distinguiéndola de otras próximas y semejantes. Realiza inferencias locales a partir de información explícita e implícita interpreta el texto relacionando información relevante para construir su sentido global. Opina sobre sucesos e ideas importantes del texto a partir de su propia experiencia."
+      "texto": "Lee diversos tipos de texto en inglés que presentan estructura simple con vocabulario de uso frecuente. Obtiene información poco evidente distinguiéndola de otras próximas y semejantes. Realiza inferencias locales a partir de información explícita e implícita e interpreta el texto relacionando información relevante para construir su sentido global. Opina sobre sucesos e ideas importantes del texto a partir de su propia experiencia."
     },
     {
       "nivel": 6,
-      "texto": "Lee diversos tipos de texto en inglés que presentan estructuras simples y algunos elementos complejos con vocabulario cotidiano. Obtiene información e integra datos que están en distintas partes del texto. Realiza inferencias locales partir de información explícita e implícita e interpreta el texto seleccionando información relevante y complementaria. Reflexiona sobre aspectos variados del texto evaluando el uso del lenguaje y la intención de los recursos textuales más comunes a partir de su conocimiento y experiencia."
+      "texto": "Lee diversos tipos de texto en inglés que presentan estructuras simples y algunos elementos complejos con vocabulario cotidiano. Obtiene información e integra datos que están en distintas partes del texto. Realiza inferencias locales a partir de información explícita e implícita e interpreta el texto seleccionando información relevante y complementaria. Reflexiona sobre aspectos variados del texto evaluando el uso del lenguaje y la intención de los recursos textuales más comunes a partir de su conocimiento y experiencia."
     },
     {
       "nivel": 7,
@@ -46,10 +46,90 @@
     },
     {
       "nivel": 8,
-      "texto": "Lee diversos tipos de texto en inglés con estructuras complejas y vocabulario variado y especializado. Integra información ambigua o contrapuesta ubicada en distintas partes del texto. Interpreta el texto para construir su sentido global a partir de información relevante y complementaria. Reflexiona sobre las formas y el contenido del texto asumiendo una posición; evalúa el uso del lenguaje, los recursos textuales, así como el efecto del texto a partir de su conocimiento y del contexto socio cultural en el que fue escrito."
+      "texto": "Lee diversos tipos de texto en inglés con estructuras complejas y vocabulario variado y especializado. Integra información ambigua o contrapuesta ubicada en distintas partes del texto. Interpreta el texto para construir su sentido global a partir de información relevante y complementaria. Reflexiona sobre las formas y el contenido del texto asumiendo una posición; evalúa el uso del lenguaje, los recursos textuales así como el efecto del texto a partir de su conocimiento y del contexto sociocultural en el que fue escrito."
     }
   ],
   "desempenos": [
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Identifica información explícita que es claramente distinguible de otra y que se encuentra en lugares evidentes, como título, inicio o final, en textos escritos en inglés, con vocabulario sencillo y con o sin ilustraciones."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Deduce relaciones lógicas (adición y contraste) en textos escritos en inglés. Señala información acerca de personas, animales, objetos y lugares, a partir de indicios como ilustraciones y silueta de texto."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Explica con vocabulario sencillo el tema del texto escrito en inglés (animales, habilidades, verbos de acción, actividades diarias, días de la semana, adverbios de frecuencia, lugares donde vivir, habitaciones y objetos de la casa); se apoya en la relación texto-ilustración para construir el sentido del texto y lo vincula con su experiencia."
+    },
+    {
+      "grado": "3P",
+      "orden": 4,
+      "texto": "Opina en inglés de manera oral, escrita o mediante ilustraciones o recursos no verbales sobre el contenido de los textos escritos en inglés."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Identifica información explícita que es claramente distinguible de otra y que se encuentra en lugares evidentes, como título, inicio o final, en textos escritos en inglés, con vocabulario sencillo y con o sin ilustraciones."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Deduce relaciones lógicas (adición, contraste, semejanza y diferencia) en textos escritos en inglés. Señala características de personas, animales y lugares de su entorno, a partir de indicios como ilustraciones y silueta de texto."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Explica con vocabulario sencillo el tema del texto escrito en inglés (animales, hábitats, partes del cuerpo, enfermedades y medicinas, adjetivos calificativos y expresiones de tiempo pasado); se apoya en la relación texto-ilustración para construir el sentido del texto y lo vincula con su experiencia."
+    },
+    {
+      "grado": "4P",
+      "orden": 4,
+      "texto": "Opina en inglés de manera oral, escrita o mediante ilustraciones o recursos no verbales sobre el contenido de los textos escritos en inglés."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Identifica información explícita y relevante que se encuentra dentro de los párrafos, y la distingue de otra semejante con elementos simples en su estructura y vocabulario de uso frecuente, en diversos tipos de textos escritos en inglés."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Deduce relaciones lógicas (adición, contraste, secuencia, semejanza y diferencia) y relaciones jerárquicas (idea principal) en textos escritos en inglés. Señala características de personas, objetos, lugares y hechos, a partir de indicios como título, ilustraciones y silueta de texto."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Explica con vocabulario sencillo el tema del texto escrito en inglés (actividades de ocio y hobbies, deportes, instrumentos musicales, comida en casa, frutas y vegetales, comida saludable, verbos regulares e irregulares); distingue lo relevante de lo complementario para construir el sentido del texto y lo vincula con su experiencia."
+    },
+    {
+      "grado": "5P",
+      "orden": 4,
+      "texto": "Opina en inglés de manera oral, escrita o mediante ilustraciones sobre el contenido y propósito comunicativo de los textos escritos en inglés, a partir de su experiencia y el contexto."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Identifica información explícita y relevante que se encuentra dentro de los párrafos, y la distingue de otra semejante con elementos simples en su estructura y vocabulario de uso frecuente, en diversos tipos de textos escritos en inglés."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Deduce relaciones lógicas (adición, contraste, secuencia, semejanza-diferencia y causa) y relaciones jerárquicas (idea principal) en textos escritos en inglés. Señala características de personas, objetos, lugares y hechos, a partir de indicios como título, ilustraciones y silueta de texto."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Explica con vocabulario sencillo el tema del texto escrito en inglés (tecnología, precios, carreras profesionales, ocupaciones y trabajos, obligaciones en el trabajo, feriados y festividades, actividades de entretenimiento); distingue lo relevante de lo complementario para construir el sentido del texto y lo vincula con su experiencia."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Opina en inglés de manera oral, escrita o mediante ilustraciones sobre el contenido y propósito comunicativo de los textos escritos en inglés, a partir de su experiencia y el contexto."
+    },
     {
       "grado": "1S",
       "orden": 1,
