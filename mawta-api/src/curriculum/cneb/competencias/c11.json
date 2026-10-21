@@ -18,11 +18,11 @@
   "estandares": [
     {
       "nivel": 1,
-      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Se comunica oralmente en su lengua materna”."
+      "texto": "Este nivel tiene como base principalmente el nivel 1 de la competencia “Se comunica oralmente en su lengua materna”."
     },
     {
       "nivel": 2,
-      "texto": "Este nivel tiene como base el nivel 2 de la competencia “Se comunica oralmente en su lengua materna”."
+      "texto": "Este nivel tiene como base principalmente el nivel 2 de la competencia “Se comunica oralmente en su lengua materna”."
     },
     {
       "nivel": 3,
@@ -50,6 +50,191 @@
     }
   ],
   "desempenos": [
+    {
+      "grado": "1P",
+      "orden": 1,
+      "texto": "Identifica palabras conocidas en textos breves de estructura sencilla, con temas cotidianos de su contexto local, acompañados de ilustraciones y en los que predomina un vocabulario conocido y reiterativo."
+    },
+    {
+      "grado": "1P",
+      "orden": 2,
+      "texto": "Deduce información; para ello, anticipa el contenido del texto a partir de algunos indicios (título, ilustraciones, palabras conocidas)."
+    },
+    {
+      "grado": "2P",
+      "orden": 1,
+      "texto": "Identifica nombres, palabras y frases cotidianas en textos breves de estructura simple, con temas cotidianos, acompañados de ilustraciones y en los que predomina un vocabulario conocido."
+    },
+    {
+      "grado": "2P",
+      "orden": 2,
+      "texto": "Deduce información; para ello, anticipa el contenido del texto a partir de algunos indicios (título, ilustraciones, palabras conocidas)."
+    },
+    {
+      "grado": "2P",
+      "orden": 3,
+      "texto": "Comenta en su lengua materna qué le gustó del texto leído."
+    },
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Identifica información ubicada en distintas partes de un texto de estructura simple."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Integra información ubicada en distintas partes del texto."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Deduce relaciones de semejanzas y diferencias."
+    },
+    {
+      "grado": "3P",
+      "orden": 4,
+      "texto": "Deduce información a partir de la estructura del texto, como subtítulos, títulos, etc."
+    },
+    {
+      "grado": "3P",
+      "orden": 5,
+      "texto": "Deduce características de personajes, animales, objetos y lugares, así como el significado de palabras según el contexto."
+    },
+    {
+      "grado": "3P",
+      "orden": 6,
+      "texto": "Explica el tema y el propósito del texto."
+    },
+    {
+      "grado": "3P",
+      "orden": 7,
+      "texto": "Opina en forma breve sobre el contenido del texto."
+    },
+    {
+      "grado": "3P",
+      "orden": 8,
+      "texto": "Explica la utilidad de los elementos normativos básicos de la lengua que favorecen la comprensión."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Identifica información ubicada en distintas partes de un texto de estructura simple."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Integra información ubicada en distintas partes del texto."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Deduce relaciones de semejanzas y diferencias."
+    },
+    {
+      "grado": "4P",
+      "orden": 4,
+      "texto": "Deduce información a partir de la estructura del texto, como subtítulos, títulos, etc."
+    },
+    {
+      "grado": "4P",
+      "orden": 5,
+      "texto": "Deduce características de personajes, animales, objetos y lugares, así como el significado de palabras según el contexto."
+    },
+    {
+      "grado": "4P",
+      "orden": 6,
+      "texto": "Explica el tema y el propósito del texto."
+    },
+    {
+      "grado": "4P",
+      "orden": 7,
+      "texto": "Opina en forma breve sobre el contenido del texto."
+    },
+    {
+      "grado": "4P",
+      "orden": 8,
+      "texto": "Explica la utilidad de los elementos normativos básicos de la lengua que favorecen la comprensión."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Identifica información relevante del texto con algunos elementos complejos y vocabulario variado."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Integra información ubicada en distintas partes del texto."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Deduce relaciones de semejanzas y diferencias, causa-efecto, problema-solución."
+    },
+    {
+      "grado": "5P",
+      "orden": 4,
+      "texto": "Deduce información a partir de la estructura del texto, como subtítulos, títulos, etc."
+    },
+    {
+      "grado": "5P",
+      "orden": 5,
+      "texto": "Deduce características de personajes, animales, objetos y lugares, así como el significado de palabras según el contexto."
+    },
+    {
+      "grado": "5P",
+      "orden": 6,
+      "texto": "Explica el tema y el propósito del texto."
+    },
+    {
+      "grado": "5P",
+      "orden": 7,
+      "texto": "Opina sobre el contenido del texto y justifica su posición."
+    },
+    {
+      "grado": "5P",
+      "orden": 8,
+      "texto": "Explica la utilidad de los elementos normativos básicos de la lengua que favorecen la comprensión."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Identifica información relevante del texto con algunos elementos complejos y vocabulario variado."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Integra información ubicada en distintas partes del texto."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Deduce relaciones de semejanzas y diferencias, causa-efecto, problema-solución."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Deduce información a partir de la estructura del texto, como subtítulos, títulos, etc."
+    },
+    {
+      "grado": "6P",
+      "orden": 5,
+      "texto": "Deduce características de personajes, animales, objetos y lugares, así como el significado de palabras según el contexto."
+    },
+    {
+      "grado": "6P",
+      "orden": 6,
+      "texto": "Explica el tema y el propósito del texto."
+    },
+    {
+      "grado": "6P",
+      "orden": 7,
+      "texto": "Opina sobre el contenido del texto y justifica su posición."
+    },
+    {
+      "grado": "6P",
+      "orden": 8,
+      "texto": "Explica la utilidad de los elementos normativos básicos de la lengua que favorecen la comprensión."
+    },
     {
       "grado": "1S",
       "orden": 1,

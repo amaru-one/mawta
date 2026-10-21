@@ -22,11 +22,11 @@
   "estandares": [
     {
       "nivel": 1,
-      "texto": "Este nivel tiene como base el nivel 1 de las competencias “Resuelve problemas de cantidad” y “Resuelve problemas de regularidad, equivalencia y cambio”."
+      "texto": "Este nivel tiene como base principalmente el nivel 1 de las competencias “Resuelve problemas de cantidad” y \"Resuelve problemas de forma, movimiento y localización\"."
     },
     {
       "nivel": 2,
-      "texto": "Este nivel tiene como base el nivel 2 de las competencias “Resuelve problemas de cantidad” y “Resuelve problemas de regularidad, equivalencia y cambio”."
+      "texto": "Este nivel tiene como base principalmente el nivel 2 de las competencias “Resuelve problemas de cantidad” y \"Resuelve problemas de forma, movimiento y localización\"."
     },
     {
       "nivel": 3,
@@ -42,7 +42,7 @@
     },
     {
       "nivel": 6,
-      "texto": "Resuelve problemas referidos a interpretar cambios constantes o regularidades entre magnitudes, valores o entre expresiones; traduciéndolas a patrones numéricos y gráficos, progresiones aritméticas, ecuaciones e inecuaciones con una incógnita, funciones lineales y afín, y relaciones de proporcionalidad directa e inversa. Comprueba si la expresión algebraica usada expresó o reprodujo las condiciones del problema. Expresa su comprensión de: la relación entre función lineal y proporcionalidad directa; las diferencias entre una ecuación e inecuación lineal y sus propiedades; la variable como un valor que cambia; el conjunto de valores que puede tomar un término desconocido para verificar una inecuación; las usa para interpretar enunciados, expresiones algebraicas o textos diversos de contenido matemático. Selecciona, emplea y combina recursos, estrategias, métodos gráficos y procedimientos matemáticos para determinar el valor de términos desconocidos en una progresión aritmética, simplificar expresiones algebraicas y dar solución a ecuaciones e inecuaciones lineales, y evaluar funciones lineales. Plantea afirmaciones sobre propiedades de las progresiones aritméticas, ecuaciones e inecuaciones así como de una función lineal, lineal afín con base a sus experiencias, y las justifica mediante ejemplos y propiedades matemáticas; encuentra errores o vacíos en las argumentaciones propias y las de otros y las corrige."
+      "texto": "Resuelve problemas referidos a interpretar cambios constantes o regularidades entre magnitudes, valores o entre expresiones; traduciéndolas a patrones numéricos y gráficos⁴⁶, progresiones aritméticas, ecuaciones e inecuaciones con una incógnita, funciones lineales y afín, y relaciones de proporcionalidad directa e inversa. Comprueba si la expresión algebraica usada expresó o reprodujo las condiciones del problema. Expresa su comprensión de: la relación entre función lineal y proporcionalidad directa; las diferencias entre una ecuación e inecuación lineal y sus propiedades; la variable como un valor que cambia; el conjunto de valores que puede tomar un término desconocido para verificar una inecuación; las usa para interpretar enunciados, expresiones algebraicas o textos diversos de contenido matemático. Selecciona, emplea y combina recursos, estrategias, métodos gráficos y procedimientos matemáticos para determinar el valor de términos desconocidos en una progresión aritmética, simplificar expresiones algebraicas y dar solución a ecuaciones e inecuaciones lineales, y evaluar funciones lineales. Plantea afirmaciones sobre propiedades de las progresiones aritméticas, ecuaciones e inecuaciones así como de una función lineal, lineal afín con base a sus experiencias, y las justifica mediante ejemplos y propiedades matemáticas; encuentra errores o vacíos en las argumentaciones propias y las de otros y las corrige."
     },
     {
       "nivel": 7,

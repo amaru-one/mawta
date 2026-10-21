@@ -1,6 +1,6 @@
 {
   "numero_cneb": 8,
-  "nombre": "Lee diversos tipos de textos escritos en lengua materna",
+  "nombre": "Lee diversos tipos de textos escritos en su lengua materna",
   "capacidades": [
     {
       "numero": 1,
@@ -18,11 +18,11 @@
   "estandares": [
     {
       "nivel": 1,
-      "texto": "Este nivel tiene como base principalmente el nivel 1 de la competencia “Se comunica oralmente en su lengua materna”."
+      "texto": "Este nivel tiene como base principalmente el nivel 1 de la competencia “Se comunica oralmente en lengua materna”."
     },
     {
       "nivel": 2,
-      "texto": "Lee diversos tipos de textos que tratan temas reales o imaginarios que le son cotidianos, en los que predominan palabras conocidas y que se acompañan con ilustraciones. Construye hipótesis o predicciones sobre la información contenida en los textos y demuestra comprensión de las ilustraciones y de algunos símbolos escritos que transmiten información. Expresa sus gustos y preferencias en relación a los textos leídos a partir de su propia experiencia. Utiliza algunas convenciones básicas de los textos escritos."
+      "texto": "Lee¹⁹ diversos tipos de textos que tratan temas reales o imaginarios que le son cotidianos, en los que predominan palabras conocidas y que se acompañan con ilustraciones. Construye hipótesis o predicciones sobre la información contenida en los textos y demuestra comprensión de las ilustraciones y de algunos símbolos escritos que transmiten información. Expresa sus gustos y preferencias en relación a los textos leídos a partir de su propia experiencia. Utiliza algunas convenciones básicas de los textos escritos."
     },
     {
       "nivel": 3,
@@ -46,10 +46,110 @@
     },
     {
       "nivel": 8,
-      "texto": "Lee diversos tipos de textos con estructuras complejas, principalmente de naturaleza analítica y reflexiva, con vocabulario variado y especializado. Interpreta y reinterpreta el texto a partir del análisis de énfasis y matices intencionados, valiéndose de otros textos y reconociendo distintas posturas y sentidos. Reflexiona sobre formas y contenidos del texto y asume una posición sobre las ideologías y relaciones de poder que este presenta. Evalúa el uso del lenguaje, la validez de la información, el estilo del texto, la intención de estrategias discursivas y recursos textuales. Explica el efecto del texto en el lector así como la influencia de los valores y posturas del autor en relación al contexto sociocultural en el que el texto fue escrito."
+      "texto": "Lee diversos tipos de textos con estructuras complejas, principalmente de naturaleza analítica y reflexiva, con vocabulario variado y especializado. Interpreta y reinterpreta el texto a partir del análisis de énfasis y matices intencionados, valiéndose de otros textos y reconociendo distintas posturas y sentidos. Reflexiona sobre formas y contenidos del texto y asume una posición sobre las relaciones de poder que este presenta. Evalúa el uso del lenguaje, la validez de la información, el estilo del texto, la intención de estrategias discursivas y recursos textuales. Explica el efecto del texto en el lector así como la influencia de los valores y posturas del autor en relación al contexto sociocultural en el que el texto fue escrito."
     }
   ],
   "desempenos": [
+    {
+      "grado": "1P",
+      "orden": 1,
+      "texto": "Identifica información explícita que es claramente distinguible de otra porque la relaciona con palabras conocidas o porque conoce el contenido del texto (por ejemplo, en una lista de cuentos con títulos que comienzan de diferente manera, el niño puede reconocer dónde dice “Caperucita” porque comienza como el nombre de un compañero o lo ha leído en otros textos) y que se encuentra en lugares evidentes como el título, subtítulo, inicio, final, etc., en textos con ilustraciones. Establece la secuencia de los textos que lee (instrucciones, historias, noticias)."
+    },
+    {
+      "grado": "1P",
+      "orden": 2,
+      "texto": "Deduce características de personajes, animales, objetos y lugares, así como relaciones lógicas de causa-efecto que se pueden establecer fácilmente a partir de información explícita del texto."
+    },
+    {
+      "grado": "1P",
+      "orden": 3,
+      "texto": "Predice de qué tratará el texto y cuál es su propósito comunicativo, a partir de algunos indicios, como título, ilustraciones, palabras conocidas o expresiones que se encuentran en los textos que le leen, que lee con ayuda o que lee por sí mismo."
+    },
+    {
+      "grado": "1P",
+      "orden": 4,
+      "texto": "Explica la relación del texto con la ilustración en textos que lee por sí mismo, que lee con ayuda del docente o que escucha leer."
+    },
+    {
+      "grado": "1P",
+      "orden": 5,
+      "texto": "Opina acerca de personas, personajes y hechos expresando sus preferencias. Elige o recomienda textos a partir de su experiencia, necesidades e intereses, con el fin de reflexionar sobre los textos que lee o escucha leer."
+    },
+    {
+      "grado": "2P",
+      "orden": 1,
+      "texto": "Identifica información explícita que se encuentra en distintas partes del texto. Distingue esta información de otra semejante (por ejemplo, distingue entre las características de dos personajes, elige entre dos datos de un animal, etc.) en diversos tipos de textos de estructura simple, con palabras conocidas e ilustraciones. Establece la secuencia de los textos que lee (instrucciones, historias, noticias)."
+    },
+    {
+      "grado": "2P",
+      "orden": 2,
+      "texto": "Deduce características implícitas de personajes, animales, objetos y lugares; determina el significado de palabras según el contexto y hace comparaciones; asimismo, establece relaciones lógicas de causa-efecto, semejanza-diferencia y enseñanza y propósito, a partir de información explícita del texto."
+    },
+    {
+      "grado": "2P",
+      "orden": 3,
+      "texto": "Predice de qué tratará el texto y cuál es su propósito comunicativo, a partir de algunos indicios, como título, ilustraciones, silueta, formato, palabras, frases y expresiones que se encuentran en los textos que le leen o que lee por sí mismo."
+    },
+    {
+      "grado": "2P",
+      "orden": 4,
+      "texto": "Explica el tema y el propósito de los textos que lee por sí mismo, así como las relaciones texto-ilustración."
+    },
+    {
+      "grado": "2P",
+      "orden": 5,
+      "texto": "Opina acerca de personas, personajes y hechos expresando sus preferencias. Elige o recomienda textos a partir de su experiencia, necesidades e intereses, con el fin de reflexionar sobre los textos que lee."
+    },
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Identifica información explícita que se encuentra en distintas partes del texto. Distingue información de otra próxima y semejante, en la que selecciona datos específicos (por ejemplo, el lugar de un hecho en una noticia), en diversos tipos de textos de estructura simple, con algunos elementos complejos (por ejemplo, sin referentes próximos, guiones de diálogo, ilustraciones), con palabras conocidas y, en ocasiones, con vocabulario variado, de acuerdo a las temáticas abordadas."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Deduce características implícitas de personajes, animales, objetos y lugares, y determina el significado de palabras según el contexto y hace comparaciones; así como el tema y destinatario. Establece relaciones lógicas de causa-efecto, semejanza-diferencia y enseñanza y propósito, a partir de la información explícita e implícita relevante del texto."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Predice de qué tratará el texto, a partir de algunos indicios como silueta del texto, palabras, frases, colores y dimensiones de las imágenes; asimismo, contrasta la información del texto que lee."
+    },
+    {
+      "grado": "3P",
+      "orden": 4,
+      "texto": "Explica el tema, el propósito, la enseñanza, las relaciones texto-ilustración, así como adjetivaciones y las motivaciones de personas y personajes."
+    },
+    {
+      "grado": "3P",
+      "orden": 5,
+      "texto": "Opina acerca del contenido del texto, explica el sentido de algunos recursos textuales (ilustraciones, tamaño de letra, etc.) y justifica sus preferencias cuando elige o recomienda textos a partir de su experiencia, necesidades e intereses, con el fin de reflexionar sobre los textos que lee."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Identifica información explícita y relevante que se encuentra en distintas partes del texto. Distingue esta información de otra semejante, en la que selecciona datos específicos, en diversos tipos de textos de estructura simple, con algunos elementos complejos , así como vocabulario variado, de acuerdo a las temáticas abordadas."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Deduce características implícitas de personajes, animales, objetos y lugares, y determina el significado de palabras y frases según el contexto, así como de expresiones con sentido figurado (refranes, comparaciones, etc.). Establece relaciones lógicas de intención-finalidad y tema y subtema, a partir de información relevante explícita e implícita."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Predice de qué tratará el texto, a partir de algunos indicios como subtítulos, colores y dimensiones de las imágenes, índice, tipografía, negritas, subrayado, etc.; asimismo, contrasta la información del texto que lee."
+    },
+    {
+      "grado": "4P",
+      "orden": 4,
+      "texto": "Explica el tema, el propósito, las motivaciones de personas y personajes, las comparaciones y personificaciones, así como las enseñanzas y los valores del texto, clasificando y sintetizando la información."
+    },
+    {
+      "grado": "4P",
+      "orden": 5,
+      "texto": "Opina acerca del contenido del texto, explica el sentido de algunos recursos textuales (uso de negritas, mayúsculas, índice, tipografía, subrayado, etc.), a partir de su experiencia y contexto, y justifica sus preferencias cuando elige o recomienda textos según sus necesidades, intereses y su relación con otros textos, con el fin de reflexionar sobre los textos que lee."
+    },
     {
       "grado": "5P",
       "orden": 1,

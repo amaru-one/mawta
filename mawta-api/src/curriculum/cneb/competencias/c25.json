@@ -22,11 +22,11 @@
   "estandares": [
     {
       "nivel": 1,
-      "texto": "Este nivel tiene como base el nivel 1 de las competencias “Resuelve problemas de cantidad” y “Resuelve problemas de regularidad, equivalencia y cambio”."
+      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Resuelve problemas de cantidad”."
     },
     {
       "nivel": 2,
-      "texto": "Este nivel tiene como base el nivel 2 de las competencias “Resuelve problemas de cantidad” y “Resuelve problemas de regularidad, equivalencia y cambio”."
+      "texto": "Este nivel tiene como base el nivel 2 de la competencia “Resuelve problemas de cantidad”."
     },
     {
       "nivel": 3,
@@ -34,7 +34,7 @@
     },
     {
       "nivel": 4,
-      "texto": "Resuelve problemas relacionados con datos cualitativos o cuantitativos (discretos) sobre un tema de estudio de recolecta datos a través de encuestas y entrevistas sencillas, registra en tablas de frecuencia simples y los representa en pictogramas, gráficos de barra simple con escala (múltiplos de diez). Interpreta información contenida en gráficos de barras simples y dobles y tablas de doble entrada, comparando frecuencias y usando el significado de la moda de un conjunto de datos; a partir de esta información y elabora algunas conclusiones y toma decisiones. Expresa la ocurrencia de sucesos cotidianos usando las nociones de seguro, más probable, menos probable, justifica su respuesta."
+      "texto": "Resuelve problemas relacionados con datos cualitativos o cuantitativos (discretos) sobre un tema de estudio, recolecta datos a través de encuestas y entrevistas sencillas, registra en tablas de frecuencia simples y los representa en pictogramas, gráficos de barra simple con escala (múltiplos de diez). Interpreta información contenida en gráficos de barras simples y dobles y tablas de doble entrada, comparando frecuencias y usando el significado de la moda de un conjunto de datos; a partir de esta información, elabora algunas conclusiones y toma decisiones. Expresa la ocurrencia de sucesos cotidianos usando las nociones de seguro, más probable, menos probable, y justifica su respuesta."
     },
     {
       "nivel": 5,
@@ -42,7 +42,7 @@
     },
     {
       "nivel": 6,
-      "texto": "Resuelve problemas en los que plantea temas de estudio, identificando la población pertinente y las variables cuantitativas continuas, así como cualitativas nominales y ordinales. Recolecta datos mediante encuestas y los registra en tablas de datos agrupados, así también determina la media aritmética y mediana de datos discretos; representa su comportamiento en histogramas, polígonos de frecuencia, gráficos circulares, tablas de frecuencia y medidas de tendencia central; usa el significado de las medidas de tendencia central para interpretar y comparar la información contenida en estos. Basado en ello, plantea y contrasta conclusiones, sobre las características de una población. Expresa la probabilidad de un evento aleatorio como decimal o fracción, así como su espacio muestral; e interpreta que un suceso seguro, probable e imposible, se asocia a los valores entre 0 y 1. Hace predicciones sobre la ocurrencia de eventos y las justifica."
+      "texto": "Resuelve problemas en los que plantea temas de estudio, identificando la población pertinente y las variables cuantitativas continúas, así como cualitativas nominales y ordinales. Recolecta datos mediante encuestas y los registra en tablas de datos agrupados, así también determina la media aritmética y mediana de datos discretos; representa su comportamiento en histogramas, polígonos de frecuencia, gráficos circulares, tablas de frecuencia y medidas de tendencia central; usa el significado de las medidas de tendencia central para interpretar y comparar la información contenida en estos. Basado en ello, plantea y contrasta conclusiones, sobre las características de una población. Expresa la probabilidad de un evento aleatorio como decimal o fracción, así como su espacio muestral; e interpreta que un suceso seguro, probable e imposible, se asocia a los valores entre 0 y 1. Hace predicciones sobre la ocurrencia de eventos y las justifica."
     },
     {
       "nivel": 7,

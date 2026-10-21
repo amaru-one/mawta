@@ -14,11 +14,11 @@
   "estandares": [
     {
       "nivel": 1,
-      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Indaga mediante métodos científicos”."
+      "texto": "Este nivel tiene como base principalmente el nivel 1 de la competencia “Indaga mediante métodos científicos”."
     },
     {
       "nivel": 2,
-      "texto": "Este nivel tiene como base el nivel 2 de la competencia “Indaga mediante métodos científicos”."
+      "texto": "Este nivel tiene como base principalmente el nivel 2 de la competencia “Indaga mediante métodos científicos”."
     },
     {
       "nivel": 3,
@@ -46,6 +46,256 @@
     }
   ],
   "desempenos": [
+    {
+      "grado": "1P",
+      "orden": 1,
+      "texto": "Describe las características y necesidades de los seres vivos. Ejemplo: El estudiante describe qué necesitan los seres vivos para vivir: alimentos, oxígeno, etc."
+    },
+    {
+      "grado": "1P",
+      "orden": 2,
+      "texto": "Relaciona las actividades cotidianas con el uso de la energía. Ejemplo: El estudiante relaciona el uso de gas en su cocina con la cocción de sus alimentos, o el uso de las pilas con el funcionamiento de sus juguetes."
+    },
+    {
+      "grado": "1P",
+      "orden": 3,
+      "texto": "Propone una clasificación de los objetos según sus características. Ejemplo: El estudiante separa objetos que absorben agua de otros que no."
+    },
+    {
+      "grado": "1P",
+      "orden": 4,
+      "texto": "Describe que el suelo está formado por seres vivos y no vivos. Ejemplo: El estudiante distingue lo que hay dentro del suelo: tierra, gusanos, rocas, objetos de plástico, etc."
+    },
+    {
+      "grado": "1P",
+      "orden": 5,
+      "texto": "Justifica por qué el agua, el aire y el suelo son importantes para los seres vivos."
+    },
+    {
+      "grado": "1P",
+      "orden": 6,
+      "texto": "Relaciona el comportamiento de los seres vivos con los cambios de clima. Ejemplo: El estudiante da razones de por qué cuando hace frío tenemos que abrigarnos más y cuando hace calor buscamos lugares frescos."
+    },
+    {
+      "grado": "1P",
+      "orden": 7,
+      "texto": "Relaciona los objetos tecnológicos con su utilidad para satisfacer las necesidades de las personas y opina sobre cómo su uso impacta en ellos. Ejemplo: El estudiante menciona que para cocinar sus alimentos, su madre usa una cocina a gas o un fogón con leña, y cómo impacta en sus vidas."
+    },
+    {
+      "grado": "2P",
+      "orden": 1,
+      "texto": "Relaciona las partes externas de los seres vivos con sus funciones. Ejemplo: El estudiante relaciona la función de los dientes (que sirven para masticar los alimentos antes de ingerirlos) con la buena salud."
+    },
+    {
+      "grado": "2P",
+      "orden": 2,
+      "texto": "Compara las semejanzas externas de los progenitores y sus descendientes durante el desarrollo. Ejemplo: El estudiante compara las características que los renacuajos toman progresivamente hasta tener la forma de sus progenitores."
+    },
+    {
+      "grado": "2P",
+      "orden": 3,
+      "texto": "Describe los cambios que experimentan los objetos debido a la luz o al calor que reciben. Ejemplo: El estudiante describe las causas por las que el hielo, la mantequilla o la cera se derriten cuando se calientan o les da la luz del sol."
+    },
+    {
+      "grado": "2P",
+      "orden": 4,
+      "texto": "Justifica por qué los cambios que sufren los objetos dependen de sus características. Ejemplo: El estudiante da razones de por qué, con un golpe, un vaso de vidrio se rompe; mientras que uno de cartón, solo se deforma."
+    },
+    {
+      "grado": "2P",
+      "orden": 5,
+      "texto": "Utiliza modelos para explicar las relaciones entre los seres vivos y sus características. Ejemplo: El estudiante diseña un modelo para explicar los componentes de una cadena alimenticia."
+    },
+    {
+      "grado": "2P",
+      "orden": 6,
+      "texto": "Describe que el ciclo día-noche influye en los seres vivos. Ejemplo: El estudiante describe las características de los animales que duermen durante el día y se mantienen despiertos por la noche."
+    },
+    {
+      "grado": "2P",
+      "orden": 7,
+      "texto": "Describe que en la Tierra se encuentran masas de agua, aire y material sólido. Ejemplo: El estudiante describe las características de las lagunas, los ríos, los cerros y las rocas, y cómo el viento fuerte puede mover algunos objetos."
+    },
+    {
+      "grado": "2P",
+      "orden": 8,
+      "texto": "Describe el suelo como fuente esencial de nutrientes y sustrato para muchos seres vivos. Ejemplo: El estudiante describe que las plantas necesitan el suelo para crecer y que algunos animales se alimentan de ellas."
+    },
+    {
+      "grado": "2P",
+      "orden": 9,
+      "texto": "Justifica por qué hay objetos tecnológicos que transforman los productos que consume o que usa en tareas específicas, y opina cómo estos objetos cambian su vida, la de su familia o el ambiente. Ejemplo: El estudiante justifica las ventajas de usar un molino para transformar los granos de maíz o trigo en harina, a fin de que sean utilizados en diferentes productos que consume en su vida diaria."
+    },
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Describe los órganos que conforman los sistemas de plantas y animales."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Compara diversas especies y reconoce semejanzas y diferencias."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Clasifica los materiales de acuerdo a sus características físicas (duros, blandos, frágiles, etc.)."
+    },
+    {
+      "grado": "3P",
+      "orden": 4,
+      "texto": "Relaciona el desplazamiento, el cambio de dirección o la modificación de la forma de los objetos por la aplicación de fuerzas sobre ellos. Ejemplo: El estudiante relaciona la deformación que sufre una pelota con la fuerza generada sobre ella cuando alguien la presiona con la planta de los pies."
+    },
+    {
+      "grado": "3P",
+      "orden": 5,
+      "texto": "Compara las diferentes manifestaciones del clima a lo largo de un año y en las diferentes zonas en la superficie terrestre. Ejemplo: El estudiante diferencia las características de la época del año en que llueve y otra en que no."
+    },
+    {
+      "grado": "3P",
+      "orden": 6,
+      "texto": "Describe cómo el hábitat proporciona a los organismos recursos para satisfacer sus necesidades básicas. Ejemplo: El estudiante describe cómo se alimentan los animales en la selva."
+    },
+    {
+      "grado": "3P",
+      "orden": 7,
+      "texto": "Describe las interacciones entre los seres vivos y los no vivos en su hábitat. Ejemplo: El estudiante señala que los herbívoros comen pasto, que algunos animales se alimentan de herbívoros y que las plantas necesitan del suelo para vivir."
+    },
+    {
+      "grado": "3P",
+      "orden": 8,
+      "texto": "Argumenta por qué la creación de objetos tecnológicos para satisfacer necesidades requiere de personas que tienen diferentes ocupaciones o especialidades, y opina sobre cómo el uso de los productos tecnológicos cambia la vida de las personas y el ambiente. Ejemplo: El estudiante explica que la producción de alimentos en conservas demanda la producción de materia prima, envases, planta procesadora, etc., para que las personas puedan consumirlos, y opina acerca de las ventajas y desventajas de esta clase de productos, en relación a la calidad de vida y del ambiente."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Utiliza modelos para explicar las relaciones entre los órganos y sistemas con las funciones vitales en plantas y animales. Ejemplo: El estudiante utiliza un modelo para describir cómo el sistema digestivo transforma los alimentos en nutrientes que se distribuyen, a través de la sangre, por todo el organismo."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Justifica por qué los individuos se reproducen con otros de su misma especie."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Describe que los objetos pueden sufrir cambios reversibles e irreversibles por acción de la energía. Ejemplo: El estudiante describe por qué un cubo de hielo se disuelve por acción del calor del ambiente y por qué puede volver a ser un cubo de hielo al colocar el líquido en un refrigerador."
+    },
+    {
+      "grado": "4P",
+      "orden": 4,
+      "texto": "Relaciona los cambios en el equilibrio, la posición y la forma de los objetos por las fuerzas aplicadas sobre ellos. Ejemplo: El estudiante da razones de por qué al tirar de un elástico, este se deforma, y cuando cesa esta acción, recupera su forma inicial."
+    },
+    {
+      "grado": "4P",
+      "orden": 5,
+      "texto": "Describe cómo la energía se manifiesta de diferentes formas y puede usarse para diferentes propósitos. Ejemplo: El estudiante describe cómo la energía producida en una batería para un carro de juguete se manifiesta en movimiento, sonido y luz al poner en funcionamiento todos sus componentes."
+    },
+    {
+      "grado": "4P",
+      "orden": 6,
+      "texto": "Describe el rol que cumplen los seres vivos en su hábitat. Ejemplo: El estudiante señala que las plantas son productores, la liebre es un consumidor y la lombriz es un descomponedor."
+    },
+    {
+      "grado": "4P",
+      "orden": 7,
+      "texto": "Argumenta por qué las plantas y los animales poseen estructuras y comportamientos adaptados a su hábitat. Ejemplo: El estudiante da razones de por qué un camaleón se mimetiza con su ambiente o por qué los cactus tienen espinas en lugar de hojas."
+    },
+    {
+      "grado": "4P",
+      "orden": 8,
+      "texto": "Describe las diferentes zonas climáticas y señala que se forman por la distribución de la energía del sol sobre la Tierra y su relieve."
+    },
+    {
+      "grado": "4P",
+      "orden": 9,
+      "texto": "Argumenta por qué los diversos objetos tecnológicos son creados para satisfacer necesidades personales y colectivas. Ejemplo: El estudiante da razones de por qué los rayos X son empleados por los médicos en el diagnóstico de fracturas, así como las ventajas y desventajas de su uso."
+    },
+    {
+      "grado": "4P",
+      "orden": 10,
+      "texto": "Opina sobre los cambios que la tecnología ha generado en la forma de vivir de las personas y en el ambiente. Ejemplo: El estudiante explica que gracias a la refrigeradora se pueden conservar los alimentos durante más tiempo, y cómo esto impacta sobre la calidad de vida y del ambiente."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Describe las diferencias entre la célula animal y vegetal, y explica que ambas cumplen funciones básicas. Ejemplo: El estudiante describe por qué el cuerpo de un animal es suave en comparación con una planta, en función del tipo de células que poseen."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Representa las diferentes formas de reproducción de los seres vivos."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Describe la materia y señala que se compone de partículas pequeñas. Ejemplo: El estudiante señala que el vapor (moléculas) que sale del agua cuando hierve es la razón por la que disminuye el volumen inicial."
+    },
+    {
+      "grado": "5P",
+      "orden": 4,
+      "texto": "Describe los ecosistemas y señala que se encuentran constituidos por componentes abióticos y bióticos que se interrelacionan."
+    },
+    {
+      "grado": "5P",
+      "orden": 5,
+      "texto": "Describe el carácter dinámico de la estructura externa de la Tierra."
+    },
+    {
+      "grado": "5P",
+      "orden": 6,
+      "texto": "Justifica que el quehacer tecnológico progresa con el paso del tiempo como resultado del avance científico para resolver problemas."
+    },
+    {
+      "grado": "5P",
+      "orden": 7,
+      "texto": "Opina cómo el uso de los objetos tecnológicos impacta en el ambiente, con base en fuentes documentadas con respaldo científico. Ejemplo: El estudiante opina sobre cómo la demanda de muebles de madera promueve el desarrollo de maquinaria maderera, así como la deforestación, y qué alternativas existen desde la ciencia y tecnología para fomentar el desarrollo sostenible de esta industria."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Describe los organismos y señala que pueden ser unicelulares o pluricelulares y que cada célula cumple funciones básicas o especializadas. Ejemplo: El estudiante señala que las bacterias necesitan un huésped para poder cumplir sus funciones básicas."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Relaciona la reproducción sexual con la diversidad dentro de una especie."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Relaciona los estados de los cuerpos con las fuerzas que predominan en sus moléculas (fuerzas de repulsión y cohesión) y sus átomos."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Relaciona los cambios que sufren los materiales con el reordenamiento de sus componentes constituyentes. Ejemplo: El estudiante relaciona la ceniza, el humo y el vapor del agua con la combustión de madera."
+    },
+    {
+      "grado": "6P",
+      "orden": 5,
+      "texto": "Interpreta la relación entre la temperatura y el movimiento molecular en los objetos. Ejemplo: El estudiante da razones de por qué cuando se calienta un objeto metálico como el aluminio, este cambia de tamaño."
+    },
+    {
+      "grado": "6P",
+      "orden": 6,
+      "texto": "Justifica por qué la diversidad de especies da estabilidad a los ecosistemas. Ejemplo: El estudiante da razones de por qué cuando disminuye la cantidad de pasto por el friaje, la población de vizcachas se reduce, y cómo esto también afecta a la población de zorros."
+    },
+    {
+      "grado": "6P",
+      "orden": 7,
+      "texto": "Relaciona los cambios del relieve terrestre con la estructura dinámica interna y externa de la Tierra."
+    },
+    {
+      "grado": "6P",
+      "orden": 8,
+      "texto": "Argumenta que algunos objetos tecnológicos y conocimientos científicos han ayudado a formular nuevas teorías que propiciaron el cambio en la forma de pensar y el estilo de vida de las personas. Ejemplo: El estudiante da razones de cómo el uso del telescopio dio un nuevo lugar a la Tierra en el universo y de cómo con el microscopio se originó la teoría de los gérmenes como causantes de enfermedades."
+    },
+    {
+      "grado": "6P",
+      "orden": 9,
+      "texto": "Defiende su punto de vista respecto al avance científico y tecnológico, y su impacto en la sociedad y el ambiente, con base en fuentes documentadas con respaldo científico. Ejemplo: El estudiante discute sus puntos de vista acerca de si la instalación de antenas de telefonía en zonas pobladas podría afectar la salud de los seres vivos."
+    },
     {
       "grado": "1S",
       "orden": 1,

@@ -30,15 +30,15 @@
     },
     {
       "nivel": 3,
-      "texto": "Diseña y construye soluciones tecnológicas al establecer las causas de un problema tecnológico y proponer alternativas de solución, representa una, incluyendo sus partes, a través de esquemas o dibujos y describe la secuencia de pasos para implementarla, usando herramientas y materiales seleccionados. Realiza ajustes en el proceso de construcción de la solución tecnológica. Describe el procedimiento y beneficios de la solución tecnológica, evalúa su funcionamiento según los requerimientos establecidos, y propone mejoras."
+      "texto": "Diseña y construye soluciones tecnológicas al establecer las causas de un problema tecnológico y propone alternativas de solución. Representa una, incluyendo sus partes, a través de esquemas o dibujos y describe la secuencia de pasos para implementarla, usando herramientas y materiales seleccionados. Realiza ajustes en el proceso de construcción de la solución tecnológica. Describe el procedimiento y beneficios de la solución tecnológica; evalúa su funcionamiento según los requerimientos establecidos y propone mejoras."
     },
     {
       "nivel": 4,
-      "texto": "Diseña y construye soluciones tecnológicas al establecer las posibles causas que generan problemas tecnológicos, propone alternativas de solución con conocimientos científicos. Representa una de ellas, incluyendo las partes o etapas, a través de esquemas o dibujos, establece características de forma, estructura y función y explica una secuencia de pasos para implementarla usando herramientas y materiales, verifica el funcionamiento de la solución tecnológica y realizar ajustes. Explica el procedimiento, conocimiento científico aplicado y beneficios de la solución tecnológica, evalúa su funcionamiento considerando los requerimientos establecidos y proponer mejoras."
+      "texto": "Diseña y construye soluciones tecnológicas al establecer las posibles causas que generan problemas tecnológicos; propone alternativas de solución con conocimientos científicos. Representa una de ellas, incluyendo las partes o etapas, a través de esquemas o dibujos; establece características de forma, estructura y función y explica una secuencia de pasos para implementarla usando herramientas y materiales; verifica el funcionamiento de la solución tecnológica y realiza ajustes. Explica el procedimiento, conocimiento científico aplicado y beneficios de la solución tecnológica; evalúa su funcionamiento considerando los requerimientos establecidos y propone mejoras."
     },
     {
       "nivel": 5,
-      "texto": "Diseña y construye soluciones tecnológicas al identificar las causas que generan problemas tecnológicos, y propone alternativas de solución basado en conocimientos científicos. Representa una de ellas incluyendo sus partes o etapas a través de esquemas o dibujos estructurados. Establece características de forma, estructura y función y explica el procedimiento, los recursos de implementación, los ejecuta usando herramientas y materiales seleccionados, verifica el funcionamiento de la solución tecnológica detectando imprecisiones y realiza ajustes para mejorarlo. Explica el procedimiento, conocimiento científico aplicado y limitaciones de la solución tecnológica, Evalúa su funcionamiento a través de pruebas considerando los requerimientos establecidos y propone mejoras. Infiere impactos de la solución tecnológica."
+      "texto": "Diseña y construye soluciones tecnológicas al identificar las causas que generan problemas tecnológicos y propone alternativas de solución con base en conocimientos científicos. Representa una de ellas incluyendo sus partes o etapas, a través de esquemas o dibujos estructurados. Establece características de forma, estructura y función y explica el procedimiento, los recursos de implementación; los ejecuta usando herramientas y materiales seleccionados; verifica el funcionamiento de la solución tecnológica detectando imprecisiones y realiza ajustes para mejorarlo. Explica el procedimiento, conocimiento científico aplicado y limitaciones de la solución tecnológica. Evalúa su funcionamiento a través de pruebas considerando los requerimientos establecidos y propone mejoras. Infiere impactos de la solución tecnológica."
     },
     {
       "nivel": 6,
@@ -50,10 +50,125 @@
     },
     {
       "nivel": 8,
-      "texto": "Diseña y construye soluciones tecnológicas al justificar el alcance del problema tecnológico y sus alternativas de solución basado en conocimientos científicos. Propone una expresión matemática para estimar la eficiencia y confiabilidad de su alternativa de solución, la representa a través de esquemas o dibujos estructurados a escala, con vistas y perspectivas, que incluyen aspectos de funcionamiento o mantenimiento. Explica las características de forma, estructura, función y explica el procedimiento, así como los recursos, herramientas y materiales seleccionados. Verifica el funcionamiento de la solución tecnológica considerando los requerimientos, detecta imprecisiones en la construcción de la solución tecnológica y realiza ajustes o rediseña su alternativa. Explica el conocimiento científico, procedimiento aplicado y funcionamiento, así como las dificultades del diseño y la implementación, realiza pruebas para verificar el rango de funcionamiento y eficiencia de la solución tecnológica. Infiere impactos de la solución tecnológica, así como estrategias o métodos de mitigación."
+      "texto": "Diseña y construye soluciones tecnológicas al justificar el alcance del problema tecnológico y sus alternativas de solución basado en conocimientos científicos. Propone una expresión matemática para estimar la eficiencia y confiablidad de su alternativa de solución, la representa a través de esquemas o dibujos estructurados a escala, con vistas y perspectivas, que incluyen aspectos de funcionamiento o mantenimiento. Explica las características de forma, estructura, función y explica el procedimiento, así como los recursos, herramientas y materiales seleccionados. Verifica el funcionamiento de la solución tecnológica considerando los requerimientos, detecta imprecisiones en la construcción de la solución tecnológica y realiza ajustes o rediseña su alternativa. Explica el conocimiento científico, procedimiento aplicado y funcionamiento, así como las dificultades del diseño y la implementación, realiza pruebas para verificar el rango de funcionamiento y eficiencia de la solución tecnológica. Infiere impactos de la solución tecnológica, así como estrategias o métodos de mitigación."
     }
   ],
   "desempenos": [
+    {
+      "grado": "1P",
+      "orden": 1,
+      "texto": "Selecciona un problema tecnológico de su entorno. Explica su alternativa de solución con base en conocimientos previos o prácticas locales; considera los requerimientos que deberá cumplir y los recursos disponibles para construirla. Ejemplo: El estudiante propone retirar los residuos sólidos del jardín de la institución educativa; para ello, elaborará un rastrillo, con material reciclable, a fin de evitar tocar directamente los desechos con las manos."
+    },
+    {
+      "grado": "1P",
+      "orden": 2,
+      "texto": "Representa su alternativa de solución tecnológica con dibujos y textos. Describe lo que hará para construirla. Ejemplo: El estudiante dibuja su rastrillo, señala sus partes y comenta qué acciones realizará para elaborarlo."
+    },
+    {
+      "grado": "1P",
+      "orden": 3,
+      "texto": "Construye la alternativa de solución tecnológica manipulando materiales, instrumentos y herramientas; cumple las normas de seguridad y considera medidas de ecoeficiencia. Usa unidades de medida no convencionales. Realiza ensayos hasta que la alternativa funcione. Ejemplo: El estudiante elabora su rastrillo utilizando botellas descartables de medio litro, un palo de escoba en desuso o una rama larga y delgada, tijeras, cordel o soga; evita hacerse daño con dichas herramientas. Utiliza el grosor de sus dedos para estimar el ancho de cada diente del rastrillo y su mano para estimar el largo. Rastrilla una parte del jardín de la institución educativa y añade o quita dientes al rastrillo, según sea necesario, hasta que funcione."
+    },
+    {
+      "grado": "1P",
+      "orden": 4,
+      "texto": "Realiza pruebas para verificar el funcionamiento de su alternativa de solución tecnológica con los requerimientos establecidos. Describe cómo la construyó, su uso, beneficios y los conocimientos previos o prácticas locales aplicadas. Comenta las dificultades que tuvo. Ejemplo: El estudiante rastrilla todo el jardín de la institución educativa para comprobar la durabilidad del rastrillo y, al finalizar, estima el desgaste de cada diente con el uso de su mano, a fin de predecir cuántas veces más podría rastrillar el jardín. Explica a sus compañeros cómo elaboró su rastrillo, de qué manera se utiliza, de dónde obtuvo las ideas para hacerlo, el impacto del mismo en el manejo de residuos sólidos en la institución educativa y los problemas que tuvo en el proceso de elaboración."
+    },
+    {
+      "grado": "2P",
+      "orden": 1,
+      "texto": "Selecciona un problema tecnológico de su entorno y describe las causas que lo generan. Explica su alternativa de solución con base en conocimientos previos o prácticas locales; toma en cuenta los requerimientos que debe cumplir y los recursos disponibles para construirla."
+    },
+    {
+      "grado": "2P",
+      "orden": 2,
+      "texto": "Representa su alternativa de solución tecnológica con dibujos y textos. Describe sus partes, la secuencia de pasos para su elaboración y selecciona herramientas, instrumentos y materiales según sus propiedades físicas."
+    },
+    {
+      "grado": "2P",
+      "orden": 3,
+      "texto": "Construye su alternativa de solución tecnológica manipulando materiales, instrumentos y herramientas según su utilidad; cumple las normas de seguridad y considera medidas de ecoeficiencia. Usa unidades de medida convencionales. Realiza cambios o ajustes para cumplir los requerimientos o mejorar el funcionamiento de su alternativa de solución tecnológica."
+    },
+    {
+      "grado": "2P",
+      "orden": 4,
+      "texto": "Realiza pruebas para verificar el funcionamiento de su alternativa de solución tecnológica con los requerimientos establecidos. Describe cómo la construyó, su uso, beneficios y funcionamiento, así como los conocimientos previos o prácticas locales aplicadas. Comenta las dificultades que tuvo."
+    },
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Determina el problema tecnológico y las causas que lo generan. Propone alternativas de solución con base en conocimientos científicos o prácticas locales, así como los requerimientos que debe cumplir y los recursos disponibles para construirlas. Ejemplo: El estudiante propone construir un sistema de riego para el jardín de la institución educativa usando material reciclable, a fin de que disminuya el consumo de agua, basándose en el conocimiento de las técnicas de regadío y en las formas de riego de jardines, parques o chacras observadas en su localidad."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Representa su alternativa de solución tecnológica con dibujos y textos; describe sus partes, la secuencia de pasos para su implementación y selecciona herramientas, instrumentos y materiales según sus propiedades físicas. Ejemplo: El estudiante realiza gráficos de su sistema de riego, lo presenta y describe cómo será construido y cómo funcionará."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Construye su alternativa de solución tecnológica manipulando materiales, instrumentos y herramientas según su utilidad; cumple las normas de seguridad y considera medidas de ecoeficiencia. Usa unidades de medida convencionales. Realiza cambios o ajustes para cumplir los requerimientos o mejorar el funcionamiento de su alternativa de solución tecnológica. Ejemplo: El estudiante construye su sistema de riego usando material reciclable (botellas descartables y mangueras) y herramientas (tijeras, cinta adhesiva, punzones, etc.), siguiendo las recomendaciones para su seguridad y la limpieza de la mesa de trabajo. Riega el jardín de la institución educativa utilizando el sistema de riego y realiza las modificaciones necesarias hasta que funcione y cumpla con los requerimientos establecidos."
+    },
+    {
+      "grado": "3P",
+      "orden": 4,
+      "texto": "Realiza pruebas para verificar si la solución tecnológica cumple con los requerimientos establecidos. Explica cómo construyó su solución tecnológica, su funcionamiento, el conocimiento científico o prácticas locales aplicadas y las dificultades superadas. Ejemplo: El estudiante pone en funcionamiento su sistema de riego por dos meses (previamente, determina cuánto volumen de agua se usaba para regar el área correspondiente al jardín y realiza una lectura inicial del recibo de agua). Después de ese tiempo, compara los recibos de agua e indica si el consumo disminuyó. Finalmente, menciona qué materiales y herramientas utilizó para construir su sistema de riego, si fue fácil, de dónde obtuvo las ideas para su construcción, así como qué le gusto más y qué no le gustó."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Determina el problema tecnológico y las causas que lo generan. Propone alternativas de solución con base en conocimientos científicos o prácticas locales, así como los requerimientos que debe cumplir y los recursos disponibles para construirlas."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Representa su alternativa de solución tecnológica con dibujos y textos; describe sus partes o etapas, la secuencia de pasos, sus características, forma, estructura y función. Selecciona herramientas, instrumentos y materiales según sus propiedades físicas."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Construye su alternativa de solución tecnológica manipulando materiales, instrumentos y herramientas según sus funciones; cumple las normas de seguridad y medidas de ecoeficiencia. Usa unidades de medida convencionales. Realiza cambios o ajustes para cumplir los requerimientos o mejorar el funcionamiento de su alternativa de solución tecnológica."
+    },
+    {
+      "grado": "4P",
+      "orden": 4,
+      "texto": "Realiza pruebas para verificar si la solución tecnológica cumple con los requerimientos establecidos. Explica cómo construyó su alternativa de solución tecnológica, su funcionamiento, el conocimiento científico o las prácticas locales aplicadas, las dificultades superadas y los beneficios e inconvenientes de su uso."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Determina el problema tecnológico, las causas que lo generan y su alternativa de solución, con base en conocimientos científicos o prácticas locales; asimismo, los requerimientos que debe cumplir y los recursos disponibles para construirla. Ejemplo: Ante la necesidad de conservar el refrigerio caliente, el estudiante propone elaborar un envase que permita mantener las bebidas calientes por 2 horas. Considera los principios de conservación del calor en los cuerpos y las formas de conservación del calor en los alimentos utilizados por sus familiares o la comunidad. Usa materiales reciclables."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Representa su alternativa de solución tecnológica con dibujos y textos; describe sus partes o etapas, la secuencia de pasos, características de forma, estructura y función. Selecciona herramientas, instrumentos y materiales según sus propiedades físicas. Considera el tiempo para desarrollarla y las medidas de seguridad necesarias, así como medidas de ecoeficiencia. Ejemplo: El estudiante dibuja el envase para mantener las bebidas calientes; describe las partes que tendrá y sus características: tamaño, forma, material del que estará hecho; expone cómo lo elaborará y hace un listado de las herramientas que utilizará (papel de aluminio, poliestireno expandido, lana, botellas descartables, pegamento, tijeras, etc.)."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Construye su alternativa de solución tecnológica manipulando los materiales, instrumentos y herramientas según sus funciones; cumple las normas de seguridad. Usa unidades de medida convencionales. Verifica el funcionamiento de cada parte o etapa de la solución tecnológica y realiza cambios o ajustes para cumplir los requerimientos establecidos. Ejemplo: El estudiante elabora el envase para mantener las bebidas calientes utilizando botellas de plástico descartables, papel de aluminio, poliestireno, lana, pegamento, tijeras, etc.; determina el tamaño del envase en centímetros y su capacidad en mililitros; maneja las herramientas e instrumentos con los cuidados del caso. Pone a prueba el envase elaborado y lo compara con otro diferente de las mismas dimensiones, vierte agua caliente, mide la temperatura inicial del líquido de ambos envases y los cierra. Vuelve a tomar la temperatura después de 30 minutos y compara las medidas encontradas, para determinar si el envase elaborado conserva mejor el agua caliente que el otro. Si la diferencia de la temperatura de los líquidos de los dos envases no es amplia, realizará los ajustes necesarios, como aumentar las capas de papel aluminio o lana que envuelven el envase elaborado."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Determina el problema tecnológico, las causas que lo generan y su alternativa de solución, con base en conocimientos científicos o prácticas locales; asimismo, los requerimientos que debe cumplir y los recursos disponibles para construirla."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Representa su alternativa de solución tecnológica con dibujos y textos; describe sus partes o etapas, la secuencia de pasos y las características: dimensiones, forma, estructura y función. Selecciona herramientas, instrumentos y materiales según sus propiedades físicas; incluye los recursos a utilizar y los posibles costos. Considera el tiempo para desarrollarla y las medidas de seguridad necesarias."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Construye su alternativa de solución tecnológica manipulando los materiales, instrumentos y herramientas según sus funciones; cumple las normas de seguridad y considera medidas de ecoeficiencia. Usa unidades de medida convencionales. Verifica el funcionamiento de cada parte o etapa de la solución tecnológica; detecta imprecisiones en las dimensiones y procedimientos, o errores en la selección de materiales; y realiza ajustes o cambios necesarios para cumplir los requerimientos establecidos."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Realiza pruebas para verificar si la solución tecnológica cumple con los requerimientos establecidos. Explica cómo construyó su solución tecnológica, su funcionamiento, el conocimiento científico o las prácticas locales aplicadas, las dificultades superadas y los beneficios e inconvenientes de su uso. Infiere posibles impactos positivos o negativos de la solución tecnológica en diferentes contextos."
+    },
     {
       "grado": "1S",
       "orden": 1,

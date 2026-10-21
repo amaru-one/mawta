@@ -119,6 +119,7 @@
       "codigo": "ARTE",
       "nombre": "Arte y Cultura",
       "niveles": [
+        "primaria",
         "secundaria"
       ],
       "competencias": [
@@ -158,6 +159,7 @@
       "codigo": "CSL",
       "nombre": "Castellano como Segunda Lengua",
       "niveles": [
+        "primaria",
         "secundaria"
       ],
       "competencias": [
@@ -179,6 +181,7 @@
       "codigo": "ING",
       "nombre": "Inglés como Lengua Extranjera",
       "niveles": [
+        "primaria",
         "secundaria"
       ],
       "competencias": [
@@ -200,6 +203,7 @@
       "codigo": "CYT",
       "nombre": "Ciencia y Tecnología",
       "niveles": [
+        "primaria",
         "secundaria"
       ],
       "competencias": [
@@ -234,6 +238,7 @@
       "codigo": "ER",
       "nombre": "Educación Religiosa",
       "niveles": [
+        "primaria",
         "secundaria"
       ],
       "competencias": [

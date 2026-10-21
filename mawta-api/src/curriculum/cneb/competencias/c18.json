@@ -18,11 +18,11 @@
   "estandares": [
     {
       "nivel": 1,
-      "texto": "Este nivel tiene como base el nivel 1 de las competencias “Convive y participa” y “Resuelve problemas de forma, movimiento y localización”."
+      "texto": "Este nivel tiene como base principalmente el nivel 1 de las competencias “Convive y participa democráticamente en la búsqueda del bien común” y “Resuelve problemas de forma movimiento y localización”."
     },
     {
       "nivel": 2,
-      "texto": "Este nivel tiene como base el nivel 2 de las competencias “Convive y participa” y “Resuelve problemas de forma, movimiento y localización”."
+      "texto": "Este nivel tiene como base principalmente el nivel 2 de las competencias “Convive y participa democráticamente en la búsqueda del bien común” y “Resuelve problemas de forma movimiento y localización”."
     },
     {
       "nivel": 3,
@@ -42,11 +42,11 @@
     },
     {
       "nivel": 7,
-      "texto": "Gestiona responsablemente el espacio y ambiente al proponer alternativas y promover la sostenibilidad del ambiente, la mitigación y adaptación al cambio climático y la prevención de riesgo de desastre, considerando las múltiples dimensiones. Explica las diferentes formas en las que se organiza el espacio geográfico y el ambiente como resultado de las decisiones (acciones o intervención) de los actores sociales. Utiliza fuentes de información y herramientas digitales para representar e interpretar el espacio geográfico y el ambiente."
+      "texto": "Gestiona responsablemente el espacio y el ambiente al proponer alternativas y promover la sostenibilidad del ambiente, la mitigación y adaptación al cambio climático y la gestión de riesgo de desastre, considerando las múltiples dimensiones. Explica las diferentes formas en las que se organiza el espacio geográfico y el ambiente como resultado de las decisiones (acciones o intervención) de los actores sociales. Utiliza fuentes de información y herramientas digitales para representar e interpretar el espacio geográfico y el ambiente."
     },
     {
       "nivel": 8,
-      "texto": "Gestiona responsablemente el espacio y el ambiente al proponer acciones relacionadas con políticas públicas orientadas a solucionar las problemáticas ambientales y territoriales. Elabora y comunica medidas de mitigación y adaptación al cambio climático, y un plan de gestión de riesgos de desastres. Explica el espacio geográfico como un sistema complejo y reconoce su importancia para el desarrollo de la sociedad. Utiliza diversas fuentes de información disponibles para el análisis integral del espacio geográfico y el ambiente."
+      "texto": "Gestiona responsablemente el espacio y el ambiente al proponer acciones relacionadas con políticas públicas orientadas a solucionar las problemáticas ambientales y territoriales. Elabora y comunica medidas de mitigación y adaptación al cambio climático y un plan de gestión de riesgos de desastres. Explica el espacio geográfico como un sistema complejo y reconoce su importancia para el desarrollo de la sociedad. Utiliza diversas fuentes de información disponibles para el análisis integral del espacio geográfico y el ambiente."
     }
   ],
   "desempenos": [

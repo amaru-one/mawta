@@ -4,7 +4,7 @@
   "capacidades": [
     {
       "numero": 1,
-      "nombre": "Explora y experimenta los lenguajes artísticos"
+      "nombre": "Explora y experimenta los lenguajes del arte"
     },
     {
       "numero": 2,
@@ -18,7 +18,7 @@
   "estandares": [
     {
       "nivel": 1,
-      "texto": "Este nivel tiene principalmente como base el nivel 1 de la competencia de indagación."
+      "texto": "Este nivel tiene como base principlamente el nivel 1 de la competencia de indagación."
     },
     {
       "nivel": 2,
@@ -50,6 +50,96 @@
     }
   ],
   "desempenos": [
+    {
+      "grado": "1P",
+      "orden": 1,
+      "texto": "Experimenta con los medios, los materiales y las técnicas artísticas para crear efectos visuales, sonoros, vocales o kinestéticos en respuesta a estímulos del docente o con base en sus propias exploraciones. Ejemplo: El estudiante realiza movimientos según los ritmos que toca el profesor en un tambor, y altera o exagera sus movimientos cuando hay cambios de ritmo."
+    },
+    {
+      "grado": "1P",
+      "orden": 2,
+      "texto": "Explora ideas libremente a partir de su imaginación, sus experiencias u observaciones, y experimenta maneras en que los elementos del arte (movimientos, acciones, formas, colores o sonidos) pueden usarse o ser repetidos para comunicar una idea. Ejemplo: El estudiante realiza un trabajo de técnica mixta usando papeles y materiales de collage que el docente ha dispuesto sobre una mesa. Elige pedazos de papel de diferentes formas, colores y tamaños y los pega en una cartulina de manera libre. Agrega algunos retazos de tela en espacios que han quedado libres y hace varios puntos de colores con un plumón grueso, alrededor de cada pedazo de tela."
+    },
+    {
+      "grado": "1P",
+      "orden": 3,
+      "texto": "Presenta sus trabajos y creaciones y responde a preguntas sencillas sobre ellos; asimismo, describe las características de sus propios trabajos y los de sus compañeros."
+    },
+    {
+      "grado": "2P",
+      "orden": 1,
+      "texto": "Explora e improvisa maneras de usar los medios, los materiales y las técnicas artísticas, y descubre que pueden ser utilizados para expresar ideas y sentimientos. Ejemplo: El estudiante usa su imaginación para representar a los diversos personajes de una leyenda y experimenta con una variedad de movimientos corporales y tonos de voz."
+    },
+    {
+      "grado": "2P",
+      "orden": 2,
+      "texto": "Genera ideas a partir de intereses, de experiencias personales, de la observación de su entorno natural y social o de estímulos externos. Empieza a seleccionar y organizar elementos (movimientos, acciones o efectos visuales o sonoros) para presentar una idea de una manera en particular. Ejemplo: El estudiante realiza una lluvia de ideas para sonorizar un cuento y elige objetos cotidianos para crear efectos sonoros que puedan representar a los diversos personajes de la historia y las acciones o momentos más importantes."
+    },
+    {
+      "grado": "2P",
+      "orden": 3,
+      "texto": "Presenta sus trabajos y creaciones en forma individual y grupal, y describe de manera sencilla cómo los ha creado y organizado."
+    },
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Improvisa y experimenta maneras de usar los elementos del arte y reconoce los efectos que puede lograr combinando diversos medios, materiales, herramientas y técnicas para comunicar ideas. Ejemplo: El estudiante realiza mezclas de color con témperas, para crear diferentes tonos de color que se parezcan más a su color de piel al hacer su autoretrato."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Planifica sus proyectos sobre la base de las maneras en que otros artistas han usado los elementos del arte y las técnicas (por ejemplo, en prácticas artísticas tradicionales de su comunidad) para comunicar sus propias experiencias o sentimientos. Improvisa, experimenta y combina diversos elementos, medios, materiales y técnicas para descubrir cómo puede comunicar una idea."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Describe la idea o temática específica desarrollada en sus procesos de improvisación y experimentación. Explica las técnicas que ha usado y las maneras en que siente que su trabajo es exitoso. Ejemplo: El estudiante explica por qué eligió estirar los brazos y desplazarse lentamente para representar el viento en una danza."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Combina y busca alternativas para usar elementos de los lenguajes artísticos, medios, materiales, herramientas, técnicas, recursos tecnológicos a su alcance, así como prácticas tradicionales de su comunidad, para expresar de diferentes maneras sus ideas."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Desarrolla sus ideas a partir de observaciones, experiencias y el trabajo artístico de otros, y selecciona elementos y materiales para componer una imagen de acuerdo a sus intenciones. Ejemplo: El estudiante crea una interpretación con base en un poema que ha leído. Experimenta con diversas fuentes sonoras usando objetos de su entorno, decide cuánto debe durar cada sonido y con qué ritmo lo debe tocar, de acuerdo al sentimiento que desea transmitir."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Planifica maneras de presentar sus trabajos para comunicar sus ideas efectivamente, donde asume un rol específico. Explica las razones por las que ha seleccionado medios, materiales, herramientas y técnicas específicas en sus trabajos y evalúa con criterios dados si logró su propósito."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Explora los elementos de los lenguajes de las artes visuales, la música, el teatro y la danza, y los aplica con fines expresivos y comunicativos. Prueba y propone formas de utilizar los medios, los materiales, las herramientas y las técnicas con fines expresivos y comunicativos."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Genera ideas a partir de estímulos y fuentes diversas (tradicionales, locales y globales) y planifica su trabajo artístico tomando en cuenta la información recogida. Manipula una serie de elementos, medios, técnicas, herramientas y materiales para desarrollar trabajos que comunican ideas a una audiencia específica. Ejemplo: El estudiante observa diversos cuentos ilustrados sobre Don Quijote de la Mancha para saber de qué maneras han sido representados los personajes principales. Luego, planifica cómo representará de manera dramática a uno de los personajes, con base en las imágenes vistas. Prueba con una serie de movimientos, gestos y tonos de voz frente a sus compañeros para elegir la mejor manera de transmitir las características del personaje que ha elegido."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Registra sus ideas y las influencias de sus creaciones y las presenta de diversas maneras. Asume roles en las diferentes fases del proyecto artístico y evalúa el impacto de sus acciones en el resultado de sus creaciones o presentaciones."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Explora los elementos de los lenguajes de las artes visuales, la música, el teatro y la danza, y combina medios, materiales, herramientas, técnicas y recursos tecnológicos con fines expresivos y comunicativos."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Realiza creaciones individuales y colectivas, basadas en la observación y en el estudio del entorno natural, artístico y cultural local y global. Combina y propone formas de utilizar los elementos, materiales, técnicas y recursos tecnológicos para resolver problemas creativos planteados en su proyecto; incluye propuestas de artes integradas."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Documenta la manera en que sus ideas se han desarrollado y cuáles han sido sus influencias. Planifica la manera en que desea mostrar el resultado de sus investigaciones y creaciones, y mejora su presentación a partir de su propia autoevaluación y la retroalimentación que recibe de otros. Evalúa el resultado de sus creaciones o presentaciones y describe cuáles eran sus intenciones y qué mensajes transmite. Ejemplo: El estudiante crea un trabajo de “arpillería” para representar conceptos básicos sobre la democracia (igualdad, libertad, mayoría, etc.) a través de diferentes escenas. Planifica de qué manera presentará sus bocetos e ideas a sus compañeros. Explica los conceptos que eligió para crear su trabajo textil y responde a preguntas sobre los personajes y las acciones que ha representado. Recoge ideas y sugerencias para mejorar su trabajo final."
+    },
     {
       "grado": "1S",
       "orden": 1,
