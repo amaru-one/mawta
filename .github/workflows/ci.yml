@@ -44,6 +44,11 @@ jobs:
 
   ui:
     runs-on: ubuntu-latest
+    # The component tests run in real Chromium and WebKit. This image ships both
+    # plus their system libraries, so the job no longer downloads them through
+    # apt (a slow mirror once stretched that step to 20 minutes). Keep the tag
+    # equal to the `playwright` version locked in mawta-ui/bun.lock.
+    container: mcr.microsoft.com/playwright:v1.63.0-noble
     defaults:
       run:
         working-directory: mawta-ui
@@ -53,7 +58,6 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run check
       - run: bun eslint .
-      - run: bunx playwright install --with-deps chromium webkit
       - run: bun run test:components
       - run: bun run build
 
