@@ -39,7 +39,7 @@ def create_app(settings: Settings, logger: logging.Logger | None = None) -> Star
     async def lifespan(app: Starlette) -> AsyncIterator[None]:
         await database.open()
         os.makedirs(settings.storage_dir, exist_ok=True)
-        worker_task: asyncio.Task | None = None
+        worker_task: asyncio.Task[None] | None = None
         if settings.worker_enabled:
             from worker import run_worker
 
@@ -77,7 +77,7 @@ def create_app(settings: Settings, logger: logging.Logger | None = None) -> Star
 
 
 def run() -> None:
-    settings = Settings()  # type: ignore[call-arg]
+    settings = Settings()  # pyright: ignore[reportCallIssue]
     logger = applog.setup(settings.log_level)
     host, port = settings.host_port
     uvicorn.run(

@@ -1,8 +1,10 @@
 """Niveles de logro and conclusiones descriptivas."""
 
+from typing import Any
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 from psycopg.types.json import Jsonb  # noqa: F401  (re-exported for callers building payloads)
 
 import domain
@@ -36,7 +38,7 @@ def classify_conclusion_requirement(
     return domain.CONCLUSION_OPTIONAL
 
 
-async def _stage_and_cycle(conn: AsyncConnection, class_id: UUID) -> tuple[str, str]:
+async def _stage_and_cycle(conn: AsyncConnection[DictRow], class_id: UUID) -> tuple[str, str]:
     row = await fetch_required(
         conn,
         """
@@ -52,8 +54,8 @@ async def _stage_and_cycle(conn: AsyncConnection, class_id: UUID) -> tuple[str, 
 
 
 async def expected_standards(
-    conn: AsyncConnection, cycle: str, competency_ids: list[UUID]
-) -> dict[UUID, dict]:
+    conn: AsyncConnection[DictRow], cycle: str, competency_ids: list[UUID]
+) -> dict[UUID, dict[str, Any]]:
     """The learning standard each competency expects at the end of `cycle` (CNEB: the level is
     judged against the standard of the cycle's expected level), keyed by competency id. A
     competency without a standard at that level is left out."""
@@ -77,8 +79,8 @@ async def expected_standards(
 
 
 async def list_class_competency_levels(
-    conn: AsyncConnection, class_id: UUID, student_id: UUID, term_id: UUID
-) -> list[dict] | None:
+    conn: AsyncConnection[DictRow], class_id: UUID, student_id: UUID, term_id: UUID
+) -> list[dict[str, Any]] | None:
     """Every competency of the class's subject with this student's asserted level and
     conclusion for the term. There is deliberately no suggested level."""
     stage, cycle = await _stage_and_cycle(conn, class_id)
@@ -180,7 +182,7 @@ async def list_class_competency_levels(
 
 
 async def assert_competency_level(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     class_id: UUID,
     student_id: UUID,
     competency_id: UUID,
@@ -262,7 +264,11 @@ def check_conclusion_length(body: str) -> None:
 
 
 async def _conclusion_requirement(
-    conn: AsyncConnection, class_id: UUID, student_id: UUID, competency_id: UUID, term_id: UUID
+    conn: AsyncConnection[DictRow],
+    class_id: UUID,
+    student_id: UUID,
+    competency_id: UUID,
+    term_id: UUID,
 ) -> str:
     stage, cycle = await _stage_and_cycle(conn, class_id)
     inclusion = (
@@ -311,7 +317,7 @@ async def _conclusion_requirement(
 
 
 async def upsert_conclusion(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     class_id: UUID,
     student_id: UUID,
     competency_id: UUID,

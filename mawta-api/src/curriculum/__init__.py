@@ -44,20 +44,20 @@ def capability_code(competency_code: str, numero: int) -> str:
 @dataclass
 class Catalog:
     fuente: str = ""
-    grados: list[dict] = field(default_factory=list)
-    grado: dict[str, dict] = field(default_factory=dict)
-    niveles_esperados: list[dict] = field(default_factory=list)
-    areas: list[dict] = field(default_factory=list)
-    area: dict[str, dict] = field(default_factory=dict)
-    transversales: list[dict] = field(default_factory=list)
-    transversal: dict[str, dict] = field(default_factory=dict)
-    competencias: dict[int, dict] = field(default_factory=dict)
+    grados: list[dict[str, Any]] = field(default_factory=list)
+    grado: dict[str, dict[str, Any]] = field(default_factory=dict)
+    niveles_esperados: list[dict[str, Any]] = field(default_factory=list)
+    areas: list[dict[str, Any]] = field(default_factory=list)
+    area: dict[str, dict[str, Any]] = field(default_factory=dict)
+    transversales: list[dict[str, Any]] = field(default_factory=list)
+    transversal: dict[str, dict[str, Any]] = field(default_factory=dict)
+    competencias: dict[int, dict[str, Any]] = field(default_factory=dict)
     # school-facing competency code ("MAT-C1", "TR-C1") -> CNEB number
     numero_by_code: dict[str, int] = field(default_factory=dict)
     # area code -> every capability code its competencies define
     capability_codes_by_area: dict[str, set[str]] = field(default_factory=dict)
 
-    def competencia_by_code(self, code: str) -> dict | None:
+    def competencia_by_code(self, code: str) -> dict[str, Any] | None:
         n = self.numero_by_code.get(code)
         return self.competencias.get(n) if n is not None else None
 
@@ -237,7 +237,7 @@ def _check_competencias(c: Catalog, directory: Path) -> list[str]:
     return errs
 
 
-def _check_competencia(c: Catalog, name: str, file_name: str, comp: dict) -> list[str]:
+def _check_competencia(c: Catalog, name: str, file_name: str, comp: dict[str, Any]) -> list[str]:
     errs: list[str] = []
     numero = comp.get("numero_cneb")
     if not isinstance(numero, int) or numero <= 0:

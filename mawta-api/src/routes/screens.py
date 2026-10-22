@@ -3,6 +3,7 @@
 from datetime import date
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -26,7 +27,7 @@ from web import (
 )
 
 
-async def resolve_date(conn: AsyncConnection, tc: TenantCtx, date_param: str) -> date:
+async def resolve_date(conn: AsyncConnection[DictRow], tc: TenantCtx, date_param: str) -> date:
     """?date=YYYY-MM-DD, defaulting to "today" in the tenant's timezone when absent."""
     if date_param:
         return parse_date(date_param)

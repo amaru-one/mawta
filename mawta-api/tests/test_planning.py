@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import date, timedelta
+from typing import Any
 
 import pytest
 
@@ -81,8 +82,8 @@ async def planner(client, teacher, class_id):
     return Planner(client, teacher, class_id)
 
 
-def competency_status(plan, competency_id):
-    return next((c for c in plan["competencies"] if c["id"] == str(competency_id)), None)
+def competency_status(plan: dict[str, Any], competency_id: uuid.UUID) -> dict[str, Any]:
+    return next(c for c in plan["competencies"] if c["id"] == str(competency_id))
 
 
 def want_error(resp, status, code):

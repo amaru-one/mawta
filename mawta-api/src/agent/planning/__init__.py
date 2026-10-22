@@ -15,6 +15,7 @@ from typing import Any
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 from agent import InvalidAnswer, Prepared
 from agent.llm import Block
@@ -69,7 +70,7 @@ def decode(answer: Any, expected: type = dict) -> Any:
     return answer
 
 
-def experience_id_of(gen: dict) -> UUID:
+def experience_id_of(gen: dict[str, Any]) -> UUID:
     if gen["experience_id"] is None:
         raise unprocessable("bad_request", "esta generación necesita una experiencia")
     return gen["experience_id"]
@@ -103,7 +104,7 @@ class PlanningAgent:
     name = NAME
     prompt_version = PROMPT_VERSION
 
-    async def prepare(self, conn: AsyncConnection, gen: dict) -> Prepared:
+    async def prepare(self, conn: AsyncConnection[DictRow], gen: dict[str, Any]) -> Prepared:
         from agent.planning import criteria, evidences, experience, sessions
 
         handlers = {
@@ -117,7 +118,9 @@ class PlanningAgent:
             raise unprocessable("unknown_kind", "Mawta no sabe generar eso.")
         return await handler(conn, gen)
 
-    async def apply(self, conn: AsyncConnection, gen: dict, prepared: Prepared, answer: Any) -> Any:
+    async def apply(
+        self, conn: AsyncConnection[DictRow], gen: dict[str, Any], prepared: Prepared, answer: Any
+    ) -> Any:
         from agent.planning import criteria, evidences, experience, sessions
 
         handlers = {

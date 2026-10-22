@@ -9,8 +9,10 @@ nothing", so any test can call it and none of them owns it.
 
 import uuid
 from datetime import date, timedelta
+from typing import Any, LiteralString, cast
 
 import psycopg
+from psycopg.rows import DictRow
 
 from tests.conftest import FX
 
@@ -31,16 +33,18 @@ PLAN_VACATION_IN = "2026-07-20"
 PLAN_VACATION_OUT = "2026-07-24"
 
 
-async def admin_script(admin: psycopg.AsyncConnection, script: str, **variables: object) -> None:
+async def admin_script(
+    admin: psycopg.AsyncConnection[DictRow], script: str, **variables: object
+) -> None:
     """Run a multi-statement script on the admin connection. Each {{name}} becomes the value as a
     quoted literal; the values are this module's own ids and dates, never input."""
     for name, value in variables.items():
         literal = "'" + str(value).replace("'", "''") + "'"
         script = script.replace("{{" + name + "}}", literal)
-    await admin.execute(script)
+    await admin.execute(cast(LiteralString, script))
 
 
-async def ensure_planning_curriculum(admin: psycopg.AsyncConnection) -> None:
+async def ensure_planning_curriculum(admin: psycopg.AsyncConnection[DictRow]) -> None:
     await admin_script(
         admin,
         """
@@ -116,7 +120,7 @@ async def ensure_planning_curriculum(admin: psycopg.AsyncConnection) -> None:
     )
 
 
-async def create_plan_class(admin: psycopg.AsyncConnection) -> tuple[uuid.UUID, uuid.UUID]:
+async def create_plan_class(admin: psycopg.AsyncConnection[DictRow]) -> tuple[uuid.UUID, uuid.UUID]:
     """A Matemática 5to class of its own for Quispe, with a Monday/Wednesday timetable over
     Bimestre II, a double block on 2026-05-20 and a cancelled session on Friday 2026-05-22.
     Returns (class_id, section_id)."""
@@ -166,11 +170,12 @@ async def create_plan_class(admin: psycopg.AsyncConnection) -> tuple[uuid.UUID, 
 
 
 async def drop_plan_class(
-    admin: psycopg.AsyncConnection, class_id: uuid.UUID, section_id: uuid.UUID
+    admin: psycopg.AsyncConnection[DictRow], class_id: uuid.UUID, section_id: uuid.UUID
 ) -> None:
     exp = f"(select id from learning_experiences where class_id = '{class_id}')"
-    await admin.execute(
-        f"""
+    # One script of many statements, which psycopg cannot run with bound parameters; the
+    # interpolated values are UUIDs this module created.
+    script = f"""
         delete from jobs where kind = 'agent.generate' and payload->>'generation_id' in
           (select id::text from agent_generations where class_id = '{class_id}');
         delete from agent_generations where class_id = '{class_id}';
@@ -200,7 +205,7 @@ async def drop_plan_class(
         delete from section_memberships where section_id = '{section_id}';
         delete from sections where id = '{section_id}';
         """
-    )
+    await admin.execute(cast(LiteralString, script))
 
 
 def expected_class_dates(from_: str, to: str) -> list[str]:
@@ -218,7 +223,7 @@ def expected_class_dates(from_: str, to: str) -> list[str]:
     return out
 
 
-def experience_body(starts_on: str, ends_on: str, *competencies: uuid.UUID) -> dict:
+def experience_body(starts_on: str, ends_on: str, *competencies: uuid.UUID) -> dict[str, Any]:
     return {
         "term_id": str(FX.term_ii),
         "title": "La tiendita escolar",

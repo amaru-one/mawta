@@ -1,8 +1,10 @@
 """The /me payload."""
 
+from typing import Any
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 import domain
 from db import fetch_required
@@ -10,7 +12,9 @@ from db import fetch_required
 _ZERO_UUID = UUID(int=0)
 
 
-def _payload(row: dict, teacher_id: UUID | None, teacher_title: str | None) -> dict:
+def _payload(
+    row: dict[str, Any], teacher_id: UUID | None, teacher_title: str | None
+) -> dict[str, Any]:
     return {
         "role": "",
         "user": {"display_name": row["display_name"], "email": row["email"]},
@@ -24,7 +28,7 @@ def _payload(row: dict, teacher_id: UUID | None, teacher_title: str | None) -> d
     }
 
 
-async def get_me(conn: AsyncConnection, teacher_id: UUID) -> dict:
+async def get_me(conn: AsyncConnection[DictRow], teacher_id: UUID) -> dict[str, Any]:
     row = await fetch_required(
         conn,
         """
@@ -42,7 +46,7 @@ async def get_me(conn: AsyncConnection, teacher_id: UUID) -> dict:
     return _payload(row, teacher_id, row["teacher_title"])
 
 
-async def get_director_me(conn: AsyncConnection, user_id: UUID) -> dict:
+async def get_director_me(conn: AsyncConnection[DictRow], user_id: UUID) -> dict[str, Any]:
     """get_me for a director, who has no teachers row: the teacher part stays empty."""
     row = await fetch_required(
         conn,

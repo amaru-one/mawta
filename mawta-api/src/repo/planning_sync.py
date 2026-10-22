@@ -5,14 +5,15 @@ from uuid import UUID
 
 import psycopg
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 import applog
-from db import fetch_all, fetch_one
+from db import fetch_all, fetch_one, returned
 
 logger = logging.getLogger("mawta-server")
 
 
-async def sync_class_plan(conn: AsyncConnection, class_id: UUID) -> None:
+async def sync_class_plan(conn: AsyncConnection[DictRow], class_id: UUID) -> None:
     """sync_experience for every planned experience of a class. Idempotent, so screens that
     show the class calendar or the plan call it to bring experiences planned before the
     bridge existed up to date."""
@@ -28,7 +29,7 @@ async def sync_class_plan(conn: AsyncConnection, class_id: UUID) -> None:
         await sync_experience(conn, row["id"])
 
 
-async def sync_experience(conn: AsyncConnection, experience_id: UUID) -> None:
+async def sync_experience(conn: AsyncConnection[DictRow], experience_id: UUID) -> None:
     """Make a planned experience real:
 
     - each accepted session outline entry names the class session(s) of its date
@@ -165,7 +166,7 @@ async def sync_experience(conn: AsyncConnection, experience_id: UUID) -> None:
                     p["id"],
                 ),
             )
-            assessment_id = (await cur.fetchone())["id"]
+            assessment_id = returned(await cur.fetchone())["id"]
 
         # assessment_criteria rows are soft-deleted, so a criterion that returns reuses its
         # old row.
@@ -192,7 +193,7 @@ async def sync_experience(conn: AsyncConnection, experience_id: UUID) -> None:
         )
 
 
-async def heal_class_plan(conn: AsyncConnection, class_id: UUID) -> None:
+async def heal_class_plan(conn: AsyncConnection[DictRow], class_id: UUID) -> None:
     """sync_class_plan for read paths: runs in a savepoint and never fails the read. A class
     whose sync fails still shows its calendar; the evidence waits for the next sync."""
     try:

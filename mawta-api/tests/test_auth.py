@@ -7,6 +7,7 @@ hash on the user first (cost 4, the minimum).
 
 import psycopg
 import pytest
+from psycopg.rows import DictRow
 
 import auth as authpkg
 from tests.conftest import COOKIE_NAME, FX, error_code
@@ -14,7 +15,7 @@ from tests.conftest import COOKIE_NAME, FX, error_code
 TEST_PASSWORD = "una contraseña larga"
 
 
-async def set_password(admin: psycopg.AsyncConnection, username: str) -> None:
+async def set_password(admin: psycopg.AsyncConnection[DictRow], username: str) -> None:
     hashed = authpkg.hash_password(TEST_PASSWORD, 4)
     await admin.execute(
         "update users set password_hash = %s, failed_login_count = 0, locked_until = null"

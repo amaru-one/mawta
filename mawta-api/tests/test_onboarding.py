@@ -6,9 +6,10 @@ from pathlib import Path
 
 import psycopg
 import pytest
-from psycopg.rows import dict_row
+from psycopg.rows import DictRow, dict_row
 
 import curriculum
+from db import returned
 from onboarding import derive_id
 from onboarding import load as loader
 from onboarding import spec as spec_mod
@@ -87,26 +88,28 @@ def test_validation_names_the_problem(cat, mutate, fragment):
 
 
 def test_ids_match_postgres_md5(databases):
-    with psycopg.connect(databases.admin_url, row_factory=dict_row) as conn:
-        row = conn.execute("select md5('student:0723519:EST-1')::uuid as id").fetchone()
+    with psycopg.Connection[DictRow].connect(databases.admin_url, row_factory=dict_row) as conn:
+        row = returned(conn.execute("select md5('student:0723519:EST-1')::uuid as id").fetchone())
     assert derive_id("student", "0723519", "EST-1") == row["id"]
 
 
 def test_load_creates_the_school_and_rolls_back(databases, cat):
     spec = example_spec()
-    with psycopg.connect(databases.admin_url, row_factory=dict_row) as conn:
+    with psycopg.Connection[DictRow].connect(databases.admin_url, row_factory=dict_row) as conn:
         summary = loader.load(conn, spec, cat, 4)
         assert summary.docentes == len(spec.docentes) and summary.sesiones > 0
         assert summary.estudiantes == sum(len(a.estudiantes) for a in spec.aulas)
         mod = spec.colegio.codigo_modular
-        row = conn.execute("select id from tenants where modular_code = %s", (mod,)).fetchone()
+        row = returned(
+            conn.execute("select id from tenants where modular_code = %s", (mod,)).fetchone()
+        )
         assert row["id"] == derive_id("tenant", mod, "")
         # a second load of the same school in the same transaction is refused up front
         with pytest.raises(ValidationErrors, match="ya existe"):
             loader.load(conn, spec, cat, 4)
         conn.rollback()
         gone = conn.execute("select count(*) as n from tenants where modular_code = %s", (mod,))
-        assert gone.fetchone()["n"] == 0
+        assert returned(gone.fetchone())["n"] == 0
 
 
 def test_sync_is_idempotent_on_a_freshly_loaded_school(databases, cat):
@@ -114,7 +117,7 @@ def test_sync_is_idempotent_on_a_freshly_loaded_school(databases, cat):
 
     spec = example_spec()
     grade_map = {g.codigo: g.grado_cneb for g in spec.grados}
-    with psycopg.connect(databases.admin_url, row_factory=dict_row) as conn:
+    with psycopg.Connection[DictRow].connect(databases.admin_url, row_factory=dict_row) as conn:
         loader.load(conn, spec, cat, 4)
         mod = spec.colegio.codigo_modular
         first = syncer.sync_curriculum(conn, cat, mod, grade_map)

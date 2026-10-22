@@ -138,9 +138,10 @@ def test_strict_schema_closes_every_object_without_mutating_input():
 
 def test_classify_provider_errors():
     import anthropic
+    import httpx2  # the HTTP client the anthropic SDK is typed against
 
-    def status(code):
-        resp = httpx.Response(code, request=httpx.Request("POST", "https://x"))
+    def status(code: int) -> anthropic.APIStatusError:
+        resp = httpx2.Response(code, request=httpx2.Request("POST", "https://x"))
         return anthropic.APIStatusError("boom", response=resp, body=None)
 
     assert classify(status(429)).permanent is False
@@ -190,10 +191,10 @@ async def test_stt_error_classes():
 
 
 class FakeTranscriber:
-    def __init__(self, text=None, error=None):
+    def __init__(self, text: str = "", error: Exception | None = None) -> None:
         self.text, self.error = text, error
 
-    async def transcribe(self, audio):
+    async def transcribe(self, audio_mp3: bytes) -> str:
         if self.error:
             raise self.error
         return self.text

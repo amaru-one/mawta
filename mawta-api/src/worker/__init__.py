@@ -19,6 +19,7 @@ import math
 import socket
 import time
 from datetime import UTC, datetime
+from typing import Any
 
 from psycopg.types.json import Jsonb
 
@@ -108,7 +109,7 @@ async def dispatch(
     job's transaction, persist the outcome, and only then emit the terminal outcome event, so the
     event never claims a completion the database has not recorded."""
     start = time.monotonic()
-    common = {
+    common: dict[str, Any] = {
         "task_id": job.id,
         "kind": job.kind,
         "attempt": job.attempts,

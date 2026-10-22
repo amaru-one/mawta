@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 from agent.llm import Block, Tool
 
@@ -59,11 +60,13 @@ class Agent(Protocol):
     name: str
     prompt_version: str
 
-    async def prepare(self, conn: AsyncConnection, gen: dict) -> Prepared:
+    async def prepare(self, conn: AsyncConnection[DictRow], gen: dict[str, Any]) -> Prepared:
         """Read the context for a generation, inside a tenant transaction."""
         ...
 
-    async def apply(self, conn: AsyncConnection, gen: dict, prepared: Prepared, answer: Any) -> Any:
+    async def apply(
+        self, conn: AsyncConnection[DictRow], gen: dict[str, Any], prepared: Prepared, answer: Any
+    ) -> Any:
         """Validate the model's answer against the current state of the database and store what
         passes, inside a tenant transaction. Returns the generation's result. An answer that
         cannot be used at all raises InvalidAnswer, which earns the model one repair attempt."""

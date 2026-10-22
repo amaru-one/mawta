@@ -5,6 +5,7 @@ from typing import Any
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 import domain
 from agent import InvalidAnswer, Prepared, Spec
@@ -60,12 +61,12 @@ EVIDENCES_TOOL = Tool(
 )
 
 
-def observed_criteria(exp: dict) -> set[UUID]:
+def observed_criteria(exp: dict[str, Any]) -> set[UUID]:
     """The criteria some evidence of the experience already observes, pending proposals included."""
     return {cid for e in exp["evidences"] for cid in e["criterion_ids"]}
 
 
-async def prepare(conn: AsyncConnection, gen: dict) -> Prepared:
+async def prepare(conn: AsyncConnection[DictRow], gen: dict[str, Any]) -> Prepared:
     exp_id = experience_id_of(gen)
     exp = await repo.get_experience(conn, exp_id)
     if not exp["criteria"]:
@@ -103,7 +104,9 @@ async def prepare(conn: AsyncConnection, gen: dict) -> Prepared:
     )
 
 
-async def apply(conn: AsyncConnection, gen: dict, prepared: Prepared, answer: Any) -> Any:
+async def apply(
+    conn: AsyncConnection[DictRow], gen: dict[str, Any], prepared: Prepared, answer: Any
+) -> Any:
     st: _State = prepared.state
     a = decode(answer)
     raw_items = a.get("evidences") or []

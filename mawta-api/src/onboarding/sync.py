@@ -8,9 +8,11 @@ ordinals.
 """
 
 from dataclasses import dataclass, field
+from typing import Any
 from uuid import UUID
 
 import psycopg
+from psycopg.rows import DictRow
 
 from curriculum import DEFAULT_MODALITY, Catalog, capability_code
 
@@ -48,7 +50,7 @@ class SyncError(Exception):
 
 
 def sync_curriculum(
-    conn: psycopg.Connection, cat: Catalog, modular_code: str, grade_map: dict[str, str]
+    conn: psycopg.Connection[DictRow], cat: Catalog, modular_code: str, grade_map: dict[str, str]
 ) -> SyncReport:
     """The caller owns the transaction, exactly like load()."""
     if not grade_map:
@@ -68,10 +70,12 @@ def sync_curriculum(
     return report
 
 
-def _set_grade_cycles(conn, cat, tenant_id, grade_map, report) -> dict[str, tuple[dict, UUID]]:
+def _set_grade_cycles(
+    conn, cat, tenant_id, grade_map, report
+) -> dict[str, tuple[dict[str, Any], UUID]]:
     """Set grade_levels.stage and cycle from the explicit map. Only the grades the map names are
     touched."""
-    grades: dict[str, tuple[dict, UUID]] = {}
+    grades: dict[str, tuple[dict[str, Any], UUID]] = {}
     for codigo, cneb in grade_map.items():
         cg = cat.grado[cneb]
         row = conn.execute(

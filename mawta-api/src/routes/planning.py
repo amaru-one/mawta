@@ -9,6 +9,7 @@ event, and answer with the written object as the experience read shows it.
 """
 
 from datetime import date
+from typing import Any
 from uuid import UUID
 
 from starlette.requests import Request
@@ -166,7 +167,7 @@ async def handle_update_experience(request: Request) -> Response:
     ends = body_field(raw, "ends_on", str | None)
     competency_ids = body_field(raw, "competency_ids", list[str] | None)
 
-    patch: dict = {}
+    patch: dict[str, Any] = {}
     if title is not None:
         patch["title"] = title
     if situation is not None:
@@ -249,7 +250,7 @@ async def handle_update_planned_criterion(request: Request) -> Response:
     capability_ids = body_field(raw, "capability_ids", list[str] | None)
     performance = body_field(raw, "performance_id", str | None)
 
-    patch: dict = {}
+    patch: dict[str, Any] = {}
     if description is not None:
         patch["description"] = description
     if capability_ids is not None:
@@ -309,7 +310,7 @@ async def handle_update_planned_evidence(request: Request) -> Response:
     api, tc = api_of(request), tc_of(request)
     evidence_id = path_uuid(request, "evidenceID")
     raw = await read_json(request)
-    patch: dict = {}
+    patch: dict[str, Any] = {}
     for name in ("name", "kind", "value_scale"):
         if (value := body_field(raw, name, str | None)) is not None:
             patch[name] = value

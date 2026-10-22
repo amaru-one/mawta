@@ -10,18 +10,19 @@ connects as mawta_app (`-c role=mawta_app`), so a missing GRANT shows up here.
 import os
 import secrets
 import uuid
-from collections.abc import AsyncIterator, Callable
+from collections.abc import AsyncIterator, Callable, Iterator
 from contextlib import AsyncExitStack
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, LiteralString, cast
 
 import httpx
 import psycopg
 import pytest
 import pytest_asyncio
+from psycopg import sql
 from psycopg.conninfo import conninfo_to_dict, make_conninfo
-from psycopg.rows import dict_row
+from psycopg.rows import DictRow, dict_row
 from starlette.applications import Starlette
 
 import auth as authpkg
@@ -86,8 +87,9 @@ class Fixture:
 FX = Fixture()
 
 
-def goose_up(sql: str) -> str:
-    return sql.split("-- +goose Up", 1)[1].split("-- +goose Down", 1)[0]
+def goose_up(text: str) -> LiteralString:
+    # The repository's own migration files, so the text is trusted SQL.
+    return cast(LiteralString, text.split("-- +goose Up", 1)[1].split("-- +goose Down", 1)[0])
 
 
 @dataclass
@@ -97,24 +99,26 @@ class Databases:
 
 
 @pytest.fixture(scope="session")
-def databases() -> Any:
+def databases() -> Iterator[Databases]:
     admin = os.environ.get("MAWTA_TEST_ADMIN_URL")
     if not admin:
         pytest.skip("MAWTA_TEST_ADMIN_URL is not set, so there is no database to test against")
     name = f"mawta_test_{secrets.token_hex(6)}"
     base = conninfo_to_dict(admin)
     with psycopg.connect(admin, autocommit=True) as conn:
-        conn.execute(f'create database "{name}"')
-    admin_url = make_conninfo(**{**base, "dbname": name})
+        conn.execute(sql.SQL("create database {}").format(sql.Identifier(name)))
+    admin_url = make_conninfo("", **{**base, "dbname": name})
     with psycopg.connect(admin_url, autocommit=True) as conn:
         for migration in sorted((ROOT / "migrations").glob("*.sql")):
             conn.execute(goose_up(migration.read_text()))
-        conn.execute((ROOT / "tests" / "fixture.sql").read_text())
-    app_url = make_conninfo(**{**base, "dbname": name, "options": "-c role=mawta_app"})
+        conn.execute(cast(LiteralString, (ROOT / "tests" / "fixture.sql").read_text()))
+    app_url = make_conninfo("", **{**base, "dbname": name, "options": "-c role=mawta_app"})
     yield Databases(admin_url=admin_url, app_url=app_url)
     if not os.environ.get("MAWTA_TEST_KEEP"):
         with psycopg.connect(admin, autocommit=True) as conn:
-            conn.execute(f'drop database if exists "{name}" with (force)')
+            conn.execute(
+                sql.SQL("drop database if exists {} with (force)").format(sql.Identifier(name))
+            )
 
 
 def make_settings(databases: Databases, tmp_path: Path, **overrides: Any) -> Settings:
@@ -134,7 +138,8 @@ def make_settings(databases: Databases, tmp_path: Path, **overrides: Any) -> Set
         "worker_enabled": False,
     }
     values.update(overrides)
-    return Settings(_env_file=None, **values)
+    # _env_file is a pydantic-settings init option missing from the typed signature.
+    return Settings(_env_file=None, **values)  # pyright: ignore[reportCallIssue]
 
 
 class Client:
@@ -174,9 +179,9 @@ async def client(make_client: Callable[..., Any]) -> Client:
 
 
 @pytest_asyncio.fixture
-async def admin(databases: Databases) -> AsyncIterator[psycopg.AsyncConnection]:
+async def admin(databases: Databases) -> AsyncIterator[psycopg.AsyncConnection[DictRow]]:
     """A superuser connection (autocommit) for fixture work that bypasses RLS."""
-    conn = await psycopg.AsyncConnection.connect(
+    conn = await psycopg.AsyncConnection[DictRow].connect(
         databases.admin_url, autocommit=True, row_factory=dict_row
     )
     yield conn
@@ -184,7 +189,7 @@ async def admin(databases: Databases) -> AsyncIterator[psycopg.AsyncConnection]:
 
 
 @pytest_asyncio.fixture
-async def login(admin: psycopg.AsyncConnection) -> AsyncIterator[Callable[..., Any]]:
+async def login(admin: psycopg.AsyncConnection[DictRow]) -> AsyncIterator[Callable[..., Any]]:
     """Mint a real session row for a user and return its cookie value."""
     hashes: list[bytes] = []
 

@@ -1,16 +1,20 @@
 """Login candidates, memberships and sessions."""
 
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 from db import fetch_one, fetch_required
 
 # ── pre-tenant, via Database.auth_tx ────────────────────────────────────
 
 
-async def find_login_candidate(conn: AsyncConnection, username: str) -> dict | None:
+async def find_login_candidate(
+    conn: AsyncConnection[DictRow], username: str
+) -> dict[str, Any] | None:
     """The user matching lower(username): id, password_hash, status, locked_until.
     None when there is no match; the caller must still verify against the dummy hash."""
     return await fetch_one(
@@ -24,7 +28,9 @@ async def find_login_candidate(conn: AsyncConnection, username: str) -> dict | N
     )
 
 
-async def resolve_membership(conn: AsyncConnection, user_id: UUID) -> dict | None:
+async def resolve_membership(
+    conn: AsyncConnection[DictRow], user_id: UUID
+) -> dict[str, Any] | None:
     """The user's single non-revoked membership (memberships_one_school_per_user)."""
     return await fetch_one(
         conn,
@@ -38,7 +44,7 @@ async def resolve_membership(conn: AsyncConnection, user_id: UUID) -> dict | Non
 
 
 async def record_login_failure(
-    conn: AsyncConnection, user_id: UUID, max_failures: int, lock_seconds: float
+    conn: AsyncConnection[DictRow], user_id: UUID, max_failures: int, lock_seconds: float
 ) -> None:
     await conn.execute(
         """
@@ -54,7 +60,7 @@ async def record_login_failure(
     )
 
 
-async def record_login_success(conn: AsyncConnection, user_id: UUID) -> None:
+async def record_login_success(conn: AsyncConnection[DictRow], user_id: UUID) -> None:
     await conn.execute(
         """
         update users
@@ -66,7 +72,7 @@ async def record_login_success(conn: AsyncConnection, user_id: UUID) -> None:
 
 
 async def create_session(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     *,
     token_hash: bytes,
     user_id: UUID,
@@ -90,7 +96,9 @@ async def create_session(
     return row["id"]
 
 
-async def find_live_session(conn: AsyncConnection, token_hash: bytes) -> dict | None:
+async def find_live_session(
+    conn: AsyncConnection[DictRow], token_hash: bytes
+) -> dict[str, Any] | None:
     """By exact token hash where revoked_at is null. None covers both "no such
     session" and "already revoked"."""
     return await fetch_one(
@@ -104,7 +112,9 @@ async def find_live_session(conn: AsyncConnection, token_hash: bytes) -> dict | 
     )
 
 
-async def touch_session(conn: AsyncConnection, session_id: UUID, min_interval: float) -> None:
+async def touch_session(
+    conn: AsyncConnection[DictRow], session_id: UUID, min_interval: float
+) -> None:
     """Bump last_seen_at only if it's older than min_interval: called on every
     request, so a write per request would make every GET a read-write transaction."""
     await conn.execute(
@@ -117,7 +127,7 @@ async def touch_session(conn: AsyncConnection, session_id: UUID, min_interval: f
     )
 
 
-async def revoke_session(conn: AsyncConnection, session_id: UUID, reason: str) -> None:
+async def revoke_session(conn: AsyncConnection[DictRow], session_id: UUID, reason: str) -> None:
     await conn.execute(
         """
         update user_sessions set revoked_at = now(), revoked_reason = %s
@@ -128,7 +138,7 @@ async def revoke_session(conn: AsyncConnection, session_id: UUID, reason: str) -
 
 
 async def revoke_session_by_token_hash(
-    conn: AsyncConnection, token_hash: bytes, reason: str
+    conn: AsyncConnection[DictRow], token_hash: bytes, reason: str
 ) -> None:
     await conn.execute(
         """
@@ -139,7 +149,7 @@ async def revoke_session_by_token_hash(
     )
 
 
-async def revoke_user_sessions(conn: AsyncConnection, user_id: UUID, reason: str) -> None:
+async def revoke_user_sessions(conn: AsyncConnection[DictRow], user_id: UUID, reason: str) -> None:
     """Every live session of a user: called on a password change."""
     await conn.execute(
         """
@@ -150,7 +160,7 @@ async def revoke_user_sessions(conn: AsyncConnection, user_id: UUID, reason: str
     )
 
 
-async def prune_sessions(conn: AsyncConnection, retain_seconds: float) -> int:
+async def prune_sessions(conn: AsyncConnection[DictRow], retain_seconds: float) -> int:
     """Hard-delete rows revoked or expired more than retain ago, opportunistically at login."""
     cur = await conn.execute(
         """
@@ -166,7 +176,7 @@ async def prune_sessions(conn: AsyncConnection, retain_seconds: float) -> int:
 # ── post-tenant, via Database.tenant_tx ─────────────────────────────────
 
 
-async def resolve_teacher(conn: AsyncConnection, user_id: UUID) -> UUID | None:
+async def resolve_teacher(conn: AsyncConnection[DictRow], user_id: UUID) -> UUID | None:
     """The membership must still be active and still carry a teachers row."""
     row = await fetch_one(
         conn,

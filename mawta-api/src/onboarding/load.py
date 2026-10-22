@@ -8,12 +8,15 @@ back, so there is never a half-installed school.
 """
 
 from dataclasses import dataclass, field
+from typing import Any, LiteralString
 from uuid import UUID
 
 import psycopg
+from psycopg.rows import DictRow
 
 import auth as authpkg
 from curriculum import DEFAULT_MODALITY, Catalog, capability_code
+from db import returned
 from onboarding import derive_id as ID
 from onboarding.spec import Clase, CriterioLegacy, Estudiante, Franja, Periodo, Spec
 from onboarding.validate import ValidationErrors, parse_clock, parse_weekday, validate
@@ -79,11 +82,19 @@ def _clock(value: str) -> str:
     return f"{minutes // 60:02d}:{minutes % 60:02d}"
 
 
+def _weekday(value: str) -> int:
+    """ "lunes" -> 1. validate() has already rejected any other text."""
+    day = parse_weekday(value)
+    if day is None:
+        raise RuntimeError(f"unvalidated weekday {value!r}")
+    return day
+
+
 def _room_for(c: Clase, f: Franja) -> str:
     return f.salon if f.salon.strip() else c.salon
 
 
-def load(conn: psycopg.Connection, spec: Spec, cat: Catalog, bcrypt_cost: int) -> Summary:
+def load(conn: psycopg.Connection[DictRow], spec: Spec, cat: Catalog, bcrypt_cost: int) -> Summary:
     validate(spec, cat)
     loader = _Loader(conn, spec, cat)
     loader.precheck()
@@ -106,7 +117,7 @@ def load(conn: psycopg.Connection, spec: Spec, cat: Catalog, bcrypt_cost: int) -
 
 
 class _Loader:
-    def __init__(self, conn: psycopg.Connection, spec: Spec, cat: Catalog) -> None:
+    def __init__(self, conn: psycopg.Connection[DictRow], spec: Spec, cat: Catalog) -> None:
         self.conn = conn
         self.s = spec
         self.cat = cat
@@ -118,17 +129,19 @@ class _Loader:
         # earliest periodo start: when titulars and horarios begin (ISO dates sort as strings)
         self.first_day = min(p.inicio for p in spec.anio_escolar.periodos)
 
-    def exec(self, sql: str, params: tuple | dict = ()) -> int:
+    def exec(self, sql: LiteralString, params: tuple[Any, ...] | dict[str, Any] = ()) -> int:
         return self.conn.execute(sql, params).rowcount
 
     def precheck(self) -> None:
         """Refuse a school or an account that already exists, before writing anything, with a
         message about the file rather than a constraint."""
-        exists = self.conn.execute(
-            "select exists (select 1 from tenants where modular_code = %s and deleted_at is null)"
-            " as ok",
-            (self.mod,),
-        ).fetchone()["ok"]
+        exists = returned(
+            self.conn.execute(
+                "select exists (select 1 from tenants where modular_code = %s and deleted_at is null)"
+                " as ok",
+                (self.mod,),
+            ).fetchone()
+        )["ok"]
         if exists:
             raise ValidationErrors(
                 [
@@ -291,7 +304,7 @@ class _Loader:
             self.competencia(code, comp, None, "transversal", j)
 
     def competencia(
-        self, codigo: str, comp: dict, subject_id: UUID | None, kind: str, order: int
+        self, codigo: str, comp: dict[str, Any], subject_id: UUID | None, kind: str, order: int
     ) -> None:
         """One competency and its capabilities from the catalog. Names are the official ones,
         stored verbatim; the capability code is <competency code>-CAP<numero>."""
@@ -377,7 +390,9 @@ class _Loader:
                 raise RuntimeError(f"competencia transversal {code}: no está en el catálogo")
             self.standards(code, comp)
 
-    def curriculum_of_competency(self, codigo: str, grades: list[tuple[dict, UUID]]) -> None:
+    def curriculum_of_competency(
+        self, codigo: str, grades: list[tuple[dict[str, Any], UUID]]
+    ) -> None:
         comp = self.cat.competencia_by_code(codigo)
         if comp is None:
             raise RuntimeError(f"competencia {codigo}: no está en el catálogo")
@@ -407,7 +422,7 @@ class _Loader:
                 )  # fmt: skip
                 self.sum.desempenos += 1
 
-    def standards(self, codigo: str, comp: dict) -> None:
+    def standards(self, codigo: str, comp: dict[str, Any]) -> None:
         """Store a competency's learning standards verbatim. A standard's text may be a note
         instead of a description; it is stored verbatim like any other text."""
         comp_id = ID("competency", self.mod, codigo)
@@ -558,7 +573,7 @@ class _Loader:
             )
             self.sum.clases += 1
             for f in c.horario:
-                dia = parse_weekday(f.dia)
+                dia = _weekday(f.dia)
                 self.exec(
                     """
                     insert into class_schedules (id, tenant_id, class_id, weekday, starts_at,
@@ -582,7 +597,7 @@ class _Loader:
         for c in self.s.clases:
             class_id = self.class_id(c.codigo)
             for f in c.horario:
-                dia = parse_weekday(f.dia)
+                dia = _weekday(f.dia)
                 for p in self.s.anio_escolar.periodos:
                     self.sum.sesiones += self.exec(
                         """

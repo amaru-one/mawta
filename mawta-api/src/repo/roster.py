@@ -4,11 +4,12 @@ from datetime import date
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 from db import fetch_all
 
 
-async def roster_as_of(conn: AsyncConnection, class_id: UUID, d: date) -> list[UUID]:
+async def roster_as_of(conn: AsyncConnection[DictRow], class_id: UUID, d: date) -> list[UUID]:
     """The student ids belonging to a class's section on date d."""
     rows = await fetch_all(
         conn,

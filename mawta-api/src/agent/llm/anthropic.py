@@ -4,6 +4,7 @@ import json
 from typing import Any
 
 import anthropic
+from anthropic.types import TextBlockParam
 
 from agent.llm import LLMError, Request, Response, Usage
 
@@ -32,9 +33,9 @@ class Anthropic:
         if self._client is None:
             raise LLMError("llm: ANTHROPIC_API_KEY not configured", permanent=True)
 
-        system: list[dict[str, Any]] = []
+        system: list[TextBlockParam] = []
         for block in req.system:
-            item: dict[str, Any] = {"type": "text", "text": block.text}
+            item: TextBlockParam = {"type": "text", "text": block.text}
             if block.cache:
                 item["cache_control"] = {"type": "ephemeral"}
             system.append(item)

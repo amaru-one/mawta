@@ -6,6 +6,7 @@ slipped through, including names the teacher wrote in a score's feedback.
 """
 
 import re
+from typing import Any
 
 _TOKEN_PATTERN = re.compile(r"\[[^\]\s]{2,}\]")
 _ACCENTS = str.maketrans("áéíóúüàèìòù", "aeiouuaeiou")
@@ -30,7 +31,7 @@ def guard(text: str, names: list[str]) -> str:
     return ""
 
 
-def name_words(students: list[dict]) -> list[str]:
+def name_words(students: list[dict[str, Any]]) -> list[str]:
     """The individual names of the students that the output must not contain. Very short names
     (two letters or fewer) are skipped: they collide with ordinary words."""
     seen: set[str] = set()

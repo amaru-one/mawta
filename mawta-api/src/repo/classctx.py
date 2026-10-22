@@ -1,13 +1,15 @@
 """What a class is taught as: subject, grade level, academic year (shared by terms and planning)."""
 
+from typing import Any
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 from db import fetch_required
 
 
-async def load_class_context(conn: AsyncConnection, class_id: UUID) -> dict:
+async def load_class_context(conn: AsyncConnection[DictRow], class_id: UUID) -> dict[str, Any]:
     """subject_id, grade_level_id, year_id, grade_code, stage, cycle for a class."""
     return await fetch_required(
         conn,

@@ -385,7 +385,7 @@ _outcome_report: contextvars.ContextVar[OutcomeReport | None] = contextvars.Cont
 )
 
 
-def set_stt_task(task: STTTask) -> contextvars.Token:
+def set_stt_task(task: STTTask) -> contextvars.Token[STTTask | None]:
     return _stt_task.set(task)
 
 
@@ -393,12 +393,12 @@ def stt_task() -> STTTask | None:
     return _stt_task.get()
 
 
-def begin_outcome_report() -> tuple[OutcomeReport, contextvars.Token]:
+def begin_outcome_report() -> tuple[OutcomeReport, contextvars.Token[OutcomeReport | None]]:
     report = OutcomeReport()
     return report, _outcome_report.set(report)
 
 
-def end_outcome_report(token: contextvars.Token) -> None:
+def end_outcome_report(token: contextvars.Token[OutcomeReport | None]) -> None:
     _outcome_report.reset(token)
 
 

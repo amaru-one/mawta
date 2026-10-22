@@ -1,20 +1,22 @@
 """The class list and one student's evidence."""
 
 from datetime import date
+from typing import Any, SupportsFloat
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 from db import fetch_all
 
 
 async def list_class_students(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     class_id: UUID,
     competency_id: UUID | None,
     term_id: UUID,
     as_of: date,
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """The class roster as of today with each student's level in one competencia.
 
     Without competency_id the list is just the roster: no level, and the evidence count
@@ -60,12 +62,12 @@ async def list_class_students(
 
 
 async def list_student_evidence(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     class_id: UUID,
     student_id: UUID,
     competency_id: UUID | None,
     term_id: UUID,
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """The period's evidencia for one student, narrowed to the competencia being judged
     through assessment_criteria, each piece carrying the student's valuation. Nothing here is
     aggregated: the list is material for a judgement the teacher makes."""
@@ -92,7 +94,7 @@ async def list_student_evidence(
         """,
         {"class": class_id, "student": student_id, "term": term_id, "comp": competency_id},
     )
-    entries: dict[UUID, dict] = {}
+    entries: dict[UUID, dict[str, Any]] = {}
     for r in rows:
         score = None
         max_score = _float(r["max_score"])
@@ -148,5 +150,5 @@ async def list_student_evidence(
     return list(entries.values())
 
 
-def _float(value: object) -> float | None:
-    return float(value) if value is not None else None  # type: ignore[arg-type]
+def _float(value: SupportsFloat | None) -> float | None:
+    return float(value) if value is not None else None

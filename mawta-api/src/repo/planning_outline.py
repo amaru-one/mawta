@@ -1,9 +1,11 @@
 """Term planning: editing planned evidences and the session outline."""
 
 from datetime import date
+from typing import Any
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 from db import fetch_one, fetch_required
 from errors import AppError, NotFound
@@ -28,7 +30,9 @@ from repo.planning_plan import count_class_dates
 from repo.planning_sync import sync_experience
 
 
-async def _lock_planned_evidence(conn: AsyncConnection, evidence_id: UUID) -> ExperienceHeader:
+async def _lock_planned_evidence(
+    conn: AsyncConnection[DictRow], evidence_id: UUID
+) -> ExperienceHeader:
     row = await fetch_one(
         conn,
         "select experience_id from planned_evidences where id = %s and deleted_at is null",
@@ -39,7 +43,9 @@ async def _lock_planned_evidence(conn: AsyncConnection, evidence_id: UUID) -> Ex
     return await lock_experience(conn, row["experience_id"])
 
 
-async def update_planned_evidence(conn: AsyncConnection, evidence_id: UUID, patch: dict) -> None:
+async def update_planned_evidence(
+    conn: AsyncConnection[DictRow], evidence_id: UUID, patch: dict[str, Any]
+) -> None:
     """Edit a planned evidence; editing a proposal accepts it. `patch` keys (present only when
     set): name, kind, value_scale, max_score, criterion_ids, session_date (None unplaces the
     evidence). Setting the scale to ordinal clears the maximum; setting only max_score keeps a
@@ -102,7 +108,7 @@ async def update_planned_evidence(conn: AsyncConnection, evidence_id: UUID, patc
     await sync_experience(conn, h.id)
 
 
-async def accept_planned_evidence(conn: AsyncConnection, evidence_id: UUID) -> None:
+async def accept_planned_evidence(conn: AsyncConnection[DictRow], evidence_id: UUID) -> None:
     h = await _lock_planned_evidence(conn, evidence_id)
     await conn.execute(
         "update planned_evidences set accepted_at = coalesce(accepted_at, now()) where id = %s",
@@ -111,7 +117,7 @@ async def accept_planned_evidence(conn: AsyncConnection, evidence_id: UUID) -> N
     await sync_experience(conn, h.id)
 
 
-async def delete_planned_evidence(conn: AsyncConnection, evidence_id: UUID) -> None:
+async def delete_planned_evidence(conn: AsyncConnection[DictRow], evidence_id: UUID) -> None:
     """Soft-delete a planned evidence, its criterion links and its place in the session outline."""
     h = await _lock_planned_evidence(conn, evidence_id)
     for sql in (
@@ -125,7 +131,7 @@ async def delete_planned_evidence(conn: AsyncConnection, evidence_id: UUID) -> N
     await sync_experience(conn, h.id)
 
 
-async def get_planned_evidence(conn: AsyncConnection, evidence_id: UUID) -> dict:
+async def get_planned_evidence(conn: AsyncConnection[DictRow], evidence_id: UUID) -> dict[str, Any]:
     row = await fetch_required(
         conn,
         "select experience_id from planned_evidences where id = %s and deleted_at is null",
@@ -140,7 +146,9 @@ async def get_planned_evidence(conn: AsyncConnection, evidence_id: UUID) -> dict
 # ------------------------------------------------------- session outline --
 
 
-async def _check_session_date(conn: AsyncConnection, h: ExperienceHeader, on: date) -> None:
+async def _check_session_date(
+    conn: AsyncConnection[DictRow], h: ExperienceHeader, on: date
+) -> None:
     """A class date of the experience: inside its range, with a non-cancelled session of the class,
     and not a non-teaching day."""
     if on < h.starts_on or on > h.ends_on:
@@ -152,7 +160,7 @@ async def _check_session_date(conn: AsyncConnection, h: ExperienceHeader, on: da
 
 
 async def put_session_entry(
-    conn: AsyncConnection, experience_id: UUID, on: date, inp: dict
+    conn: AsyncConnection[DictRow], experience_id: UUID, on: date, inp: dict[str, Any]
 ) -> None:
     """Create or replace the session entry of a date, and accept it. The body is the entry's whole
     state: no planned_evidence_id empties the session. `inp` keys: title, topics,
@@ -209,7 +217,7 @@ async def put_session_entry(
 
 
 async def propose_session_entry(
-    conn: AsyncConnection, experience_id: UUID, on: date, inp: dict
+    conn: AsyncConnection[DictRow], experience_id: UUID, on: date, inp: dict[str, Any]
 ) -> bool:
     """Write a session entry the planning agent proposes, on a class date of the experience that
     has none yet. Never touches an existing entry: returns False when the date already had one. A
@@ -259,7 +267,9 @@ def _session_entry_not_found() -> AppError:
     return AppError(404, "not_found", "no hay una sesión planificada en esa fecha")
 
 
-async def accept_session_entry(conn: AsyncConnection, experience_id: UUID, on: date) -> None:
+async def accept_session_entry(
+    conn: AsyncConnection[DictRow], experience_id: UUID, on: date
+) -> None:
     await lock_experience(conn, experience_id)
     cur = await conn.execute(
         """
@@ -273,7 +283,9 @@ async def accept_session_entry(conn: AsyncConnection, experience_id: UUID, on: d
     await sync_experience(conn, experience_id)
 
 
-async def delete_session_entry(conn: AsyncConnection, experience_id: UUID, on: date) -> None:
+async def delete_session_entry(
+    conn: AsyncConnection[DictRow], experience_id: UUID, on: date
+) -> None:
     """Soft-delete the session entry of a date; the evidence it held stays in the experience,
     unplaced."""
     await lock_experience(conn, experience_id)
@@ -304,7 +316,9 @@ async def delete_session_entry(conn: AsyncConnection, experience_id: UUID, on: d
     await sync_experience(conn, experience_id)
 
 
-async def get_session_entry(conn: AsyncConnection, experience_id: UUID, on: date) -> dict:
+async def get_session_entry(
+    conn: AsyncConnection[DictRow], experience_id: UUID, on: date
+) -> dict[str, Any]:
     found = await list_experience_sessions(conn, experience_id, on)
     if not found:
         raise _session_entry_not_found()

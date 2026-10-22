@@ -15,9 +15,11 @@ competency to a class.
 
 from dataclasses import dataclass
 from datetime import date, timedelta
+from typing import Any
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 from db import fetch_all, fetch_one, fetch_required
 from errors import AppError
@@ -44,7 +46,9 @@ def iso(d: date) -> str:
     return d.isoformat()
 
 
-async def class_dates(conn: AsyncConnection, class_id: UUID, from_: date, to: date) -> list[str]:
+async def class_dates(
+    conn: AsyncConnection[DictRow], class_id: UUID, from_: date, to: date
+) -> list[str]:
     """The class dates of a class in [from, to], in order, as YYYY-MM-DD."""
     rows = await fetch_all(
         conn,
@@ -55,7 +59,9 @@ async def class_dates(conn: AsyncConnection, class_id: UUID, from_: date, to: da
     return [r["d"] for r in rows]
 
 
-async def count_class_dates(conn: AsyncConnection, class_id: UUID, from_: date, to: date) -> int:
+async def count_class_dates(
+    conn: AsyncConnection[DictRow], class_id: UUID, from_: date, to: date
+) -> int:
     row = await fetch_required(
         conn,
         f"select count(*) as n from ({CLASS_DATES_SQL}) d",
@@ -65,7 +71,7 @@ async def count_class_dates(conn: AsyncConnection, class_id: UUID, from_: date, 
 
 
 async def scheduled_class_days(
-    conn: AsyncConnection, class_id: UUID, from_: date, to: date
+    conn: AsyncConnection[DictRow], class_id: UUID, from_: date, to: date
 ) -> list[str]:
     """The dates in [from, to] the class meets: the days its weekly schedule covers plus the
     days it has a session. Unlike class_dates it keeps non-teaching days: the timeline shows a
@@ -109,7 +115,7 @@ class PlanTerm:
     status: str
     sequence: int
 
-    def public(self) -> dict:
+    def public(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "name": self.name,
@@ -123,7 +129,7 @@ class PlanTerm:
 
 
 async def resolve_plan_term(
-    conn: AsyncConnection, class_id: UUID, term_id: UUID | None, today: date
+    conn: AsyncConnection[DictRow], class_id: UUID, term_id: UUID | None, today: date
 ) -> PlanTerm:
     """The term "Tu trimestre" shows: term_id when given (it must be a term of the class's year),
     else the term containing today, else the next one, else the last one. Terms of another stage
@@ -155,7 +161,9 @@ async def resolve_plan_term(
     )
 
 
-async def get_plan(conn: AsyncConnection, class_id: UUID, term: PlanTerm) -> dict:
+async def get_plan(
+    conn: AsyncConnection[DictRow], class_id: UUID, term: PlanTerm
+) -> dict[str, Any]:
     """Build "Tu trimestre" for one class and term."""
     cc = await load_class_context(conn, class_id)
     non_teaching = await non_teaching_ranges(conn, cc["year_id"], term.from_, term.to)
@@ -177,8 +185,8 @@ async def get_plan(conn: AsyncConnection, class_id: UUID, term: PlanTerm) -> dic
 
 
 async def term_evidence_by_competency(
-    conn: AsyncConnection, class_id: UUID, term_id: UUID, confirmed_only: bool
-) -> dict[UUID, dict]:
+    conn: AsyncConnection[DictRow], class_id: UUID, term_id: UUID, confirmed_only: bool
+) -> dict[UUID, dict[str, Any]]:
     """Per competency, the distinct evidences of the class in the term that observe it: accepted
     planned evidences and hand-added assessments (those synced from a planned evidence are left
     out, so a planned evidence is counted once). With confirmed_only, evidences of a borrador
@@ -217,7 +225,7 @@ async def term_evidence_by_competency(
 
 
 async def _fill_evidence_tallies(
-    conn: AsyncConnection, class_id: UUID, term_id: UUID, comps: list[dict]
+    conn: AsyncConnection[DictRow], class_id: UUID, term_id: UUID, comps: list[dict[str, Any]]
 ) -> None:
     tally = await term_evidence_by_competency(conn, class_id, term_id, True)
     rows = await fetch_all(
@@ -240,7 +248,9 @@ async def _fill_evidence_tallies(
         comp["in_term"] = comp["id"] in in_term
 
 
-async def free_windows(conn: AsyncConnection, class_id: UUID, term: PlanTerm) -> list[dict]:
+async def free_windows(
+    conn: AsyncConnection[DictRow], class_id: UUID, term: PlanTerm
+) -> list[dict[str, Any]]:
     """The stretches of the term not covered by any non-deleted experience of the class (drafts
     included, as learning_experiences_no_overlap counts them), in order, each with how many class
     dates it holds. The planning agent picks experience dates inside one."""
@@ -273,8 +283,8 @@ async def free_windows(conn: AsyncConnection, class_id: UUID, term: PlanTerm) ->
 
 
 async def non_teaching_ranges(
-    conn: AsyncConnection, year_id: UUID, from_: date, to: date
-) -> list[dict]:
+    conn: AsyncConnection[DictRow], year_id: UUID, from_: date, to: date
+) -> list[dict[str, Any]]:
     """Group the non-teaching days in [from, to] into runs of consecutive days with the same kind
     and label (gaps and islands: day minus its row number is constant inside a run)."""
     rows = await fetch_all(
@@ -300,7 +310,9 @@ async def non_teaching_ranges(
     ]
 
 
-async def _plan_experiences(conn: AsyncConnection, class_id: UUID, term_id: UUID) -> list[dict]:
+async def _plan_experiences(
+    conn: AsyncConnection[DictRow], class_id: UUID, term_id: UUID
+) -> list[dict[str, Any]]:
     rows = await fetch_all(
         conn,
         """
@@ -339,7 +351,9 @@ async def _plan_experiences(conn: AsyncConnection, class_id: UUID, term_id: UUID
     return out
 
 
-async def experience_coverage(conn: AsyncConnection, experience_id: UUID) -> list[dict]:
+async def experience_coverage(
+    conn: AsyncConnection[DictRow], experience_id: UUID
+) -> list[dict[str, Any]]:
     """An experience's competencies with how many of their capabilities an accepted criterion of
     the experience looks at."""
     rows = await fetch_all(
@@ -367,8 +381,8 @@ async def experience_coverage(conn: AsyncConnection, experience_id: UUID) -> lis
 
 
 async def _plan_competencies(
-    conn: AsyncConnection, class_id: UUID, cc: dict, term: PlanTerm
-) -> list[dict]:
+    conn: AsyncConnection[DictRow], class_id: UUID, cc: dict[str, Any], term: PlanTerm
+) -> list[dict[str, Any]]:
     """The contract's tracking rule for every competency of the class's área:
 
     - planificada: a confirmed (status planificada) experience of this class in this term works it;
@@ -444,7 +458,7 @@ async def _plan_competencies(
 # ------------------------------------------------------------ curriculum --
 
 
-async def get_curriculum(conn: AsyncConnection, class_id: UUID) -> dict:
+async def get_curriculum(conn: AsyncConnection[DictRow], class_id: UUID) -> dict[str, Any]:
     """The competencies of the class's área with their capabilities, the standard of the class's
     cycle and the performances of the class's grade. The standard is the main source of criteria;
     performances are optional support."""
@@ -471,7 +485,7 @@ async def get_curriculum(conn: AsyncConnection, class_id: UUID) -> dict:
         """,
         (cc["subject_id"],),
     )
-    by_id: dict[UUID, dict] = {}
+    by_id: dict[UUID, dict[str, Any]] = {}
     for c in comps:
         c.update(standard=None, capabilities=[], performances=[])
         by_id[c["id"]] = c
@@ -537,7 +551,9 @@ async def get_curriculum(conn: AsyncConnection, class_id: UUID) -> dict:
 # -------------------------------------------------------------- calendar --
 
 
-async def get_calendar(conn: AsyncConnection, class_id: UUID, from_: date, to: date) -> dict:
+async def get_calendar(
+    conn: AsyncConnection[DictRow], class_id: UUID, from_: date, to: date
+) -> dict[str, Any]:
     """The class dates and the non-teaching days in [from, to]. The range may be at most as long
     as the longest term of the class's year."""
     cc = await load_class_context(conn, class_id)

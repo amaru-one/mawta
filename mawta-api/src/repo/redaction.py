@@ -1,8 +1,10 @@
 """Voice-note attribution and the redaction sweep's rows."""
 
+from typing import Any
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 from db import fetch_all, fetch_required
 from errors import AppError, NotFound
@@ -24,7 +26,9 @@ REFERS_TO_CLASSMATE = "classmate"
 REFERS_TO_OTHER_PERSON = "other_person"
 
 
-async def get_voice_note_for_redaction(conn: AsyncConnection, voice_note_id: UUID) -> dict:
+async def get_voice_note_for_redaction(
+    conn: AsyncConnection[DictRow], voice_note_id: UUID
+) -> dict[str, Any]:
     """What the sweep reads of a live voice note: id, student_id, class_id, teacher_id,
     recorded_at, transcript, attribution_status. A discarded (deleted) note raises NotFound."""
     return await fetch_required(
@@ -37,7 +41,7 @@ async def get_voice_note_for_redaction(conn: AsyncConnection, voice_note_id: UUI
     )
 
 
-async def student_names(conn: AsyncConnection, ids: list[UUID]) -> list[dict]:
+async def student_names(conn: AsyncConnection[DictRow], ids: list[UUID]) -> list[dict[str, Any]]:
     """Names as the school recorded them, ordered by surname."""
     return await fetch_all(
         conn,
@@ -50,7 +54,9 @@ async def student_names(conn: AsyncConnection, ids: list[UUID]) -> list[dict]:
     )
 
 
-async def supersede_voice_note_redactions(conn: AsyncConnection, voice_note_id: UUID) -> None:
+async def supersede_voice_note_redactions(
+    conn: AsyncConnection[DictRow], voice_note_id: UUID
+) -> None:
     """Close the live redaction rows of a note, before a new sweep writes its own."""
     await conn.execute(
         """
@@ -62,7 +68,7 @@ async def supersede_voice_note_redactions(conn: AsyncConnection, voice_note_id: 
 
 
 async def insert_voice_note_redaction(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     *,
     voice_note_id: UUID,
     generation_id: UUID,
@@ -96,7 +102,7 @@ async def insert_voice_note_redaction(
 
 
 async def set_voice_note_attribution(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     voice_note_id: UUID,
     redacted: str | None,
     status: str,
@@ -116,7 +122,9 @@ async def set_voice_note_attribution(
         raise NotFound
 
 
-async def reassign_voice_note(conn: AsyncConnection, voice_note_id: UUID, student_id: UUID) -> None:
+async def reassign_voice_note(
+    conn: AsyncConnection[DictRow], voice_note_id: UUID, student_id: UUID
+) -> None:
     """Move a note to another student and send it back to pending: its redacted transcript
     was built around the previous student, so it is cleared and the sweep runs again."""
     await supersede_voice_note_redactions(conn, voice_note_id)
@@ -134,7 +142,7 @@ async def reassign_voice_note(conn: AsyncConnection, voice_note_id: UUID, studen
 
 
 async def pending_voice_notes_for_student_term(
-    conn: AsyncConnection, class_id: UUID, student_id: UUID, term_id: UUID
+    conn: AsyncConnection[DictRow], class_id: UUID, student_id: UUID, term_id: UUID
 ) -> list[UUID]:
     """Notes of a student in a class and term that the sweep has not processed yet:
     transcribed but still pending. Used to queue the sweep lazily for older notes."""
@@ -154,7 +162,7 @@ async def pending_voice_notes_for_student_term(
     return [r["id"] for r in rows]
 
 
-async def confirm_voice_note(conn: AsyncConnection, voice_note_id: UUID) -> None:
+async def confirm_voice_note(conn: AsyncConnection[DictRow], voice_note_id: UUID) -> None:
     """A teacher kept a note the sweep discarded for naming other students. Anything else
     cannot be confirmed."""
     cur = await conn.execute(
@@ -176,6 +184,6 @@ async def confirm_voice_note(conn: AsyncConnection, voice_note_id: UUID) -> None
         )
 
 
-async def current_tenant_id(conn: AsyncConnection) -> UUID:
+async def current_tenant_id(conn: AsyncConnection[DictRow]) -> UUID:
     row = await fetch_required(conn, "select app.current_tenant_id() as id")
     return row["id"]

@@ -1,8 +1,10 @@
 """Resolving the term a screen is about."""
 
+from typing import Any
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 from db import fetch_one
 from errors import AppError
@@ -13,7 +15,9 @@ def _term_not_found() -> AppError:
     return AppError(404, "not_found", "no se encontró el periodo")
 
 
-async def resolve_term(conn: AsyncConnection, class_id: UUID | None, term_id: UUID | None) -> dict:
+async def resolve_term(
+    conn: AsyncConnection[DictRow], class_id: UUID | None, term_id: UUID | None
+) -> dict[str, Any]:
     """The term identified by term_id if it belongs to the class; with no term_id, the
     class's current term: the active term of the class's academic year and stage (a term
     with no stage applies to every stage).

@@ -8,6 +8,7 @@ import uuid
 import pytest
 
 import applog
+from db import Database
 from tests.conftest import FX
 from worker import claim, dispatch
 from worker.registry import Job, Registry
@@ -54,15 +55,22 @@ def outcomes(stream):
     ]
 
 
+async def claim_one(db: Database, queue: str) -> Job:
+    """claim(), in a test that has just queued the job it expects."""
+    job = await claim(db, queue, "w1")
+    assert job is not None
+    return job
+
+
 async def test_claim_takes_one_job_by_priority_and_marks_it_running(client, admin, queue):
     db = client.app.state.api.db
     low = await add_job(admin, queue, priority=3)
     high = await add_job(admin, queue, priority=1)
-    job = await claim(db, queue, "w1")
+    job = await claim_one(db, queue)
     assert job.id == high and job.attempts == 1
     assert (await job_row(admin, high))["status"] == "running"
     assert (await job_row(admin, low))["status"] == "available"
-    assert (await claim(db, queue, "w1")).id == low
+    assert (await claim_one(db, queue)).id == low
     assert await claim(db, queue, "w1") is None
 
 
@@ -74,7 +82,7 @@ async def test_success_completes_the_job_and_emits_one_outcome(client, admin, qu
     async def ok(conn, job):
         return None
 
-    job = await claim(db, queue, "w1")
+    job = await claim_one(db, queue)
     await dispatch(db, Registry(in_tx={"voice_note.transcribe": ok}), job, "w1", logger)
     row = await job_row(admin, job_id)
     assert row["status"] == "completed" and row["finalized_at"] is not None
@@ -91,13 +99,13 @@ async def test_failure_is_retried_with_backoff_then_discarded(client, admin, que
         raise RuntimeError("boom")
 
     registry = Registry(in_tx={"voice_note.transcribe": boom})
-    job = await claim(db, queue, "w1")
+    job = await claim_one(db, queue)
     await dispatch(db, registry, job, "w1", logger)
     row = await job_row(admin, job_id)
     assert row["status"] == "retryable" and row["delayed"] and row["errors"][0]["error"] == "boom"
 
     await admin.execute("update jobs set run_after = now() where id = %s", (job_id,))
-    job = await claim(db, queue, "w1")
+    job = await claim_one(db, queue)
     assert job.attempts == 2
     await dispatch(db, registry, job, "w1", logger)
     assert (await job_row(admin, job_id))["status"] == "discarded"
@@ -108,7 +116,7 @@ async def test_unknown_kind_fails_and_reported_outcomes_win_over_success(client,
     db = client.app.state.api.db
     unknown = await add_job(admin, queue, kind="no.such.kind")
     stream, logger = capture()
-    job = await claim(db, queue, "w1")
+    job = await claim_one(db, queue)
     await dispatch(db, Registry(), job, "w1", logger)
     assert (await job_row(admin, unknown))["status"] == "retryable"
     assert outcomes(stream)[0]["reason"] == "unknown_kind"
@@ -118,7 +126,7 @@ async def test_unknown_kind_fails_and_reported_outcomes_win_over_success(client,
     async def skip(conn, job):
         applog.report_outcome(applog.OUTCOME_SKIPPED, "voice_note_discarded")
 
-    job = await claim(db, queue, "w1")
+    job = await claim_one(db, queue)
     assert job.id == skipped
     await dispatch(db, Registry(in_tx={"voice_note.transcribe": skip}), job, "w1", logger)
     assert (await job_row(admin, skipped))["status"] == "completed"

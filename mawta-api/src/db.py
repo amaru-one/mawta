@@ -8,13 +8,14 @@ context is silent with FORCE ROW LEVEL SECURITY (zero rows, no error), so repo
 code only ever receives a connection from one of these helpers.
 """
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, replace
 from uuid import UUID
 
 from psycopg import AsyncConnection
-from psycopg.rows import dict_row
+from psycopg.abc import Params, QueryNoTemplate
+from psycopg.rows import DictRow, dict_row
 from psycopg_pool import AsyncConnectionPool
 
 
@@ -33,12 +34,15 @@ class TenantCtx:
 
 
 class Database:
+    pool: AsyncConnectionPool[AsyncConnection[DictRow]]
+
     def __init__(self, url: str, max_size: int = 10) -> None:
         self.pool = AsyncConnectionPool(
             url,
             min_size=1,
             max_size=max_size,
             open=False,
+            connection_class=AsyncConnection[DictRow],
             kwargs={"row_factory": dict_row},
         )
 
@@ -53,7 +57,7 @@ class Database:
             await conn.execute("select 1")
 
     @asynccontextmanager
-    async def tenant_tx(self, tc: TenantCtx) -> AsyncIterator[AsyncConnection]:
+    async def tenant_tx(self, tc: TenantCtx) -> AsyncGenerator[AsyncConnection[DictRow]]:
         """Drop to the non-owner mawta_app role and set app.tenant_id/actor_id/request_id."""
         async with self.pool.connection() as conn, conn.transaction():
             await conn.execute("set local role mawta_app")
@@ -66,7 +70,7 @@ class Database:
             yield conn
 
     @asynccontextmanager
-    async def auth_tx(self, request_id: str = "") -> AsyncIterator[AsyncConnection]:
+    async def auth_tx(self, request_id: str = "") -> AsyncGenerator[AsyncConnection[DictRow]]:
         """mawta_app with no tenant and app.auth_lookup='on': the one mode that can
         read a users/user_sessions row before a tenant is known."""
         async with self.pool.connection() as conn, conn.transaction():
@@ -79,7 +83,7 @@ class Database:
             yield conn
 
     @asynccontextmanager
-    async def system_tx(self) -> AsyncIterator[AsyncConnection]:
+    async def system_tx(self) -> AsyncGenerator[AsyncConnection[DictRow]]:
         """A transaction as the pool's own role: no role drop, no tenant GUCs.
 
         Safe on `jobs` (no RLS) under any role; on tenant tables it needs a
@@ -90,17 +94,31 @@ class Database:
             yield conn
 
 
-async def fetch_one(conn: AsyncConnection, sql: str, params: object = None) -> dict | None:
+def returned(row: DictRow | None) -> DictRow:
+    """The row of a statement that always yields one (insert ... returning, an aggregate).
+    None here is a bug, not a lookup that matched nothing (that is fetch_required)."""
+    if row is None:
+        raise RuntimeError("the statement returned no row")
+    return row
+
+
+async def fetch_one(
+    conn: AsyncConnection[DictRow], sql: QueryNoTemplate, params: Params | None = None
+) -> DictRow | None:
     cur = await conn.execute(sql, params)
     return await cur.fetchone()
 
 
-async def fetch_all(conn: AsyncConnection, sql: str, params: object = None) -> list[dict]:
+async def fetch_all(
+    conn: AsyncConnection[DictRow], sql: QueryNoTemplate, params: Params | None = None
+) -> list[DictRow]:
     cur = await conn.execute(sql, params)
     return await cur.fetchall()
 
 
-async def fetch_required(conn: AsyncConnection, sql: str, params: object = None) -> dict:
+async def fetch_required(
+    conn: AsyncConnection[DictRow], sql: QueryNoTemplate, params: Params | None = None
+) -> DictRow:
     """fetch_one, but no row raises NotFound (a lookup that matched nothing)."""
     from errors import NotFound
 

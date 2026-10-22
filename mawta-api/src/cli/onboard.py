@@ -19,7 +19,7 @@ import argparse
 import sys
 
 import psycopg
-from psycopg.rows import dict_row
+from psycopg.rows import DictRow, dict_row
 
 import curriculum
 from onboarding import load as loader
@@ -34,7 +34,7 @@ class OnboardError(Exception):
 
 
 def _parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="onboard", description=__doc__.split("\n\n")[0])
+    p = argparse.ArgumentParser(prog="onboard", description=(__doc__ or "").split("\n\n")[0])
     p.add_argument("-file", "--file", default="", help="archivo JSON del colegio, o - para stdin")
     p.add_argument("-dry-run", "--dry-run", action="store_true",
                    help="valida y ejecuta todo en una transacción que luego se deshace")  # fmt: skip
@@ -72,9 +72,9 @@ def run(argv: list[str] | None = None) -> int:
     # Validate before connecting, so a file full of typos is reported even when no database is
     # reachable.
     validate(spec, cat)
-    settings = Settings()  # type: ignore[call-arg]
+    settings = Settings()  # pyright: ignore[reportCallIssue]
     url = _admin_url(settings, "crear un colegio")
-    with psycopg.connect(url, row_factory=dict_row) as conn:
+    with psycopg.Connection[DictRow].connect(url, row_factory=dict_row) as conn:
         summary = loader.load(conn, spec, cat, settings.bcrypt_cost)
         if args.dry_run:
             conn.rollback()
@@ -112,9 +112,9 @@ def _run_sync(cat, modular: str, grados: list[str], dry_run: bool) -> int:
                 f'-grado: el grado "{codigo}" aparece dos veces (={grade_map[codigo]} y ={cneb})'
             )
         grade_map[codigo] = cneb
-    settings = Settings()  # type: ignore[call-arg]
+    settings = Settings()  # pyright: ignore[reportCallIssue]
     url = _admin_url(settings, "escribir el currículo")
-    with psycopg.connect(url, row_factory=dict_row) as conn:
+    with psycopg.Connection[DictRow].connect(url, row_factory=dict_row) as conn:
         try:
             report = syncer.sync_curriculum(conn, cat, modular, grade_map)
         except syncer.SyncError as exc:

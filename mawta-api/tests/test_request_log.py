@@ -3,6 +3,7 @@
 import io
 import json
 import logging
+from typing import Any
 
 import httpx
 from starlette.applications import Starlette
@@ -30,7 +31,7 @@ def build(capture: bool = False):
     return client, stream
 
 
-def last_entry(stream: io.StringIO) -> dict:
+def last_entry(stream: io.StringIO) -> dict[str, Any]:
     return json.loads(stream.getvalue().strip().splitlines()[-1])
 
 
