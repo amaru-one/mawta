@@ -33,8 +33,21 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           version: '0.13.5'
-      # The transcoding path shells out to ffmpeg.
-      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+      # The transcoding path shells out to ffmpeg (tests/test_media.py runs it). A static
+      # build is one download with no system libraries; apt took 4-5 minutes on a slow mirror.
+      # The site only publishes the current release, so the tarball is checked against the
+      # md5 it publishes next to it, and test_media.py fails if a build ever drops MP3, Opus
+      # or AAC.
+      - name: Install a static ffmpeg
+        working-directory: ${{ runner.temp }}
+        run: |
+          base=https://johnvansickle.com/ffmpeg/releases
+          curl -fsSL --retry 5 --retry-delay 5 -O "$base/ffmpeg-release-amd64-static.tar.xz"
+          curl -fsSL --retry 5 --retry-delay 5 -O "$base/ffmpeg-release-amd64-static.tar.xz.md5"
+          md5sum -c ffmpeg-release-amd64-static.tar.xz.md5
+          tar -xJf ffmpeg-release-amd64-static.tar.xz --strip-components=1 --wildcards '*/ffmpeg'
+          sudo install -m 0755 ffmpeg /usr/local/bin/ffmpeg
+          ffmpeg -version | head -1
       - run: uv sync --frozen
       - run: uv run ruff check .
       - run: uv run ruff format --check .
