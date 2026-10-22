@@ -12,7 +12,8 @@ import uuid
 
 import pytest
 
-from tests.conftest import FX, error_code
+from db import returned
+from tests.conftest import FX, Admin, Client, Login, error_code
 
 CLASS = str(FX.class_mat_5b)
 STUDENT = str(FX.students[0])
@@ -77,7 +78,7 @@ WRITE_ROUTES = [
 
 
 @pytest.fixture
-async def callers(login):
+async def callers(login: Login):
     return (
         await login(FX.user_quispe, FX.tenant_a),
         await login(FX.user_rojas, FX.tenant_a),
@@ -86,7 +87,9 @@ async def callers(login):
 
 
 @pytest.mark.parametrize("name,method,path,body", READ_ROUTES, ids=[r[0] for r in READ_ROUTES])
-async def test_class_scoped_reads_require_an_assignment(client, callers, name, method, path, body):
+async def test_class_scoped_reads_require_an_assignment(
+    client: Client, callers: tuple[str, str, str], name, method, path, body
+):
     quispe, rojas, flores = callers
     assert (await client.do(quispe, method, path, body)).status_code < 300
     resp = await client.do(rojas, method, path, body)
@@ -95,13 +98,17 @@ async def test_class_scoped_reads_require_an_assignment(client, callers, name, m
 
 
 @pytest.mark.parametrize("name,method,path,body", WRITE_ROUTES, ids=[r[0] for r in WRITE_ROUTES])
-async def test_class_scoped_writes_require_an_assignment(client, callers, name, method, path, body):
+async def test_class_scoped_writes_require_an_assignment(
+    client: Client, callers: tuple[str, str, str], name, method, path, body
+):
     _, rojas, _ = callers
     resp = await client.do(rojas, method, path, body)
     assert resp.status_code == 403, resp.text
 
 
-async def test_voice_note_routes_require_an_assignment(client, callers, admin):
+async def test_voice_note_routes_require_an_assignment(
+    client: Client, callers: tuple[str, str, str], admin: Admin
+):
     _, rojas, _ = callers
     note = uuid.uuid4()
     await admin.execute(
@@ -114,12 +121,14 @@ async def test_voice_note_routes_require_an_assignment(client, callers, admin):
             resp = await client.do(rojas, method, f"/api/v1/voice-notes/{note}/{suffix}")
             assert resp.status_code == 403, (suffix, resp.text)
         cur = await admin.execute("select deleted_at from voice_notes where id = %s", (note,))
-        assert (await cur.fetchone())["deleted_at"] is None
+        assert returned(await cur.fetchone())["deleted_at"] is None
     finally:
         await admin.execute("delete from voice_notes where id = %s", (note,))
 
 
-async def test_a_student_outside_the_class_is_refused(client, callers, admin):
+async def test_a_student_outside_the_class_is_refused(
+    client: Client, callers: tuple[str, str, str], admin: Admin
+):
     quispe, _, _ = callers
     outsider = uuid.uuid4()
     await admin.execute(
@@ -139,18 +148,20 @@ async def test_a_student_outside_the_class_is_refused(client, callers, admin):
 @pytest.mark.parametrize(
     "path", ["/api/v1/me", "/api/v1/home", "/api/v1/profile", "/api/v1/notifications"]
 )
-async def test_teacher_keyed_routes_stay_open(client, callers, path):
+async def test_teacher_keyed_routes_stay_open(client: Client, callers: tuple[str, str, str], path):
     _, rojas, _ = callers
     resp = await client.do(rojas, "GET", path)
     assert resp.status_code == 200, resp.text
 
 
-async def test_unauthenticated_requests_are_still_rejected(client):
+async def test_unauthenticated_requests_are_still_rejected(client: Client):
     resp = await client.http.get(f"/api/v1/classes/{CLASS}/students")
     assert resp.status_code == 401
 
 
-async def test_a_session_only_ever_sees_its_own_school(client, callers):
+async def test_a_session_only_ever_sees_its_own_school(
+    client: Client, callers: tuple[str, str, str]
+):
     _, _, flores = callers
     resp = await client.do(flores, "GET", f"/api/v1/classes/{CLASS}/students")
     assert resp.status_code < 500

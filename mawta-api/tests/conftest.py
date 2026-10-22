@@ -10,7 +10,7 @@ connects as mawta_app (`-c role=mawta_app`), so a missing GRANT shows up here.
 import os
 import secrets
 import uuid
-from collections.abc import AsyncIterator, Callable, Iterator
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from contextlib import AsyncExitStack
 from dataclasses import dataclass
 from pathlib import Path
@@ -145,6 +145,9 @@ def make_settings(databases: Databases, tmp_path: Path, **overrides: Any) -> Set
 class Client:
     """httpx against the ASGI app, with the session cookie passed per call."""
 
+    http: httpx.AsyncClient
+    app: Starlette
+
     def __init__(self, http: httpx.AsyncClient, app: Starlette) -> None:
         self.http = http
         self.app = app
@@ -158,8 +161,15 @@ class Client:
         return await self.http.request(method, path, headers=headers, **kwargs)
 
 
+Admin = psycopg.AsyncConnection[DictRow]
+# make_client(**settings_overrides) -> a Client on a fresh app
+MakeClient = Callable[..., Awaitable[Client]]
+# login(user_id, tenant_id, role="teacher") -> a session cookie value
+Login = Callable[..., Awaitable[str]]
+
+
 @pytest_asyncio.fixture
-async def make_client(databases: Databases, tmp_path: Path) -> AsyncIterator[Callable[..., Any]]:
+async def make_client(databases: Databases, tmp_path: Path) -> AsyncIterator[MakeClient]:
     async with AsyncExitStack() as stack:
 
         async def build(**overrides: Any) -> Client:
@@ -174,12 +184,12 @@ async def make_client(databases: Databases, tmp_path: Path) -> AsyncIterator[Cal
 
 
 @pytest_asyncio.fixture
-async def client(make_client: Callable[..., Any]) -> Client:
+async def client(make_client: MakeClient) -> Client:
     return await make_client()
 
 
 @pytest_asyncio.fixture
-async def admin(databases: Databases) -> AsyncIterator[psycopg.AsyncConnection[DictRow]]:
+async def admin(databases: Databases) -> AsyncIterator[Admin]:
     """A superuser connection (autocommit) for fixture work that bypasses RLS."""
     conn = await psycopg.AsyncConnection[DictRow].connect(
         databases.admin_url, autocommit=True, row_factory=dict_row
@@ -189,7 +199,7 @@ async def admin(databases: Databases) -> AsyncIterator[psycopg.AsyncConnection[D
 
 
 @pytest_asyncio.fixture
-async def login(admin: psycopg.AsyncConnection[DictRow]) -> AsyncIterator[Callable[..., Any]]:
+async def login(admin: Admin) -> AsyncIterator[Login]:
     """Mint a real session row for a user and return its cookie value."""
     hashes: list[bytes] = []
 

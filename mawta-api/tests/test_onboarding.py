@@ -14,6 +14,7 @@ from onboarding import derive_id
 from onboarding import load as loader
 from onboarding import spec as spec_mod
 from onboarding.validate import ValidationErrors, validate
+from tests.conftest import Databases
 
 SEED = Path(__file__).resolve().parents[1] / "seed" / "onboarding"
 EXAMPLE = SEED / "ejemplo-san-felipe.json"
@@ -28,17 +29,19 @@ def example_spec():
     return spec_mod.decode(EXAMPLE.read_text(encoding="utf-8"))
 
 
-def test_catalog_loads_and_resolves_codes(cat):
+def test_catalog_loads_and_resolves_codes(cat: curriculum.Catalog):
     assert cat.fuente
     assert cat.expected_level("ebr", "ciclo_vii") == 7
     mat = cat.competencia_by_code("MAT-C1")
     assert mat is not None and mat["capacidades"]
     assert curriculum.capability_code("MAT-C1", 2) == "MAT-C1-CAP2"
     # only the last grade of a cycle reaches the standard
-    assert cat.en_proceso("1S") and not cat.en_proceso(cat.last_grade_of_cycle("ciclo_vi"))
+    last_vi = cat.last_grade_of_cycle("ciclo_vi")
+    assert last_vi is not None
+    assert cat.en_proceso("1S") and not cat.en_proceso(last_vi)
 
 
-def test_catalog_rejects_unknown_keys(tmp_path):
+def test_catalog_rejects_unknown_keys(tmp_path: Path):
     root = tmp_path / "cneb"
     (root / "competencias").mkdir(parents=True)
     (root / "cneb.json").write_text(json.dumps({"fuente": "x", "grados": [], "oops": 1}))
@@ -48,11 +51,11 @@ def test_catalog_rejects_unknown_keys(tmp_path):
     assert "oops" in str(err.value)
 
 
-def test_example_file_is_valid(cat):
+def test_example_file_is_valid(cat: curriculum.Catalog):
     validate(example_spec(), cat)
 
 
-def test_template_reports_every_unfilled_placeholder(cat):
+def test_template_reports_every_unfilled_placeholder(cat: curriculum.Catalog):
     spec = spec_mod.decode((SEED / "plantilla.json").read_text(encoding="utf-8"))
     with pytest.raises(ValidationErrors) as err:
         validate(spec, cat)
@@ -79,7 +82,7 @@ def test_unknown_key_and_wrong_type_are_decode_errors():
         (lambda s: setattr(s.anio_escolar, "estructura", "decenio"), "no es válido"),
     ],
 )
-def test_validation_names_the_problem(cat, mutate, fragment):
+def test_validation_names_the_problem(cat: curriculum.Catalog, mutate, fragment):
     spec = copy.deepcopy(example_spec())
     mutate(spec)
     with pytest.raises(ValidationErrors) as err:
@@ -87,13 +90,13 @@ def test_validation_names_the_problem(cat, mutate, fragment):
     assert any(fragment in e for e in err.value.errors), err.value.errors
 
 
-def test_ids_match_postgres_md5(databases):
+def test_ids_match_postgres_md5(databases: Databases):
     with psycopg.Connection[DictRow].connect(databases.admin_url, row_factory=dict_row) as conn:
         row = returned(conn.execute("select md5('student:0723519:EST-1')::uuid as id").fetchone())
     assert derive_id("student", "0723519", "EST-1") == row["id"]
 
 
-def test_load_creates_the_school_and_rolls_back(databases, cat):
+def test_load_creates_the_school_and_rolls_back(databases: Databases, cat: curriculum.Catalog):
     spec = example_spec()
     with psycopg.Connection[DictRow].connect(databases.admin_url, row_factory=dict_row) as conn:
         summary = loader.load(conn, spec, cat, 4)
@@ -112,7 +115,9 @@ def test_load_creates_the_school_and_rolls_back(databases, cat):
         assert returned(gone.fetchone())["n"] == 0
 
 
-def test_sync_is_idempotent_on_a_freshly_loaded_school(databases, cat):
+def test_sync_is_idempotent_on_a_freshly_loaded_school(
+    databases: Databases, cat: curriculum.Catalog
+):
     from onboarding import sync as syncer
 
     spec = example_spec()

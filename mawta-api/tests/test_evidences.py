@@ -4,19 +4,19 @@ import math
 
 import pytest
 
-from tests.conftest import FX, error_code
+from tests.conftest import FX, Admin, Client, Login, error_code
 
 CLASS = str(FX.class_mat_5b)
 STUDENT = str(FX.students[2])
 
 
 @pytest.fixture
-async def teacher(login):
+async def teacher(login: Login):
     return await login(FX.user_quispe, FX.tenant_a)
 
 
 @pytest.fixture(autouse=True)
-async def clean(admin):
+async def clean(admin: Admin):
     yield
     for sql in (
         "delete from scores where assessment_id in"
@@ -28,7 +28,7 @@ async def clean(admin):
         await admin.execute(sql)
 
 
-async def file_evidence(client, token, **fields):
+async def file_evidence(client: Client, token, **fields):
     body = {
         "kind": "produccion",
         "term_id": str(FX.term_ii),
@@ -40,7 +40,7 @@ async def file_evidence(client, token, **fields):
     return resp.json()["id"]
 
 
-async def read_entry(client, token, assessment_id):
+async def read_entry(client: Client, token, assessment_id):
     resp = await client.do(
         token,
         "GET",
@@ -53,7 +53,7 @@ async def read_entry(client, token, assessment_id):
     raise AssertionError(f"evidence {assessment_id} is not in the student's list")
 
 
-async def test_numeric_evidence_shows_a_percentage(client, teacher):
+async def test_numeric_evidence_shows_a_percentage(client: Client, teacher: str):
     eid = await file_evidence(
         client, teacher, title="T-eval-num", value_scale="numeric", max_score=18
     )
@@ -73,7 +73,9 @@ async def test_numeric_evidence_shows_a_percentage(client, teacher):
     assert entry["criteria"][0]["criterion_id"] == str(FX.criterion_one)
 
 
-async def test_ordinal_evidence_takes_a_level_and_a_correction_replaces_it(client, teacher):
+async def test_ordinal_evidence_takes_a_level_and_a_correction_replaces_it(
+    client: Client, teacher: str
+):
     eid = await file_evidence(client, teacher, title="T-eval-ord", value_scale="ordinal")
     resp = await client.do(
         teacher, "POST", f"/api/v1/assessments/{eid}/scores", {"student_id": STUDENT, "level": "B"}
@@ -89,7 +91,7 @@ async def test_ordinal_evidence_takes_a_level_and_a_correction_replaces_it(clien
     assert again.status_code == 409 and error_code(again) == "already_superseded"
 
 
-async def test_a_value_of_the_wrong_kind_is_refused(client, teacher):
+async def test_a_value_of_the_wrong_kind_is_refused(client: Client, teacher: str):
     num = await file_evidence(
         client, teacher, title="T-eval-num2", value_scale="numeric", max_score=10
     )
@@ -116,7 +118,9 @@ async def test_a_value_of_the_wrong_kind_is_refused(client, teacher):
         {"value_scale": "numeric", "max_score": None},
     ],
 )
-async def test_an_evidence_needs_a_kind_a_criterio_and_a_coherent_scale(client, teacher, overrides):
+async def test_an_evidence_needs_a_kind_a_criterio_and_a_coherent_scale(
+    client: Client, teacher: str, overrides
+):
     body = {
         "title": "T-eval-x",
         "kind": "produccion",
@@ -130,7 +134,7 @@ async def test_an_evidence_needs_a_kind_a_criterio_and_a_coherent_scale(client, 
     assert resp.status_code == 400 and error_code(resp) == "bad_request", resp.text
 
 
-async def test_wrong_json_type_is_a_bad_request(client, teacher):
+async def test_wrong_json_type_is_a_bad_request(client: Client, teacher: str):
     resp = await client.do(
         teacher, "POST", f"/api/v1/classes/{CLASS}/assessments", {"title": 5, "kind": "produccion"}
     )

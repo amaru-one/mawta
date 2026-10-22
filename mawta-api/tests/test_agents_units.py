@@ -13,8 +13,11 @@ from agent.conclusions.guard import guard, name_words
 from agent.llm import LLMError
 from agent.llm.anthropic import classify, strict_schema
 from agent.redaction.replace import Fragment, LocateError, attribution, locate, redact
+from db import returned
 from repo import redaction as rrepo
 from stt import Client, SttError, SttPermanentError
+from tests.conftest import Admin
+from tests.conftest import Client as AppClient
 from worker.handlers.transcribe import voice_note_transcribe
 
 
@@ -200,7 +203,7 @@ class FakeTranscriber:
         return self.text
 
 
-async def insert_note(admin, audio=b"fake"):
+async def insert_note(admin: Admin, audio=b"fake"):
     from tests.conftest import FX
 
     note = uuid.uuid4()
@@ -220,7 +223,7 @@ async def insert_note(admin, audio=b"fake"):
     return note
 
 
-async def run_handler(client, handler, note):
+async def run_handler(client: AppClient, handler, note):
     from db import TenantCtx
     from tests.conftest import FX
 
@@ -234,14 +237,14 @@ async def run_handler(client, handler, note):
     return report
 
 
-async def note_state(admin, note):
+async def note_state(admin: Admin, note):
     cur = await admin.execute(
         "select transcription_status, transcript from voice_notes where id = %s", (note,)
     )
-    return await cur.fetchone()
+    return returned(await cur.fetchone())
 
 
-async def test_transcribe_success_saves_the_transcript(client, admin):
+async def test_transcribe_success_saves_the_transcript(client: AppClient, admin: Admin):
     note = await insert_note(admin)
     try:
         await run_handler(client, voice_note_transcribe(FakeTranscriber("prueba")), note)
@@ -251,7 +254,9 @@ async def test_transcribe_success_saves_the_transcript(client, admin):
         await admin.execute("delete from voice_notes where id = %s", (note,))
 
 
-async def test_transcribe_permanent_failure_is_recorded_not_retried(client, admin):
+async def test_transcribe_permanent_failure_is_recorded_not_retried(
+    client: AppClient, admin: Admin
+):
     note = await insert_note(admin)
     try:
         handler = voice_note_transcribe(FakeTranscriber(error=SttPermanentError("no key")))
@@ -263,7 +268,9 @@ async def test_transcribe_permanent_failure_is_recorded_not_retried(client, admi
         await admin.execute("delete from voice_notes where id = %s", (note,))
 
 
-async def test_transcribe_transient_error_propagates_and_discarded_note_is_skipped(client, admin):
+async def test_transcribe_transient_error_propagates_and_discarded_note_is_skipped(
+    client: AppClient, admin: Admin
+):
     note = await insert_note(admin)
     try:
         with pytest.raises(SttError):

@@ -15,8 +15,9 @@ from agent.llm import LLMError, Prices, Request, Response, Usage
 from agent.llm.fake import Fake, FakeReply
 from agent.planning import PlanningAgent
 from agent.runner import MSG_INVALID_ANSWER, MSG_RETRY_LATER, Outcome, Runner
+from db import returned
 from repo import agent_generations as gens
-from tests.conftest import FX, error_code
+from tests.conftest import FX, Admin, Client, MakeClient, error_code
 from tests.planning_helpers import PLAN_CAP_C1A, PLAN_CAP_C1B, PLAN_PERF_C1A, PLAN_PERF_C1B
 from tests.test_authz import callers  # noqa: F401  (fixture)
 from tests.test_planning import (  # noqa: F401  (fixtures)
@@ -29,28 +30,28 @@ from tests.test_planning import (  # noqa: F401  (fixtures)
 
 
 @pytest.fixture
-async def agent_client(make_client):
+async def agent_client(make_client: MakeClient):
     return await make_client(anthropic_api_key="test-key")
 
 
 @pytest.fixture
-async def gplanner(agent_client, teacher, class_id):
+async def gplanner(agent_client: Client, teacher: str, class_id: uuid.UUID):
     return Planner(agent_client, teacher, class_id)
 
 
-def new_runner(client, model):
+def new_runner(client: Client, model):
     api = client.app.state.api
     prices = Prices(input_per_mtok=3, output_per_mtok=15)
     return Runner(api.db, model, prices, api.logger, PlanningAgent())
 
 
-async def run_job(client, runner, generation_id, attempt=1, max_attempts=3):
+async def run_job(client: Client, runner, generation_id, attempt=1, max_attempts=3):
     return await runner.run(
         FX.tenant_a, {"generation_id": str(generation_id)}, attempt, max_attempts
     )
 
 
-async def must_run(client, runner, generation_id):
+async def must_run(client: Client, runner, generation_id):
     outcome, err = await run_job(client, runner, generation_id, 1, MAX_ATTEMPTS)
     assert err is None and outcome == Outcome.COMPLETED, (outcome, err)
 
@@ -59,18 +60,18 @@ def reply(value):
     return FakeReply(input=json.dumps(value), usage=Usage(input_tokens=1200, output_tokens=300))
 
 
-async def request_generation(planner, path, body=None):
+async def request_generation(planner: Planner, path, body=None):
     resp = await planner.call("POST", path, body, 202)
     gen = resp.json()
     assert gen["status"] == "pending", gen
     return gen
 
 
-async def get_generation(planner, generation_id):
+async def get_generation(planner: Planner, generation_id):
     return (await planner.call("GET", f"/api/v1/generations/{generation_id}", want=200)).json()
 
 
-async def test_generation_routes_need_the_agent(planner):
+async def test_generation_routes_need_the_agent(planner: Planner):
     exp = await planner.create_experience("2026-05-18", "2026-05-29", FX.competency_c1)
     body = {
         "term_id": str(FX.term_ii),
@@ -86,7 +87,9 @@ async def test_generation_routes_need_the_agent(planner):
         want_error(await planner.call("POST", path, body), 503, "agent_unavailable")
 
 
-async def test_experience_proposal_from_an_idea(gplanner, agent_client, admin):
+async def test_experience_proposal_from_an_idea(
+    gplanner: Planner, agent_client: Client, admin: Admin
+):
     p = gplanner
     await p.create_experience("2026-06-01", "2026-06-12", FX.competency_c1)
 
@@ -148,11 +151,11 @@ async def test_experience_proposal_from_an_idea(gplanner, agent_client, admin):
         " where id = %s",
         (gen["id"],),
     )
-    row = await cur.fetchone()
+    row = returned(await cur.fetchone())
     assert row["tokens"] == 1500 and row["cost_usd"] > 0
 
 
-async def test_generate_criteria_fills_only_gaps(gplanner, agent_client):
+async def test_generate_criteria_fills_only_gaps(gplanner: Planner, agent_client: Client):
     p = gplanner
     exp = await p.create_experience("2026-05-18", "2026-05-29", FX.competency_c1)
     await p.create_criterion(exp["id"], FX.competency_c1, PLAN_PERF_C1A, PLAN_CAP_C1A)
@@ -207,7 +210,9 @@ async def test_generate_criteria_fills_only_gaps(gplanner, agent_client):
     want_error(resp, 422, "competency_not_in_experience")
 
 
-async def test_generate_evidences_and_sessions(gplanner, agent_client, admin):
+async def test_generate_evidences_and_sessions(
+    gplanner: Planner, agent_client: Client, admin: Admin
+):
     from tests.test_planning import assert_placement
 
     p = gplanner
@@ -308,7 +313,7 @@ class FailingModel:
         return await self.fn(req)
 
 
-async def test_generation_failures(gplanner, agent_client, admin):
+async def test_generation_failures(gplanner: Planner, agent_client: Client, admin: Admin):
     p = gplanner
     exp = await p.create_experience("2026-05-18", "2026-05-29", FX.competency_c1)
     criteria_path = f"/api/v1/experiences/{exp['id']}/criteria/generate"
@@ -373,7 +378,9 @@ async def test_generation_failures(gplanner, agent_client, admin):
     assert (await get_generation(p, gen["id"]))["status"] == "failed"
 
 
-async def test_generation_routes_require_an_assignment(gplanner, callers):  # noqa: F811
+async def test_generation_routes_require_an_assignment(
+    gplanner: Planner, callers: tuple[str, str, str]
+):  # noqa: F811
     p = gplanner
     quispe, rojas, flores = callers
     exp = await p.create_experience("2026-05-18", "2026-05-29", FX.competency_c1)

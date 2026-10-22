@@ -10,7 +10,8 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
 import auth as authpkg
 import chattoken
-from tests.conftest import COOKIE_NAME, FX, error_code
+from db import returned
+from tests.conftest import COOKIE_NAME, FX, Admin, Client, Login, MakeClient, error_code
 from tests.test_auth import TEST_PASSWORD, post_login, set_password
 
 DIRECTOR = "rhuaman-directora"
@@ -18,14 +19,14 @@ CHAT_TOKEN = "/api/v1/auth/chat-token"
 
 
 @pytest_asyncio.fixture
-async def director_id(admin):
+async def director_id(admin: Admin):
     cur = await admin.execute(
         "insert into users (email, given_name, family_name, display_name, username,"
         " password_hash, password_changed_at) values ('directora@example.com', 'Rosa', 'Huamán',"
         " 'Rosa Huamán', %s, 'x', now()) returning id",
         (DIRECTOR,),
     )
-    user_id = (await cur.fetchone())["id"]
+    user_id = returned(await cur.fetchone())["id"]
     await admin.execute(
         "insert into memberships (tenant_id, user_id, role, status, joined_at)"
         " values (%s, %s, 'director', 'active', now())",
@@ -41,13 +42,13 @@ async def director_id(admin):
         await admin.execute(sql, (user_id,))
 
 
-async def director_session(client) -> str:
+async def director_session(client: Client) -> str:
     resp = await post_login(client, DIRECTOR, TEST_PASSWORD)
     assert resp.status_code == 200, resp.text
     return resp.cookies[COOKIE_NAME]
 
 
-async def test_director_logs_in_without_a_teacher_profile(client, director_id):
+async def test_director_logs_in_without_a_teacher_profile(client: Client, director_id: uuid.UUID):
     resp = await post_login(client, DIRECTOR, TEST_PASSWORD)
     assert resp.status_code == 200, resp.text
     assert resp.json()["role"] == "director"
@@ -66,7 +67,9 @@ def chat_key():
     return seed, public
 
 
-async def test_chat_token_for_a_director(make_client, director_id, chat_key):
+async def test_chat_token_for_a_director(
+    make_client: MakeClient, director_id: uuid.UUID, chat_key: tuple[str, str]
+):
     seed, public = chat_key
     client = await make_client(
         chat_token_signing_key=seed, chat_token_key_id="k-test", chat_token_ttl=3600.0
@@ -93,7 +96,9 @@ async def test_chat_token_for_a_director(make_client, director_id, chat_key):
     uuid.UUID(claims["jti"])
 
 
-async def test_chat_token_is_only_for_directors(make_client, login, chat_key):
+async def test_chat_token_is_only_for_directors(
+    make_client: MakeClient, login: Login, chat_key: tuple[str, str]
+):
     seed, _ = chat_key
     client = await make_client(chat_token_signing_key=seed, chat_token_key_id="k-test")
     teacher = await login(FX.user_quispe, FX.tenant_a)
@@ -103,7 +108,7 @@ async def test_chat_token_is_only_for_directors(make_client, login, chat_key):
     assert (await client.http.get(CHAT_TOKEN)).status_code == 401
 
 
-async def test_chat_token_without_a_signing_key(client, director_id):
+async def test_chat_token_without_a_signing_key(client: Client, director_id: uuid.UUID):
     resp = await client.do(await director_session(client), "GET", CHAT_TOKEN)
     assert resp.status_code == 503
     assert error_code(resp) == "chat_unavailable"

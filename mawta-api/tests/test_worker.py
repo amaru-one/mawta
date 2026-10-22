@@ -8,36 +8,38 @@ import uuid
 import pytest
 
 import applog
-from db import Database
-from tests.conftest import FX
+from db import Database, returned
+from tests.conftest import FX, Admin, Client
 from worker import claim, dispatch
 from worker.registry import Job, Registry
 
 
 @pytest.fixture
-async def queue(client, admin):
+async def queue(client: Client, admin: Admin):
     """A private queue name per test, so jobs of other tests are never claimed."""
     name = f"t-{uuid.uuid4().hex[:8]}"
     yield name
     await admin.execute("delete from jobs where queue = %s", (name,))
 
 
-async def add_job(admin, queue, kind="voice_note.transcribe", max_attempts=3, priority=3):
+async def add_job(
+    admin: Admin, queue: str, kind="voice_note.transcribe", max_attempts=3, priority=3
+):
     cur = await admin.execute(
         "insert into jobs (tenant_id, kind, queue, priority, payload, max_attempts)"
         " values (%s, %s, %s, %s, '{}', %s) returning id",
         (FX.tenant_a, kind, queue, priority, max_attempts),
     )
-    return (await cur.fetchone())["id"]
+    return returned(await cur.fetchone())["id"]
 
 
-async def job_row(admin, job_id):
+async def job_row(admin: Admin, job_id):
     cur = await admin.execute(
         "select status, attempts, finalized_at, errors, run_after > now() as delayed"
         " from jobs where id = %s",
         (job_id,),
     )
-    return await cur.fetchone()
+    return returned(await cur.fetchone())
 
 
 def capture():
@@ -62,7 +64,9 @@ async def claim_one(db: Database, queue: str) -> Job:
     return job
 
 
-async def test_claim_takes_one_job_by_priority_and_marks_it_running(client, admin, queue):
+async def test_claim_takes_one_job_by_priority_and_marks_it_running(
+    client: Client, admin: Admin, queue: str
+):
     db = client.app.state.api.db
     low = await add_job(admin, queue, priority=3)
     high = await add_job(admin, queue, priority=1)
@@ -74,7 +78,9 @@ async def test_claim_takes_one_job_by_priority_and_marks_it_running(client, admi
     assert await claim(db, queue, "w1") is None
 
 
-async def test_success_completes_the_job_and_emits_one_outcome(client, admin, queue):
+async def test_success_completes_the_job_and_emits_one_outcome(
+    client: Client, admin: Admin, queue: str
+):
     db = client.app.state.api.db
     job_id = await add_job(admin, queue)
     stream, logger = capture()
@@ -90,7 +96,9 @@ async def test_success_completes_the_job_and_emits_one_outcome(client, admin, qu
     assert event["outcome"] == "success" and event["task_id"] == job_id
 
 
-async def test_failure_is_retried_with_backoff_then_discarded(client, admin, queue):
+async def test_failure_is_retried_with_backoff_then_discarded(
+    client: Client, admin: Admin, queue: str
+):
     db = client.app.state.api.db
     job_id = await add_job(admin, queue, max_attempts=2)
     stream, logger = capture()
@@ -112,7 +120,9 @@ async def test_failure_is_retried_with_backoff_then_discarded(client, admin, que
     assert [e["outcome"] for e in outcomes(stream)] == ["retryable_failure", "permanent_failure"]
 
 
-async def test_unknown_kind_fails_and_reported_outcomes_win_over_success(client, admin, queue):
+async def test_unknown_kind_fails_and_reported_outcomes_win_over_success(
+    client: Client, admin: Admin, queue: str
+):
     db = client.app.state.api.db
     unknown = await add_job(admin, queue, kind="no.such.kind")
     stream, logger = capture()

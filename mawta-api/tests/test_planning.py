@@ -6,7 +6,8 @@ from typing import Any
 
 import pytest
 
-from tests.conftest import FX, error_code
+from db import returned
+from tests.conftest import FX, Admin, Client, Login, error_code
 from tests.planning_helpers import (
     PLAN_CAP_C1A,
     PLAN_CAP_C1B,
@@ -28,21 +29,21 @@ from tests.planning_helpers import (
 
 
 @pytest.fixture
-async def class_id(admin):
+async def class_id(admin: Admin):
     cid, section = await create_plan_class(admin)
     yield cid
     await drop_plan_class(admin, cid, section)
 
 
 @pytest.fixture
-async def teacher(login):
+async def teacher(login: Login):
     return await login(FX.user_quispe, FX.tenant_a)
 
 
 class Planner:
     """The helpers around one class, so a test reads as the flow it checks."""
 
-    def __init__(self, client, token, class_id):
+    def __init__(self, client: Client, token, class_id: uuid.UUID):
         self.client, self.token, self.class_id = client, token, class_id
 
     async def call(self, method, path, body=None, want=None):
@@ -78,7 +79,7 @@ class Planner:
 
 
 @pytest.fixture
-async def planner(client, teacher, class_id):
+async def planner(client: Client, teacher: str, class_id: uuid.UUID):
     return Planner(client, teacher, class_id)
 
 
@@ -95,7 +96,7 @@ def want_error(resp, status, code):
 # ----------------------------------------------------------------- reads --
 
 
-async def test_plan_reads_an_empty_term(planner):
+async def test_plan_reads_an_empty_term(planner: Planner):
     p = await planner.plan(FX.term_ii)
     term = p["term"]
     assert term["id"] == str(FX.term_ii)
@@ -138,7 +139,7 @@ async def test_plan_reads_an_empty_term(planner):
     want_error(other, 404, "not_found")
 
 
-async def test_plan_tracks_competencies_across_terms(planner):
+async def test_plan_tracks_competencies_across_terms(planner: Planner):
     exp = await planner.create_experience("2026-06-01", "2026-06-30", FX.competency_c1)
     await planner.create_criterion(exp["id"], FX.competency_c1, PLAN_PERF_C1A, PLAN_CAP_C1A)
 
@@ -170,7 +171,7 @@ async def test_plan_tracks_competencies_across_terms(planner):
     assert competency_status(p, FX.competency_c2)["status"] == "toca"
 
 
-async def test_curriculum_of_the_class_grade(planner):
+async def test_curriculum_of_the_class_grade(planner: Planner):
     resp = await planner.call("GET", f"/api/v1/classes/{planner.class_id}/curriculum", want=200)
     c = resp.json()
     assert c["grade"] == {"code": "5S", "cycle": "ciclo_vii", "expected_level": 7}
@@ -188,7 +189,7 @@ async def test_curriculum_of_the_class_grade(planner):
             assert len(comp["capabilities"]) == 1 and len(comp["performances"]) == 1
 
 
-async def test_calendar_of_a_class(planner):
+async def test_calendar_of_a_class(planner: Planner):
     base = f"/api/v1/classes/{planner.class_id}/calendar"
     resp = await planner.call("GET", f"{base}?from=2026-05-18&to=2026-07-31", want=200)
     cal = resp.json()
@@ -208,7 +209,7 @@ async def test_calendar_of_a_class(planner):
 # ---------------------------------------------------------------- writes --
 
 
-async def assert_placement(admin, evidence_id, on):
+async def assert_placement(admin: Admin, evidence_id, on):
     """Both sides of an evidence's placement agree; on == '' means unplaced."""
     cur = await admin.execute(
         """
@@ -225,7 +226,7 @@ async def assert_placement(admin, evidence_id, on):
         """,
         {"e": evidence_id},
     )
-    row = await cur.fetchone()
+    row = returned(await cur.fetchone())
     assert (row["from_evidence"] or "") == on, row
     assert (row["from_entries"] or "") == on, row
     assert on == "" or row["entries"] == 1
@@ -235,7 +236,7 @@ def codes(warnings, code):
     return [w for w in warnings if w["code"] == code]
 
 
-async def test_planning_an_experience(planner, admin):
+async def test_planning_an_experience(planner: Planner, admin: Admin):
     """The whole flow: draft, criteria, evidences, sessions, proposals, confirm, then taking
     it apart again."""
     exp = await planner.create_experience(
@@ -464,12 +465,12 @@ async def test_planning_an_experience(planner, admin):
         """,
         {"e": exp["id"]},
     )
-    assert (await cur.fetchone())["live"] == 0
+    assert returned(await cur.fetchone())["live"] == 0
     assert (await planner.plan(FX.term_ii))["experiences"] == []
     await planner.create_experience("2026-06-01", "2026-06-30", FX.competency_c1)
 
 
-async def test_planning_domain_errors(planner):
+async def test_planning_domain_errors(planner: Planner):
     """Each stable code of the contract's "Domain errors" table."""
     class_path = f"/api/v1/classes/{planner.class_id}/experiences"
     a = await planner.create_experience("2026-06-01", "2026-06-12", FX.competency_c1)
@@ -545,7 +546,7 @@ async def test_planning_domain_errors(planner):
     assert len(got["criteria"][0]["capability_ids"]) == 1 and len(got["sessions"]) == 1
 
 
-async def enrol_student(admin, class_id) -> uuid.UUID:
+async def enrol_student(admin: Admin, class_id: uuid.UUID) -> uuid.UUID:
     student = uuid.uuid4()
     await admin_script(
         admin,
@@ -566,14 +567,16 @@ async def enrol_student(admin, class_id) -> uuid.UUID:
 
 
 @pytest.fixture
-async def student(admin, class_id):
+async def student(admin: Admin, class_id: uuid.UUID):
     sid = await enrol_student(admin, class_id)
     yield sid
     await admin.execute("delete from section_memberships where student_id = %s", (sid,))
     await admin.execute("delete from students where id = %s", (sid,))
 
 
-async def test_confirmed_experience_reaches_calendar_and_students(planner, admin, student):
+async def test_confirmed_experience_reaches_calendar_and_students(
+    planner: Planner, admin: Admin, student: uuid.UUID
+):
     """The bridge between the plan and the classroom: what the teacher planned names the class
     sessions of the calendar, and each planned evidence is an assessment the roster can be
     evaluated on."""
@@ -602,7 +605,7 @@ async def test_confirmed_experience_reaches_calendar_and_students(planner, admin
             " and status <> 'cancelled'",
             (planner.class_id, on),
         )
-        return (await cur.fetchone())["topic"]
+        return returned(await cur.fetchone())["topic"]
 
     async def assessments():
         cur = await admin.execute(
@@ -611,7 +614,7 @@ async def test_confirmed_experience_reaches_calendar_and_students(planner, admin
             " and a.deleted_at is null",
             (exp["id"],),
         )
-        return (await cur.fetchone())["n"]
+        return returned(await cur.fetchone())["n"]
 
     # A draft promises, it does not reach the classroom yet.
     assert await topic("2026-06-03") is None and await assessments() == 0
@@ -626,7 +629,7 @@ async def test_confirmed_experience_reaches_calendar_and_students(planner, admin
         " from assessments a where a.planned_evidence_id = %s and a.deleted_at is null",
         (crit["id"], ev["id"]),
     )
-    row = await cur.fetchone()
+    row = returned(await cur.fetchone())
     assert (row["title"], row["kind"], row["value_scale"]) == (
         "Lista de precios",
         "produccion",
@@ -663,7 +666,7 @@ async def test_confirmed_experience_reaches_calendar_and_students(planner, admin
         " where planned_evidence_id = %s and deleted_at is null",
         (ev["id"],),
     )
-    row = await cur.fetchone()
+    row = returned(await cur.fetchone())
     # renamed, actuacion, unplaced (the session entry no longer holds the evidence)
     assert (row["title"], row["kind"], row["session_id"]) == (
         "Lista de precios final",
@@ -678,7 +681,9 @@ async def test_confirmed_experience_reaches_calendar_and_students(planner, admin
     assert await topic("2026-06-03") is None
 
 
-async def test_level_screen_carries_the_expected_standard_of_the_cycle(planner, student):
+async def test_level_screen_carries_the_expected_standard_of_the_cycle(
+    planner: Planner, student: uuid.UUID
+):
     """The nivel de logro is judged against the standard of the cycle's expected level (CNEB),
     so the registration screen returns it with every competency."""
     path = f"/api/v1/classes/{planner.class_id}/students/{student}/competencies"
@@ -695,7 +700,9 @@ async def test_level_screen_carries_the_expected_standard_of_the_cycle(planner, 
     assert comps[str(FX.competency_c2)]["standard"]["level"] == 7
 
 
-async def test_students_without_an_active_term_read_the_latest_closed_one(planner, admin, student):
+async def test_students_without_an_active_term_read_the_latest_closed_one(
+    planner: Planner, admin: Admin, student: uuid.UUID
+):
     """With no active term (between two terms) the screens still show the class's evidence:
     they fall back to the latest closed term, read-only."""
     await admin_script(
@@ -734,7 +741,7 @@ async def test_students_without_an_active_term_read_the_latest_closed_one(planne
         )
 
 
-async def test_explicit_term_of_another_year_is_not_found(planner, admin):
+async def test_explicit_term_of_another_year_is_not_found(planner: Planner, admin: Admin):
     """An explicit term_id must be a term of the class: a period of another year is a 404 on
     reads and on creating an assessment, never an empty screen."""
     year, term = uuid.uuid4(), uuid.uuid4()
@@ -777,7 +784,7 @@ async def test_explicit_term_of_another_year_is_not_found(planner, admin):
         await admin.execute("delete from academic_years where id = %s", (year,))
 
 
-async def test_planned_evidence_scale(planner):
+async def test_planned_evidence_scale(planner: Planner):
     """A planned evidence says how it will be valued: a mark out of a maximum the teacher chooses
     (20 when none is named), or an AD/A/B/C level. The two never mix."""
     exp = await planner.create_experience("2026-06-01", "2026-06-30", FX.competency_c1)
@@ -815,7 +822,7 @@ async def test_planned_evidence_scale(planner):
     want_error(await planner.call("PUT", ev_path, {"max_score": 9}), 400, "bad_request")
 
 
-async def test_evidence_criteria_come_from_planned_experiences(planner, admin):
+async def test_evidence_criteria_come_from_planned_experiences(planner: Planner, admin: Admin):
     """ "Añadir evidencia" offers the criterios of the class's planned experiencias in the term,
     and only those (RVM 094-2020, 5.1.1.1: a criterio is written for a situation)."""
     fx = FX
@@ -872,7 +879,7 @@ async def test_evidence_criteria_come_from_planned_experiences(planner, admin):
         assert crit_planned["id"] not in general
         assert str(fx.criterion_one) in general
 
-        async def file(class_id, criterion_id):
+        async def file(class_id: uuid.UUID, criterion_id):
             return await planner.call(
                 "POST",
                 f"/api/v1/classes/{class_id}/assessments",
