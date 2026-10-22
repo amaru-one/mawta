@@ -21,7 +21,7 @@ async def enqueue(
     tenant_id: UUID,
     *,
     deadline: timedelta | None = None,
-    **fields,
+    **fields: Any,
 ) -> dict[str, Any]:
     """Record a generation and queue the job that runs it, in the caller's transaction, or return
     the one already in flight for the same target. Both the API ("✦ Generar con Mawta") and the

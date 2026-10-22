@@ -9,6 +9,11 @@ import psycopg
 class AppError(Exception):
     """An error carrying an HTTP status and a stable code."""
 
+    status: int
+    code: str
+    message: str
+    hint: str
+
     def __init__(self, status: int, code: str, message: str, hint: str = "") -> None:
         super().__init__(message)
         self.status = status

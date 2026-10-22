@@ -17,6 +17,10 @@ TOKEN_AUDIENCE = "mawta-chat"
 
 
 class Issuer:
+    _key: Ed25519PrivateKey
+    _key_id: str
+    _ttl: timedelta
+
     def __init__(self, seed_b64: str, key_id: str, ttl_seconds: float) -> None:
         try:
             seed = base64.b64decode(seed_b64.strip(), validate=True)

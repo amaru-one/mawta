@@ -8,7 +8,7 @@ back, so there is never a half-installed school.
 """
 
 from dataclasses import dataclass, field
-from typing import Any, LiteralString
+from typing import Any, LiteralString, override
 from uuid import UUID
 
 import psycopg
@@ -57,6 +57,7 @@ class Summary:
     sesiones: int = 0
     sesiones_con_tema: int = 0
 
+    @override
     def __str__(self) -> str:
         return (
             f"Colegio:        {self.colegio} ({self.tenant_id})\n"
@@ -117,6 +118,16 @@ def load(conn: psycopg.Connection[DictRow], spec: Spec, cat: Catalog, bcrypt_cos
 
 
 class _Loader:
+    conn: psycopg.Connection[DictRow]
+    s: Spec
+    cat: Catalog
+    mod: str
+    anio: str
+    tenant: UUID
+    year: UUID
+    sum: Summary
+    first_day: str
+
     def __init__(self, conn: psycopg.Connection[DictRow], spec: Spec, cat: Catalog) -> None:
         self.conn = conn
         self.s = spec
@@ -351,7 +362,7 @@ class _Loader:
         """For every competency the school has: its learning standards (levels 1-8), the
         grade-level performances of the school's grades with the derived stance, and the
         (modality, cycle) -> expected level mapping for the cycles those grades belong to."""
-        grades = []
+        grades: list[tuple[dict[str, Any], UUID]] = []
         for g in self.s.grados:
             cg = self.cat.grado.get(g.grado_cneb)
             if cg is None:

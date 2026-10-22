@@ -15,7 +15,7 @@ from psycopg import AsyncConnection
 from psycopg.abc import Params
 from psycopg.rows import DictRow
 
-from db import fetch_one, fetch_required
+from db import fetch_required
 
 
 async def _exists(conn: AsyncConnection[DictRow], sql: LiteralString, params: Params) -> bool:
@@ -188,7 +188,3 @@ async def class_id_for_criterion(conn: AsyncConnection[DictRow], criterion_id: U
         (criterion_id,),
     )
     return row["class_id"]
-
-
-__all__ = [name for name in dir() if not name.startswith("_")]
-_ = fetch_one

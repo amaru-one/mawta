@@ -873,7 +873,7 @@ def check_evidence_kind(kind: str) -> None:
         raise bad_input("bad_request", "kind debe ser produccion o actuacion")
 
 
-async def _check_evidence_criteria(
+async def check_evidence_criteria(
     conn: AsyncConnection[DictRow], experience_id: UUID, ids: list[UUID]
 ) -> None:
     """At least one criterion, all of this experience (check_evidence_criterion_experience).
@@ -892,7 +892,7 @@ async def _check_evidence_criteria(
         raise unprocessable("criterion_other_experience", "ese criterio no es de esta experiencia")
 
 
-async def _session_entry_at(conn: AsyncConnection[DictRow], experience_id: UUID, on: date) -> UUID:
+async def session_entry_at(conn: AsyncConnection[DictRow], experience_id: UUID, on: date) -> UUID:
     """The experience's session entry of a date, which a placed evidence needs."""
     row = await fetch_one(
         conn,
@@ -909,7 +909,7 @@ async def _session_entry_at(conn: AsyncConnection[DictRow], experience_id: UUID,
     return row["id"]
 
 
-async def _place_evidence(
+async def place_evidence(
     conn: AsyncConnection[DictRow], evidence_id: UUID, entry_id: UUID | None
 ) -> None:
     """Set where an evidence is collected, keeping both sides of the relation in step:
@@ -940,7 +940,7 @@ async def _place_evidence(
     )
 
 
-async def _unplace_entry(conn: AsyncConnection[DictRow], entry_id: UUID) -> None:
+async def unplace_entry(conn: AsyncConnection[DictRow], entry_id: UUID) -> None:
     """Empty a session entry and unplace the evidence it held."""
     await conn.execute(
         "update planned_evidences set session_entry_id = null where session_entry_id = %s",
@@ -955,7 +955,7 @@ async def _unplace_entry(conn: AsyncConnection[DictRow], entry_id: UUID) -> None
     )
 
 
-async def _set_evidence_criteria(
+async def set_evidence_criteria(
     conn: AsyncConnection[DictRow], evidence_id: UUID, ids: list[UUID]
 ) -> None:
     await conn.execute(
@@ -993,10 +993,10 @@ async def create_planned_evidence(
         inp.get("value_scale", ""), inp.get("max_score")
     )
     criterion_ids = dedupe(inp["criterion_ids"])
-    await _check_evidence_criteria(conn, h.id, criterion_ids)
+    await check_evidence_criteria(conn, h.id, criterion_ids)
     entry_id = None
     if inp.get("session_date") is not None:
-        entry_id = await _session_entry_at(conn, h.id, inp["session_date"])
+        entry_id = await session_entry_at(conn, h.id, inp["session_date"])
 
     row = await fetch_required(
         conn,
@@ -1017,9 +1017,9 @@ async def create_planned_evidence(
         },
     )
     evidence_id = row["id"]
-    await _set_evidence_criteria(conn, evidence_id, criterion_ids)
+    await set_evidence_criteria(conn, evidence_id, criterion_ids)
     if entry_id is not None:
-        await _place_evidence(conn, evidence_id, entry_id)
+        await place_evidence(conn, evidence_id, entry_id)
     if by == BY_TEACHER:
         await sync_experience(conn, experience_id)
     return evidence_id

@@ -12,7 +12,7 @@ import uuid
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
-from typing import Any, TypedDict, get_args
+from typing import Any, TypedDict, cast, get_args
 
 import psycopg
 from starlette.requests import Request
@@ -61,7 +61,7 @@ rfc3339 = jsonutil.rfc3339
 
 
 class JSONResp(Response):
-    media_type = "application/json; charset=utf-8"
+    media_type: str | None = "application/json; charset=utf-8"
 
     def __init__(
         self, content: Any = None, status_code: int = 200, headers: dict[str, Any] | None = None
@@ -98,7 +98,7 @@ async def read_json(request: Request) -> dict[str, Any]:
         raise bad_request("invalid body") from None
     if not isinstance(body, dict):
         raise bad_request("invalid body")
-    return body
+    return cast(dict[str, Any], body)
 
 
 def _coerce(value: Any, tp: Any) -> Any:
@@ -125,10 +125,10 @@ def _coerce(value: Any, tp: Any) -> Any:
     if base is float and isinstance(value, int | float) and not isinstance(value, bool):
         return float(value)
     if base is dict and isinstance(value, dict):
-        return value
+        return cast(dict[str, Any], value)
     if getattr(base, "__origin__", None) is list and isinstance(value, list):
         (item,) = get_args(base)
-        return [_coerce(v, item) for v in value]
+        return [_coerce(v, item) for v in cast(list[Any], value)]
     raise ValueError("wrong JSON type")
 
 
@@ -139,7 +139,8 @@ async def read_body(request: Request, spec: dict[str, Any], message: str = "inva
         raw = await request.json()
         if not isinstance(raw, dict):
             raise ValueError
-        return {name: _coerce(raw.get(name), tp) for name, tp in spec.items()}
+        obj = cast(dict[str, Any], raw)
+        return {name: _coerce(obj.get(name), tp) for name, tp in spec.items()}
     except ValueError:
         raise bad_request(message) from None
 
@@ -370,6 +371,10 @@ class RequestLogMiddleware:
     status/body are observed as they are sent. Nothing here can fail a response: the
     capture is bounded and the log write happens after the response is sent.
     """
+
+    app: ASGIApp
+    logger: logging.Logger
+    policy: applog.CapturePolicy
 
     def __init__(self, app: ASGIApp, logger: logging.Logger, capture: bool) -> None:
         self.app = app

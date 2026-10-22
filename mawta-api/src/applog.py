@@ -12,7 +12,7 @@ import logging
 import sys
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import IO, Any
+from typing import IO, Any, cast, override
 
 SERVICE_NAME = "mawta-server"  # kept: Loki/Grafana dashboards and runbooks filter on it
 
@@ -47,6 +47,7 @@ def parse_level(text: str) -> tuple[int, bool]:
 
 
 class JsonFormatter(logging.Formatter):
+    @override
     def format(self, record: logging.LogRecord) -> str:
         entry: dict[str, Any] = {
             "time": datetime.fromtimestamp(record.created, UTC).isoformat().replace("+00:00", "Z"),
@@ -143,9 +144,10 @@ class CapturedBody:
 
 def _sanitize_value(value: Any) -> Any:
     if isinstance(value, dict):
-        return {k: None if k in DENIED_FIELDS else _sanitize_value(v) for k, v in value.items()}
+        obj = cast(dict[str, Any], value)
+        return {k: None if k in DENIED_FIELDS else _sanitize_value(v) for k, v in obj.items()}
     if isinstance(value, list):
-        return [_sanitize_value(v) for v in value]
+        return [_sanitize_value(v) for v in cast(list[Any], value)]
     if isinstance(value, str):
         # A long string is a smell regardless: drop it rather than ship it.
         return None if len(value) > 200 else value
@@ -387,6 +389,10 @@ _outcome_report: contextvars.ContextVar[OutcomeReport | None] = contextvars.Cont
 
 def set_stt_task(task: STTTask) -> contextvars.Token[STTTask | None]:
     return _stt_task.set(task)
+
+
+def reset_stt_task(token: contextvars.Token[STTTask | None]) -> None:
+    _stt_task.reset(token)
 
 
 def stt_task() -> STTTask | None:

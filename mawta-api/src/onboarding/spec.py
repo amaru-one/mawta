@@ -9,7 +9,7 @@ import json
 import types
 import typing
 from dataclasses import dataclass, field, fields
-from typing import Any
+from typing import Any, cast
 
 
 @dataclass
@@ -183,14 +183,15 @@ def _build(cls: type, data: Any, path: str) -> Any:
         return cls()
     if not isinstance(data, dict):
         raise DecodeError(f"el campo {path!r} espera un objeto")
+    obj = cast(dict[str, Any], data)  # a JSON object: string keys
     hints = typing.get_type_hints(cls)
     known = {f.name for f in fields(cls)}
-    for key in data:
+    for key in obj:
         if key not in known:
             where = f"{path}." if path else ""
             raise DecodeError(f'campo desconocido "{where}{key}"; revisa el nombre de la clave')
-    kwargs = {}
-    for name, value in data.items():
+    kwargs: dict[str, Any] = {}
+    for name, value in obj.items():
         kwargs[name] = _coerce(hints[name], value, f"{path}.{name}" if path else name)
     return cls(**kwargs)
 
@@ -203,7 +204,8 @@ def _coerce(tp: Any, value: Any, path: str) -> Any:
         (item,) = typing.get_args(tp)
         if not isinstance(value, list):
             raise DecodeError(f"el campo {path!r} espera una lista, no {_kind(value)}")
-        return [_coerce(item, v, f"{path}[{i}]") for i, v in enumerate(value)]
+        items = cast(list[Any], value)
+        return [_coerce(item, v, f"{path}[{i}]") for i, v in enumerate(items)]
     if tp is float and isinstance(value, int | float) and not isinstance(value, bool):
         return float(value)
     if tp is int and isinstance(value, int) and not isinstance(value, bool):
@@ -215,15 +217,16 @@ def _coerce(tp: Any, value: Any, path: str) -> Any:
     raise DecodeError(f"el campo {path!r} espera un valor de tipo {tp.__name__}, no {_kind(value)}")
 
 
-def _kind(value: Any) -> str:
-    return {
+def _kind(value: object) -> str:
+    names: dict[type, str] = {
         str: "string",
         bool: "bool",
         int: "number",
         float: "number",
         list: "array",
         dict: "object",
-    }.get(type(value), type(value).__name__)
+    }
+    return names.get(type(value), type(value).__name__)
 
 
 def decode(text: str) -> Spec:

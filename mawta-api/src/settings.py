@@ -7,7 +7,7 @@ default.
 
 import base64
 import re
-from typing import Annotated, Any
+from typing import Annotated, Any, ClassVar
 
 from pydantic import BeforeValidator, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
@@ -51,7 +51,7 @@ class AgentPrices(BaseSettings):
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
+    model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
         env_file=".env", extra="ignore", env_ignore_empty=True, populate_by_name=True
     )
 

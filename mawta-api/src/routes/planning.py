@@ -12,6 +12,8 @@ from datetime import date
 from typing import Any
 from uuid import UUID
 
+from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -58,7 +60,9 @@ def _optional_date(field: str, raw: str | None) -> date | None:
     return parse_plan_date(raw, f"{field} must be a YYYY-MM-DD date")
 
 
-async def _log(conn, action: str, entity_type: str, entity_id: UUID, class_id: UUID) -> None:
+async def _log(
+    conn: AsyncConnection[DictRow], action: str, entity_type: str, entity_id: UUID, class_id: UUID
+) -> None:
     await events_repo.log_event(conn, action, entity_type, entity_id, class_id=class_id)
 
 

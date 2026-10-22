@@ -47,6 +47,8 @@ class Outcome(StrEnum):
 class _ApplyFailed(Exception):
     """Carries an agent.apply error out of its transaction, which rolls back what apply wrote."""
 
+    cause: Exception
+
     def __init__(self, cause: Exception) -> None:
         super().__init__(str(cause))
         self.cause = cause
@@ -100,6 +102,11 @@ def repair_spec(spec: Spec, previous: Any, why: InvalidAnswer) -> Spec:
 
 class Runner:
     """Runs generations for the registered agents."""
+
+    db: Database
+    model: Model
+    prices: Prices
+    logger: logging.Logger | None
 
     def __init__(
         self,

@@ -12,7 +12,7 @@ the note belongs to its assigned student.
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
 from psycopg import AsyncConnection
@@ -156,7 +156,7 @@ def _parse_answer(raw: Any) -> tuple[list[Fragment], bool]:
                 refers_to=_str(f["refers_to"]),
                 student_key=_str(f.get("student_key")),
             )
-            for f in (raw.get("fragments") or [])
+            for f in cast(list[Any], raw.get("fragments") or [])
         ]
         unreadable = raw.get("unreadable") or False
         if not isinstance(unreadable, bool):
@@ -175,13 +175,14 @@ def _str(value: Any) -> str:
 
 
 class RedactionAgent:
-    name = NAME
-    prompt_version = PROMPT_VERSION
+    name: str = NAME
+    prompt_version: str = PROMPT_VERSION
 
     async def prepare(self, conn: AsyncConnection[DictRow], gen: dict[str, Any]) -> Prepared:
         if gen["voice_note_id"] is None:
             raise RuntimeError(f"redaction: generation {gen['id']} has no voice note")
-        reassigned = bool((gen["input"] or {}).get("reassigned"))
+        inp: dict[str, Any] = gen["input"] or {}
+        reassigned = bool(inp.get("reassigned"))
         note = await repo.get_voice_note_for_redaction(
             conn, gen["voice_note_id"]
         )  # NotFound: final

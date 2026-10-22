@@ -275,7 +275,7 @@ async def free_windows(
             cursor = nxt
     if cursor <= term.to:
         gaps.append((cursor, term.to))
-    out = []
+    out: list[dict[str, Any]] = []
     for start, end in gaps:
         n = await count_class_dates(conn, class_id, start, end)
         out.append({"starts_on": iso(start), "ends_on": iso(end), "class_dates": n})
@@ -332,7 +332,7 @@ async def _plan_experiences(
         """,
         (class_id, term_id),
     )
-    out = []
+    out: list[dict[str, Any]] = []
     for r in rows:
         out.append(
             {

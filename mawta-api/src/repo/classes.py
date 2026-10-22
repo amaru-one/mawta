@@ -29,9 +29,7 @@ async def _get_class_info(conn: AsyncConnection[DictRow], class_id: UUID) -> dic
     )
 
 
-def _session_summary(
-    row: dict[str, Any], past: bool = False, upcoming_list: bool = False
-) -> dict[str, Any]:
+def _session_summary(row: dict[str, Any], past: bool = False) -> dict[str, Any]:
     out = {
         "session_id": row["id"],
         "session_date": row["session_date"].isoformat(),

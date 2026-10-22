@@ -67,6 +67,9 @@ class LLMError(Exception):
     """A failed call. `response` may still carry the usage of a call that was billed (an answer
     that did not fill the schema), so callers record it either way."""
 
+    permanent: bool
+    response: Response
+
     def __init__(self, message: str, *, permanent: bool, response: Response | None = None) -> None:
         super().__init__(message)
         self.permanent = permanent

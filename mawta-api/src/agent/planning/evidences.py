@@ -13,6 +13,7 @@ from agent.llm import Tool
 from agent.planning import (
     clean,
     decode,
+    dicts_of,
     experience_id_of,
     strings_of,
     system,
@@ -105,13 +106,11 @@ async def prepare(conn: AsyncConnection[DictRow], gen: dict[str, Any]) -> Prepar
 
 
 async def apply(
-    conn: AsyncConnection[DictRow], gen: dict[str, Any], prepared: Prepared, answer: Any
+    conn: AsyncConnection[DictRow], _gen: dict[str, Any], prepared: Prepared, answer: Any
 ) -> Any:
     st: _State = prepared.state
     a = decode(answer)
-    raw_items = a.get("evidences") or []
-    if not isinstance(raw_items, list) or not all(isinstance(e, dict) for e in raw_items):
-        raise InvalidAnswer("la respuesta no tiene el formato de la herramienta: evidences")
+    raw_items = dicts_of(a.get("evidences"), "evidences")
     items = [
         (text_of(e.get("name")), text_of(e.get("kind")), strings_of(e.get("criterion_ids")))
         for e in raw_items

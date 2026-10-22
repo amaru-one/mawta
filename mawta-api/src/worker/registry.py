@@ -14,7 +14,7 @@ from agent.llm.anthropic import Anthropic
 from agent.runner import Outcome, Runner
 from stt import Client as SttClient
 from web import Api
-from worker.handlers.transcribe import voice_note_transcribe
+from worker.handlers.transcribe import AfterTranscript, voice_note_transcribe
 
 # Job is the claimed row handed to a handler.
 
@@ -99,7 +99,7 @@ def default_registry(api: Api, runner: Runner | None = None) -> Registry:
     # A saved transcript queues its name sweep, but only when the agents can run: without a key
     # every sweep would fail, and the note simply stays pending until one is configured (the
     # conclusions endpoint queues pending notes again).
-    after = []
+    after: list[AfterTranscript] = []
     if cfg.anthropic_api_key.get_secret_value():
         from agent.redaction import queue_after_transcript
 

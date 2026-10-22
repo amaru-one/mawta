@@ -88,7 +88,7 @@ def run(argv: list[str] | None = None) -> int:
     return 0
 
 
-def _run_sync(cat, modular: str, grados: list[str], dry_run: bool) -> int:
+def _run_sync(cat: curriculum.Catalog, modular: str, grados: list[str], dry_run: bool) -> int:
     if not modular:
         raise OnboardError("-sync requiere -modular <código modular del colegio>")
     if not grados:

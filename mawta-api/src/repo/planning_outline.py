@@ -11,19 +11,19 @@ from db import fetch_one, fetch_required
 from errors import AppError, NotFound
 from repo.planning import (
     ExperienceHeader,
-    _check_evidence_criteria,
-    _place_evidence,
-    _session_entry_at,
-    _set_evidence_criteria,
-    _unplace_entry,
     bad_input,
+    check_evidence_criteria,
     check_evidence_kind,
     dedupe,
     list_experience_evidences,
     list_experience_sessions,
     lock_experience,
+    place_evidence,
     resolve_evidence_scale,
+    session_entry_at,
+    set_evidence_criteria,
     trimmed_or_none,
+    unplace_entry,
     unprocessable,
 )
 from repo.planning_plan import count_class_dates
@@ -79,13 +79,13 @@ async def update_planned_evidence(
 
     if "criterion_ids" in patch:
         ids = dedupe(patch["criterion_ids"])
-        await _check_evidence_criteria(conn, h.id, ids)
-        await _set_evidence_criteria(conn, evidence_id, ids)
+        await check_evidence_criteria(conn, h.id, ids)
+        await set_evidence_criteria(conn, evidence_id, ids)
     if "session_date" in patch:
         entry_id = None
         if patch["session_date"] is not None:
-            entry_id = await _session_entry_at(conn, h.id, patch["session_date"])
-        await _place_evidence(conn, evidence_id, entry_id)
+            entry_id = await session_entry_at(conn, h.id, patch["session_date"])
+        await place_evidence(conn, evidence_id, entry_id)
 
     await conn.execute(
         """
@@ -210,9 +210,9 @@ async def put_session_entry(
             (h.id, on, title, topics),
         )
     if evidence_id is not None:
-        await _place_evidence(conn, evidence_id, entry["id"])
+        await place_evidence(conn, evidence_id, entry["id"])
     else:
-        await _unplace_entry(conn, entry["id"])
+        await unplace_entry(conn, entry["id"])
     await sync_experience(conn, h.id)
 
 
@@ -259,7 +259,7 @@ async def propose_session_entry(
     if entry is None:
         return False
     if evidence_id is not None:
-        await _place_evidence(conn, evidence_id, entry["id"])
+        await place_evidence(conn, evidence_id, entry["id"])
     return True
 
 
@@ -299,7 +299,7 @@ async def delete_session_entry(
     )
     if entry is None:
         raise _session_entry_not_found()
-    await _unplace_entry(conn, entry["id"])
+    await unplace_entry(conn, entry["id"])
     await conn.execute(
         "update session_outline_entries set deleted_at = now() where id = %s", (entry["id"],)
     )

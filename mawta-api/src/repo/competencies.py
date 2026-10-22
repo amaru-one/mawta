@@ -5,7 +5,6 @@ from uuid import UUID
 
 from psycopg import AsyncConnection
 from psycopg.rows import DictRow
-from psycopg.types.json import Jsonb  # noqa: F401  (re-exported for callers building payloads)
 
 import domain
 from db import fetch_all, fetch_one, fetch_required
@@ -38,7 +37,7 @@ def classify_conclusion_requirement(
     return domain.CONCLUSION_OPTIONAL
 
 
-async def _stage_and_cycle(conn: AsyncConnection[DictRow], class_id: UUID) -> tuple[str, str]:
+async def stage_and_cycle(conn: AsyncConnection[DictRow], class_id: UUID) -> tuple[str, str]:
     row = await fetch_required(
         conn,
         """
@@ -83,7 +82,7 @@ async def list_class_competency_levels(
 ) -> list[dict[str, Any]] | None:
     """Every competency of the class's subject with this student's asserted level and
     conclusion for the term. There is deliberately no suggested level."""
-    stage, cycle = await _stage_and_cycle(conn, class_id)
+    stage, cycle = await stage_and_cycle(conn, class_id)
     rows = await fetch_all(
         conn,
         """
@@ -155,7 +154,7 @@ async def list_class_competency_levels(
         {"class": class_id, "student": student_id, "term": term_id, "c": domain.LEVEL_C},
     )
     standards = await expected_standards(conn, cycle, [r["competency_id"] for r in rows])
-    out = []
+    out: list[dict[str, Any]] = []
     for r in rows:
         requirement = classify_conclusion_requirement(
             r["inclusion_support"], stage, cycle, r["level"], r["consecutive_c"]
@@ -263,14 +262,14 @@ def check_conclusion_length(body: str) -> None:
         )
 
 
-async def _conclusion_requirement(
+async def conclusion_requirement(
     conn: AsyncConnection[DictRow],
     class_id: UUID,
     student_id: UUID,
     competency_id: UUID,
     term_id: UUID,
 ) -> str:
-    stage, cycle = await _stage_and_cycle(conn, class_id)
+    stage, cycle = await stage_and_cycle(conn, class_id)
     inclusion = (
         await fetch_required(
             conn, "select inclusion_support from students where id = %s", (student_id,)
@@ -362,7 +361,7 @@ async def upsert_conclusion(
             )
         from_voice_notes = gen["used_voice_notes"]
 
-    requirement = await _conclusion_requirement(conn, class_id, student_id, competency_id, term_id)
+    requirement = await conclusion_requirement(conn, class_id, student_id, competency_id, term_id)
 
     old = await fetch_one(
         conn,

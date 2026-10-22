@@ -68,12 +68,13 @@ def _status_text(status: str) -> str:
 
 
 async def prepare(conn: AsyncConnection[DictRow], gen: dict[str, Any]) -> Prepared:
-    inp = gen["input"] or {}
+    inp: dict[str, Any] = gen["input"] or {}
     try:
         term_id = UUID(inp["term_id"]) if inp.get("term_id") else None
-        chosen = [UUID(s) for s in inp.get("competency_ids") or []]
-        idea_text = inp.get("idea_text") or ""
-        context_text = inp.get("context_text") or ""
+        competency_ids: list[Any] = inp.get("competency_ids") or []
+        chosen = [UUID(s) for s in competency_ids]
+        idea_text: Any = inp.get("idea_text") or ""
+        context_text: Any = inp.get("context_text") or ""
         if not all(isinstance(v, str) for v in (idea_text, context_text)):
             raise ValueError
     except (ValueError, TypeError, AttributeError):
@@ -215,7 +216,7 @@ async def usable_windows(
 ) -> list[Window]:
     """The term's free stretches that hold at least one class date: an experience in a stretch
     without classes could not be taught."""
-    out = []
+    out: list[Window] = []
     for w in await plan_repo.free_windows(conn, class_id, term):
         if w["class_dates"] == 0:
             continue

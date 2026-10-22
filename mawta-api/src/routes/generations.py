@@ -68,7 +68,7 @@ def agent_available(request: Request) -> None:
 
 
 async def start_generation(
-    conn: AsyncConnection[DictRow], tc: TenantCtx, **fields
+    conn: AsyncConnection[DictRow], tc: TenantCtx, **fields: Any
 ) -> dict[str, Any]:
     """Record a generation for the requesting teacher and queue its job, or return the one already
     running for the same target. `agent` says which agent serves it."""

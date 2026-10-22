@@ -135,7 +135,7 @@ def _fold_competency_criteria(rows: list[dict[str, Any]]) -> list[dict[str, Any]
     out: list[dict[str, Any]] = []
     by_competency: dict[UUID, dict[str, Any]] = {}
     for r in rows:
-        comp = by_competency.get(r["competency_id"])
+        comp: dict[str, Any] | None = by_competency.get(r["competency_id"])
         if comp is None:
             comp = {
                 "competency_id": r["competency_id"],

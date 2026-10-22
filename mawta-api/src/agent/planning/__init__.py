@@ -11,7 +11,7 @@ and receives no student data.
 """
 
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
 from psycopg import AsyncConnection
@@ -63,11 +63,19 @@ def system(task: str, context: str) -> list[Block]:
     return blocks
 
 
-def decode(answer: Any, expected: type = dict) -> Any:
+def decode(answer: Any) -> dict[str, Any]:
     """A malformed answer is invalid, which earns the model one repair attempt."""
-    if not isinstance(answer, expected):
+    if not isinstance(answer, dict):
         raise InvalidAnswer("la respuesta no tiene el formato de la herramienta: wrong JSON type")
-    return answer
+    return cast(dict[str, Any], answer)
+
+
+def dicts_of(value: Any, what: str) -> list[dict[str, Any]]:
+    """A model list of objects; null counts as empty, anything else is an unusable answer."""
+    items: Any = value or []
+    if not isinstance(items, list) or not all(isinstance(i, dict) for i in cast(list[Any], items)):
+        raise InvalidAnswer(f"la respuesta no tiene el formato de la herramienta: {what}")
+    return cast(list[dict[str, Any]], items)
 
 
 def experience_id_of(gen: dict[str, Any]) -> UUID:
@@ -93,16 +101,16 @@ def text_of(value: Any) -> str:
 def strings_of(value: Any) -> list[str]:
     if value is None:
         return []
-    if not isinstance(value, list) or not all(isinstance(v, str) for v in value):
+    if not isinstance(value, list) or not all(isinstance(v, str) for v in cast(list[Any], value)):
         raise InvalidAnswer(
             "la respuesta no tiene el formato de la herramienta: expected a list of strings"
         )
-    return value
+    return cast(list[str], value)
 
 
 class PlanningAgent:
-    name = NAME
-    prompt_version = PROMPT_VERSION
+    name: str = NAME
+    prompt_version: str = PROMPT_VERSION
 
     async def prepare(self, conn: AsyncConnection[DictRow], gen: dict[str, Any]) -> Prepared:
         from agent.planning import criteria, evidences, experience, sessions

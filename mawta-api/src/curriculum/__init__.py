@@ -13,7 +13,7 @@ areas depending on the level; areas only reference competencies.
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 DEFAULT_MODALITY = "ebr"
 _DATA = Path(__file__).parent / "cneb"
@@ -27,6 +27,8 @@ _CICLOS = ("ciclo_i", "ciclo_ii", "ciclo_iii", "ciclo_iv", "ciclo_v", "ciclo_vi"
 
 class CatalogError(Exception):
     """Every problem found in the catalog data, one line each."""
+
+    errors: list[str]
 
     def __init__(self, errors: list[str]) -> None:
         self.errors = errors
@@ -89,7 +91,7 @@ class Catalog:
         return ", ".join(g["codigo"] for g in self.grados)
 
 
-def _read(path: Path, name: str, errors: list[str], allowed: dict[str, Any] | None = None):
+def _read(path: Path, name: str, errors: list[str]):
     try:
         data = json.loads(path.read_text())
     except OSError as exc:
@@ -107,7 +109,7 @@ def _strict(obj: Any, allowed: set[str], name: str, errors: list[str]) -> bool:
     if not isinstance(obj, dict):
         errors.append(f"{name}: se esperaba un objeto")
         return False
-    unknown = sorted(set(obj) - allowed)
+    unknown = sorted(set(cast(dict[str, Any], obj)) - allowed)
     for key in unknown:
         errors.append(f"{name}: campo desconocido {key!r}; revisa el nombre de la clave")
     return not unknown
@@ -251,7 +253,7 @@ def _check_competencia(c: Catalog, name: str, file_name: str, comp: dict[str, An
         )
     if not comp.get("nombre"):
         errs.append(f"{name}.nombre: es obligatorio")
-    capacidades = comp.get("capacidades") or []
+    capacidades: list[Any] = comp.get("capacidades") or []
     if not capacidades:
         errs.append(f"{name}.capacidades: la competencia debe tener al menos una capacidad")
     seen_cap: dict[int, str] = {}

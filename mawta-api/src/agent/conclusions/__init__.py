@@ -14,7 +14,7 @@ conclusion; it is never saved on their behalf.
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
 from psycopg import AsyncConnection
@@ -435,7 +435,7 @@ def _points(raw: Any, field_name: str) -> list[dict[str, Any]]:
                 "evidencias": _str_list(p.get("evidencias")),
                 "notas": _str_list(p.get("notas")),
             }
-            for p in (raw or [])
+            for p in cast(list[Any], raw or [])
         ]
     except (KeyError, TypeError, AttributeError):
         raise InvalidAnswer(
@@ -456,12 +456,12 @@ def _str_list(value: Any) -> list[str]:
         return []
     if not isinstance(value, list):
         raise TypeError("expected a list")
-    return [_str(v) for v in value]
+    return [_str(v) for v in cast(list[Any], value)]
 
 
 class ConclusionsAgent:
-    name = NAME
-    prompt_version = PROMPT_VERSION
+    name: str = NAME
+    prompt_version: str = PROMPT_VERSION
 
     async def prepare(self, conn: AsyncConnection[DictRow], gen: dict[str, Any]) -> Prepared:
         scope = scope_of(gen)
@@ -482,12 +482,13 @@ class ConclusionsAgent:
         )
 
     async def apply(
-        self, conn: AsyncConnection[DictRow], gen: dict[str, Any], prepared: Prepared, answer: Any
+        self, conn: AsyncConnection[DictRow], _gen: dict[str, Any], prepared: Prepared, answer: Any
     ) -> Any:
         st: _State = prepared.state
         m = st.material
         if not isinstance(answer, dict):
             raise InvalidAnswer("la respuesta no tiene el formato de la herramienta: wrong type")
+        answer = cast(dict[str, Any], answer)
         avances = _points(answer.get("avances"), "avances")
         dificultades = _points(answer.get("dificultades"), "dificultades")
         recomendaciones = _points(answer.get("recomendaciones"), "recomendaciones")
@@ -496,7 +497,7 @@ class ConclusionsAgent:
             supports = _str(answer.get("apoyos_brindados"))
             unused = [
                 {"nota": _str(u["nota"]), "motivo": _str(u["motivo"])}
-                for u in (answer.get("notas_no_usadas") or [])
+                for u in cast(list[Any], answer.get("notas_no_usadas") or [])
             ]
         except (KeyError, TypeError, AttributeError):
             raise InvalidAnswer(
@@ -521,7 +522,7 @@ class ConclusionsAgent:
         def convert(
             section: str, points: list[dict[str, Any]], must_cite: bool
         ) -> list[dict[str, Any]]:
-            out = []
+            out: list[dict[str, Any]] = []
             for pt in points:
                 text = clean(pt["texto"])
                 if not text:

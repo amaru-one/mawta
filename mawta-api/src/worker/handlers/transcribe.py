@@ -32,7 +32,7 @@ def voice_note_transcribe(
 ) -> Callable[[AsyncConnection[DictRow], int, dict[str, Any]], Awaitable[None]]:
     """A handler bound to one Transcriber, built once when the registry is assembled."""
 
-    async def handle(conn: AsyncConnection[DictRow], job_id: int, payload: dict[str, Any]) -> None:
+    async def handle(conn: AsyncConnection[DictRow], _job_id: int, payload: dict[str, Any]) -> None:
         try:
             voice_note_id = UUID(str(payload["voice_note_id"]))
         except (KeyError, ValueError) as exc:

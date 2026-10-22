@@ -13,6 +13,7 @@ from agent.llm import Tool
 from agent.planning import (
     clean,
     decode,
+    dicts_of,
     experience_id_of,
     strings_of,
     system,
@@ -102,7 +103,8 @@ def context_line(text: str | None) -> str:
 async def prepare(conn: AsyncConnection[DictRow], gen: dict[str, Any]) -> Prepared:
     exp_id = experience_id_of(gen)
     try:
-        competency_id = UUID((gen["input"] or {})["competency_id"])
+        inp: dict[str, Any] = gen["input"] or {}
+        competency_id = UUID(inp["competency_id"])
     except (KeyError, ValueError, TypeError):
         raise unprocessable("bad_request", "el pedido de criterios no es válido") from None
     exp = await repo.get_experience(conn, exp_id)
@@ -170,13 +172,11 @@ async def prepare(conn: AsyncConnection[DictRow], gen: dict[str, Any]) -> Prepar
 
 
 async def apply(
-    conn: AsyncConnection[DictRow], gen: dict[str, Any], prepared: Prepared, answer: Any
+    conn: AsyncConnection[DictRow], _gen: dict[str, Any], prepared: Prepared, answer: Any
 ) -> Any:
     st: _State = prepared.state
     a = decode(answer)
-    raw_criteria = a.get("criteria") or []
-    if not isinstance(raw_criteria, list) or not all(isinstance(c, dict) for c in raw_criteria):
-        raise InvalidAnswer("la respuesta no tiene el formato de la herramienta: criteria")
+    raw_criteria = dicts_of(a.get("criteria"), "criteria")
     items = [
         (text_of(c.get("description")), strings_of(c.get("capability_ids"))) for c in raw_criteria
     ]

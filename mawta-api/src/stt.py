@@ -12,6 +12,7 @@ import base64
 import logging
 import time
 from dataclasses import dataclass
+from typing import Any, cast
 
 import httpx
 
@@ -42,6 +43,12 @@ class UsageMetadata:
 
 
 class Client:
+    api_key: str
+    model: str
+    endpoint: str
+    logger: logging.Logger | None
+    _http: httpx.AsyncClient
+
     def __init__(
         self,
         api_key: str,
@@ -91,15 +98,16 @@ class Client:
             self._log_usage(usage, start, "error", "permanent")
             raise SttPermanentError(f"stt: openrouter {resp.status_code}")
         try:
-            parsed = resp.json()
-            text = parsed.get("text", "") if isinstance(parsed, dict) else ""
-            if not isinstance(parsed, dict):
+            body = resp.json()
+            if not isinstance(body, dict):
                 raise ValueError("not an object")
+            parsed = cast(dict[str, Any], body)
+            text: str = parsed.get("text", "")
         except ValueError as exc:
             self._log_usage(usage, start, "error", "transient")
             raise SttError("stt: decode response") from exc
 
-        provider_usage = parsed.get("usage") or {}
+        provider_usage: dict[str, Any] = parsed.get("usage") or {}
         usage = UsageMetadata(
             cost_usd=provider_usage.get("cost"),
             generation_id=parsed.get("id") or "",

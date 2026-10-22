@@ -175,7 +175,7 @@ async def dispatch(
         return
     finally:
         applog.end_outcome_report(report_token)
-        applog._stt_task.reset(stt_token)
+        applog.reset_stt_task(stt_token)
 
     # The handler's transaction committed; the job is only complete once its status is recorded.
     # A job whose completion cannot be recorded stays running and is never claimed again, so it is
