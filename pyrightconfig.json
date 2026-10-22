@@ -1,4 +1,7 @@
 {
+  "reportAny": false,
+  "reportExplicitAny": false,
+  "reportUnusedCallResult": false,
   "executionEnvironments": [
     {
       "root": "mawta-api",
