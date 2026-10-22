@@ -3,9 +3,10 @@
 codes, and one file per CNEB competency holding its capacities, learning standards and grade-level
 performances.
 
-The data under cneb/ is official text transcribed from RM 281-2016 and RM 649-2016. Nothing here
-writes, completes or paraphrases it: the loader stores it verbatim and validation only checks
-consistency. A competency is stored once because the same CNEB competency belongs to different
+Competency names, capacities and standards are the CNEB text (RM 281-2016 as modified by RM
+159-2017), section IV, with obvious typos corrected and footnote call numbers dropped; Educación
+Religiosa standards and the desempeños come from the RM 649-2016 programmes, since the CNEB has
+neither. The loader stores the text as is and validation only checks consistency. A competency is stored once because the same CNEB competency belongs to different
 areas depending on the level; areas only reference competencies.
 """
 

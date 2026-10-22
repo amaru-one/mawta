@@ -22,19 +22,19 @@
   "estandares": [
     {
       "nivel": 1,
-      "texto": "Este nivel tiene como base principalmente el nivel 1 de la competencia “Se comunica oralmente en su lengua materna”."
+      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Se comunica oralmente en su lengua materna”."
     },
     {
       "nivel": 2,
-      "texto": "Este nivel tiene como base principalmente el nivel 2 de la competencia “Se comunica oralmente en su lengua materna”."
+      "texto": "Este nivel tiene como base el nivel 2 de la competencia “Se comunica oralmente en su lengua materna”."
     },
     {
       "nivel": 3,
-      "texto": "Este nivel tiene como base principalmente el nivel 3 de la competencia “Se comunica oralmente en inglés como lengua extranjera”."
+      "texto": "Este nivel tiene como base el nivel 3 de la competencia “Se comunica oralmente en inglés”."
     },
     {
       "nivel": 4,
-      "texto": "Escribe diversos tipos de textos breves y sencillos en inglés. Adecúa su texto al propósito del texto a partir de su experiencia previa. Organiza y desarrolla sus ideas en torno a un tema. Relaciona sus ideas a través del uso de algunos conectores básicos con vocabulario de uso frecuente y construcciones gramaticales simples. Utiliza recursos ortográficos básicos que permiten claridad en sus textos. Reflexiona y evalúa sobre su texto escrito."
+      "texto": "Escribe textos breves y sencillos en inglés. Adecúa su texto al propósito del texto a partir de su experiencia previa. Organiza y desarrolla sus ideas en torno a un tema. Relaciona sus ideas a través del uso de algunos conectores básicos con vocabulario de uso frecuente y construcciones gramaticales simples. Utiliza recursos ortográficos básicos que permiten claridad en sus textos. Reflexiona y evalúa sobre su texto escrito."
     },
     {
       "nivel": 5,
@@ -50,7 +50,7 @@
     },
     {
       "nivel": 8,
-      "texto": "Escribe diversos tipos de textos en inglés de forma reflexiva. Adecúa su texto al destinatario, propósito y registro a partir de su experiencia previa, fuentes de información variada y de su contexto sociocultural. Organiza y desarrolla sus ideas en forma lógica sobre un tema central evitando digresiones, contradicciones y repeticiones. Relaciona sus ideas a través del uso de diversos recursos cohesivos con vocabulario variado y preciso a la temática tratada y construcciones gramaticales variadas. Utiliza recursos ortográficos que permiten claridad y variedad en sus textos. Reflexiona sobre el texto que escribe y evalúa los usos del lenguaje con la finalidad de mejorar el texto que escribe en inglés."
+      "texto": "Escribe en inglés diversos tipos de textos de forma reflexiva. Adecúa su texto al destinatario, propósito y registro a partir de su experiencia previa, fuentes de información variada y de su contexto sociocultural. Organiza y desarrolla sus ideas en forma lógica sobre un tema central evitando digresiones, contradicciones y repeticiones. Relaciona sus ideas a través del uso de diversos recursos cohesivos con vocabulario variado y preciso a la temática tratada y construcciones gramaticales variadas. Utiliza recursos ortográficos que permiten claridad y variedad en sus textos. Reflexiona sobre el texto que escribe y evalúa los usos del lenguaje con la finalidad de mejorar el texto que escribe en inglés."
     }
   ],
   "desempenos": [

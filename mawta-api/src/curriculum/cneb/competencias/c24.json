@@ -4,7 +4,7 @@
   "capacidades": [
     {
       "numero": 1,
-      "nombre": "Traduce datos y condiciones a expresiones algebraicas y gráficas"
+      "nombre": "Traduce datos y condiciones a expresiones algebraicas"
     },
     {
       "numero": 2,
@@ -12,7 +12,7 @@
     },
     {
       "numero": 3,
-      "nombre": "Usa estrategias y procedimientos para encontrar equivalencias y reglas generales"
+      "nombre": "Usa estrategias y procedimientos para encontrar reglas generales"
     },
     {
       "numero": 4,
@@ -22,11 +22,11 @@
   "estandares": [
     {
       "nivel": 1,
-      "texto": "Este nivel tiene como base principalmente el nivel 1 de las competencias “Resuelve problemas de cantidad” y \"Resuelve problemas de forma, movimiento y localización\"."
+      "texto": "Este nivel tiene como base el nivel 1 de las competencias “Resuelve problemas de cantidad” y “Resuelve problemas de forma, movimiento y localización”."
     },
     {
       "nivel": 2,
-      "texto": "Este nivel tiene como base principalmente el nivel 2 de las competencias “Resuelve problemas de cantidad” y \"Resuelve problemas de forma, movimiento y localización\"."
+      "texto": "Este nivel tiene como base el nivel 2 de las competencias “Resuelve problemas de cantidad” y “Resuelve problemas de forma, movimiento y localización”."
     },
     {
       "nivel": 3,

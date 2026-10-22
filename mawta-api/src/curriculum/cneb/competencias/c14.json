@@ -1,6 +1,6 @@
 {
   "numero_cneb": 14,
-  "nombre": "Lee diversos tipos de textos en inglés como lengua extranjera",
+  "nombre": "Lee diversos tipos de textos escritos en inglés como lengua extranjera",
   "capacidades": [
     {
       "numero": 1,
@@ -18,35 +18,35 @@
   "estandares": [
     {
       "nivel": 1,
-      "texto": "Este nivel tiene como base principalmente el nivel 1 de la competencia “Se comunica oralmente en su lengua materna”."
+      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Se comunica oralmente en su lengua materna”."
     },
     {
       "nivel": 2,
-      "texto": "Este nivel tiene como base principalmente el nivel 2 de la competencia “Se comunica oralmente en su lengua materna”."
+      "texto": "Este nivel tiene como base el nivel 2 de la competencia “Se comunica oralmente en su lengua materna”."
     },
     {
       "nivel": 3,
-      "texto": "Este nivel tiene como base principalmente el nivel 3 de la competencia “Se comunica oralmente en inglés como lengua extranjera”."
+      "texto": "Este nivel tiene como base el nivel 3 de la competencia “Se comunica oralmente en inglés”."
     },
     {
       "nivel": 4,
-      "texto": "Lee diversos tipos de texto en inglés que presentan estructura simple en los que predominan expresiones conocidas e ilustraciones que apoyan las ideas centrales. Obtiene información explícita y relevante ubicada en lugares evidentes del texto. Realiza inferencias locales a partir de información explícita e interpreta el texto relacionando información recurrente. Opina sobre lo que más le gustó del texto leído."
+      "texto": "Lee diversos tipos de textos en inglés que presentan estructura simple en los que predominan expresiones conocidas e ilustraciones que apoyan las ideas centrales. Obtiene información explícita y relevante ubicada en lugares evidentes del texto. Realiza inferencias locales a partir de información explícita e interpreta el texto relacionando información recurrente. Opina sobre lo que más le gustó del texto leído."
     },
     {
       "nivel": 5,
-      "texto": "Lee diversos tipos de texto en inglés que presentan estructura simple con vocabulario de uso frecuente. Obtiene información poco evidente distinguiéndola de otras próximas y semejantes. Realiza inferencias locales a partir de información explícita e implícita e interpreta el texto relacionando información relevante para construir su sentido global. Opina sobre sucesos e ideas importantes del texto a partir de su propia experiencia."
+      "texto": "Lee diversos tipos de textos en inglés que presentan estructura simple con vocabulario de uso frecuente. Obtiene información poco evidente distinguiéndola de otras próximas y semejantes. Realiza inferencias locales a partir de información explícita e implícita interpreta el texto relacionando información relevante para construir su sentido global. Opina sobre sucesos e ideas importantes del texto a partir de su propia experiencia."
     },
     {
       "nivel": 6,
-      "texto": "Lee diversos tipos de texto en inglés que presentan estructuras simples y algunos elementos complejos con vocabulario cotidiano. Obtiene información e integra datos que están en distintas partes del texto. Realiza inferencias locales a partir de información explícita e implícita e interpreta el texto seleccionando información relevante y complementaria. Reflexiona sobre aspectos variados del texto evaluando el uso del lenguaje y la intención de los recursos textuales más comunes a partir de su conocimiento y experiencia."
+      "texto": "Lee críticamente diversos tipos de textos en inglés que presentan estructuras simples y algunos elementos complejos con vocabulario cotidiano. Obtiene información e integra datos que están en distintas partes del texto. Realiza inferencias locales a partir de información explícita e implícita e interpreta el texto seleccionando información relevante y complementaria. Reflexiona sobre aspectos variados del texto evaluando el uso del lenguaje y la intención de los recursos textuales más comunes a partir de su conocimiento y experiencia."
     },
     {
       "nivel": 7,
-      "texto": "Lee diversos tipos de texto en inglés con algunas estructuras complejas y vocabulario variado y especializado. Integra información contrapuesta ubicada en distintas partes del texto. Interpreta el texto integrando la idea principal con información específica para construir su sentido global. Reflexiona sobre las formas y contenidos del texto. Evalúa el uso del lenguaje y los recursos textuales así como el efecto del texto en el lector a partir de su conocimiento y del contexto sociocultural."
+      "texto": "Lee críticamente diversos tipos de textos en inglés con algunas estructuras complejas y vocabulario variado y especializado. Integra información contrapuesta ubicada en distintas partes del texto. Interpreta el texto integrando la idea principal con información específica para construir su sentido global. Reflexiona sobre las formas y contenidos del texto. Evalúa el uso del lenguaje y los recursos textuales así como el efecto del texto en el lector a partir de su conocimiento y del contexto sociocultural."
     },
     {
       "nivel": 8,
-      "texto": "Lee diversos tipos de texto en inglés con estructuras complejas y vocabulario variado y especializado. Integra información ambigua o contrapuesta ubicada en distintas partes del texto. Interpreta el texto para construir su sentido global a partir de información relevante y complementaria. Reflexiona sobre las formas y el contenido del texto asumiendo una posición; evalúa el uso del lenguaje, los recursos textuales así como el efecto del texto a partir de su conocimiento y del contexto sociocultural en el que fue escrito."
+      "texto": "Lee críticamente diversos tipos de textos en inglés con estructuras complejas y vocabulario variado y especializado. Integra información ambigua o contrapuesta ubicada en distintas partes del texto. Interpreta el texto para construir su sentido global a partir de información relevante y complementaria. Reflexiona sobre las formas y el contenido del texto asumiendo una posición; evalúa el uso del lenguaje, los recursos textuales así como el efecto del texto a partir de su conocimiento y del contexto socio cultural en el que fue escrito."
     }
   ],
   "desempenos": [

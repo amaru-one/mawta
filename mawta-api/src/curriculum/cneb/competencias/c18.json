@@ -18,11 +18,11 @@
   "estandares": [
     {
       "nivel": 1,
-      "texto": "Este nivel tiene como base principalmente el nivel 1 de las competencias “Convive y participa democráticamente en la búsqueda del bien común” y “Resuelve problemas de forma movimiento y localización”."
+      "texto": "Este nivel tiene como base el nivel 1 de las competencias “Convive y participa” y “Resuelve problemas de forma movimiento y localización”."
     },
     {
       "nivel": 2,
-      "texto": "Este nivel tiene como base principalmente el nivel 2 de las competencias “Convive y participa democráticamente en la búsqueda del bien común” y “Resuelve problemas de forma movimiento y localización”."
+      "texto": "Este nivel tiene como base el nivel 2 de las competencias “Convive y participa” y “Resuelve problemas de forma movimiento y localización”."
     },
     {
       "nivel": 3,
@@ -30,23 +30,23 @@
     },
     {
       "nivel": 4,
-      "texto": "Gestiona responsablemente el espacio y ambiente al realizar actividades específicas para su cuidado a partir de reconocer las causas y consecuencias de los problemas ambientales. Reconoce cómo sus acciones cotidianas impactan en el ambiente, en el calentamiento global y en su bienestar, e identifica los lugares vulnerables y seguros de su escuela, frente a riesgos de desastres. Describe las características de los espacios geográficos y el ambiente de su localidad o región. Utiliza representaciones cartográficas sencillas, tomando en cuenta los puntos cardinales y otros elementos cartográficos, para ubicar elementos del espacio."
+      "texto": "Gestiona responsablemente el espacio y ambiente al realizar actividades específicas para su cuidado a partir de reconocer las causas y consecuencias de los problemas ambientales. Reconoce cómo sus acciones cotidianas impactan en el ambiente, en el calentamiento global y en su bienestar, e identifica los lugares vulnerables y seguros de su escuela, frente a desastres. Describe las características de los espacios geográficos y el ambiente de su localidad o región. Utiliza representaciones cartográficas sencillas, tomando en cuenta los puntos cardinales y otros elementos cartográficos, para ubicar elementos del espacio."
     },
     {
       "nivel": 5,
-      "texto": "Gestiona responsablemente el espacio y ambiente al realizar frecuentemente actividades para su cuidado y al disminuir los factores de vulnerabilidad frente al cambio climático y a los riesgos de desastres en su escuela. Utiliza distintas fuentes y herramientas cartográficas y socioculturales para ubicar elementos en el espacio geográfico y el ambiente, y compara estos espacios a diferentes escalas considerando la acción de los actores sociales. Explica las problemáticas ambientales y territoriales a partir de sus causas, consecuencias y sus manifestaciones a diversas escalas."
+      "texto": "Gestiona responsablemente el espacio y ambiente al realizar frecuentemente actividades para su cuidado y al disminuir los factores de vulnerabilidad frente al cambio climático y a los desastres en su escuela. Utiliza distintas fuentes y herramientas cartográficas y socioculturales para ubicar elementos en el espacio geográfico y el ambiente, y compara estos espacios a diferentes escalas considerando la acción de los actores sociales. Explica las problemáticas ambientales y territoriales a partir de sus causas, consecuencias y sus manifestaciones a diversas escalas."
     },
     {
       "nivel": 6,
-      "texto": "Gestiona responsablemente el espacio y ambiente al realizar actividades orientadas al cuidado de su localidad, considerando el cuidado del planeta. Compara las causas y consecuencias de diversas situaciones a diversas escalas para proponer medidas de gestión de riesgos. Explica cambios y permanencias en el espacio geográfico a diferentes escalas. Explica conflictos socioambientales y territoriales reconociendo sus múltiples dimensiones. Utiliza información y diversas herramientas cartográficas y socioculturales para ubicar y orientar distintos elementos del espacio geográfico y el ambiente, incluyéndose."
+      "texto": "Gestiona responsablemente el espacio y ambiente al realizar actividades orientadas al cuidado de su localidad, considerando el cuidado del planeta. Compara las causas y consecuencias de diversas situaciones a diversas escalas para proponer medidas de prevención. Explica cambios y permanencias en el espacio geográfico a diferentes escalas. Explica conflictos socioambientales y territoriales reconociendo sus múltiples dimensiones. Utiliza información y diversas herramientas cartográficas y socioculturales para ubicar y orientar distintos elementos del espacio geográfico y el ambiente, incluyéndose."
     },
     {
       "nivel": 7,
-      "texto": "Gestiona responsablemente el espacio y el ambiente al proponer alternativas y promover la sostenibilidad del ambiente, la mitigación y adaptación al cambio climático y la gestión de riesgo de desastre, considerando las múltiples dimensiones. Explica las diferentes formas en las que se organiza el espacio geográfico y el ambiente como resultado de las decisiones (acciones o intervención) de los actores sociales. Utiliza fuentes de información y herramientas digitales para representar e interpretar el espacio geográfico y el ambiente."
+      "texto": "Gestiona responsablemente el espacio y ambiente al proponer alternativas y promover la sostenibilidad del ambiente, la mitigación y adaptación al cambio climático y la prevención de riesgo de desastres, considerando las múltiples dimensiones. Explica las diferentes formas en las que se organiza el espacio geográfico y el ambiente como resultado de las decisiones (acciones o intervención) de los actores sociales. Utiliza fuentes de información y herramientas digitales para representar e interpretar el espacio geográfico y el ambiente."
     },
     {
       "nivel": 8,
-      "texto": "Gestiona responsablemente el espacio y el ambiente al proponer acciones relacionadas con políticas públicas orientadas a solucionar las problemáticas ambientales y territoriales. Elabora y comunica medidas de mitigación y adaptación al cambio climático y un plan de gestión de riesgos de desastres. Explica el espacio geográfico como un sistema complejo y reconoce su importancia para el desarrollo de la sociedad. Utiliza diversas fuentes de información disponibles para el análisis integral del espacio geográfico y el ambiente."
+      "texto": "Gestiona responsablemente el espacio y el ambiente al proponer acciones relacionadas con políticas públicas orientadas a solucionar las problemáticas ambientales y territoriales. Elabora y comunica medidas de mitigación y adaptación al cambio climático, incluyendo un plan de contingencia frente a posibles desastres. Explica el espacio geográfico como un sistema complejo y reconoce su importancia para el desarrollo de la sociedad. Utiliza diversas fuentes de información disponibles para el análisis integral del espacio geográfico y el ambiente."
     }
   ],
   "desempenos": [

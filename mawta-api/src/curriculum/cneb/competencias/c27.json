@@ -8,11 +8,11 @@
     },
     {
       "numero": 2,
-      "nombre": "Aplica habilidades técnicas"
+      "nombre": "Trabaja cooperativamente para lograr objetivos y metas"
     },
     {
       "numero": 3,
-      "nombre": "Trabaja cooperativamente para lograr objetivos y metas"
+      "nombre": "Aplica habilidades técnicas"
     },
     {
       "numero": 4,
@@ -22,15 +22,15 @@
   "estandares": [
     {
       "nivel": 6,
-      "texto": "Gestiona proyectos de emprendimiento económico o social cuando se cuestiona sobre una situación que afecta a un grupo de usuarios y explora sus necesidades y expectativas para crear una alternativa de solución viable y reconoce aspectos éticos y culturales así como los posibles resultados sociales y ambientales que implica. Implementa sus ideas empleando habilidades técnicas, anticipa las acciones y recursos que necesitará y trabaja cooperativamente cumpliendo sus roles y responsabilidades individuales para el logro de una meta común, propone actividades y facilita a la iniciativa y perseverancia colectiva. Evalúa el logro de resultados parciales relacionando la cantidad de insumos empleados con los beneficios sociales y ambientales generados; realiza mejoras considerando además las opiniones de los usuarios y las lecciones aprendidas."
+      "texto": "Gestiona proyectos de emprendimiento económico o social cuando se cuestiona sobre una situación que afecta a un grupo de usuarios y explora sus necesidades y expectativas para crear una alternativa de solución viable y reconoce aspectos éticos y culturales así como los posibles resultados sociales y ambientales que implica. Implementa sus ideas empleando habilidades técnicas, anticipa las acciones y recursos que necesitará y trabaja cooperativamente cumpliendo sus roles y deberes individuales para el logro de una meta común, propone actividades y facilita a la iniciativa y perseverancia colectiva. Evalúa el logro de resultados parciales relacionando la cantidad de insumos empleados con los beneficios sociales y ambientales generados; realiza mejoras considerando además las opiniones de los usuarios y las lecciones aprendidas."
     },
     {
       "nivel": 7,
-      "texto": "Gestiona proyectos de emprendimiento económico o social cuando integra activamente información sobre una situación que afecta a un grupo de usuarios, genera explicaciones y define patrones sobre sus necesidades y expectativas para crear una alternativa de solución viable que considera aspectos éticos y culturales y redefine sus ideas para generar resultados sociales y ambientales positivos. Implementa sus ideas combinando habilidades técnicas, proyecta en función a escenarios las acciones y recursos que necesitará y trabaja cooperativamente recombinado sus roles y responsabilidades individuales para el logro de una meta común, coordina actividades y colabora a la iniciativa y perseverancia colectiva resolviendo los conflictos a través de métodos constructivos. Evalúa los procesos y resultados parciales, analizando el equilibrio entre inversión y beneficio, la satisfacción de usuarios, y los beneficios sociales y ambientales generados. Incorpora mejoras en el proyecto para aumentar la calidad del producto o servicio y la eficiencia de procesos."
+      "texto": "Gestiona proyectos de emprendimiento económico o social cuando integra activamente información sobre una situación que afecta a un grupo de usuarios, genera explicaciones y define patrones sobre sus necesidades y expectativas para crear una alternativa de solución viable que considera aspectos éticos y culturales y redefine sus ideas para generar resultados sociales y ambientales positivos. Implementa sus ideas combinando habilidades técnicas, proyecta en función a escenarios las acciones y recursos que necesitará y trabaja cooperativamente recombinando sus roles y deberes individuales para el logro de una meta común, coordina actividades y colabora a la iniciativa y perseverancia colectiva resolviendo los conflictos a través de métodos constructivos. Evalúa los procesos y resultados parciales, analizando el equilibrio entre inversión – beneficio ambiental y social, la satisfacción de usuarios, y los beneficios sociales y ambientales generados. Incorpora mejoras en el proyecto para aumentar la calidad del producto o servicio y la eficiencia de procesos."
     },
     {
       "nivel": 8,
-      "texto": "Gestiona proyectos de emprendimiento económico o social cuando empatiza con las necesidades y expectativas de un grupo de usuarios reinterpretando la situación desde diferentes perspectivas para crear una alternativa de solución innovadora que integra aspectos éticos y culturales y optimiza su diseño para generar resultados sociales y ambientales positivos. Implementa sus ideas innovando habilidades técnicas, diseña estratégicamente y en función a escenarios complejos las acciones y recursos que necesitará y trabaja cooperativamente al alinear sus esfuerzos y acciones individuales para el logro de una meta común, lidera actividades y fomenta la iniciativa y la perseverancia colectiva generando acciones de negociación en función de los distintos intereses. Evalúa las diferentes etapas del proyecto optimizando la relación inversión-beneficio, interpreta los resultados, realiza ajustes e incorpora innovaciones al proyecto para lograr su sostenibilidad."
+      "texto": "Gestiona proyectos de emprendimiento económico o social cuando empatiza con las necesidades y expectativas de un grupo de usuarios reinterpretando la situación desde diferentes perspectivas para crear una alternativa de solución innovadora que integra aspectos éticos y culturales y optimiza su diseño para generar resultados sociales y ambientales positivos. Implementa sus ideas innovando habilidades técnicas, diseña estratégicamente y en función a escenarios complejos las acciones y recursos que necesitará y trabaja cooperativamente al alinear sus esfuerzos y acciones individuales para el logro de una meta común; lidera actividades y fomenta la iniciativa y la perseverancia colectiva generando acciones de negociación en función de los distintos intereses. Evalúa las diferentes etapas del proyecto optimizando la relación inversión-beneficio ambiental y social, interpreta los resultados, realiza ajustes e incorpora innovaciones al proyecto para lograr su sostenibilidad."
     }
   ],
   "desempenos": [
