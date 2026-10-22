@@ -54,7 +54,9 @@ jobs:
         working-directory: mawta-ui
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
+      # setup-bun unzips its download and the Playwright image has no `unzip`;
+      # the npm package ships the same binary and the image already has Node.
+      - run: npm install --global bun
       - run: bun install --frozen-lockfile
       - run: bun run check
       - run: bun eslint .
