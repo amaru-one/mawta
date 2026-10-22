@@ -2,7 +2,7 @@
 
 The director chat service: a school director asks questions about their school and gets answers built from Mawta's data, streamed over Server-Sent Events.
 
-Python 3.13, FastAPI, LangGraph and the Anthropic SDK, managed with [`uv`](https://docs.astral.sh/uv/). It is a separate service from `mawta-api` (Python) and shares only:
+Python 3.14, FastAPI, LangGraph and the Anthropic SDK, managed with [`uv`](https://docs.astral.sh/uv/). It is a separate service from `mawta-api` (Python) and shares only:
 
 - **the login** — the director signs in to Mawta, and `mawta-api` issues a short-lived chat token (`GET /api/v1/auth/chat-token`, Ed25519). This service only verifies it with the public key;
 - **the `mawta` database** — connected as the `mawta_chat` role, which can read only the `chat_api` views and write only the `chat` schema (migration `00006`). Postgres RLS limits every query to the director's school and chats.

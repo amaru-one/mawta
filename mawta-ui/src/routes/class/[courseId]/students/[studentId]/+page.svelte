@@ -50,7 +50,7 @@
 	import ScoreRuler from '$lib/components/ScoreRuler.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import { EVIDENCE_KIND_LABEL } from '$lib/evidence';
-	import type { Tier } from '$lib/levels';
+	import { cycleLabel, type Tier } from '$lib/levels';
 	import { hapticTap } from '$lib/haptics';
 	import { showError, showToast } from '$lib/toast';
 	import { guardUnsaved } from '$lib/unsaved.svelte';
@@ -167,6 +167,16 @@
 
 	const current = $derived(comps.find((c) => c.competency_id === selected) ?? null);
 	const currentLevel = $derived(levels.find((l) => l.competency_id === selected) ?? null);
+
+	// The level is judged against the standard of the cycle's expected level
+	// (CNEB), so it sits right above the decision, clamped like on the criteria
+	// screen. A new competencia starts it clamped again.
+	const standard = $derived(currentLevel?.standard ?? null);
+	let standardOpen = $state(false);
+	$effect(() => {
+		void selected;
+		standardOpen = false;
+	});
 
 	// ---- evidence values ----
 
@@ -511,7 +521,31 @@
 
 				<!-- DECIDE -->
 				<p class="eyebrow gap">Nivel de logro en esta competencia</p>
-				<p class="hint">Lo pones tú, leyendo lo de arriba. Ninguna nota lo calcula.</p>
+				{#if standard}
+					<div class="standard">
+						<p class="standard-label">
+							Estándar · nivel esperado al final del {cycleLabel(standard.cycle)}
+						</p>
+						<p id="level-standard-text" class="standard-text" class:clamped={!standardOpen}>
+							{standard.text}
+						</p>
+						<button
+							type="button"
+							class="standard-toggle"
+							aria-expanded={standardOpen}
+							aria-controls="level-standard-text"
+							onclick={() => (standardOpen = !standardOpen)}
+						>
+							{standardOpen ? 'Ver menos' : 'Ver completo'}
+						</button>
+					</div>
+					<p class="hint after-standard">
+						Compara lo que muestran las evidencias con este estándar. Lo decides tú: ninguna nota lo
+						calcula.
+					</p>
+				{:else}
+					<p class="hint">Lo pones tú, leyendo lo de arriba. Ninguna nota lo calcula.</p>
+				{/if}
 				<LevelSelector
 					level={currentLevel?.level ?? null}
 					disabled={savingLevel}
@@ -529,6 +563,13 @@
 				{:else}
 					<p class="hint">Opcional en esta competencia.</p>
 				{/if}
+				{#if standard}
+					<p class="hint">
+						Mawta redacta comparando las evidencias con el estándar del {cycleLabel(
+							standard.cycle
+						)}.
+					</p>
+				{/if}
 				<ConclusionAssistant
 					classId={courseId}
 					{studentId}
@@ -543,7 +584,9 @@
 					label="Conclusión descriptiva"
 					rows={4}
 					bind:value={draft}
-					placeholder="Qué logró, qué le falta y cómo seguir."
+					placeholder={standard
+						? 'Qué logró respecto al nivel esperado, qué le falta y cómo seguir.'
+						: 'Qué logró, qué le falta y cómo seguir.'}
 					help="{conclusionChars}/{CONCLUSION_MAX_CHARS} caracteres (máximo de SIAGIE)"
 					error={conclusionError}
 				/>
@@ -635,6 +678,58 @@
 
 	.hint.req {
 		color: var(--mw-ink);
+	}
+
+	.hint.after-standard {
+		margin-top: var(--mw-space-3);
+	}
+
+	/* A context zone (surface-tint): the reference the decision is read against. */
+	.standard {
+		padding: var(--mw-space-4);
+		border-radius: var(--mw-radius-xl);
+		background: var(--mw-surface-tint);
+	}
+
+	.standard-label {
+		margin: 0 0 var(--mw-space-2);
+		font-size: var(--mw-type-label-size);
+		line-height: var(--mw-type-label-line);
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--mw-ink-secondary);
+	}
+
+	.standard-text {
+		margin: 0;
+		max-width: 68ch;
+		font-size: var(--mw-type-small-size);
+		line-height: 1.5;
+		color: var(--mw-ink-secondary);
+		text-wrap: pretty;
+	}
+
+	.standard-text.clamped {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 3;
+		line-clamp: 3;
+		overflow: hidden;
+	}
+
+	.standard-toggle {
+		margin: 4px 0 0;
+		padding: 8px 0;
+		min-height: var(--mw-touch-target);
+		border: 0;
+		background: none;
+		font: inherit;
+		font-size: var(--mw-type-caption-size);
+		font-weight: 700;
+		color: var(--mw-ink);
+		text-decoration: underline;
+		cursor: pointer;
 	}
 
 	.cards {

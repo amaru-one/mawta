@@ -8,7 +8,7 @@ from uuid import UUID
 from psycopg import AsyncConnection
 
 from db import fetch_all, fetch_one, fetch_required
-from repo.competencies import _conclusion_requirement
+from repo.competencies import _conclusion_requirement, _stage_and_cycle, expected_standards
 from repo.planning import MIN_CONCLUSION_EVIDENCES
 from repo.redaction import (
     ATTRIBUTION_DISCARDED,
@@ -25,6 +25,16 @@ async def conclusion_requirement(
 ) -> str:
     """Why a conclusion is (or is not) mandatory for this competency, student and period."""
     return await _conclusion_requirement(conn, class_id, student_id, competency_id, term_id)
+
+
+async def expected_standard(
+    conn: AsyncConnection, class_id: UUID, competency_id: UUID
+) -> dict | None:
+    """The standard of the level expected at the end of the class's cycle for this competency:
+    the reference the CNEB asks a conclusion to describe progress against. None when the class has
+    no cycle or the competency has no standard at that level."""
+    _, cycle = await _stage_and_cycle(conn, class_id)
+    return (await expected_standards(conn, cycle, [competency_id])).get(competency_id)
 
 
 async def competency_in_class(conn: AsyncConnection, class_id: UUID, competency_id: UUID) -> bool:

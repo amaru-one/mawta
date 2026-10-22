@@ -27,6 +27,7 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { list } from '$lib/api/client';
+	import { cycleLabel } from '$lib/levels';
 	import { agentUnavailable, GenerationAborted, waitForGeneration } from '$lib/api/generation';
 	import { isAgentUnavailable, planningErrorText } from '$lib/api/planningErrors';
 	import type {
@@ -136,12 +137,6 @@
 		standardOpen = false;
 		performanceOpen = false;
 		compIdx = next;
-	}
-
-	// "ciclo_vi" -> "ciclo VI"
-	function cycleLabel(cycle: string | null | undefined): string {
-		if (!cycle) return 'ciclo';
-		return cycle.startsWith('ciclo_') ? `ciclo ${cycle.slice(6).toUpperCase()}` : cycle;
 	}
 
 	function isProposal(criterion: ExperienceCriterionDto): boolean {

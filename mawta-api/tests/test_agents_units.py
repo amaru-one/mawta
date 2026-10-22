@@ -22,6 +22,41 @@ def frag(text, refers_to="other_person", key=""):
     return Fragment(text, refers_to, key)
 
 
+# ------------------------------------------------------------- conclusion material --
+
+
+def _material(standard):
+    from agent.conclusions import Material, Scope
+
+    ids = [uuid.uuid4() for _ in range(4)]
+    m = Material(scope=Scope(*ids), level="B", requirement="level_b", standard=standard)
+    m.competency = {
+        "code": "COM-C1",
+        "name": "Se comunica oralmente",
+        "description": None,
+        "capabilities": [{"id": uuid.uuid4(), "name": "Obtiene información"}],
+    }
+    return m
+
+
+def test_render_puts_the_expected_standard_before_the_level():
+    from agent.conclusions import render
+
+    text, _ = render(
+        _material({"level": 5, "cycle": "ciclo_v", "text": "Se comunica oralmente mediante…"})
+    )
+    assert "Expected standard (CNEB level 5, the level expected at the end of cycle V):" in text
+    assert "Se comunica oralmente mediante…" in text
+    assert text.index("Expected standard") < text.index("Achievement level asserted")
+
+
+def test_render_says_when_there_is_no_standard():
+    from agent.conclusions import render
+
+    text, _ = render(_material(None))
+    assert "Expected standard: not available for this competency." in text
+
+
 # ------------------------------------------------------------- redaction --
 
 

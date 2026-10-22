@@ -2,28 +2,29 @@
 
 import base64
 import json
+from typing import Any
 
 import pytest
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from auth import InvalidToken, TokenVerifier
-from conftest import TENANT_A, USER_QUISPE
+from tests.conftest import TENANT_A, USER_QUISPE, MakeToken
 
 
 @pytest.fixture
-def verifier(public_keys) -> TokenVerifier:
+def verifier(public_keys: dict[str, str]) -> TokenVerifier:
     return TokenVerifier(public_keys)
 
 
-def test_a_directors_token_is_accepted(verifier, make_token):
+def test_a_directors_token_is_accepted(verifier: TokenVerifier, make_token: MakeToken):
     principal = verifier.verify(make_token(USER_QUISPE, TENANT_A))
     assert principal.user_id == USER_QUISPE
     assert principal.tenant_id == TENANT_A
     assert principal.role == "director"
 
 
-def unsigned(claims: dict) -> str:
-    def part(obj: dict) -> str:
+def unsigned(claims: dict[str, Any]) -> str:
+    def part(obj: dict[str, Any]) -> str:
         return base64.urlsafe_b64encode(json.dumps(obj).encode()).rstrip(b"=").decode()
 
     return f"{part({'alg': 'none', 'typ': 'JWT', 'kid': 'k-test'})}.{part(claims)}."
@@ -41,7 +42,7 @@ def unsigned(claims: dict) -> str:
         "no tenant",
     ],
 )
-def test_bad_tokens_are_rejected(verifier, make_token, case):
+def test_bad_tokens_are_rejected(verifier: TokenVerifier, make_token: MakeToken, case: str):
     token = {
         "expired": lambda: make_token(USER_QUISPE, TENANT_A, ttl=-120),
         "other key": lambda: make_token(USER_QUISPE, TENANT_A, key=Ed25519PrivateKey.generate()),
@@ -55,7 +56,7 @@ def test_bad_tokens_are_rejected(verifier, make_token, case):
         verifier.verify(token)
 
 
-def test_an_unsigned_token_is_rejected(verifier):
+def test_an_unsigned_token_is_rejected(verifier: TokenVerifier):
     token = unsigned(
         {
             "iss": "mawta-server",

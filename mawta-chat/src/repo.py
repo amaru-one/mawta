@@ -4,7 +4,8 @@ Database.tenant_tx, so RLS limits it to the director's own school and chats."""
 from typing import Any
 from uuid import UUID
 
-from psycopg import AsyncConnection
+from psycopg import AsyncConnection, AsyncCursor
+from psycopg.rows import DictRow
 from psycopg.types.json import Jsonb
 
 from auth import Principal
@@ -13,7 +14,15 @@ DEFAULT_TITLE = "Nuevo chat"
 TITLE_MAX = 60
 
 
-async def list_threads(conn: AsyncConnection) -> list[dict[str, Any]]:
+async def returned(cur: AsyncCursor[DictRow]) -> DictRow:
+    """The row of an insert ... returning, which always has one."""
+    row = await cur.fetchone()
+    if row is None:
+        raise RuntimeError("the statement returned no row")
+    return row
+
+
+async def list_threads(conn: AsyncConnection[DictRow]) -> list[dict[str, Any]]:
     cur = await conn.execute(
         """
         select id, title, created_at, updated_at
@@ -25,7 +34,7 @@ async def list_threads(conn: AsyncConnection) -> list[dict[str, Any]]:
     return await cur.fetchall()
 
 
-async def create_thread(conn: AsyncConnection, principal: Principal) -> dict[str, Any]:
+async def create_thread(conn: AsyncConnection[DictRow], principal: Principal) -> dict[str, Any]:
     cur = await conn.execute(
         """
         insert into chat.threads (tenant_id, user_id)
@@ -34,10 +43,10 @@ async def create_thread(conn: AsyncConnection, principal: Principal) -> dict[str
         """,
         (principal.tenant_id, principal.user_id),
     )
-    return await cur.fetchone()
+    return await returned(cur)
 
 
-async def get_thread(conn: AsyncConnection, thread_id: UUID) -> dict[str, Any] | None:
+async def get_thread(conn: AsyncConnection[DictRow], thread_id: UUID) -> dict[str, Any] | None:
     cur = await conn.execute(
         "select id, title, created_at, updated_at from chat.threads where id = %s and deleted_at is null",
         (thread_id,),
@@ -46,7 +55,7 @@ async def get_thread(conn: AsyncConnection, thread_id: UUID) -> dict[str, Any] |
 
 
 async def rename_thread(
-    conn: AsyncConnection, thread_id: UUID, title: str
+    conn: AsyncConnection[DictRow], thread_id: UUID, title: str
 ) -> dict[str, Any] | None:
     cur = await conn.execute(
         """
@@ -59,7 +68,7 @@ async def rename_thread(
     return await cur.fetchone()
 
 
-async def delete_thread(conn: AsyncConnection, thread_id: UUID) -> bool:
+async def delete_thread(conn: AsyncConnection[DictRow], thread_id: UUID) -> bool:
     cur = await conn.execute(
         "update chat.threads set deleted_at = now() where id = %s and deleted_at is null",
         (thread_id,),
@@ -67,7 +76,7 @@ async def delete_thread(conn: AsyncConnection, thread_id: UUID) -> bool:
     return cur.rowcount == 1
 
 
-async def list_messages(conn: AsyncConnection, thread_id: UUID) -> list[dict[str, Any]]:
+async def list_messages(conn: AsyncConnection[DictRow], thread_id: UUID) -> list[dict[str, Any]]:
     cur = await conn.execute(
         """
         select id, author, protocol_version, blocks, created_at
@@ -81,7 +90,7 @@ async def list_messages(conn: AsyncConnection, thread_id: UUID) -> list[dict[str
 
 
 async def add_director_message(
-    conn: AsyncConnection, principal: Principal, thread_id: UUID, text: str
+    conn: AsyncConnection[DictRow], principal: Principal, thread_id: UUID, text: str
 ) -> UUID:
     cur = await conn.execute(
         """
@@ -96,7 +105,7 @@ async def add_director_message(
             Jsonb([{"tipo": "texto", "md": text}]),
         ),
     )
-    message_id = (await cur.fetchone())["id"]
+    message_id = (await returned(cur))["id"]
     # The first question names the chat, unless the director already did.
     title = text if len(text) <= TITLE_MAX else text[: TITLE_MAX - 1].rstrip() + "…"
     await conn.execute(
@@ -112,7 +121,7 @@ async def add_director_message(
 
 
 async def add_mawta_message(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     principal: Principal,
     thread_id: UUID,
     blocks: list[dict[str, Any]],
@@ -141,12 +150,12 @@ async def add_mawta_message(
             latency_ms,
         ),
     )
-    message_id = (await cur.fetchone())["id"]
+    message_id = (await returned(cur))["id"]
     await conn.execute("update chat.threads set updated_at = now() where id = %s", (thread_id,))
     return message_id
 
 
-async def school_name(conn: AsyncConnection) -> str:
+async def school_name(conn: AsyncConnection[DictRow]) -> str:
     cur = await conn.execute("select name from chat_api.school")
     row = await cur.fetchone()
     return row["name"] if row else "el colegio"

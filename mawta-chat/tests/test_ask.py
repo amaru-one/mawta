@@ -3,11 +3,23 @@
 import json
 from typing import Any
 
-from conftest import TENANT_A, TENANT_B, USER_FLORES, USER_QUISPE, bearer, text_turn, tool_turn
+import httpx
+
+from tests.conftest import (
+    TENANT_A,
+    TENANT_B,
+    USER_FLORES,
+    USER_QUISPE,
+    FakeLLM,
+    MakeToken,
+    bearer,
+    text_turn,
+    tool_turn,
+)
 
 
 def parse_sse(body: str) -> list[dict[str, Any]]:
-    events = []
+    events: list[dict[str, Any]] = []
     for chunk in body.replace("\r\n", "\n").split("\n\n"):
         data = [
             line[len("data:") :].strip() for line in chunk.split("\n") if line.startswith("data:")
@@ -17,7 +29,9 @@ def parse_sse(body: str) -> list[dict[str, Any]]:
     return events
 
 
-async def ask(client, headers, thread_id, text) -> list[dict[str, Any]]:
+async def ask(
+    client: httpx.AsyncClient, headers: dict[str, str], thread_id: str, text: str
+) -> list[dict[str, Any]]:
     response = await client.post(
         f"/threads/{thread_id}/messages", json={"texto": text}, headers=headers
     )
@@ -25,7 +39,9 @@ async def ask(client, headers, thread_id, text) -> list[dict[str, Any]]:
     return parse_sse(response.text)
 
 
-async def test_a_question_uses_the_tool_and_streams_the_answer(client, make_token, fake_llm):
+async def test_a_question_uses_the_tool_and_streams_the_answer(
+    client: httpx.AsyncClient, make_token: MakeToken, fake_llm: FakeLLM
+):
     me = bearer(make_token(USER_QUISPE, TENANT_A))
     thread = (await client.post("/threads", headers=me)).json()
     fake_llm.script(tool_turn(), text_turn("Tu colegio tiene una sección: 5to B."))
@@ -55,7 +71,9 @@ async def test_a_question_uses_the_tool_and_streams_the_answer(client, make_toke
     )
 
 
-async def test_the_next_question_carries_the_history(client, make_token, fake_llm):
+async def test_the_next_question_carries_the_history(
+    client: httpx.AsyncClient, make_token: MakeToken, fake_llm: FakeLLM
+):
     me = bearer(make_token(USER_QUISPE, TENANT_A))
     thread = (await client.post("/threads", headers=me)).json()
     fake_llm.script(tool_turn(), text_turn("Una sección."), text_turn("Es de turno mañana."))
@@ -71,7 +89,9 @@ async def test_the_next_question_carries_the_history(client, make_token, fake_ll
     assert sent[-1]["content"] == "¿De qué turno es?"
 
 
-async def test_the_tool_only_sees_the_directors_school(client, make_token, fake_llm):
+async def test_the_tool_only_sees_the_directors_school(
+    client: httpx.AsyncClient, make_token: MakeToken, fake_llm: FakeLLM
+):
     other = bearer(make_token(USER_FLORES, TENANT_B))
     thread = (await client.post("/threads", headers=other)).json()
     fake_llm.script(tool_turn(), text_turn("Una sección."))
@@ -84,7 +104,9 @@ async def test_the_tool_only_sees_the_directors_school(client, make_token, fake_
     ]  # San Martín's 5to A, never Cristo Rey's 5to B
 
 
-async def test_a_model_failure_becomes_an_error_event_and_is_saved(client, make_token, fake_llm):
+async def test_a_model_failure_becomes_an_error_event_and_is_saved(
+    client: httpx.AsyncClient, make_token: MakeToken, fake_llm: FakeLLM
+):
     me = bearer(make_token(USER_QUISPE, TENANT_A))
     thread = (await client.post("/threads", headers=me)).json()
     fake_llm.script(RuntimeError("the API is down"))
@@ -96,7 +118,9 @@ async def test_a_model_failure_becomes_an_error_event_and_is_saved(client, make_
     assert messages[-1]["blocks"][0]["codigo"] == "respuesta_fallida"
 
 
-async def test_asking_in_someone_elses_chat_is_not_found(client, make_token, fake_llm):
+async def test_asking_in_someone_elses_chat_is_not_found(
+    client: httpx.AsyncClient, make_token: MakeToken, fake_llm: FakeLLM
+):
     owner = bearer(make_token(USER_QUISPE, TENANT_A))
     thread = (await client.post("/threads", headers=owner)).json()
     other = bearer(make_token(USER_FLORES, TENANT_B))

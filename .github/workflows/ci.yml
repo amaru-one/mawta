@@ -32,9 +32,22 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
         with:
-          version: '0.13.1'
-      # The transcoding path shells out to ffmpeg.
-      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+          version: '0.13.5'
+      # The transcoding path shells out to ffmpeg (tests/test_media.py runs it). A static
+      # build is one download with no system libraries; apt took 4-5 minutes on a slow mirror.
+      # The site only publishes the current release, so the tarball is checked against the
+      # md5 it publishes next to it, and test_media.py fails if a build ever drops MP3, Opus
+      # or AAC.
+      - name: Install a static ffmpeg
+        working-directory: ${{ runner.temp }}
+        run: |
+          base=https://johnvansickle.com/ffmpeg/releases
+          curl -fsSL --retry 5 --retry-delay 5 -O "$base/ffmpeg-release-amd64-static.tar.xz"
+          curl -fsSL --retry 5 --retry-delay 5 -O "$base/ffmpeg-release-amd64-static.tar.xz.md5"
+          md5sum -c ffmpeg-release-amd64-static.tar.xz.md5
+          tar -xJf ffmpeg-release-amd64-static.tar.xz --strip-components=1 --wildcards '*/ffmpeg'
+          sudo install -m 0755 ffmpeg /usr/local/bin/ffmpeg
+          ffmpeg -version | head -1
       - run: uv sync --frozen
       - run: uv run ruff check .
       - run: uv run ruff format --check .
@@ -44,16 +57,22 @@ jobs:
 
   ui:
     runs-on: ubuntu-latest
+    # The component tests run in real Chromium and WebKit. This image ships both
+    # plus their system libraries, so the job no longer downloads them through
+    # apt (a slow mirror once stretched that step to 20 minutes). Keep the tag
+    # equal to the `playwright` version locked in mawta-ui/bun.lock.
+    container: mcr.microsoft.com/playwright:v1.63.0-noble
     defaults:
       run:
         working-directory: mawta-ui
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
+      # setup-bun unzips its download and the Playwright image has no `unzip`;
+      # the npm package ships the same binary and the image already has Node.
+      - run: npm install --global bun
       - run: bun install --frozen-lockfile
       - run: bun run check
       - run: bun eslint .
-      - run: bunx playwright install --with-deps chromium webkit
       - run: bun run test:components
       - run: bun run build
 
@@ -81,7 +100,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
         with:
-          version: '0.13.1'
+          version: '0.13.5'
       - run: uv sync --frozen
       - run: uv run ruff check .
       - run: uv run ruff format --check .

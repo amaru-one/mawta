@@ -51,6 +51,31 @@ async def _stage_and_cycle(conn: AsyncConnection, class_id: UUID) -> tuple[str, 
     return row["stage"], row["cycle"]
 
 
+async def expected_standards(
+    conn: AsyncConnection, cycle: str, competency_ids: list[UUID]
+) -> dict[UUID, dict]:
+    """The learning standard each competency expects at the end of `cycle` (CNEB: the level is
+    judged against the standard of the cycle's expected level), keyed by competency id. A
+    competency without a standard at that level is left out."""
+    if not cycle or not competency_ids:
+        return {}
+    rows = await fetch_all(
+        conn,
+        """
+        select s.competency_id, s.level, s.official_text
+          from standard_level_mappings m
+          join learning_standards s on s.level = m.expected_level
+         where m.modality = 'ebr' and m.cycle = %s and m.deleted_at is null
+           and s.competency_id = any(%s) and s.deleted_at is null
+        """,
+        (cycle, competency_ids),
+    )
+    return {
+        r["competency_id"]: {"level": r["level"], "cycle": cycle, "text": r["official_text"]}
+        for r in rows
+    }
+
+
 async def list_class_competency_levels(
     conn: AsyncConnection, class_id: UUID, student_id: UUID, term_id: UUID
 ) -> list[dict] | None:
@@ -127,6 +152,7 @@ async def list_class_competency_levels(
         """,
         {"class": class_id, "student": student_id, "term": term_id, "c": domain.LEVEL_C},
     )
+    standards = await expected_standards(conn, cycle, [r["competency_id"] for r in rows])
     out = []
     for r in rows:
         requirement = classify_conclusion_requirement(
@@ -147,6 +173,7 @@ async def list_class_competency_levels(
                 "conclusion_body": r["conclusion_body"],
                 "conclusion_status": r["conclusion_status"],
                 "grades_changed": r["grades_changed"],
+                "standard": standards.get(r["competency_id"]),
             }
         )
     return out or None

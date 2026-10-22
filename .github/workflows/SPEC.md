@@ -2,7 +2,7 @@
 GitHub Actions pipelines: CI checks on every PR/push, and production deploy on push to `main`.
 
 ## Contents
-- `ci.yml` — two jobs: `api` (Python 3.13 in `mawta-api/` with uv: `ruff check`, `ruff format --check`, then `pytest` against a `postgres:16` service container, with ffmpeg installed for the voice-note path) and `ui` (Bun, `bun install --frozen-lockfile`, `bun run check`, `bun eslint .`, `bun run build` in `mawta-ui/`). Runs on pull_request and push to `main`.
+- `ci.yml` — two jobs: `api` (Python 3.14 in `mawta-api/` with uv: `ruff check`, `ruff format --check`, then `pytest` against a `postgres:16` service container, with ffmpeg installed for the voice-note path) and `ui` (Bun, `bun install --frozen-lockfile`, `bun run check`, `bun eslint .`, `bun run build` in `mawta-ui/`). Runs on pull_request and push to `main`.
 - `deploy.yml` — on push to `main` (concurrency group `deploy-production`, no cancel-in-progress): builds the API image and pushes to GHCR (`ghcr.io/<owner>/mawta-api:latest` + `:sha`), builds the SPA with empty `PUBLIC_API_BASE_URL` (no auth-related build vars any more), then deploys to the VPS over SSH and smoke-tests it.
 
 ## Inputs / Outputs

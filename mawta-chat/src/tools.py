@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 SHIFTS = {
     "manana": "Mañana",
@@ -40,7 +41,7 @@ SECTIONS_TOOL: dict[str, Any] = {
 TOOLS = [SECTIONS_TOOL]
 
 
-async def school_sections(conn: AsyncConnection) -> ToolOutcome:
+async def school_sections(conn: AsyncConnection[DictRow]) -> ToolOutcome:
     cur = await conn.execute(
         """
         select academic_year, grade_long, section, shift, status
@@ -69,7 +70,7 @@ async def school_sections(conn: AsyncConnection) -> ToolOutcome:
     return ToolOutcome(result=result, blocks=[table] if rows else [])
 
 
-async def run_tool(name: str, tool_input: Any, conn: AsyncConnection) -> ToolOutcome:
+async def run_tool(name: str, tool_input: Any, conn: AsyncConnection[DictRow]) -> ToolOutcome:
     if name == "secciones_del_colegio":
         if tool_input not in ({}, None):
             return ToolOutcome(result={"error": "this tool takes no input"}, is_error=True)

@@ -1,11 +1,15 @@
 """Runtime configuration, read from the environment (and .env in development)."""
 
+from typing import ClassVar
+
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from llm import Effort
+
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(env_file=".env", extra="ignore")
 
     # The mawta database, as the mawta_chat role: reads chat_api, writes chat.
     chat_database_url: str
@@ -17,7 +21,7 @@ class Settings(BaseSettings):
     anthropic_api_key: SecretStr
 
     chat_model: str = "claude-sonnet-5-5"
-    chat_effort: str = "medium"
+    chat_effort: Effort = "medium"
     chat_max_tokens: int = 16000
     # Model calls per question (each tool round is one more call).
     chat_max_model_calls: int = 6

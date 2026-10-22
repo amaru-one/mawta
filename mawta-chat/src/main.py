@@ -8,7 +8,7 @@ import json
 import logging
 import os
 import time
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator, AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Annotated, Any
 from uuid import UUID
@@ -32,7 +32,12 @@ log = logging.getLogger("mawta_chat")
 
 
 class ApiError(Exception):
+    status: int
+    code: str
+    message: str
+
     def __init__(self, status: int, code: str, message: str) -> None:
+        super().__init__(message)
         self.status, self.code, self.message = status, code, message
 
 
@@ -44,10 +49,25 @@ class QuestionBody(BaseModel):
     texto: str = Field(min_length=1, max_length=4000)
 
 
+async def principal(request: Request) -> Principal:
+    scheme, _, token = request.headers.get("authorization", "").partition(" ")
+    if scheme.lower() != "bearer" or not token:
+        raise ApiError(401, "missing_token", "falta el token del chat")
+    try:
+        return request.app.state.verifier.verify(token.strip())
+    except InvalidToken:
+        raise ApiError(401, "invalid_token", "el token del chat no es válido o venció") from None
+
+
+Director = Annotated[Principal, Depends(principal)]
+
+
 def create_app(settings: Settings | None = None, llm: LLM | None = None) -> FastAPI:
     @asynccontextmanager
-    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        cfg = settings or Settings()
+    async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
+        # Settings reads its required fields from the environment, which the
+        # checker cannot see.
+        cfg = settings or Settings()  # pyright: ignore[reportCallIssue]
         model = llm or AnthropicLLM(
             api_key=cfg.anthropic_api_key.get_secret_value(),
             model=cfg.chat_model,
@@ -74,19 +94,6 @@ def create_app(settings: Settings | None = None, llm: LLM | None = None) -> Fast
             {"error": {"code": exc.code, "message": exc.message}},
             status_code=exc.status,
         )
-
-    async def principal(request: Request) -> Principal:
-        scheme, _, token = request.headers.get("authorization", "").partition(" ")
-        if scheme.lower() != "bearer" or not token:
-            raise ApiError(401, "missing_token", "falta el token del chat")
-        try:
-            return request.app.state.verifier.verify(token.strip())
-        except InvalidToken:
-            raise ApiError(
-                401, "invalid_token", "el token del chat no es válido o venció"
-            ) from None
-
-    Director = Annotated[Principal, Depends(principal)]
 
     def not_found() -> ApiError:
         return ApiError(404, "thread_not_found", "no encontramos ese chat")
@@ -163,7 +170,8 @@ def create_app(settings: Settings | None = None, llm: LLM | None = None) -> Fast
         blocks: list[dict[str, Any]] = []
         text: list[str] = []
         tool_calls: list[dict[str, Any]] = []
-        usage = {"model": None, "input_tokens": 0, "output_tokens": 0}
+        usage_model: str | None = None
+        input_tokens = output_tokens = 0
 
         def flush_text() -> None:
             if "".join(text).strip():
@@ -205,9 +213,9 @@ def create_app(settings: Settings | None = None, llm: LLM | None = None) -> Fast
                 elif kind == "tool_call":
                     tool_calls.append({k: v for k, v in chunk.items() if k != "kind"})
                 elif kind == "usage":
-                    usage["model"] = chunk["model"]
-                    usage["input_tokens"] += chunk["input_tokens"]
-                    usage["output_tokens"] += chunk["output_tokens"]
+                    usage_model = chunk["model"]
+                    input_tokens += chunk["input_tokens"]
+                    output_tokens += chunk["output_tokens"]
                 elif kind == "error":
                     flush_text()
                     failure = {
@@ -236,9 +244,9 @@ def create_app(settings: Settings | None = None, llm: LLM | None = None) -> Fast
                 thread_id,
                 blocks,
                 json.loads(json.dumps(tool_calls, default=str)),
-                usage["model"],
-                usage["input_tokens"],
-                usage["output_tokens"],
+                usage_model,
+                input_tokens,
+                output_tokens,
                 int((time.monotonic() - started) * 1000),
             )
         yield to_sse(event("fin", message_id=str(message_id)))

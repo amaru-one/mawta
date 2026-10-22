@@ -108,6 +108,7 @@ class Material:
     level: str | None = None
     requirement: str = ""
     competency: dict = field(default_factory=dict)
+    standard: dict | None = None
     evidences: list[dict] = field(default_factory=list)
     voice_notes: list[dict] = field(default_factory=list)
     note_counts: dict = field(default_factory=lambda: {"discarded": 0, "pending": 0})
@@ -175,6 +176,7 @@ async def gather(conn: AsyncConnection, s: Scope) -> Material:
         conn, s.class_id, s.student_id, s.competency_id, s.term_id
     )
     m.competency = await ctx_repo.get_competency_brief(conn, s.competency_id)
+    m.standard = await ctx_repo.expected_standard(conn, s.class_id, s.competency_id)
     m.evidences = await ctx_repo.list_conclusion_evidence(
         conn, s.class_id, s.student_id, s.competency_id, s.term_id
     )
@@ -258,6 +260,16 @@ def render(m: Material) -> tuple[str, Refs]:
         key = f"C{i}"
         r.capabilities[c["id"]] = key
         b.append(f"- {key}: {c['name']}")
+    if m.standard is not None:
+        cycle = m.standard["cycle"].removeprefix("ciclo_").upper()
+        b += [
+            "",
+            f"Expected standard (CNEB level {m.standard['level']}, the level expected at the end "
+            f"of cycle {cycle}):",
+            m.standard["text"],
+        ]
+    else:
+        b += ["", "Expected standard: not available for this competency."]
     b += [
         "",
         f"Achievement level asserted by the teacher for this term: {m.level}",

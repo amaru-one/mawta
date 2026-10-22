@@ -1,0 +1,17 @@
+{
+  "reportAny": false,
+  "reportExplicitAny": false,
+  "reportUnusedCallResult": false,
+  "executionEnvironments": [
+    {
+      "root": "mawta-api",
+      "pythonVersion": "3.14",
+      "extraPaths": ["mawta-api/src", "mawta-api/.venv/lib/python3.14/site-packages"]
+    },
+    {
+      "root": "mawta-chat",
+      "pythonVersion": "3.14",
+      "extraPaths": ["mawta-chat/src", "mawta-chat/.venv/lib/python3.14/site-packages"]
+    }
+  ]
+}

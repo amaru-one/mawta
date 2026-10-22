@@ -2,13 +2,17 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Protocol
+from typing import Any, Literal, Protocol, cast
 
 from anthropic import AsyncAnthropic
+from anthropic.lib.tools import BetaToolLike
+from anthropic.types.beta import BetaMessageParam
 
 # Server-side refusal fallback (Claude API): if the model declines on a safety
 # classifier, the API re-runs the request on a fallback model it chooses.
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
+
+Effort = Literal["low", "medium", "high", "xhigh", "max"]
 
 
 @dataclass
@@ -31,11 +35,17 @@ class LLM(Protocol):
         messages: list[dict[str, Any]],
         tools: list[dict[str, Any]],
         on_text: Callable[[str], None],
+        /,
     ) -> ModelTurn: ...
 
 
 class AnthropicLLM:
-    def __init__(self, api_key: str, model: str, effort: str, max_tokens: int) -> None:
+    client: AsyncAnthropic
+    model: str
+    effort: Effort
+    max_tokens: int
+
+    def __init__(self, api_key: str, model: str, effort: Effort, max_tokens: int) -> None:
         self.client = AsyncAnthropic(api_key=api_key)
         self.model = model
         self.effort = effort
@@ -52,8 +62,10 @@ class AnthropicLLM:
             model=self.model,
             max_tokens=self.max_tokens,
             system=system,
-            messages=messages,
-            tools=tools,
+            # The history and tools are kept as the API's own JSON shapes, so
+            # they are only relabelled here, not converted.
+            messages=cast(list[BetaMessageParam], messages),
+            tools=cast(list[BetaToolLike], tools),
             output_config={"effort": self.effort},
             betas=[FALLBACK_BETA],
             fallbacks="default",

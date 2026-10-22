@@ -677,6 +677,23 @@ async def test_confirmed_experience_reaches_calendar_and_students(planner, admin
     assert await topic("2026-06-03") is None
 
 
+async def test_level_screen_carries_the_expected_standard_of_the_cycle(planner, student):
+    """The nivel de logro is judged against the standard of the cycle's expected level (CNEB),
+    so the registration screen returns it with every competency."""
+    path = f"/api/v1/classes/{planner.class_id}/students/{student}/competencies"
+    comps = {
+        c["competency_id"]: c
+        for c in (await planner.call("GET", path, want=200)).json()["competencies"]
+    }
+    std = comps[str(FX.competency_c1)]["standard"]
+    assert std == {
+        "level": 7,
+        "cycle": "ciclo_vii",
+        "text": "Resuelve problemas referidos a las relaciones entre cantidades.",
+    }
+    assert comps[str(FX.competency_c2)]["standard"]["level"] == 7
+
+
 async def test_students_without_an_active_term_read_the_latest_closed_one(planner, admin, student):
     """With no active term (between two terms) the screens still show the class's evidence:
     they fall back to the latest closed term, read-only."""

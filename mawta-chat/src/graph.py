@@ -14,11 +14,11 @@ route turns those reports into protocol v1 events.
 import json
 import logging
 import operator
-from typing import Annotated, Any, Literal, TypedDict
+from typing import Annotated, Any, Literal, TypedDict, cast
 
 from langchain_core.runnables import RunnableConfig
 from langgraph.config import get_stream_writer
-from langgraph.graph import END, START, StateGraph
+from langgraph.graph import START, StateGraph
 
 from llm import LLM
 from tools import TOOL_STATUS, TOOLS, ToolOutcome, run_tool
@@ -57,10 +57,12 @@ def thread_key(tenant_id: Any, user_id: Any, thread_id: Any) -> str:
     return f"{tenant_id}:{user_id}:{thread_id}"
 
 
+def is_tool_use(block: object) -> bool:
+    return isinstance(block, dict) and cast(dict[str, object], block).get("type") == "tool_use"
+
+
 def has_tool_use(message: dict[str, Any]) -> bool:
-    return message["role"] == "assistant" and any(
-        b.get("type") == "tool_use" for b in message["content"] if isinstance(b, dict)
-    )
+    return message["role"] == "assistant" and any(is_tool_use(b) for b in message["content"])
 
 
 def build_graph(llm: LLM, max_model_calls: int, checkpointer: Any):
@@ -79,7 +81,7 @@ def build_graph(llm: LLM, max_model_calls: int, checkpointer: Any):
             }
 
         turn = await llm.respond(
-            config["configurable"]["system"],
+            config.get("configurable", {})["system"],
             state["messages"],
             TOOLS,
             lambda text: writer({"kind": "text", "delta": text}),
@@ -108,8 +110,8 @@ def build_graph(llm: LLM, max_model_calls: int, checkpointer: Any):
 
     async def tools(state: ChatState, config: RunnableConfig) -> dict[str, Any]:
         writer = get_stream_writer()
-        configurable = config["configurable"]
-        results = []
+        configurable = config.get("configurable", {})
+        results: list[dict[str, Any]] = []
         tool_uses = [b for b in state["messages"][-1]["content"] if b.get("type") == "tool_use"]
         async with configurable["db"].tenant_tx(configurable["principal"]) as conn:
             for block in tool_uses:
@@ -147,12 +149,14 @@ def build_graph(llm: LLM, max_model_calls: int, checkpointer: Any):
     def after_agent(state: ChatState) -> Literal["tools", "__end__"]:
         if state["stop_reason"] != "limit" and has_tool_use(state["messages"][-1]):
             return "tools"
-        return END
+        return "__end__"  # END; a Literal, so LangGraph can draw the edge
 
     graph = StateGraph(ChatState)
-    graph.add_node("agent", agent)
-    graph.add_node("tools", tools)
+    # LangGraph's own signatures leave some generics unresolved (CachePolicy,
+    # BaseCheckpointSaver) in parameters this graph does not use.
+    graph.add_node("agent", agent)  # pyright: ignore[reportUnknownMemberType]
+    graph.add_node("tools", tools)  # pyright: ignore[reportUnknownMemberType]
     graph.add_edge(START, "agent")
     graph.add_conditional_edges("agent", after_agent)
     graph.add_edge("tools", "agent")
-    return graph.compile(checkpointer=checkpointer)
+    return graph.compile(checkpointer=checkpointer)  # pyright: ignore[reportUnknownMemberType]

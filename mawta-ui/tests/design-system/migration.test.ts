@@ -38,11 +38,11 @@ test('fields expose focus and disclosures support keyboard activation', async ()
 
 test('official level starts unset and native radios support arrow keys', async () => {
 	const screen = await render(MigrationFixture);
-	const first = screen.getByRole('radio', { name: 'AD · Destacado' });
+	const first = screen.getByRole('radio', { name: 'AD · Logro destacado' });
 	await expect.element(first).not.toBeChecked();
 	(first.element() as HTMLElement).focus();
 	await userEvent.keyboard('{ArrowRight}');
-	await expect.element(screen.getByRole('radio', { name: 'A · Esperado' })).toBeChecked();
+	await expect.element(screen.getByRole('radio', { name: 'A · Logro esperado' })).toBeChecked();
 	await expect.element(screen.getByRole('radio', { name: 'C · En inicio' })).not.toBeChecked();
 });
 

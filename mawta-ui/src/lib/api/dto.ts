@@ -301,7 +301,12 @@ export type CompetencyLevelDto = {
 	// A score of this competency changed after the live conclusion was written:
 	// the conclusion can be saved again even if its text did not change.
 	grades_changed: boolean;
+	// The standard of the level expected at the end of the class's cycle: the
+	// reference the level is judged against (CNEB). Null when there is none.
+	standard: CycleStandardDto | null;
 };
+
+export type CycleStandardDto = { level: number; cycle: string; text: string };
 
 export type CompetencyLevelsDto = { competencies: CompetencyLevelDto[] | null };
 
