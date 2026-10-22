@@ -2,6 +2,7 @@
 
 import copy
 import json
+from collections.abc import Callable
 from pathlib import Path
 
 import psycopg
@@ -72,17 +73,20 @@ def test_unknown_key_and_wrong_type_are_decode_errors():
         spec_mod.decode("{not json")
 
 
-@pytest.mark.parametrize(
-    "mutate,fragment",
-    [
-        (lambda s: setattr(s.colegio, "codigo_modular", "123"), "7 dígitos"),
-        (lambda s: setattr(s.docentes[0], "usuario", "Bad User"), "minúsculas"),
-        (lambda s: setattr(s.clases[0], "area", "NOPE"), "no está en la lista de áreas"),
-        (lambda s: setattr(s.clases[0], "aula", "9X-Z"), "no existe"),
-        (lambda s: setattr(s.anio_escolar, "estructura", "decenio"), "no es válido"),
-    ],
-)
-def test_validation_names_the_problem(cat: curriculum.Catalog, mutate, fragment):
+# One broken field each, and the words the error must use to name it.
+MUTATIONS: list[tuple[Callable[[spec_mod.Spec], None], str]] = [
+    (lambda s: setattr(s.colegio, "codigo_modular", "123"), "7 dígitos"),
+    (lambda s: setattr(s.docentes[0], "usuario", "Bad User"), "minúsculas"),
+    (lambda s: setattr(s.clases[0], "area", "NOPE"), "no está en la lista de áreas"),
+    (lambda s: setattr(s.clases[0], "aula", "9X-Z"), "no existe"),
+    (lambda s: setattr(s.anio_escolar, "estructura", "decenio"), "no es válido"),
+]
+
+
+@pytest.mark.parametrize("mutate,fragment", MUTATIONS)
+def test_validation_names_the_problem(
+    cat: curriculum.Catalog, mutate: Callable[[spec_mod.Spec], None], fragment: str
+):
     spec = copy.deepcopy(example_spec())
     mutate(spec)
     with pytest.raises(ValidationErrors) as err:

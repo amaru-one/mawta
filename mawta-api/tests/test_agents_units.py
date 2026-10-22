@@ -4,11 +4,16 @@ Anthropic client's schema/classification, the STT client and the transcribe hand
 import base64
 import json
 import uuid
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 import httpx
 import pytest
+from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 import applog
+from agent.conclusions import Material
 from agent.conclusions.guard import guard, name_words
 from agent.llm import LLMError
 from agent.llm.anthropic import classify, strict_schema
@@ -21,15 +26,15 @@ from tests.conftest import Client as AppClient
 from worker.handlers.transcribe import voice_note_transcribe
 
 
-def frag(text, refers_to="other_person", key=""):
+def frag(text: str, refers_to: str = "other_person", key: str = "") -> Fragment:
     return Fragment(text, refers_to, key)
 
 
 # ------------------------------------------------------------- conclusion material --
 
 
-def _material(standard):
-    from agent.conclusions import Material, Scope
+def _material(standard: dict[str, Any] | None) -> Material:
+    from agent.conclusions import Scope
 
     ids = [uuid.uuid4() for _ in range(4)]
     m = Material(scope=Scope(*ids), level="B", requirement="level_b", standard=standard)
@@ -128,7 +133,7 @@ def test_guard_rejects_tokens_and_capitalised_names_only():
 
 
 def test_strict_schema_closes_every_object_without_mutating_input():
-    schema = {
+    schema: dict[str, Any] = {
         "type": "object",
         "properties": {"items": {"type": "array", "items": {"type": "object", "properties": {}}}},
     }
@@ -157,15 +162,15 @@ def test_classify_provider_errors():
 # ------------------------------------------------------------------- stt --
 
 
-def make_stt(handler, key="k"):
+def make_stt(handler: Callable[[httpx.Request], httpx.Response], key: str = "k") -> Client:
     http = httpx.AsyncClient(transport=httpx.MockTransport(handler))
     return Client(key, "m", endpoint="https://stt.test/x", http=http)
 
 
 async def test_stt_success_reports_provider_usage_and_never_the_audio():
-    seen = {}
+    seen: dict[str, Any] = {}
 
-    def handler(request):
+    def handler(request: httpx.Request) -> httpx.Response:
         seen["body"] = json.loads(request.content)
         seen["auth"] = request.headers["authorization"]
         return httpx.Response(
@@ -194,16 +199,19 @@ async def test_stt_error_classes():
 
 
 class FakeTranscriber:
+    text: str
+    error: Exception | None
+
     def __init__(self, text: str = "", error: Exception | None = None) -> None:
         self.text, self.error = text, error
 
-    async def transcribe(self, audio_mp3: bytes) -> str:
+    async def transcribe(self, _audio_mp3: bytes) -> str:
         if self.error:
             raise self.error
         return self.text
 
 
-async def insert_note(admin: Admin, audio=b"fake"):
+async def insert_note(admin: Admin, audio: bytes = b"fake") -> uuid.UUID:
     from tests.conftest import FX
 
     note = uuid.uuid4()
@@ -223,7 +231,11 @@ async def insert_note(admin: Admin, audio=b"fake"):
     return note
 
 
-async def run_handler(client: AppClient, handler, note):
+async def run_handler(
+    client: AppClient,
+    handler: Callable[[AsyncConnection[DictRow], int, dict[str, Any]], Awaitable[None]],
+    note: uuid.UUID,
+) -> applog.OutcomeReport:
     from db import TenantCtx
     from tests.conftest import FX
 
@@ -237,7 +249,7 @@ async def run_handler(client: AppClient, handler, note):
     return report
 
 
-async def note_state(admin: Admin, note):
+async def note_state(admin: Admin, note: uuid.UUID) -> DictRow:
     cur = await admin.execute(
         "select transcription_status, transcript from voice_notes where id = %s", (note,)
     )

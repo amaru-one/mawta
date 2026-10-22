@@ -9,6 +9,7 @@ lands.
 """
 
 import uuid
+from typing import Any
 
 import pytest
 
@@ -86,9 +87,11 @@ async def callers(login: Login):
     )
 
 
-@pytest.mark.parametrize("name,method,path,body", READ_ROUTES, ids=[r[0] for r in READ_ROUTES])
+@pytest.mark.parametrize(
+    "method,path,body", [pytest.param(m, p, b, id=n) for n, m, p, b in READ_ROUTES]
+)
 async def test_class_scoped_reads_require_an_assignment(
-    client: Client, callers: tuple[str, str, str], name, method, path, body
+    client: Client, callers: tuple[str, str, str], method: str, path: str, body: Any
 ):
     quispe, rojas, flores = callers
     assert (await client.do(quispe, method, path, body)).status_code < 300
@@ -97,9 +100,11 @@ async def test_class_scoped_reads_require_an_assignment(
     assert (await client.do(flores, method, path, body)).status_code in (403, 404)
 
 
-@pytest.mark.parametrize("name,method,path,body", WRITE_ROUTES, ids=[r[0] for r in WRITE_ROUTES])
+@pytest.mark.parametrize(
+    "method,path,body", [pytest.param(m, p, b, id=n) for n, m, p, b in WRITE_ROUTES]
+)
 async def test_class_scoped_writes_require_an_assignment(
-    client: Client, callers: tuple[str, str, str], name, method, path, body
+    client: Client, callers: tuple[str, str, str], method: str, path: str, body: Any
 ):
     _, rojas, _ = callers
     resp = await client.do(rojas, method, path, body)
@@ -148,7 +153,9 @@ async def test_a_student_outside_the_class_is_refused(
 @pytest.mark.parametrize(
     "path", ["/api/v1/me", "/api/v1/home", "/api/v1/profile", "/api/v1/notifications"]
 )
-async def test_teacher_keyed_routes_stay_open(client: Client, callers: tuple[str, str, str], path):
+async def test_teacher_keyed_routes_stay_open(
+    client: Client, callers: tuple[str, str, str], path: str
+):
     _, rojas, _ = callers
     resp = await client.do(rojas, "GET", path)
     assert resp.status_code == 200, resp.text

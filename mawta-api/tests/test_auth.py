@@ -100,7 +100,7 @@ async def test_login_body_must_be_a_json_object(client: Client):
 
 
 class TestSessionResolution:
-    path = "/api/v1/me"
+    path: str = "/api/v1/me"
 
     async def test_no_cookie(self, client: Client):
         resp = await client.http.get(self.path)
@@ -154,6 +154,6 @@ async def test_healthz(client: Client):
 
 
 @pytest.mark.parametrize("path", ["/api/v1/home", "/api/v1/profile"])
-async def test_teacher_routes_need_a_session(client: Client, path):
+async def test_teacher_routes_need_a_session(client: Client, path: str):
     resp = await client.http.get(path)
     assert resp.status_code in (401, 404)  # 404 until the domain routes are ported

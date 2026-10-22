@@ -14,7 +14,7 @@ from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from contextlib import AsyncExitStack
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, LiteralString, cast
+from typing import Any, LiteralString, cast, final
 
 import httpx
 import psycopg
@@ -37,6 +37,7 @@ def _id(suffix: str, tenant: str = "a") -> uuid.UUID:
     return uuid.UUID(f"{tenant}0000000-0000-4000-8000-{suffix:0>12}")
 
 
+@final
 @dataclass(frozen=True)
 class Fixture:
     """The rows tests/fixture.sql creates, with fixed ids.

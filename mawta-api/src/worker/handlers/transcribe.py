@@ -19,7 +19,7 @@ from stt import SttPermanentError
 
 
 class Transcriber(Protocol):
-    async def transcribe(self, audio_mp3: bytes) -> str: ...
+    async def transcribe(self, audio_mp3: bytes, /) -> str: ...
 
 
 # Runs in the job's transaction once a transcript is saved (the registry queues the redaction

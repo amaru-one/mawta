@@ -213,7 +213,7 @@ def expected_class_dates(from_: str, to: str) -> list[str]:
     [from, to], minus the non-teaching days."""
     start, end = date.fromisoformat(from_), date.fromisoformat(to)
     vac_from, vac_to = date.fromisoformat(PLAN_VACATION_IN), date.fromisoformat(PLAN_VACATION_OUT)
-    out = []
+    out: list[str] = []
     day = start
     while day <= end:
         if day.isoweekday() in (1, 3) and day.isoformat() != PLAN_HOLIDAY:
@@ -235,7 +235,9 @@ def experience_body(starts_on: str, ends_on: str, *competencies: uuid.UUID) -> d
     }
 
 
-def criterion_body(competency_id: uuid.UUID, performance_id: uuid.UUID, *capabilities: uuid.UUID):
+def criterion_body(
+    competency_id: uuid.UUID, performance_id: uuid.UUID, *capabilities: uuid.UUID
+) -> dict[str, Any]:
     return {
         "competency_id": str(competency_id),
         "description": "Calcula el vuelto de una compra",

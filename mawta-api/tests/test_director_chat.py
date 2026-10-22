@@ -48,7 +48,8 @@ async def director_session(client: Client) -> str:
     return resp.cookies[COOKIE_NAME]
 
 
-async def test_director_logs_in_without_a_teacher_profile(client: Client, director_id: uuid.UUID):
+@pytest.mark.usefixtures("director_id")
+async def test_director_logs_in_without_a_teacher_profile(client: Client):
     resp = await post_login(client, DIRECTOR, TEST_PASSWORD)
     assert resp.status_code == 200, resp.text
     assert resp.json()["role"] == "director"
@@ -108,7 +109,8 @@ async def test_chat_token_is_only_for_directors(
     assert (await client.http.get(CHAT_TOKEN)).status_code == 401
 
 
-async def test_chat_token_without_a_signing_key(client: Client, director_id: uuid.UUID):
+@pytest.mark.usefixtures("director_id")
+async def test_chat_token_without_a_signing_key(client: Client):
     resp = await client.do(await director_session(client), "GET", CHAT_TOKEN)
     assert resp.status_code == 503
     assert error_code(resp) == "chat_unavailable"

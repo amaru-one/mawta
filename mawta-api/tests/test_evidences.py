@@ -1,6 +1,7 @@
 """The whole path of valuing one piece of evidence."""
 
 import math
+from typing import Any
 
 import pytest
 
@@ -28,7 +29,7 @@ async def clean(admin: Admin):
         await admin.execute(sql)
 
 
-async def file_evidence(client: Client, token, **fields):
+async def file_evidence(client: Client, token: str, **fields: Any) -> Any:
     body = {
         "kind": "produccion",
         "term_id": str(FX.term_ii),
@@ -40,7 +41,7 @@ async def file_evidence(client: Client, token, **fields):
     return resp.json()["id"]
 
 
-async def read_entry(client: Client, token, assessment_id):
+async def read_entry(client: Client, token: str, assessment_id: Any) -> dict[str, Any]:
     resp = await client.do(
         token,
         "GET",
@@ -119,7 +120,7 @@ async def test_a_value_of_the_wrong_kind_is_refused(client: Client, teacher: str
     ],
 )
 async def test_an_evidence_needs_a_kind_a_criterio_and_a_coherent_scale(
-    client: Client, teacher: str, overrides
+    client: Client, teacher: str, overrides: dict[str, Any]
 ):
     body = {
         "title": "T-eval-x",

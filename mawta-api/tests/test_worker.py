@@ -4,8 +4,12 @@ tests)."""
 import io
 import logging
 import uuid
+from collections.abc import AsyncIterator
+from typing import Any
 
 import pytest
+from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 import applog
 from db import Database, returned
@@ -15,7 +19,7 @@ from worker.registry import Job, Registry
 
 
 @pytest.fixture
-async def queue(client: Client, admin: Admin):
+async def queue(admin: Admin) -> AsyncIterator[str]:
     """A private queue name per test, so jobs of other tests are never claimed."""
     name = f"t-{uuid.uuid4().hex[:8]}"
     yield name
@@ -23,8 +27,12 @@ async def queue(client: Client, admin: Admin):
 
 
 async def add_job(
-    admin: Admin, queue: str, kind="voice_note.transcribe", max_attempts=3, priority=3
-):
+    admin: Admin,
+    queue: str,
+    kind: str = "voice_note.transcribe",
+    max_attempts: int = 3,
+    priority: int = 3,
+) -> int:
     cur = await admin.execute(
         "insert into jobs (tenant_id, kind, queue, priority, payload, max_attempts)"
         " values (%s, %s, %s, %s, '{}', %s) returning id",
@@ -33,7 +41,7 @@ async def add_job(
     return returned(await cur.fetchone())["id"]
 
 
-async def job_row(admin: Admin, job_id):
+async def job_row(admin: Admin, job_id: int) -> DictRow:
     cur = await admin.execute(
         "select status, attempts, finalized_at, errors, run_after > now() as delayed"
         " from jobs where id = %s",
@@ -42,12 +50,12 @@ async def job_row(admin: Admin, job_id):
     return returned(await cur.fetchone())
 
 
-def capture():
+def capture() -> tuple[io.StringIO, logging.Logger]:
     stream = io.StringIO()
     return stream, applog.new_json_logger(logging.INFO, stream)
 
 
-def outcomes(stream):
+def outcomes(stream: io.StringIO) -> list[dict[str, Any]]:
     import json
 
     return [
@@ -85,7 +93,7 @@ async def test_success_completes_the_job_and_emits_one_outcome(
     job_id = await add_job(admin, queue)
     stream, logger = capture()
 
-    async def ok(conn, job):
+    async def ok(_conn: AsyncConnection[DictRow], _job: Job) -> None:
         return None
 
     job = await claim_one(db, queue)
@@ -103,7 +111,7 @@ async def test_failure_is_retried_with_backoff_then_discarded(
     job_id = await add_job(admin, queue, max_attempts=2)
     stream, logger = capture()
 
-    async def boom(conn, job):
+    async def boom(_conn: AsyncConnection[DictRow], _job: Job) -> None:
         raise RuntimeError("boom")
 
     registry = Registry(in_tx={"voice_note.transcribe": boom})
@@ -133,7 +141,7 @@ async def test_unknown_kind_fails_and_reported_outcomes_win_over_success(
 
     skipped = await add_job(admin, queue)
 
-    async def skip(conn, job):
+    async def skip(_conn: AsyncConnection[DictRow], _job: Job) -> None:
         applog.report_outcome(applog.OUTCOME_SKIPPED, "voice_note_discarded")
 
     job = await claim_one(db, queue)
