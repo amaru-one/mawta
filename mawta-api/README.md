@@ -7,7 +7,7 @@ former Go `mawta-server`; the HTTP contract, the database and the log format are
 
 ## Prereqs
 
-- Python 3.13 and [`uv`](https://docs.astral.sh/uv/)
+- Python 3.14 and [`uv`](https://docs.astral.sh/uv/)
 - `ffmpeg` on the PATH (voice notes are transcoded to MP3 on upload)
 - A local Postgres from `docs/local-postgres-setup.md` (container `mawta-pg`, migrations applied
   with `goose`). There is no seed any more — create an account with `useradd` (below).

@@ -2,7 +2,7 @@
 Mawta is a gradebook and classroom-evidence app for schoolteachers:
 grading, competency/criteria tracking, and notifications.
 
-Stack: Python 3.13 (Starlette + `psycopg` 3, hand-written SQL, no ORM; `uv`,
+Stack: Python 3.14 (Starlette + `psycopg` 3, hand-written SQL, no ORM; `uv`,
 `ruff`, `pytest`) for the API in `mawta-api/`, SvelteKit 2 + Svelte 5 + TypeScript for the UI in
 `mawta-ui/`, Postgres (pgvector image) as the database, Docker/Caddy for
 deploy (`deploy/`).
