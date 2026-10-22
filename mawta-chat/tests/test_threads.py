@@ -1,9 +1,21 @@
 """Chats belong to one director in one school."""
 
-from tests.conftest import TENANT_A, TENANT_B, USER_FLORES, USER_QUISPE, USER_ROJAS, bearer
+import httpx
+
+from tests.conftest import (
+    TENANT_A,
+    TENANT_B,
+    USER_FLORES,
+    USER_QUISPE,
+    USER_ROJAS,
+    MakeToken,
+    bearer,
+)
 
 
-async def test_requests_without_a_valid_token_are_refused(client, make_token):
+async def test_requests_without_a_valid_token_are_refused(
+    client: httpx.AsyncClient, make_token: MakeToken
+):
     assert (await client.get("/threads")).status_code == 401
     teacher = make_token(USER_QUISPE, TENANT_A, role="teacher")
     response = await client.get("/threads", headers=bearer(teacher))
@@ -11,7 +23,9 @@ async def test_requests_without_a_valid_token_are_refused(client, make_token):
     assert response.json()["error"]["code"] == "invalid_token"
 
 
-async def test_a_director_creates_renames_and_deletes_a_chat(client, make_token):
+async def test_a_director_creates_renames_and_deletes_a_chat(
+    client: httpx.AsyncClient, make_token: MakeToken
+):
     me = bearer(make_token(USER_QUISPE, TENANT_A))
 
     created = await client.post("/threads", headers=me)
@@ -34,7 +48,7 @@ async def test_a_director_creates_renames_and_deletes_a_chat(client, make_token)
     assert (await client.delete(f"/threads/{thread['id']}", headers=me)).status_code == 404
 
 
-async def test_nobody_else_sees_or_touches_a_chat(client, make_token):
+async def test_nobody_else_sees_or_touches_a_chat(client: httpx.AsyncClient, make_token: MakeToken):
     owner = bearer(make_token(USER_QUISPE, TENANT_A))
     thread = (await client.post("/threads", headers=owner)).json()
 

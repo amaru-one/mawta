@@ -35,14 +35,20 @@ class LLM(Protocol):
         messages: list[dict[str, Any]],
         tools: list[dict[str, Any]],
         on_text: Callable[[str], None],
+        /,
     ) -> ModelTurn: ...
 
 
 class AnthropicLLM:
+    client: AsyncAnthropic
+    model: str
+    effort: Effort
+    max_tokens: int
+
     def __init__(self, api_key: str, model: str, effort: Effort, max_tokens: int) -> None:
         self.client = AsyncAnthropic(api_key=api_key)
         self.model = model
-        self.effort: Effort = effort
+        self.effort = effort
         self.max_tokens = max_tokens
 
     async def respond(

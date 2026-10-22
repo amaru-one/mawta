@@ -8,7 +8,7 @@ import json
 import logging
 import os
 import time
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator, AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Annotated, Any
 from uuid import UUID
@@ -32,6 +32,10 @@ log = logging.getLogger("mawta_chat")
 
 
 class ApiError(Exception):
+    status: int
+    code: str
+    message: str
+
     def __init__(self, status: int, code: str, message: str) -> None:
         super().__init__(message)
         self.status, self.code, self.message = status, code, message
@@ -60,7 +64,7 @@ Director = Annotated[Principal, Depends(principal)]
 
 def create_app(settings: Settings | None = None, llm: LLM | None = None) -> FastAPI:
     @asynccontextmanager
-    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
         # Settings reads its required fields from the environment, which the
         # checker cannot see.
         cfg = settings or Settings()  # pyright: ignore[reportCallIssue]

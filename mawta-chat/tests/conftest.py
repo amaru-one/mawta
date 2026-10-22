@@ -10,9 +10,9 @@ import base64
 import os
 import secrets
 import time
-from collections.abc import Callable
+from collections.abc import AsyncIterator, Callable, Iterator
 from pathlib import Path
-from typing import Any
+from typing import Any, LiteralString, cast
 from uuid import UUID
 
 import httpx
@@ -21,6 +21,7 @@ import psycopg
 import pytest
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+from psycopg import sql
 from psycopg.conninfo import conninfo_to_dict, make_conninfo
 
 from llm import ModelTurn
@@ -38,13 +39,17 @@ USER_FLORES = UUID("b0000000-0000-4000-8000-000000000010")
 
 KEY_ID = "k-test"
 
+# make_token(user, tenant, role=..., key=..., kid=..., ttl=..., **claim_overrides)
+MakeToken = Callable[..., str]
 
-def goose_up(sql: str) -> str:
-    return sql.split("-- +goose Up", 1)[1].split("-- +goose Down", 1)[0]
+
+def goose_up(text: str) -> LiteralString:
+    # The repository's own migration files, so the text is trusted SQL.
+    return cast(LiteralString, text.split("-- +goose Up", 1)[1].split("-- +goose Down", 1)[0])
 
 
 @pytest.fixture(scope="session")
-def databases() -> Any:
+def databases() -> Iterator[tuple[str, str]]:
     admin = os.environ.get("MAWTA_TEST_ADMIN_URL")
     if not admin:
         pytest.skip("MAWTA_TEST_ADMIN_URL is not set, so there is no database to test against")
@@ -52,14 +57,14 @@ def databases() -> Any:
     mawta_db, langgraph_db = f"chat_test_{suffix}", f"langgraph_test_{suffix}"
     base = conninfo_to_dict(admin)
     with psycopg.connect(admin, autocommit=True) as conn:
-        conn.execute(f'create database "{mawta_db}"')
-        conn.execute(f'create database "{langgraph_db}"')
+        for name in (mawta_db, langgraph_db):
+            conn.execute(sql.SQL("create database {}").format(sql.Identifier(name)))
     with psycopg.connect(
         make_conninfo("", **{**base, "dbname": mawta_db}), autocommit=True
     ) as conn:
         for migration in sorted((SERVER / "migrations").glob("*.sql")):
             conn.execute(goose_up(migration.read_text()))
-        conn.execute((SERVER / "tests/fixture.sql").read_text())
+        conn.execute(cast(LiteralString, (SERVER / "tests/fixture.sql").read_text()))
         conn.execute("alter role mawta_chat password 'chat-test'")
     yield (
         make_conninfo(
@@ -68,8 +73,10 @@ def databases() -> Any:
         make_conninfo("", **{**base, "dbname": langgraph_db}),
     )
     with psycopg.connect(admin, autocommit=True) as conn:
-        conn.execute(f'drop database if exists "{mawta_db}" with (force)')
-        conn.execute(f'drop database if exists "{langgraph_db}" with (force)')
+        for name in (mawta_db, langgraph_db):
+            conn.execute(
+                sql.SQL("drop database if exists {} with (force)").format(sql.Identifier(name))
+            )
 
 
 @pytest.fixture(scope="session")
@@ -84,7 +91,7 @@ def public_keys(signing_key: Ed25519PrivateKey) -> dict[str, str]:
 
 
 @pytest.fixture(scope="session")
-def make_token(signing_key: Ed25519PrivateKey) -> Callable[..., str]:
+def make_token(signing_key: Ed25519PrivateKey) -> MakeToken:
     """A chat token the way mawta-server signs it (internal/chattoken)."""
 
     def make(
@@ -116,7 +123,7 @@ def make_token(signing_key: Ed25519PrivateKey) -> Callable[..., str]:
 class FakeLLM:
     """Plays back scripted turns and records what it was sent."""
 
-    model = "fake-model"
+    model: str = "fake-model"
 
     def __init__(self) -> None:
         self.turns: list[ModelTurn | Exception] = []
@@ -125,7 +132,14 @@ class FakeLLM:
     def script(self, *turns: ModelTurn | Exception) -> None:
         self.turns.extend(turns)
 
-    async def respond(self, system, messages, tools, on_text) -> ModelTurn:
+    async def respond(
+        self,
+        _system: str,
+        messages: list[dict[str, Any]],
+        _tools: list[dict[str, Any]],
+        on_text: Callable[[str], None],
+        /,
+    ) -> ModelTurn:
         self.calls.append([dict(m) for m in messages])
         turn = self.turns.pop(0)
         if isinstance(turn, Exception):
@@ -163,7 +177,9 @@ def fake_llm() -> FakeLLM:
 
 
 @pytest.fixture
-async def client(databases, public_keys, fake_llm) -> Any:
+async def client(
+    databases: tuple[str, str], public_keys: dict[str, str], fake_llm: FakeLLM
+) -> AsyncIterator[httpx.AsyncClient]:
     chat_url, langgraph_url = databases
     # _env_file is a pydantic-settings init option missing from the typed signature.
     settings = Settings(

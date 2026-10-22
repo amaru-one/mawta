@@ -8,15 +8,15 @@ import pytest
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from auth import InvalidToken, TokenVerifier
-from tests.conftest import TENANT_A, USER_QUISPE
+from tests.conftest import TENANT_A, USER_QUISPE, MakeToken
 
 
 @pytest.fixture
-def verifier(public_keys) -> TokenVerifier:
+def verifier(public_keys: dict[str, str]) -> TokenVerifier:
     return TokenVerifier(public_keys)
 
 
-def test_a_directors_token_is_accepted(verifier, make_token):
+def test_a_directors_token_is_accepted(verifier: TokenVerifier, make_token: MakeToken):
     principal = verifier.verify(make_token(USER_QUISPE, TENANT_A))
     assert principal.user_id == USER_QUISPE
     assert principal.tenant_id == TENANT_A
@@ -42,7 +42,7 @@ def unsigned(claims: dict[str, Any]) -> str:
         "no tenant",
     ],
 )
-def test_bad_tokens_are_rejected(verifier, make_token, case):
+def test_bad_tokens_are_rejected(verifier: TokenVerifier, make_token: MakeToken, case: str):
     token = {
         "expired": lambda: make_token(USER_QUISPE, TENANT_A, ttl=-120),
         "other key": lambda: make_token(USER_QUISPE, TENANT_A, key=Ed25519PrivateKey.generate()),
@@ -56,7 +56,7 @@ def test_bad_tokens_are_rejected(verifier, make_token, case):
         verifier.verify(token)
 
 
-def test_an_unsigned_token_is_rejected(verifier):
+def test_an_unsigned_token_is_rejected(verifier: TokenVerifier):
     token = unsigned(
         {
             "iss": "mawta-server",

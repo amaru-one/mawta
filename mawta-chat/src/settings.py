@@ -1,5 +1,7 @@
 """Runtime configuration, read from the environment (and .env in development)."""
 
+from typing import ClassVar
+
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -7,7 +9,7 @@ from llm import Effort
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(env_file=".env", extra="ignore")
 
     # The mawta database, as the mawta_chat role: reads chat_api, writes chat.
     chat_database_url: str
