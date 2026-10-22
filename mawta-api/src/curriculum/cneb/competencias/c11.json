@@ -1,6 +1,6 @@
 {
   "numero_cneb": 11,
-  "nombre": "Lee diversos tipos de textos escritos en castellano como segunda lengua",
+  "nombre": "Lee textos escritos en castellano como segunda lengua",
   "capacidades": [
     {
       "numero": 1,
@@ -8,45 +8,45 @@
     },
     {
       "numero": 2,
-      "nombre": "Infiere e interpreta información del texto escrito"
+      "nombre": "Infiere e interpreta información del texto"
     },
     {
       "numero": 3,
-      "nombre": "Reflexiona y evalúa la forma, el contenido y contexto del texto escrito"
+      "nombre": "Reflexiona y evalúa la forma, el contenido y contexto del texto"
     }
   ],
   "estandares": [
     {
       "nivel": 1,
-      "texto": "Este nivel tiene como base principalmente el nivel 1 de la competencia “Se comunica oralmente en su lengua materna”."
+      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Se comunica oralmente en su lengua materna”."
     },
     {
       "nivel": 2,
-      "texto": "Este nivel tiene como base principalmente el nivel 2 de la competencia “Se comunica oralmente en su lengua materna”."
+      "texto": "Este nivel tiene como base el nivel 2 de la competencia “Se comunica oralmente en su lengua materna”."
     },
     {
       "nivel": 3,
-      "texto": "Lee diversos tipos de textos breves de estructura simple que tratan sobre temas cotidianos, en los que predomina vocabulario conocido e ilustraciones. Identifica y relaciona información ubicada en distintas partes del texto. Expresa sus gustos y preferencias sobre el contenido de un texto en su lengua materna."
+      "texto": "Lee críticamente diversos tipos de textos breves de estructura simple que tratan sobre temas cotidianos, en los que predomina vocabulario conocido e ilustraciones. Identifica y relaciona información ubicada en distintas partes del texto. Expresa sus gustos y preferencias sobre el contenido de un texto en su lengua materna."
     },
     {
       "nivel": 4,
-      "texto": "Lee diversos tipos de textos de estructura simple que presentan vocabulario variado. Identifica y relaciona información ubicada en distintas partes del texto (semejanzas y diferencias), infiere el propósito y el tema central e interpreta el sentido de un texto relacionándolo con alguna situación de su contexto sociocultural. Reconoce la utilidad de elementos formales básicos en el texto. Opina de forma breve sobre las ideas del texto."
+      "texto": "Lee críticamente diversos tipos de textos de estructura simple que presentan vocabulario variado. Identifica y relaciona información ubicada en distintas partes del texto (semejanzas y diferencias), infiere el propósito y el tema central e interpreta el sentido de un texto relacionándolo con alguna situación de su contexto sociocultural. Reconoce la utilidad de elementos formales básicos en el texto. Opina de forma breve sobre las ideas del texto."
     },
     {
       "nivel": 5,
-      "texto": "Lee diversos tipos de textos con algunos elementos complejos que presentan vocabulario variado. Relaciona información ubicada en distintas partes del texto, infiere el propósito comunicativo, el tema central y las ideas principales. Interpreta integrando información explícita e implícita para construir el sentido de un texto relacionándolo con su contexto sociocultural. Reconoce la utilidad de elementos formales. Opina sobre sucesos e ideas del texto justificando su posición."
+      "texto": "Lee críticamente diversos tipos de textos con algunos elementos complejos que presentan vocabulario variado. Relaciona información ubicada en distintas partes del texto, infiere el propósito comunicativo, el tema central y las ideas principales. Interpreta integrando información explícita e implícita para construir el sentido de un texto relacionándolo con su contexto sociocultural. Reconoce la utilidad de elementos formales. Opina sobre sucesos e ideas del texto justificando su posición."
     },
     {
       "nivel": 6,
-      "texto": "Lee diversos tipos de textos complejos que tienen vocabulario variado. Relaciona información ubicada en distintas partes del texto, infiere el propósito comunicativo, el tema central y las ideas principales. Interpreta integrando información para construir el sentido de un texto relacionándolo con otros textos y su contexto sociocultural. Explica la intención de elementos formales del texto. Opina sobre sucesos e ideas del texto, y lo relaciona con el contexto sociocultural en el que fue escrito."
+      "texto": "Lee críticamente diversos tipos de textos complejos que tienen vocabulario variado. Relaciona información ubicada en distintas partes del texto, infiere el propósito comunicativo, el tema central y las ideas principales. Interpreta integrando información para construir el sentido de un texto relacionándolo con otros textos y su contexto sociocultural. Explica la intención de elementos formales del texto. Opina sobre sucesos e ideas del texto, y lo relaciona con el contexto sociocultural en el que fue escrito."
     },
     {
       "nivel": 7,
-      "texto": "Lee diversos tipos de textos complejos que tienen vocabulario variado y especializado. Interpreta integrando información para construir el sentido global de un texto contrastándolo con otros textos que presentan ideas diferentes y su contexto sociocultural. Evalúa la efectividad del contenido del texto y explica la intención de diversos elementos formales. Reflexiona sobre distintos sucesos e ideas del texto, y lo relaciona con el contexto sociocultural e ideológico en el que fue escrito."
+      "texto": "Lee críticamente diversos tipos de textos complejos que tienen vocabulario variado y especializado. Interpreta integrando información para construir el sentido global de un texto contrastándolo con otros textos que presentan ideas diferentes y su contexto sociocultural. Evalúa la efectividad del contenido del texto y explica la intención de diversos elementos formales. Reflexiona sobre distintos sucesos e ideas del texto, y lo relaciona con el contexto sociocultural e ideológico en el que fue escrito."
     },
     {
       "nivel": 8,
-      "texto": "Lee diversos tipos de textos con estructuras complejas, vocabulario variado y especializado. Interpreta el sentido global del texto. Evalúa la efectividad del contenido del texto y explica la intención de los elementos formales. Reflexiona críticamente sobre el texto y lo relaciona con el contexto sociocultural e ideológico en el que fue escrito."
+      "texto": "Lee críticamente diversos tipos de textos con estructuras complejas, vocabulario variado y especializado. Interpreta el sentido global del texto. Evalúa la efectividad del contenido del texto y explica la intención de los elementos formales. Reflexiona críticamente sobre el texto y lo relaciona con el contexto sociocultural e ideológico en el que fue escrito."
     }
   ],
   "desempenos": [

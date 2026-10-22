@@ -12,7 +12,7 @@
     },
     {
       "numero": 3,
-      "nombre": "Implementa y valida la alternativa de solución tecnológica"
+      "nombre": "Implementa la alternativa de solución tecnológica"
     },
     {
       "numero": 4,
@@ -30,15 +30,15 @@
     },
     {
       "nivel": 3,
-      "texto": "Diseña y construye soluciones tecnológicas al establecer las causas de un problema tecnológico y propone alternativas de solución. Representa una, incluyendo sus partes, a través de esquemas o dibujos y describe la secuencia de pasos para implementarla, usando herramientas y materiales seleccionados. Realiza ajustes en el proceso de construcción de la solución tecnológica. Describe el procedimiento y beneficios de la solución tecnológica; evalúa su funcionamiento según los requerimientos establecidos y propone mejoras."
+      "texto": "Diseña y construye soluciones tecnológicas al establecer las causas de un problema tecnológico y propone alternativas de solución, representa una, incluyendo sus partes, a través de esquemas o dibujos y describe la secuencia de pasos para implementarla, usando herramientas y materiales seleccionados. Realiza ajustes en el proceso de construcción de la solución tecnológica. Describe el procedimiento y beneficios de la solución tecnológica, evalúa su funcionamiento según los requerimientos establecidos, y propone mejoras."
     },
     {
       "nivel": 4,
-      "texto": "Diseña y construye soluciones tecnológicas al establecer las posibles causas que generan problemas tecnológicos; propone alternativas de solución con conocimientos científicos. Representa una de ellas, incluyendo las partes o etapas, a través de esquemas o dibujos; establece características de forma, estructura y función y explica una secuencia de pasos para implementarla usando herramientas y materiales; verifica el funcionamiento de la solución tecnológica y realiza ajustes. Explica el procedimiento, conocimiento científico aplicado y beneficios de la solución tecnológica; evalúa su funcionamiento considerando los requerimientos establecidos y propone mejoras."
+      "texto": "Diseña y construye soluciones tecnológicas al establecer las posibles causas que generan problemas tecnológicos, propone alternativas de solución con conocimientos científicos. Representa una de ellas, incluyendo las partes o etapas, a través de esquemas o dibujos, establece características de forma, estructura y función y explica una secuencia de pasos para implementarla usando herramientas y materiales, verifica el funcionamiento de la solución tecnológica y realiza ajustes. Explica el procedimiento, conocimiento científico aplicado y beneficios de la solución tecnológica, evalúa su funcionamiento considerando los requerimientos establecidos y propone mejoras."
     },
     {
       "nivel": 5,
-      "texto": "Diseña y construye soluciones tecnológicas al identificar las causas que generan problemas tecnológicos y propone alternativas de solución con base en conocimientos científicos. Representa una de ellas incluyendo sus partes o etapas, a través de esquemas o dibujos estructurados. Establece características de forma, estructura y función y explica el procedimiento, los recursos de implementación; los ejecuta usando herramientas y materiales seleccionados; verifica el funcionamiento de la solución tecnológica detectando imprecisiones y realiza ajustes para mejorarlo. Explica el procedimiento, conocimiento científico aplicado y limitaciones de la solución tecnológica. Evalúa su funcionamiento a través de pruebas considerando los requerimientos establecidos y propone mejoras. Infiere impactos de la solución tecnológica."
+      "texto": "Diseña y construye soluciones tecnológicas al identificar las causas que generan problemas tecnológicos, y propone alternativas de solución basadas en conocimientos científicos. Representa una de ellas incluyendo sus partes o etapas a través de esquemas o dibujos estructurados. Establece características de forma, estructura y función y explica el procedimiento, los recursos de implementación, los ejecuta usando herramientas y materiales seleccionados, verifica el funcionamiento de la solución tecnológica detectando imprecisiones y realiza ajustes para mejorarlo. Explica el procedimiento, conocimiento científico aplicado y limitaciones de la solución tecnológica. Evalúa su funcionamiento a través de pruebas considerando los requerimientos establecidos y propone mejoras. Infiere impactos de la solución tecnológica."
     },
     {
       "nivel": 6,
@@ -50,7 +50,7 @@
     },
     {
       "nivel": 8,
-      "texto": "Diseña y construye soluciones tecnológicas al justificar el alcance del problema tecnológico y sus alternativas de solución basado en conocimientos científicos. Propone una expresión matemática para estimar la eficiencia y confiablidad de su alternativa de solución, la representa a través de esquemas o dibujos estructurados a escala, con vistas y perspectivas, que incluyen aspectos de funcionamiento o mantenimiento. Explica las características de forma, estructura, función y explica el procedimiento, así como los recursos, herramientas y materiales seleccionados. Verifica el funcionamiento de la solución tecnológica considerando los requerimientos, detecta imprecisiones en la construcción de la solución tecnológica y realiza ajustes o rediseña su alternativa. Explica el conocimiento científico, procedimiento aplicado y funcionamiento, así como las dificultades del diseño y la implementación, realiza pruebas para verificar el rango de funcionamiento y eficiencia de la solución tecnológica. Infiere impactos de la solución tecnológica, así como estrategias o métodos de mitigación."
+      "texto": "Diseña y construye soluciones tecnológicas al justificar el alcance del problema tecnológico y sus alternativas de solución basado en conocimientos científicos. Propone una expresión matemática para estimar la eficiencia y confiabilidad de su alternativa de solución, la representa a través de esquemas o dibujos estructurados a escala, con vistas y perspectivas, que incluyen aspectos de funcionamiento o mantenimiento. Explica las características de forma, estructura, función y explica el procedimiento, así como los recursos, herramientas y materiales seleccionados. Verifica el funcionamiento de la solución tecnológica considerando los requerimientos, detecta imprecisiones en la construcción de la solución tecnológica y realiza ajustes o rediseña su alternativa. Explica el conocimiento científico, procedimiento aplicado y funcionamiento, así como las dificultades del diseño y la implementación, realiza pruebas para verificar el rango de funcionamiento y eficiencia de la solución tecnológica. Infiere impactos de la solución tecnológica, así como estrategias o métodos de mitigación."
     }
   ],
   "desempenos": [
