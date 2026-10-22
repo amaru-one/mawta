@@ -14,10 +14,11 @@ conclusion; it is never saved on their behalf.
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 import domain
 from agent import InvalidAnswer, Prepared, Spec
@@ -64,7 +65,7 @@ def target_key(s: Scope) -> str:
     return f"conclusions:student:{s.student_id}:comp:{s.competency_id}:term:{s.term_id}"
 
 
-def scope_of(gen: dict) -> Scope:
+def scope_of(gen: dict[str, Any]) -> Scope:
     if gen["student_id"] is None or gen["competency_id"] is None or gen["term_id"] is None:
         raise RuntimeError(f"conclusions: generation {gen['id']} has no scope")
     return Scope(gen["class_id"], gen["student_id"], gen["competency_id"], gen["term_id"])
@@ -107,12 +108,12 @@ class Material:
     scope: Scope
     level: str | None = None
     requirement: str = ""
-    competency: dict = field(default_factory=dict)
-    standard: dict | None = None
-    evidences: list[dict] = field(default_factory=list)
-    voice_notes: list[dict] = field(default_factory=list)
-    note_counts: dict = field(default_factory=lambda: {"discarded": 0, "pending": 0})
-    earlier: list[dict] = field(default_factory=list)
+    competency: dict[str, Any] = field(default_factory=dict)
+    standard: dict[str, Any] | None = None
+    evidences: list[dict[str, Any]] = field(default_factory=list)
+    voice_notes: list[dict[str, Any]] = field(default_factory=list)
+    note_counts: dict[str, Any] = field(default_factory=lambda: {"discarded": 0, "pending": 0})
+    earlier: list[dict[str, Any]] = field(default_factory=list)
     graded: int = 0
 
     def check(self) -> None:
@@ -127,13 +128,13 @@ class Material:
         every one of them."""
         return not self.voice_notes and self.note_counts["discarded"] > 0
 
-    def _variety_warnings(self) -> list[dict]:
+    def _variety_warnings(self) -> list[dict[str, Any]]:
         """Graded evidence that is narrow: one kind, or one experience. Only speaks once the
         minimum is met, and only about graded evidence. Evidence the teacher added by hand has
         no experience, so it never proves a single experience on its own."""
         if self.graded < MIN_GRADED_EVIDENCES:
             return []
-        out: list[dict] = []
+        out: list[dict[str, Any]] = []
         kinds: set[str] = set()
         experience: UUID | None = None
         single_experience = True
@@ -153,9 +154,9 @@ class Material:
             out.append({"code": WARN_EVIDENCE_SINGLE_EXPERIENCE})
         return out
 
-    def warnings(self) -> list[dict]:
+    def warnings(self) -> list[dict[str, Any]]:
         """What the teacher should know about this material."""
-        out: list[dict] = []
+        out: list[dict[str, Any]] = []
         discarded, pending = self.note_counts["discarded"], self.note_counts["pending"]
         if self.only_discarded_notes():
             out.append({"code": WARN_ALL_VOICE_NOTES_DISCARDED, "count": discarded})
@@ -168,7 +169,7 @@ class Material:
         return out + self._variety_warnings()
 
 
-async def gather(conn: AsyncConnection, s: Scope) -> Material:
+async def gather(conn: AsyncConnection[DictRow], s: Scope) -> Material:
     """Read the material of a scope."""
     m = Material(scope=s)
     m.level = await ctx_repo.live_competency_level(conn, s.student_id, s.competency_id, s.term_id)
@@ -231,8 +232,8 @@ def _kind_text(kind: str) -> str:
     return "producción: something the students made"
 
 
-def _score_text(e: dict) -> str:
-    status = e["score_status"]
+def _score_text(e: dict[str, Any]) -> str:
+    status: str | None = e["score_status"]
     if status is None:
         return "not assessed yet"
     if status == "graded":
@@ -317,7 +318,7 @@ def render(m: Material) -> tuple[str, Refs]:
     return "\n".join(b) + "\n", r
 
 
-def _point_items(description: str) -> dict:
+def _point_items(description: str) -> dict[str, Any]:
     return {
         "type": "array",
         "items": {
@@ -411,7 +412,7 @@ def sentence(text: str) -> str:
     return text + "."
 
 
-def compose(res: dict) -> str:
+def compose(res: dict[str, Any]) -> str:
     """The conclusion as SIAGIE receives it and the teacher edits it: one paragraph with progress,
     difficulties, the justification or supports when the norm asks for them, and the
     recommendations."""
@@ -425,7 +426,7 @@ def compose(res: dict) -> str:
     return domain.normalize_conclusion(" ".join(sentences))
 
 
-def _points(raw: Any, field_name: str) -> list[dict]:
+def _points(raw: Any, field_name: str) -> list[dict[str, Any]]:
     """The model's list of {texto, evidencias, notas}; wrong types are an unusable answer."""
     try:
         return [
@@ -434,7 +435,7 @@ def _points(raw: Any, field_name: str) -> list[dict]:
                 "evidencias": _str_list(p.get("evidencias")),
                 "notas": _str_list(p.get("notas")),
             }
-            for p in (raw or [])
+            for p in cast(list[Any], raw or [])
         ]
     except (KeyError, TypeError, AttributeError):
         raise InvalidAnswer(
@@ -455,14 +456,14 @@ def _str_list(value: Any) -> list[str]:
         return []
     if not isinstance(value, list):
         raise TypeError("expected a list")
-    return [_str(v) for v in value]
+    return [_str(v) for v in cast(list[Any], value)]
 
 
 class ConclusionsAgent:
-    name = NAME
-    prompt_version = PROMPT_VERSION
+    name: str = NAME
+    prompt_version: str = PROMPT_VERSION
 
-    async def prepare(self, conn: AsyncConnection, gen: dict) -> Prepared:
+    async def prepare(self, conn: AsyncConnection[DictRow], gen: dict[str, Any]) -> Prepared:
         scope = scope_of(gen)
         m = await gather(conn, scope)
         m.check()  # final: the teacher reads why
@@ -480,11 +481,14 @@ class ConclusionsAgent:
             state=_State(m, refs, name_words(students)),
         )
 
-    async def apply(self, conn: AsyncConnection, gen: dict, prepared: Prepared, answer: Any) -> Any:
+    async def apply(
+        self, conn: AsyncConnection[DictRow], _gen: dict[str, Any], prepared: Prepared, answer: Any
+    ) -> Any:
         st: _State = prepared.state
         m = st.material
         if not isinstance(answer, dict):
             raise InvalidAnswer("la respuesta no tiene el formato de la herramienta: wrong type")
+        answer = cast(dict[str, Any], answer)
         avances = _points(answer.get("avances"), "avances")
         dificultades = _points(answer.get("dificultades"), "dificultades")
         recomendaciones = _points(answer.get("recomendaciones"), "recomendaciones")
@@ -493,7 +497,7 @@ class ConclusionsAgent:
             supports = _str(answer.get("apoyos_brindados"))
             unused = [
                 {"nota": _str(u["nota"]), "motivo": _str(u["motivo"])}
-                for u in (answer.get("notas_no_usadas") or [])
+                for u in cast(list[Any], answer.get("notas_no_usadas") or [])
             ]
         except (KeyError, TypeError, AttributeError):
             raise InvalidAnswer(
@@ -515,15 +519,17 @@ class ConclusionsAgent:
         used: dict[UUID, bool] = {}
         used_ids: list[UUID] = []
 
-        def convert(section: str, points: list[dict], must_cite: bool) -> list[dict]:
-            out = []
+        def convert(
+            section: str, points: list[dict[str, Any]], must_cite: bool
+        ) -> list[dict[str, Any]]:
+            out: list[dict[str, Any]] = []
             for pt in points:
                 text = clean(pt["texto"])
                 if not text:
                     continue
                 if why := guard(text, st.names):
                     raise InvalidAnswer(why)
-                cp = {"text": text, "evidence_ids": [], "voice_note_ids": []}
+                cp: dict[str, Any] = {"text": text, "evidence_ids": [], "voice_note_ids": []}
                 for ref in pt["evidencias"]:
                     eid = st.refs.evidences.get(ref.strip())
                     if eid is None:

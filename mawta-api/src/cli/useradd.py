@@ -15,9 +15,10 @@ from datetime import date
 from uuid import UUID
 
 import psycopg
-from psycopg.rows import dict_row
+from psycopg.rows import DictRow, dict_row
 
 import auth as authpkg
+from db import returned
 from settings import Settings
 
 ROLES = ("teacher", "student", "supervisor", "admin", "director")
@@ -28,7 +29,7 @@ class UserAddError(Exception):
 
 
 def _parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="useradd", description=__doc__.split("\n\n")[0])
+    p = argparse.ArgumentParser(prog="useradd", description=(__doc__ or "").split("\n\n")[0])
     p.add_argument("-tenant", "--tenant", default="", help="tenant UUID (must already exist)")
     p.add_argument("-username", "--username", default="", help="login username; required")
     p.add_argument("-password", "--password", default="", help="password (omit to be prompted)")
@@ -85,13 +86,15 @@ def run(argv: list[str] | None = None) -> int:
     elif not password:
         password = getpass.getpass("password: ")
 
-    settings = Settings()  # type: ignore[call-arg]
+    settings = Settings()  # pyright: ignore[reportCallIssue]
     if not settings.admin_database_url:
         raise UserAddError(
             "ADMIN_DATABASE_URL is required (a superuser/owner connection string; useradd cannot "
             "run as the app's own mawta_app role)"
         )
-    with psycopg.connect(settings.admin_database_url, row_factory=dict_row) as conn:
+    with psycopg.Connection[DictRow].connect(
+        settings.admin_database_url, row_factory=dict_row
+    ) as conn:
         if args.reset_password:
             return _reset_password(conn, uname, password, settings.bcrypt_cost)
         if not (args.email and args.given_name and args.family_name):
@@ -111,41 +114,54 @@ def run(argv: list[str] | None = None) -> int:
                 raise UserAddError(f"-hired-on: {exc}") from None
         try:
             with conn.transaction():
-                user = conn.execute(
-                    """
+                user = returned(
+                    conn.execute(
+                        """
                     insert into users (email, given_name, family_name, display_name, username,
                                        password_hash, password_changed_at)
                     values (lower(%s), %s, %s, %s, %s, %s, now())
                     returning id
                     """,
-                    (args.email, args.given_name, args.family_name, display_name, uname, hashed),
-                ).fetchone()
-                membership = conn.execute(
-                    """
+                        (
+                            args.email,
+                            args.given_name,
+                            args.family_name,
+                            display_name,
+                            uname,
+                            hashed,
+                        ),
+                    ).fetchone()
+                )
+                membership = returned(
+                    conn.execute(
+                        """
                     insert into memberships (tenant_id, user_id, role, status, joined_at)
                     values (%s, %s, %s, 'active', now())
                     returning id
                     """,
-                    (tenant_id, user["id"], args.role),
-                ).fetchone()
+                        (tenant_id, user["id"], args.role),
+                    ).fetchone()
+                )
                 teacher_id = None
                 if args.role == "teacher" and not args.no_teacher_profile:
-                    teacher_id = conn.execute(
-                        """
+                    teacher_id = returned(
+                        conn.execute(
+                            """
                         insert into teachers (tenant_id, membership_id, employee_code,
                                               display_name, title, hired_on)
                         values (%s, %s, %s, %s, %s, %s)
                         returning id
                         """,
-                        (
-                            tenant_id,
-                            membership["id"],
-                            args.employee_code or None,
-                            display_name,
-                            args.title or None,
-                            hired_on,
-                        ),
-                    ).fetchone()["id"]
+                            (
+                                tenant_id,
+                                membership["id"],
+                                args.employee_code or None,
+                                display_name,
+                                args.title or None,
+                                hired_on,
+                            ),
+                        ).fetchone()
+                    )["id"]
         except psycopg.Error as exc:
             raise _friendly(exc) from None
     print(f"user_id={user['id']}")
@@ -155,7 +171,9 @@ def run(argv: list[str] | None = None) -> int:
     return 0
 
 
-def _reset_password(conn: psycopg.Connection, username: str, password: str, cost: int) -> int:
+def _reset_password(
+    conn: psycopg.Connection[DictRow], username: str, password: str, cost: int
+) -> int:
     try:
         hashed = authpkg.hash_password(password, cost)
     except authpkg.PasswordLengthError as exc:

@@ -2,6 +2,8 @@
   "reportAny": false,
   "reportExplicitAny": false,
   "reportUnusedCallResult": false,
+  "reportImplicitStringConcatenation": false,
+  "reportImportCycles": false,
   "executionEnvironments": [
     {
       "root": "mawta-api",

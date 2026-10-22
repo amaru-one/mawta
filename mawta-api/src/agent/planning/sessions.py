@@ -6,12 +6,14 @@ from typing import Any
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 from agent import InvalidAnswer, Prepared, Spec
 from agent.llm import Tool
 from agent.planning import (
     clean,
     decode,
+    dicts_of,
     experience_id_of,
     strings_of,
     system,
@@ -69,13 +71,13 @@ SESSIONS_TOOL = Tool(
 WEEKDAYS = ("domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado")
 
 
-def empty_dates(exp: dict) -> list[str]:
+def empty_dates(exp: dict[str, Any]) -> list[str]:
     """The experience's class dates without a session entry."""
     taken = {s["date"] for s in exp["sessions"]}
     return [d for d in exp["class_dates"] if d not in taken]
 
 
-async def prepare(conn: AsyncConnection, gen: dict) -> Prepared:
+async def prepare(conn: AsyncConnection[DictRow], gen: dict[str, Any]) -> Prepared:
     exp_id = experience_id_of(gen)
     exp = await repo.get_experience(conn, exp_id)
     empty = empty_dates(exp)
@@ -118,12 +120,12 @@ async def prepare(conn: AsyncConnection, gen: dict) -> Prepared:
     )
 
 
-async def apply(conn: AsyncConnection, gen: dict, prepared: Prepared, answer: Any) -> Any:
+async def apply(
+    conn: AsyncConnection[DictRow], _gen: dict[str, Any], prepared: Prepared, answer: Any
+) -> Any:
     st: _State = prepared.state
     a = decode(answer)
-    raw_items = a.get("sessions") or []
-    if not isinstance(raw_items, list) or not all(isinstance(s, dict) for s in raw_items):
-        raise InvalidAnswer("la respuesta no tiene el formato de la herramienta: sessions")
+    raw_items = dicts_of(a.get("sessions"), "sessions")
     items = [
         (
             text_of(s.get("date")),

@@ -7,6 +7,7 @@ from typing import Any
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 from agent import InvalidAnswer, Prepared, Spec
 from agent.llm import Tool
@@ -66,13 +67,14 @@ def _status_text(status: str) -> str:
     }.get(status, "puede esperar")
 
 
-async def prepare(conn: AsyncConnection, gen: dict) -> Prepared:
-    inp = gen["input"] or {}
+async def prepare(conn: AsyncConnection[DictRow], gen: dict[str, Any]) -> Prepared:
+    inp: dict[str, Any] = gen["input"] or {}
     try:
         term_id = UUID(inp["term_id"]) if inp.get("term_id") else None
-        chosen = [UUID(s) for s in inp.get("competency_ids") or []]
-        idea_text = inp.get("idea_text") or ""
-        context_text = inp.get("context_text") or ""
+        competency_ids: list[Any] = inp.get("competency_ids") or []
+        chosen = [UUID(s) for s in competency_ids]
+        idea_text: Any = inp.get("idea_text") or ""
+        context_text: Any = inp.get("context_text") or ""
         if not all(isinstance(v, str) for v in (idea_text, context_text)):
             raise ValueError
     except (ValueError, TypeError, AttributeError):
@@ -148,7 +150,9 @@ async def prepare(conn: AsyncConnection, gen: dict) -> Prepared:
     )
 
 
-async def apply(conn: AsyncConnection, gen: dict, prepared: Prepared, answer: Any) -> Any:
+async def apply(
+    conn: AsyncConnection[DictRow], gen: dict[str, Any], prepared: Prepared, answer: Any
+) -> Any:
     st: _State = prepared.state
     a = decode(answer)
     title = clean(text_of(a.get("title")))
@@ -208,11 +212,11 @@ class Window:
 
 
 async def usable_windows(
-    conn: AsyncConnection, class_id: UUID, term: plan_repo.PlanTerm
+    conn: AsyncConnection[DictRow], class_id: UUID, term: plan_repo.PlanTerm
 ) -> list[Window]:
     """The term's free stretches that hold at least one class date: an experience in a stretch
     without classes could not be taught."""
-    out = []
+    out: list[Window] = []
     for w in await plan_repo.free_windows(conn, class_id, term):
         if w["class_dates"] == 0:
             continue

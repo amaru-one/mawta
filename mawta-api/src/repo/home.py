@@ -1,14 +1,16 @@
 """The teacher's home screen and the tenant calendar day."""
 
 from datetime import date
+from typing import Any
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 from db import fetch_all, fetch_required
 
 
-async def tenant_today(conn: AsyncConnection, tenant_id: UUID) -> date:
+async def tenant_today(conn: AsyncConnection[DictRow], tenant_id: UUID) -> date:
     """ "Today" as a date in the tenant's IANA timezone: the only place a local calendar
     day is defined in this schema."""
     row = await fetch_required(
@@ -19,7 +21,7 @@ async def tenant_today(conn: AsyncConnection, tenant_id: UUID) -> date:
     return row["today"]
 
 
-def _home_class(row: dict) -> dict:
+def _home_class(row: dict[str, Any]) -> dict[str, Any]:
     return {
         "class_id": row["class_id"],
         "name": row["name"],
@@ -28,7 +30,9 @@ def _home_class(row: dict) -> dict:
     }
 
 
-async def _my_classes(conn: AsyncConnection, teacher_id: UUID, d: date) -> list[dict]:
+async def _my_classes(
+    conn: AsyncConnection[DictRow], teacher_id: UUID, d: date
+) -> list[dict[str, Any]]:
     return await fetch_all(
         conn,
         """
@@ -47,9 +51,9 @@ async def _my_classes(conn: AsyncConnection, teacher_id: UUID, d: date) -> list[
     )
 
 
-async def get_home(conn: AsyncConnection, teacher_id: UUID, d: date) -> dict:
+async def get_home(conn: AsyncConnection[DictRow], teacher_id: UUID, d: date) -> dict[str, Any]:
     # An empty list is JSON null here: the UI was written against that.
-    resp: dict = {"date": d.isoformat(), "today": None, "week": None}
+    resp: dict[str, Any] = {"date": d.isoformat(), "today": None, "week": None}
 
     classes = await _my_classes(conn, teacher_id, d)
     if not classes:
@@ -102,7 +106,7 @@ async def get_home(conn: AsyncConnection, teacher_id: UUID, d: date) -> dict:
         """,
         {"ids": class_ids, "d": d},
     )
-    week: list[dict] = []
+    week: list[dict[str, Any]] = []
     for r in rows:
         day = r["session_date"].isoformat()
         if not week or week[-1]["date"] != day:

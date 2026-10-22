@@ -4,7 +4,7 @@ import asyncio
 import contextlib
 import logging
 import os
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator
 
 import uvicorn
 from starlette.applications import Starlette
@@ -21,7 +21,7 @@ from settings import Settings
 from web import Api, RequestLogMiddleware
 
 
-async def _not_found(request: Request, exc: Exception) -> Response:
+async def _not_found(_request: Request, _exc: Exception) -> Response:
     return PlainTextResponse("404 page not found\n", status_code=404)
 
 
@@ -36,10 +36,10 @@ def create_app(settings: Settings, logger: logging.Logger | None = None) -> Star
     api = Api(db=database, settings=settings, logger=logger, chat_tokens=issuer)
 
     @contextlib.asynccontextmanager
-    async def lifespan(app: Starlette) -> AsyncIterator[None]:
+    async def lifespan(_app: Starlette) -> AsyncGenerator[None]:
         await database.open()
         os.makedirs(settings.storage_dir, exist_ok=True)
-        worker_task: asyncio.Task | None = None
+        worker_task: asyncio.Task[None] | None = None
         if settings.worker_enabled:
             from worker import run_worker
 
@@ -77,7 +77,7 @@ def create_app(settings: Settings, logger: logging.Logger | None = None) -> Star
 
 
 def run() -> None:
-    settings = Settings()  # type: ignore[call-arg]
+    settings = Settings()  # pyright: ignore[reportCallIssue]
     logger = applog.setup(settings.log_level)
     host, port = settings.host_port
     uvicorn.run(

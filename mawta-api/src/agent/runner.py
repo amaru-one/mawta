@@ -14,6 +14,7 @@ from typing import Any
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 import applog
 from agent import JOB_KIND, Agent, InvalidAnswer, Prepared, Spec
@@ -45,6 +46,8 @@ class Outcome(StrEnum):
 
 class _ApplyFailed(Exception):
     """Carries an agent.apply error out of its transaction, which rolls back what apply wrote."""
+
+    cause: Exception
 
     def __init__(self, cause: Exception) -> None:
         super().__init__(str(cause))
@@ -100,6 +103,11 @@ def repair_spec(spec: Spec, previous: Any, why: InvalidAnswer) -> Spec:
 class Runner:
     """Runs generations for the registered agents."""
 
+    db: Database
+    model: Model
+    prices: Prices
+    logger: logging.Logger | None
+
     def __init__(
         self,
         database: Database,
@@ -126,7 +134,7 @@ class Runner:
         return self.models.get(agent_name, (self.model, self.prices))
 
     async def run(
-        self, tenant_id: UUID, payload: dict, attempt: int, max_attempts: int
+        self, tenant_id: UUID, payload: dict[str, Any], attempt: int, max_attempts: int
     ) -> tuple[Outcome, Exception | None]:
         """Execute one attempt of a generation job. A returned exception means a transient failure
         the queue should retry; anything final is recorded on the generation and reported through
@@ -139,7 +147,7 @@ class Runner:
         last_attempt = attempt >= max_attempts
 
         # 1. Claim the generation and read its context.
-        gen: dict = {}
+        gen: dict[str, Any] = {}
         prep = Prepared()
         ag: Agent | None = None
         outcome = Outcome.COMPLETED
@@ -257,7 +265,7 @@ class Runner:
         )
 
     async def _call(
-        self, model: Model, prices: Prices, gen: dict, attempt: int, spec: Spec
+        self, model: Model, prices: Prices, gen: dict[str, Any], attempt: int, spec: Spec
     ) -> tuple[llm_pkg.Response, LLMError | None]:
         """One model call; logs its usage."""
         start = time.monotonic()
@@ -297,19 +305,24 @@ class Runner:
         return resp, error
 
     async def _complete(
-        self, conn: AsyncConnection, gen: dict, result: Any, usage: gens.Usage
+        self, conn: AsyncConnection[DictRow], gen: dict[str, Any], result: Any, usage: gens.Usage
     ) -> None:
         await gens.complete_generation(conn, gen["id"], result, usage)
         await _log_generation_event(conn, "agent.generation.completed", gen)
 
     async def _fail(
-        self, conn: AsyncConnection, gen: dict, message: str, detail: str, usage: gens.Usage
+        self,
+        conn: AsyncConnection[DictRow],
+        gen: dict[str, Any],
+        message: str,
+        detail: str,
+        usage: gens.Usage,
     ) -> None:
         await gens.fail_generation(conn, gen["id"], message, detail, usage)
         await _log_generation_event(conn, "agent.generation.failed", gen)
 
     async def _fail_tx(
-        self, tc: TenantCtx, gen: dict, message: str, detail: str, usage: gens.Usage
+        self, tc: TenantCtx, gen: dict[str, Any], message: str, detail: str, usage: gens.Usage
     ) -> Exception | None:
         """Record a failure in its own transaction. Its error, if any, is what the worker sees."""
         try:
@@ -323,7 +336,9 @@ class Runner:
         return None
 
 
-async def _log_generation_event(conn: AsyncConnection, action: str, gen: dict) -> None:
+async def _log_generation_event(
+    conn: AsyncConnection[DictRow], action: str, gen: dict[str, Any]
+) -> None:
     await log_event(
         conn,
         action,

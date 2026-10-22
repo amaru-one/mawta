@@ -1,18 +1,20 @@
 """The audit event writers."""
 
+from typing import Any
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 from jsonutil import jsonb
 
 
 async def log_event(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     action: str,
     entity_type: str,
     entity_id: UUID | None = None,
-    payload: dict | None = None,
+    payload: dict[str, Any] | None = None,
     student_id: UUID | None = None,
     class_id: UUID | None = None,
     session_id: UUID | None = None,
@@ -25,7 +27,7 @@ async def log_event(
 
 
 async def log_student_reads(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     student_ids: list[UUID],
     teacher_id: UUID,
     class_id: UUID | None,

@@ -12,7 +12,7 @@ import uuid
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
-from typing import Any
+from typing import Any, TypedDict, cast, get_args
 
 import psycopg
 from starlette.requests import Request
@@ -61,13 +61,15 @@ rfc3339 = jsonutil.rfc3339
 
 
 class JSONResp(Response):
-    media_type = "application/json; charset=utf-8"
+    media_type: str | None = "application/json; charset=utf-8"
 
-    def __init__(self, content: Any = None, status_code: int = 200, headers: dict | None = None):
+    def __init__(
+        self, content: Any = None, status_code: int = 200, headers: dict[str, Any] | None = None
+    ):
         body = b"" if content is None else dumps(content)
         super().__init__(body, status_code, headers, self.media_type)
         if content is None:
-            self.headers.pop("content-length", None)
+            # Assignment replaces any value Starlette set; MutableHeaders has no pop().
             self.headers["content-length"] = "0"
 
 
@@ -88,7 +90,7 @@ def error_response(err: AppError) -> Response:
 # --------------------------------------------------------------------------
 
 
-async def read_json(request: Request) -> dict:
+async def read_json(request: Request) -> dict[str, Any]:
     """The decoded JSON object body; 400 "invalid body" when it is not one."""
     try:
         body = await request.json()
@@ -96,7 +98,7 @@ async def read_json(request: Request) -> dict:
         raise bad_request("invalid body") from None
     if not isinstance(body, dict):
         raise bad_request("invalid body")
-    return body
+    return cast(dict[str, Any], body)
 
 
 def _coerce(value: Any, tp: Any) -> Any:
@@ -105,12 +107,13 @@ def _coerce(value: Any, tp: Any) -> Any:
     dict/Any, optionally `| None` (then null and absent stay None)."""
     args = getattr(tp, "__args__", ())
     optional = type(None) in args
-    base = next((a for a in args if a is not type(None)), tp) if optional else tp
+    base: Any = next((a for a in args if a is not type(None)), tp) if optional else tp
     if value is None:
         if optional:
             return None
         is_list = base is list or getattr(base, "__origin__", None) is list
-        return {str: "", float: 0.0, int: 0, bool: False}.get(base, [] if is_list else None)
+        zero: dict[object, object] = {str: "", float: 0.0, int: 0, bool: False}
+        return zero.get(base, [] if is_list else None)
     if base is Any:
         return value
     if base is str and isinstance(value, str):
@@ -122,10 +125,10 @@ def _coerce(value: Any, tp: Any) -> Any:
     if base is float and isinstance(value, int | float) and not isinstance(value, bool):
         return float(value)
     if base is dict and isinstance(value, dict):
-        return value
+        return cast(dict[str, Any], value)
     if getattr(base, "__origin__", None) is list and isinstance(value, list):
-        (item,) = base.__args__
-        return [_coerce(v, item) for v in value]
+        (item,) = get_args(base)
+        return [_coerce(v, item) for v in cast(list[Any], value)]
     raise ValueError("wrong JSON type")
 
 
@@ -136,12 +139,13 @@ async def read_body(request: Request, spec: dict[str, Any], message: str = "inva
         raw = await request.json()
         if not isinstance(raw, dict):
             raise ValueError
-        return {name: _coerce(raw.get(name), tp) for name, tp in spec.items()}
+        obj = cast(dict[str, Any], raw)
+        return {name: _coerce(obj.get(name), tp) for name, tp in spec.items()}
     except ValueError:
         raise bad_request(message) from None
 
 
-def body_field(raw: dict, name: str, tp: Any, message: str = "invalid body") -> Any:
+def body_field(raw: dict[str, Any], name: str, tp: Any, message: str = "invalid body") -> Any:
     """One field of an already-read JSON object, decoded like read_body does."""
     try:
         return _coerce(raw.get(name), tp)
@@ -354,6 +358,12 @@ def clear_session_cookie(api: Api, response: Response) -> None:
 # --------------------------------------------------------------------------
 
 
+class _ResponseState(TypedDict):
+    status: int
+    started: bool
+    content_type: str
+
+
 class RequestLogMiddleware:
     """Assign/propagate X-Request-ID and emit one `http.request` event per request.
 
@@ -361,6 +371,10 @@ class RequestLogMiddleware:
     status/body are observed as they are sent. Nothing here can fail a response: the
     capture is bounded and the log write happens after the response is sent.
     """
+
+    app: ASGIApp
+    logger: logging.Logger
+    policy: applog.CapturePolicy
 
     def __init__(self, app: ASGIApp, logger: logging.Logger, capture: bool) -> None:
         self.app = app
@@ -376,7 +390,7 @@ class RequestLogMiddleware:
         request_id = headers.get(b"x-request-id", b"").decode() or str(uuid.uuid4())
         scope["request_id"] = request_id
         start = time.monotonic()
-        state = {"status": 200, "started": False, "content_type": ""}
+        state: _ResponseState = {"status": 200, "started": False, "content_type": ""}
         req_body = bytearray()
         resp_body = bytearray()
         limit = self.policy.max_bytes if self.policy.enabled else 0

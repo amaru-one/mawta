@@ -1,9 +1,11 @@
 """The teacher's profile screen."""
 
 from datetime import date
+from typing import Any
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 from db import fetch_all, fetch_required
 from repo.roster import roster_as_of
@@ -14,7 +16,9 @@ def _midnight_utc(value: date | None) -> str | None:
     return f"{value.isoformat()}T00:00:00Z" if value is not None else None
 
 
-async def get_profile(conn: AsyncConnection, teacher_id: UUID, term: dict, today: date) -> dict:
+async def get_profile(
+    conn: AsyncConnection[DictRow], teacher_id: UUID, term: dict[str, Any], today: date
+) -> dict[str, Any]:
     head = await fetch_required(
         conn,
         """
@@ -24,7 +28,7 @@ async def get_profile(conn: AsyncConnection, teacher_id: UUID, term: dict, today
         """,
         (teacher_id,),
     )
-    resp: dict = {
+    resp: dict[str, Any] = {
         "display_name": head["display_name"],
         "title": head["title"],
         "hired_on": _midnight_utc(head["hired_on"]),
@@ -129,7 +133,7 @@ async def get_profile(conn: AsyncConnection, teacher_id: UUID, term: dict, today
             )
         )["n"]
 
-    groups: dict[str, dict] = {}
+    groups: dict[str, dict[str, Any]] = {}
     for cr in class_rows:
         roster = await roster_as_of(conn, cr["id"], today)
         slots = (

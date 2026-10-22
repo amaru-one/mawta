@@ -6,10 +6,11 @@ produced by a job.
 """
 
 from collections.abc import Awaitable, Callable
-from typing import Protocol
+from typing import Any, Protocol
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 import applog
 from errors import NotFound
@@ -18,20 +19,20 @@ from stt import SttPermanentError
 
 
 class Transcriber(Protocol):
-    async def transcribe(self, audio_mp3: bytes) -> str: ...
+    async def transcribe(self, audio_mp3: bytes, /) -> str: ...
 
 
 # Runs in the job's transaction once a transcript is saved (the registry queues the redaction
 # sweep of the note with it).
-AfterTranscript = Callable[[AsyncConnection, UUID], Awaitable[None]]
+AfterTranscript = Callable[[AsyncConnection[DictRow], UUID], Awaitable[None]]
 
 
 def voice_note_transcribe(
     transcriber: Transcriber, *after: AfterTranscript
-) -> Callable[[AsyncConnection, int, dict], Awaitable[None]]:
+) -> Callable[[AsyncConnection[DictRow], int, dict[str, Any]], Awaitable[None]]:
     """A handler bound to one Transcriber, built once when the registry is assembled."""
 
-    async def handle(conn: AsyncConnection, job_id: int, payload: dict) -> None:
+    async def handle(conn: AsyncConnection[DictRow], _job_id: int, payload: dict[str, Any]) -> None:
         try:
             voice_note_id = UUID(str(payload["voice_note_id"]))
         except (KeyError, ValueError) as exc:

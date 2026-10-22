@@ -1,14 +1,18 @@
 """Claude through the Messages API with structured outputs."""
 
 import json
-from typing import Any
+from typing import Any, cast
 
 import anthropic
+from anthropic.types import TextBlockParam
 
 from agent.llm import LLMError, Request, Response, Usage
 
 
 class Anthropic:
+    name: str
+    _client: anthropic.AsyncAnthropic | None
+
     def __init__(
         self,
         api_key: str,
@@ -32,9 +36,9 @@ class Anthropic:
         if self._client is None:
             raise LLMError("llm: ANTHROPIC_API_KEY not configured", permanent=True)
 
-        system: list[dict[str, Any]] = []
+        system: list[TextBlockParam] = []
         for block in req.system:
-            item: dict[str, Any] = {"type": "text", "text": block.text}
+            item: TextBlockParam = {"type": "text", "text": block.text}
             if block.cache:
                 item["cache_control"] = {"type": "ephemeral"}
             system.append(item)
@@ -91,7 +95,7 @@ def strict_schema(node: Any) -> Any:
     if not isinstance(node, dict):
         return node
     out: dict[str, Any] = {}
-    for key, value in node.items():
+    for key, value in cast(dict[str, Any], node).items():
         if key == "properties":
             out[key] = {name: strict_schema(p) for name, p in value.items()}
         elif key == "items":

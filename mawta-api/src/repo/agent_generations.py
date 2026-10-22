@@ -4,9 +4,11 @@ by column; jsonb columns arrive decoded."""
 
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from typing import Any
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 from db import fetch_one, fetch_required
 from errors import AppError
@@ -29,7 +31,7 @@ _COLUMNS = """
     finished_at"""
 
 
-def expired(gen: dict, now: datetime | None = None) -> bool:
+def expired(gen: dict[str, Any], now: datetime | None = None) -> bool:
     """An unfinished generation past its deadline. The API shows such a generation as failed and
     the worker never starts it."""
     now = now or datetime.now(UTC)
@@ -49,7 +51,7 @@ class Usage:
     cache_write_tokens: int = 0
     cost_usd: float = 0.0
 
-    def params(self) -> dict:
+    def params(self) -> dict[str, Any]:
         return {
             "model": self.model,
             "prompt_version": self.prompt_version,
@@ -72,7 +74,7 @@ _ADD_USAGE = """
 
 
 async def create_generation(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     *,
     agent: str,
     kind: str,
@@ -85,8 +87,8 @@ async def create_generation(
     competency_id: UUID | None = None,
     term_id: UUID | None = None,
     voice_note_id: UUID | None = None,
-    input: dict | None = None,  # noqa: A002
-) -> tuple[dict, bool]:
+    input: dict[str, Any] | None = None,  # noqa: A002
+) -> tuple[dict[str, Any], bool]:
     """Record a request, or return the one already in flight for the same target
     (agent_generations_target_key): asking twice for the same thing while it runs never starts a
     second generation. The bool says whether a new row was written, so the caller only enqueues a
@@ -131,7 +133,7 @@ async def create_generation(
     return existing, False
 
 
-async def get_generation(conn: AsyncConnection, generation_id: UUID) -> dict:
+async def get_generation(conn: AsyncConnection[DictRow], generation_id: UUID) -> dict[str, Any]:
     """RLS hides other schools' rows, which surface as not_found."""
     row = await fetch_one(
         conn, f"select {_COLUMNS} from agent_generations where id = %s", (generation_id,)
@@ -141,7 +143,9 @@ async def get_generation(conn: AsyncConnection, generation_id: UUID) -> dict:
     return row
 
 
-async def start_generation(conn: AsyncConnection, generation_id: UUID) -> tuple[dict | None, bool]:
+async def start_generation(
+    conn: AsyncConnection[DictRow], generation_id: UUID
+) -> tuple[dict[str, Any] | None, bool]:
     """Claim a generation for one attempt: lock the row, move it to running and count the attempt.
     ok is False when there is nothing to do: the generation already finished, or it is past its
     deadline (then it is marked failed here, so it never runs late). Raises NotFound when the row
@@ -175,7 +179,9 @@ async def start_generation(conn: AsyncConnection, generation_id: UUID) -> tuple[
     return started, True
 
 
-async def record_generation_usage(conn: AsyncConnection, generation_id: UUID, usage: Usage) -> None:
+async def record_generation_usage(
+    conn: AsyncConnection[DictRow], generation_id: UUID, usage: Usage
+) -> None:
     """Add an attempt's usage without finishing the generation: a transient failure that will be
     retried still cost money."""
     await conn.execute(
@@ -185,7 +191,7 @@ async def record_generation_usage(conn: AsyncConnection, generation_id: UUID, us
 
 
 async def complete_generation(
-    conn: AsyncConnection, generation_id: UUID, result: object, usage: Usage
+    conn: AsyncConnection[DictRow], generation_id: UUID, result: object, usage: Usage
 ) -> None:
     await conn.execute(
         f"""
@@ -199,7 +205,7 @@ async def complete_generation(
 
 
 async def fail_generation(
-    conn: AsyncConnection, generation_id: UUID, message: str, detail: str, usage: Usage
+    conn: AsyncConnection[DictRow], generation_id: UUID, message: str, detail: str, usage: Usage
 ) -> None:
     """message is for the teacher and goes out in the API; detail is for support and never does."""
     await conn.execute(
@@ -214,8 +220,8 @@ async def fail_generation(
 
 
 async def latest_conclusion_generation(
-    conn: AsyncConnection, student_id: UUID, competency_id: UUID, term_id: UUID
-) -> dict | None:
+    conn: AsyncConnection[DictRow], student_id: UUID, competency_id: UUID, term_id: UUID
+) -> dict[str, Any] | None:
     """The most recent conclusions generation for a student, competency and term, so a proposal
     survives a page reload."""
     return await fetch_one(

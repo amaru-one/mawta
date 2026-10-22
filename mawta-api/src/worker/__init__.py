@@ -19,6 +19,7 @@ import math
 import socket
 import time
 from datetime import UTC, datetime
+from typing import Any
 
 from psycopg.types.json import Jsonb
 
@@ -108,7 +109,7 @@ async def dispatch(
     job's transaction, persist the outcome, and only then emit the terminal outcome event, so the
     event never claims a completion the database has not recorded."""
     start = time.monotonic()
-    common = {
+    common: dict[str, Any] = {
         "task_id": job.id,
         "kind": job.kind,
         "attempt": job.attempts,
@@ -174,7 +175,7 @@ async def dispatch(
         return
     finally:
         applog.end_outcome_report(report_token)
-        applog._stt_task.reset(stt_token)
+        applog.reset_stt_task(stt_token)
 
     # The handler's transaction committed; the job is only complete once its status is recorded.
     # A job whose completion cannot be recorded stays running and is never claimed again, so it is

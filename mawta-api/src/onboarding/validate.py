@@ -13,10 +13,22 @@ from datetime import date, datetime, timedelta
 
 import auth as authpkg
 from curriculum import Catalog
-from onboarding.spec import Area, Aula, Estudiante, Grado, Spec
+from onboarding.spec import (
+    AnioEscolar,
+    Area,
+    Aula,
+    Clase,
+    Colegio,
+    Docente,
+    Estudiante,
+    Grado,
+    Spec,
+)
 
 
 class ValidationErrors(Exception):
+    errors: list[str]
+
     def __init__(self, errors: list[str]) -> None:
         self.errors = errors
         super().__init__("\n".join(errors))
@@ -71,6 +83,8 @@ class _Slot:
 
 
 class _Checker:
+    cat: Catalog
+
     def __init__(self, cat: Catalog) -> None:
         self.cat = cat
         self.errs: list[str] = []
@@ -139,7 +153,7 @@ class _Checker:
 
     # ---------------------------------------------------------------- colegio --
 
-    def colegio(self, c) -> None:
+    def colegio(self, c: Colegio) -> None:
         self.required("colegio.nombre", c.nombre)
         self.optional("colegio.razon_social", c.razon_social)
         if self.required("colegio.codigo_modular", c.codigo_modular) and not _RE_MODULAR.match(
@@ -166,7 +180,7 @@ class _Checker:
 
     # ------------------------------------------------------------ año escolar --
 
-    def anio(self, a) -> list[tuple[int, date, date]]:
+    def anio(self, a: AnioEscolar) -> list[tuple[int, date, date]]:
         if a.anio < 2000 or a.anio > 2100:
             self.addf("anio_escolar.anio", f"{a.anio} no es un año válido")
         self.required("anio_escolar.nombre", a.nombre)
@@ -227,7 +241,7 @@ class _Checker:
 
     # -------------------------------------------------------- días no lectivos --
 
-    def dias_no_lectivos(self, a) -> dict[str, str]:
+    def dias_no_lectivos(self, a: AnioEscolar) -> dict[str, str]:
         """The school's days without class by date, each with the path that declared it, so a
         session tema on one of those days can name where the day came from."""
         out: dict[str, str] = {}
@@ -287,7 +301,7 @@ class _Checker:
 
     # --------------------------------------------------------------- docentes --
 
-    def docentes(self, ds) -> set[str]:
+    def docentes(self, ds: list[Docente]) -> set[str]:
         known: set[str] = set()
         if not ds:
             self.addf("docentes", "debe haber al menos un docente")
@@ -417,7 +431,7 @@ class _Checker:
     # ------------------------------------------------------------------ aulas --
 
     def aulas(
-        self, aulas: list[Aula], grados: dict[str, Grado], docentes: set[str], anio
+        self, aulas: list[Aula], grados: dict[str, Grado], docentes: set[str], anio: AnioEscolar
     ) -> dict[str, Aula]:
         known: dict[str, Aula] = {}
         if not aulas:
@@ -457,7 +471,16 @@ class _Checker:
                 )
         return known
 
-    def estudiante(self, path, e: Estudiante, codes, siagies, docs, anio_inicio, anio_fin) -> None:
+    def estudiante(
+        self,
+        path: str,
+        e: Estudiante,
+        codes: dict[str, str],
+        siagies: dict[str, str],
+        docs: dict[str, str],
+        anio_inicio: date | None,
+        anio_fin: date | None,
+    ) -> None:
         if self.required(f"{path}.codigo", e.codigo):
             self.unique(codes, f"{path}.codigo", "el código de estudiante", e.codigo)
         if self.optional(f"{path}.codigo_siagie", e.codigo_siagie):
@@ -503,7 +526,13 @@ class _Checker:
     # ----------------------------------------------------------------- clases --
 
     def clases(
-        self, cs, areas: set[str], aulas: dict[str, Aula], docentes: set[str], periodos, no_lectivos
+        self,
+        cs: list[Clase],
+        areas: set[str],
+        aulas: dict[str, Aula],
+        docentes: set[str],
+        periodos: list[tuple[int, date, date]],
+        no_lectivos: dict[str, str],
     ) -> None:
         if not cs:
             self.addf("clases", "debe haber al menos una clase")

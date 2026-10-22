@@ -8,9 +8,11 @@ help.
 """
 
 from datetime import UTC, datetime
+from typing import Any
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -42,8 +44,8 @@ from web import (
 MAX_CONTEXT_RUNES = 300  # caps the teacher's event/context text; it is prompt input
 
 
-def to_generation_response(gen: dict, now: datetime | None = None) -> dict:
-    out: dict = {"id": gen["id"], "kind": gen["kind"], "status": gen["status"]}
+def to_generation_response(gen: dict[str, Any], now: datetime | None = None) -> dict[str, Any]:
+    out: dict[str, Any] = {"id": gen["id"], "kind": gen["kind"], "status": gen["status"]}
     if gen["status"] == gens.GENERATION_COMPLETED and gen["result"] is not None:
         out["result"] = gen["result"]
     if gen["error"] is not None:
@@ -65,18 +67,20 @@ def agent_available(request: Request) -> None:
         )
 
 
-async def start_generation(conn: AsyncConnection, tc: TenantCtx, **fields) -> dict:
+async def start_generation(
+    conn: AsyncConnection[DictRow], tc: TenantCtx, **fields: Any
+) -> dict[str, Any]:
     """Record a generation for the requesting teacher and queue its job, or return the one already
     running for the same target. `agent` says which agent serves it."""
     return await enqueue(conn, tc.tenant_id, requested_by=tc.teacher_id, **fields)
 
 
-def accepted(gen: dict) -> Response:
+def accepted(gen: dict[str, Any]) -> Response:
     return write_json(to_generation_response(gen), 202)
 
 
 async def _check_competencies_of_class(
-    conn: AsyncConnection, class_id: UUID, ids: list[UUID]
+    conn: AsyncConnection[DictRow], class_id: UUID, ids: list[UUID]
 ) -> None:
     if not ids:
         return
@@ -117,7 +121,7 @@ async def handle_create_experience_proposal(request: Request) -> Response:
         # its área.
         await plan_repo.resolve_plan_term(conn, class_id, term_id, datetime.now().date())
         await _check_competencies_of_class(conn, class_id, competencies)
-        payload: dict = {"term_id": str(term_id), "idea_text": idea}
+        payload: dict[str, Any] = {"term_id": str(term_id), "idea_text": idea}
         if context:
             payload["context_text"] = context
         if competencies:
@@ -211,7 +215,7 @@ async def handle_get_generation(request: Request) -> Response:
 
 
 async def _conclusion_scope(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     tc: TenantCtx,
     class_id: UUID,
     student_id: UUID,
@@ -229,7 +233,7 @@ async def _conclusion_scope(
 
 
 async def _queue_pending_sweeps(
-    conn: AsyncConnection, tc: TenantCtx, scope: conclusions_agent.Scope
+    conn: AsyncConnection[DictRow], tc: TenantCtx, scope: conclusions_agent.Scope
 ) -> None:
     """Queue the name sweep of the student's transcribed notes in the term that were never swept."""
     ids = await redaction_repo.pending_voice_notes_for_student_term(
@@ -250,8 +254,8 @@ async def handle_generate_conclusion(request: Request) -> Response:
     term_param = parse_uuid(term_raw, "invalid term_id") if term_raw else None
     agent_available(request)
 
-    thin: dict | None = None
-    gen: dict | None = None
+    thin: dict[str, Any] | None = None
+    gen: dict[str, Any] | None = None
     async with api.db.tenant_tx(tc) as conn:
         scope = await _conclusion_scope(conn, tc, class_id, student_id, competency_id, term_param)
         # Notes recorded before the sweep existed, or while no model was configured, are swept
@@ -334,7 +338,7 @@ async def handle_discarded_voice_notes(request: Request) -> Response:
     class_id = path_uuid(request, "classID")
     student_id = path_uuid(request, "studentID")
     term_param = query_uuid(request, "term_id")
-    notes: list[dict] = []
+    notes: list[dict[str, Any]] = []
     async with api.db.tenant_tx(tc) as conn:
         await authz.require_class_access(conn, tc, class_id)
         await authz.require_student_on_roster(conn, tc, class_id, student_id)

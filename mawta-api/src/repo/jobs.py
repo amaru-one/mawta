@@ -1,8 +1,10 @@
 """Enqueueing jobs."""
 
+from typing import Any
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 from jsonutil import jsonb
 
@@ -14,11 +16,11 @@ _CONFLICT = """
 
 
 async def enqueue_job(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     tenant_id: UUID,
     kind: str,
     priority: int,
-    payload: dict,
+    payload: dict[str, Any],
     unique_key: str = "",
     max_attempts: int | None = None,
 ) -> None:

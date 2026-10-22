@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 import applog
 import domain
@@ -13,7 +14,7 @@ from agent.llm.anthropic import Anthropic
 from agent.runner import Outcome, Runner
 from stt import Client as SttClient
 from web import Api
-from worker.handlers.transcribe import voice_note_transcribe
+from worker.handlers.transcribe import AfterTranscript, voice_note_transcribe
 
 # Job is the claimed row handed to a handler.
 
@@ -23,13 +24,13 @@ class Job:
     id: int
     tenant_id: Any  # UUID, or None for cross-tenant maintenance jobs
     kind: str
-    payload: dict
+    payload: dict[str, Any]
     attempts: int
     max_attempts: int
 
 
 # Runs inside the job's tenant (or system) transaction.
-InTxHandler = Callable[[AsyncConnection, Job], Awaitable[None]]
+InTxHandler = Callable[[AsyncConnection[DictRow], Job], Awaitable[None]]
 # Manages its own transactions: for work that waits on something slow outside the database (a
 # language-model call can take a minute) which must not hold a transaction, and its row locks,
 # open while it waits.
@@ -98,14 +99,14 @@ def default_registry(api: Api, runner: Runner | None = None) -> Registry:
     # A saved transcript queues its name sweep, but only when the agents can run: without a key
     # every sweep would fail, and the note simply stays pending until one is configured (the
     # conclusions endpoint queues pending notes again).
-    after = []
+    after: list[AfterTranscript] = []
     if cfg.anthropic_api_key.get_secret_value():
         from agent.redaction import queue_after_transcript
 
         after.append(queue_after_transcript)
     transcribe = voice_note_transcribe(stt_client, *after)
 
-    async def transcribe_job(conn: AsyncConnection, job: Job) -> None:
+    async def transcribe_job(conn: AsyncConnection[DictRow], job: Job) -> None:
         await transcribe(conn, job.id, job.payload)
 
     return Registry(

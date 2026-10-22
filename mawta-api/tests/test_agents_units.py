@@ -4,29 +4,37 @@ Anthropic client's schema/classification, the STT client and the transcribe hand
 import base64
 import json
 import uuid
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 import httpx
 import pytest
+from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 import applog
+from agent.conclusions import Material
 from agent.conclusions.guard import guard, name_words
 from agent.llm import LLMError
 from agent.llm.anthropic import classify, strict_schema
 from agent.redaction.replace import Fragment, LocateError, attribution, locate, redact
+from db import returned
 from repo import redaction as rrepo
 from stt import Client, SttError, SttPermanentError
+from tests.conftest import Admin
+from tests.conftest import Client as AppClient
 from worker.handlers.transcribe import voice_note_transcribe
 
 
-def frag(text, refers_to="other_person", key=""):
+def frag(text: str, refers_to: str = "other_person", key: str = "") -> Fragment:
     return Fragment(text, refers_to, key)
 
 
 # ------------------------------------------------------------- conclusion material --
 
 
-def _material(standard):
-    from agent.conclusions import Material, Scope
+def _material(standard: dict[str, Any] | None) -> Material:
+    from agent.conclusions import Scope
 
     ids = [uuid.uuid4() for _ in range(4)]
     m = Material(scope=Scope(*ids), level="B", requirement="level_b", standard=standard)
@@ -125,7 +133,7 @@ def test_guard_rejects_tokens_and_capitalised_names_only():
 
 
 def test_strict_schema_closes_every_object_without_mutating_input():
-    schema = {
+    schema: dict[str, Any] = {
         "type": "object",
         "properties": {"items": {"type": "array", "items": {"type": "object", "properties": {}}}},
     }
@@ -138,9 +146,10 @@ def test_strict_schema_closes_every_object_without_mutating_input():
 
 def test_classify_provider_errors():
     import anthropic
+    import httpx2  # the HTTP client the anthropic SDK is typed against
 
-    def status(code):
-        resp = httpx.Response(code, request=httpx.Request("POST", "https://x"))
+    def status(code: int) -> anthropic.APIStatusError:
+        resp = httpx2.Response(code, request=httpx2.Request("POST", "https://x"))
         return anthropic.APIStatusError("boom", response=resp, body=None)
 
     assert classify(status(429)).permanent is False
@@ -153,15 +162,15 @@ def test_classify_provider_errors():
 # ------------------------------------------------------------------- stt --
 
 
-def make_stt(handler, key="k"):
+def make_stt(handler: Callable[[httpx.Request], httpx.Response], key: str = "k") -> Client:
     http = httpx.AsyncClient(transport=httpx.MockTransport(handler))
     return Client(key, "m", endpoint="https://stt.test/x", http=http)
 
 
 async def test_stt_success_reports_provider_usage_and_never_the_audio():
-    seen = {}
+    seen: dict[str, Any] = {}
 
-    def handler(request):
+    def handler(request: httpx.Request) -> httpx.Response:
         seen["body"] = json.loads(request.content)
         seen["auth"] = request.headers["authorization"]
         return httpx.Response(
@@ -190,16 +199,19 @@ async def test_stt_error_classes():
 
 
 class FakeTranscriber:
-    def __init__(self, text=None, error=None):
+    text: str
+    error: Exception | None
+
+    def __init__(self, text: str = "", error: Exception | None = None) -> None:
         self.text, self.error = text, error
 
-    async def transcribe(self, audio):
+    async def transcribe(self, _audio_mp3: bytes) -> str:
         if self.error:
             raise self.error
         return self.text
 
 
-async def insert_note(admin, audio=b"fake"):
+async def insert_note(admin: Admin, audio: bytes = b"fake") -> uuid.UUID:
     from tests.conftest import FX
 
     note = uuid.uuid4()
@@ -219,7 +231,11 @@ async def insert_note(admin, audio=b"fake"):
     return note
 
 
-async def run_handler(client, handler, note):
+async def run_handler(
+    client: AppClient,
+    handler: Callable[[AsyncConnection[DictRow], int, dict[str, Any]], Awaitable[None]],
+    note: uuid.UUID,
+) -> applog.OutcomeReport:
     from db import TenantCtx
     from tests.conftest import FX
 
@@ -233,14 +249,14 @@ async def run_handler(client, handler, note):
     return report
 
 
-async def note_state(admin, note):
+async def note_state(admin: Admin, note: uuid.UUID) -> DictRow:
     cur = await admin.execute(
         "select transcription_status, transcript from voice_notes where id = %s", (note,)
     )
-    return await cur.fetchone()
+    return returned(await cur.fetchone())
 
 
-async def test_transcribe_success_saves_the_transcript(client, admin):
+async def test_transcribe_success_saves_the_transcript(client: AppClient, admin: Admin):
     note = await insert_note(admin)
     try:
         await run_handler(client, voice_note_transcribe(FakeTranscriber("prueba")), note)
@@ -250,7 +266,9 @@ async def test_transcribe_success_saves_the_transcript(client, admin):
         await admin.execute("delete from voice_notes where id = %s", (note,))
 
 
-async def test_transcribe_permanent_failure_is_recorded_not_retried(client, admin):
+async def test_transcribe_permanent_failure_is_recorded_not_retried(
+    client: AppClient, admin: Admin
+):
     note = await insert_note(admin)
     try:
         handler = voice_note_transcribe(FakeTranscriber(error=SttPermanentError("no key")))
@@ -262,7 +280,9 @@ async def test_transcribe_permanent_failure_is_recorded_not_retried(client, admi
         await admin.execute("delete from voice_notes where id = %s", (note,))
 
 
-async def test_transcribe_transient_error_propagates_and_discarded_note_is_skipped(client, admin):
+async def test_transcribe_transient_error_propagates_and_discarded_note_is_skipped(
+    client: AppClient, admin: Admin
+):
     note = await insert_note(admin)
     try:
         with pytest.raises(SttError):

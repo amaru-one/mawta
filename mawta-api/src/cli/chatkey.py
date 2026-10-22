@@ -15,7 +15,7 @@ from chattoken import generate_key
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="chatkey", description=__doc__.split("\n\n")[0])
+    parser = argparse.ArgumentParser(prog="chatkey", description=(__doc__ or "").split("\n\n")[0])
     parser.add_argument(
         "-kid", "--kid", required=True, help="key id written in the token header, e.g. k1"
     )

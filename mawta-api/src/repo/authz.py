@@ -8,20 +8,23 @@ indistinguishable from a made-up one.
 """
 
 from datetime import date
+from typing import LiteralString
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.abc import Params
+from psycopg.rows import DictRow
 
-from db import fetch_one, fetch_required
+from db import fetch_required
 
 
-async def _exists(conn: AsyncConnection, sql: str, params: object) -> bool:
+async def _exists(conn: AsyncConnection[DictRow], sql: LiteralString, params: Params) -> bool:
     row = await fetch_required(conn, sql, params)
     return bool(row["ok"])
 
 
 async def teacher_teaches_class(
-    conn: AsyncConnection, class_id: UUID, teacher_id: UUID, today: date
+    conn: AsyncConnection[DictRow], class_id: UUID, teacher_id: UUID, today: date
 ) -> bool:
     """A live class_teachers row covering today (any role counts). `today` comes from the
     tenant's timezone, not the server clock."""
@@ -42,7 +45,7 @@ async def teacher_teaches_class(
 
 
 async def teacher_teaches_subject(
-    conn: AsyncConnection, subject_id: UUID, teacher_id: UUID, today: date
+    conn: AsyncConnection[DictRow], subject_id: UUID, teacher_id: UUID, today: date
 ) -> bool:
     """A live assignment to any class of the subject: the unit for curriculum authoring."""
     return await _exists(
@@ -65,7 +68,7 @@ async def teacher_teaches_subject(
 
 
 async def student_on_class_roster(
-    conn: AsyncConnection, class_id: UUID, student_id: UUID, as_of: date
+    conn: AsyncConnection[DictRow], class_id: UUID, student_id: UUID, as_of: date
 ) -> bool:
     return await _exists(
         conn,
@@ -85,7 +88,7 @@ async def student_on_class_roster(
     )
 
 
-async def class_id_for_session(conn: AsyncConnection, session_id: UUID) -> UUID:
+async def class_id_for_session(conn: AsyncConnection[DictRow], session_id: UUID) -> UUID:
     row = await fetch_required(
         conn,
         "select class_id from class_sessions where id = %s and deleted_at is null",
@@ -94,7 +97,7 @@ async def class_id_for_session(conn: AsyncConnection, session_id: UUID) -> UUID:
     return row["class_id"]
 
 
-async def class_id_for_voice_note(conn: AsyncConnection, voice_note_id: UUID) -> UUID:
+async def class_id_for_voice_note(conn: AsyncConnection[DictRow], voice_note_id: UUID) -> UUID:
     row = await fetch_required(
         conn,
         "select class_id from voice_notes where id = %s and deleted_at is null",
@@ -103,7 +106,7 @@ async def class_id_for_voice_note(conn: AsyncConnection, voice_note_id: UUID) ->
     return row["class_id"]
 
 
-async def class_id_for_assessment(conn: AsyncConnection, assessment_id: UUID) -> UUID:
+async def class_id_for_assessment(conn: AsyncConnection[DictRow], assessment_id: UUID) -> UUID:
     row = await fetch_required(
         conn,
         "select class_id from assessments where id = %s and deleted_at is null",
@@ -112,7 +115,7 @@ async def class_id_for_assessment(conn: AsyncConnection, assessment_id: UUID) ->
     return row["class_id"]
 
 
-async def class_id_for_score(conn: AsyncConnection, score_id: UUID) -> UUID:
+async def class_id_for_score(conn: AsyncConnection[DictRow], score_id: UUID) -> UUID:
     """A superseded score still resolves: correcting one is the operation being authorized."""
     row = await fetch_required(
         conn, "select class_id from scores where id = %s and deleted_at is null", (score_id,)
@@ -120,7 +123,9 @@ async def class_id_for_score(conn: AsyncConnection, score_id: UUID) -> UUID:
     return row["class_id"]
 
 
-async def subject_id_for_competency(conn: AsyncConnection, competency_id: UUID) -> UUID | None:
+async def subject_id_for_competency(
+    conn: AsyncConnection[DictRow], competency_id: UUID
+) -> UUID | None:
     """None for a transversal competencia (no subject): shared across the school."""
     row = await fetch_required(
         conn,
@@ -130,7 +135,9 @@ async def subject_id_for_competency(conn: AsyncConnection, competency_id: UUID) 
     return row["subject_id"]
 
 
-async def subject_id_for_criterion(conn: AsyncConnection, criterion_id: UUID) -> UUID | None:
+async def subject_id_for_criterion(
+    conn: AsyncConnection[DictRow], criterion_id: UUID
+) -> UUID | None:
     row = await fetch_required(
         conn,
         """
@@ -144,7 +151,7 @@ async def subject_id_for_criterion(conn: AsyncConnection, criterion_id: UUID) ->
     return row["subject_id"]
 
 
-async def class_id_for_experience(conn: AsyncConnection, experience_id: UUID) -> UUID:
+async def class_id_for_experience(conn: AsyncConnection[DictRow], experience_id: UUID) -> UUID:
     row = await fetch_required(
         conn,
         "select class_id from learning_experiences where id = %s and deleted_at is null",
@@ -153,7 +160,7 @@ async def class_id_for_experience(conn: AsyncConnection, experience_id: UUID) ->
     return row["class_id"]
 
 
-async def class_id_for_evidence(conn: AsyncConnection, evidence_id: UUID) -> UUID:
+async def class_id_for_evidence(conn: AsyncConnection[DictRow], evidence_id: UUID) -> UUID:
     row = await fetch_required(
         conn,
         """
@@ -167,7 +174,7 @@ async def class_id_for_evidence(conn: AsyncConnection, evidence_id: UUID) -> UUI
     return row["class_id"]
 
 
-async def class_id_for_criterion(conn: AsyncConnection, criterion_id: UUID) -> UUID | None:
+async def class_id_for_criterion(conn: AsyncConnection[DictRow], criterion_id: UUID) -> UUID | None:
     """The class of a criterio anchored to an experience; None for a global criterio
     (it belongs to an área, authorized through subject_id_for_criterion)."""
     row = await fetch_required(
@@ -181,7 +188,3 @@ async def class_id_for_criterion(conn: AsyncConnection, criterion_id: UUID) -> U
         (criterion_id,),
     )
     return row["class_id"]
-
-
-__all__ = [name for name in dir() if not name.startswith("_")]
-_ = fetch_one

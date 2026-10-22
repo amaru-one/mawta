@@ -3,10 +3,12 @@
 import io
 import json
 import logging
+from typing import Any
 
 import httpx
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
+from starlette.requests import Request
 from starlette.responses import PlainTextResponse
 from starlette.routing import Route
 
@@ -18,7 +20,7 @@ def build(capture: bool = False):
     stream = io.StringIO()
     logger = applog.new_json_logger(logging.INFO, stream)
 
-    async def ok(request):
+    async def ok(_request: Request) -> PlainTextResponse:
         return PlainTextResponse("ok")
 
     pattern = "/api/v1/classes/{classID}/students"
@@ -30,7 +32,7 @@ def build(capture: bool = False):
     return client, stream
 
 
-def last_entry(stream: io.StringIO) -> dict:
+def last_entry(stream: io.StringIO) -> dict[str, Any]:
     return json.loads(stream.getvalue().strip().splitlines()[-1])
 
 

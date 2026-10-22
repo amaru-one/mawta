@@ -3,12 +3,15 @@ Every query is scoped by the ids the server put on the generation, never by anyt
 for."""
 
 from datetime import date
+from typing import Any
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 from db import fetch_all, fetch_one, fetch_required
-from repo.competencies import _conclusion_requirement, _stage_and_cycle, expected_standards
+from repo.competencies import conclusion_requirement as requirement_of
+from repo.competencies import expected_standards, stage_and_cycle
 from repo.planning import MIN_CONCLUSION_EVIDENCES
 from repo.redaction import (
     ATTRIBUTION_DISCARDED,
@@ -21,23 +24,29 @@ __all__ = ["MIN_CONCLUSION_EVIDENCES"]
 
 
 async def conclusion_requirement(
-    conn: AsyncConnection, class_id: UUID, student_id: UUID, competency_id: UUID, term_id: UUID
+    conn: AsyncConnection[DictRow],
+    class_id: UUID,
+    student_id: UUID,
+    competency_id: UUID,
+    term_id: UUID,
 ) -> str:
     """Why a conclusion is (or is not) mandatory for this competency, student and period."""
-    return await _conclusion_requirement(conn, class_id, student_id, competency_id, term_id)
+    return await requirement_of(conn, class_id, student_id, competency_id, term_id)
 
 
 async def expected_standard(
-    conn: AsyncConnection, class_id: UUID, competency_id: UUID
-) -> dict | None:
+    conn: AsyncConnection[DictRow], class_id: UUID, competency_id: UUID
+) -> dict[str, Any] | None:
     """The standard of the level expected at the end of the class's cycle for this competency:
     the reference the CNEB asks a conclusion to describe progress against. None when the class has
     no cycle or the competency has no standard at that level."""
-    _, cycle = await _stage_and_cycle(conn, class_id)
+    _, cycle = await stage_and_cycle(conn, class_id)
     return (await expected_standards(conn, cycle, [competency_id])).get(competency_id)
 
 
-async def competency_in_class(conn: AsyncConnection, class_id: UUID, competency_id: UUID) -> bool:
+async def competency_in_class(
+    conn: AsyncConnection[DictRow], class_id: UUID, competency_id: UUID
+) -> bool:
     """Whether a competency belongs to the área the class teaches."""
     row = await fetch_required(
         conn,
@@ -54,7 +63,7 @@ async def competency_in_class(conn: AsyncConnection, class_id: UUID, competency_
 
 
 async def live_competency_level(
-    conn: AsyncConnection, student_id: UUID, competency_id: UUID, term_id: UUID
+    conn: AsyncConnection[DictRow], student_id: UUID, competency_id: UUID, term_id: UUID
 ) -> str | None:
     """The level a teacher asserted for this student, competency and term; None when none yet."""
     row = await fetch_one(
@@ -70,7 +79,9 @@ async def live_competency_level(
     return row["code"] if row else None
 
 
-async def get_competency_brief(conn: AsyncConnection, competency_id: UUID) -> dict:
+async def get_competency_brief(
+    conn: AsyncConnection[DictRow], competency_id: UUID
+) -> dict[str, Any]:
     """A competency with its active capabilities: {id, code, name, description, capabilities}."""
     comp = await fetch_required(
         conn,
@@ -89,18 +100,18 @@ async def get_competency_brief(conn: AsyncConnection, competency_id: UUID) -> di
     return comp
 
 
-def graded(evidence: dict) -> bool:
+def graded(evidence: dict[str, Any]) -> bool:
     """Whether the evidence carries a value for this student."""
     return evidence["score_status"] == "graded"
 
 
 async def list_conclusion_evidence(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     class_id: UUID,
     student_id: UUID,
     competency_id: UUID,
     term_id: UUID,
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """The published evidences of a class and term that apply to the student and are read against
     at least one criterion of the competency. Only that competency's criteria are attached, and the
     score's feedback is included: it is the teacher's own words about the work."""
@@ -163,8 +174,8 @@ async def list_conclusion_evidence(
 
 
 async def list_conclusion_voice_notes(
-    conn: AsyncConnection, class_id: UUID, student_id: UUID, term_id: UUID
-) -> tuple[list[dict], dict]:
+    conn: AsyncConnection[DictRow], class_id: UUID, student_id: UUID, term_id: UUID
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """The student's swept, usable voice notes of the class in the term, oldest first, and counts
     of the discarded ones and the ones not swept yet (still transcribing or waiting for the
     sweep). Returns (notes, {"discarded": n, "pending": n})."""
@@ -183,7 +194,7 @@ async def list_conclusion_voice_notes(
         (class_id, student_id, term_id),
     )
     counts = {"discarded": 0, "pending": 0}
-    out: list[dict] = []
+    out: list[dict[str, Any]] = []
     for r in rows:
         if r["status"] == ATTRIBUTION_DISCARDED:
             counts["discarded"] += 1
@@ -205,8 +216,8 @@ async def list_conclusion_voice_notes(
 
 
 async def list_discarded_voice_notes(
-    conn: AsyncConnection, class_id: UUID, student_id: UUID, term_id: UUID
-) -> list[dict]:
+    conn: AsyncConnection[DictRow], class_id: UUID, student_id: UUID, term_id: UUID
+) -> list[dict[str, Any]]:
     """The student's discarded notes in a class and term, newest first. Shown to the teacher only
     when discarding them leaves too little evidence; the teacher recorded them, so the original
     transcript is shown."""
@@ -225,8 +236,8 @@ async def list_discarded_voice_notes(
 
 
 async def list_earlier_term_conclusions(
-    conn: AsyncConnection, student_id: UUID, competency_id: UUID, term_id: UUID
-) -> list[dict]:
+    conn: AsyncConnection[DictRow], student_id: UUID, competency_id: UUID, term_id: UUID
+) -> list[dict[str, Any]]:
     """Oldest first, the student's live level and conclusion for the competency in the terms before
     term_id in the same academic year. A justification for consecutive C needs them."""
     rows = await fetch_all(
@@ -255,8 +266,8 @@ async def list_earlier_term_conclusions(
 
 
 async def roster_names(
-    conn: AsyncConnection, class_id: UUID, student_id: UUID, today: date
-) -> list[dict]:
+    conn: AsyncConnection[DictRow], class_id: UUID, student_id: UUID, today: date
+) -> list[dict[str, Any]]:
     """Every name of the students on a class's roster today and of the given student, for the
     final check that a proposed conclusion names no one."""
     ids = await roster_as_of(conn, class_id, today)

@@ -2,17 +2,20 @@
 
 import copy
 import json
+from collections.abc import Callable
 from pathlib import Path
 
 import psycopg
 import pytest
-from psycopg.rows import dict_row
+from psycopg.rows import DictRow, dict_row
 
 import curriculum
+from db import returned
 from onboarding import derive_id
 from onboarding import load as loader
 from onboarding import spec as spec_mod
 from onboarding.validate import ValidationErrors, validate
+from tests.conftest import Databases
 
 SEED = Path(__file__).resolve().parents[1] / "seed" / "onboarding"
 EXAMPLE = SEED / "ejemplo-san-felipe.json"
@@ -27,17 +30,19 @@ def example_spec():
     return spec_mod.decode(EXAMPLE.read_text(encoding="utf-8"))
 
 
-def test_catalog_loads_and_resolves_codes(cat):
+def test_catalog_loads_and_resolves_codes(cat: curriculum.Catalog):
     assert cat.fuente
     assert cat.expected_level("ebr", "ciclo_vii") == 7
     mat = cat.competencia_by_code("MAT-C1")
     assert mat is not None and mat["capacidades"]
     assert curriculum.capability_code("MAT-C1", 2) == "MAT-C1-CAP2"
     # only the last grade of a cycle reaches the standard
-    assert cat.en_proceso("1S") and not cat.en_proceso(cat.last_grade_of_cycle("ciclo_vi"))
+    last_vi = cat.last_grade_of_cycle("ciclo_vi")
+    assert last_vi is not None
+    assert cat.en_proceso("1S") and not cat.en_proceso(last_vi)
 
 
-def test_catalog_rejects_unknown_keys(tmp_path):
+def test_catalog_rejects_unknown_keys(tmp_path: Path):
     root = tmp_path / "cneb"
     (root / "competencias").mkdir(parents=True)
     (root / "cneb.json").write_text(json.dumps({"fuente": "x", "grados": [], "oops": 1}))
@@ -47,11 +52,11 @@ def test_catalog_rejects_unknown_keys(tmp_path):
     assert "oops" in str(err.value)
 
 
-def test_example_file_is_valid(cat):
+def test_example_file_is_valid(cat: curriculum.Catalog):
     validate(example_spec(), cat)
 
 
-def test_template_reports_every_unfilled_placeholder(cat):
+def test_template_reports_every_unfilled_placeholder(cat: curriculum.Catalog):
     spec = spec_mod.decode((SEED / "plantilla.json").read_text(encoding="utf-8"))
     with pytest.raises(ValidationErrors) as err:
         validate(spec, cat)
@@ -68,17 +73,20 @@ def test_unknown_key_and_wrong_type_are_decode_errors():
         spec_mod.decode("{not json")
 
 
-@pytest.mark.parametrize(
-    "mutate,fragment",
-    [
-        (lambda s: setattr(s.colegio, "codigo_modular", "123"), "7 dígitos"),
-        (lambda s: setattr(s.docentes[0], "usuario", "Bad User"), "minúsculas"),
-        (lambda s: setattr(s.clases[0], "area", "NOPE"), "no está en la lista de áreas"),
-        (lambda s: setattr(s.clases[0], "aula", "9X-Z"), "no existe"),
-        (lambda s: setattr(s.anio_escolar, "estructura", "decenio"), "no es válido"),
-    ],
-)
-def test_validation_names_the_problem(cat, mutate, fragment):
+# One broken field each, and the words the error must use to name it.
+MUTATIONS: list[tuple[Callable[[spec_mod.Spec], None], str]] = [
+    (lambda s: setattr(s.colegio, "codigo_modular", "123"), "7 dígitos"),
+    (lambda s: setattr(s.docentes[0], "usuario", "Bad User"), "minúsculas"),
+    (lambda s: setattr(s.clases[0], "area", "NOPE"), "no está en la lista de áreas"),
+    (lambda s: setattr(s.clases[0], "aula", "9X-Z"), "no existe"),
+    (lambda s: setattr(s.anio_escolar, "estructura", "decenio"), "no es válido"),
+]
+
+
+@pytest.mark.parametrize("mutate,fragment", MUTATIONS)
+def test_validation_names_the_problem(
+    cat: curriculum.Catalog, mutate: Callable[[spec_mod.Spec], None], fragment: str
+):
     spec = copy.deepcopy(example_spec())
     mutate(spec)
     with pytest.raises(ValidationErrors) as err:
@@ -86,35 +94,39 @@ def test_validation_names_the_problem(cat, mutate, fragment):
     assert any(fragment in e for e in err.value.errors), err.value.errors
 
 
-def test_ids_match_postgres_md5(databases):
-    with psycopg.connect(databases.admin_url, row_factory=dict_row) as conn:
-        row = conn.execute("select md5('student:0723519:EST-1')::uuid as id").fetchone()
+def test_ids_match_postgres_md5(databases: Databases):
+    with psycopg.Connection[DictRow].connect(databases.admin_url, row_factory=dict_row) as conn:
+        row = returned(conn.execute("select md5('student:0723519:EST-1')::uuid as id").fetchone())
     assert derive_id("student", "0723519", "EST-1") == row["id"]
 
 
-def test_load_creates_the_school_and_rolls_back(databases, cat):
+def test_load_creates_the_school_and_rolls_back(databases: Databases, cat: curriculum.Catalog):
     spec = example_spec()
-    with psycopg.connect(databases.admin_url, row_factory=dict_row) as conn:
+    with psycopg.Connection[DictRow].connect(databases.admin_url, row_factory=dict_row) as conn:
         summary = loader.load(conn, spec, cat, 4)
         assert summary.docentes == len(spec.docentes) and summary.sesiones > 0
         assert summary.estudiantes == sum(len(a.estudiantes) for a in spec.aulas)
         mod = spec.colegio.codigo_modular
-        row = conn.execute("select id from tenants where modular_code = %s", (mod,)).fetchone()
+        row = returned(
+            conn.execute("select id from tenants where modular_code = %s", (mod,)).fetchone()
+        )
         assert row["id"] == derive_id("tenant", mod, "")
         # a second load of the same school in the same transaction is refused up front
         with pytest.raises(ValidationErrors, match="ya existe"):
             loader.load(conn, spec, cat, 4)
         conn.rollback()
         gone = conn.execute("select count(*) as n from tenants where modular_code = %s", (mod,))
-        assert gone.fetchone()["n"] == 0
+        assert returned(gone.fetchone())["n"] == 0
 
 
-def test_sync_is_idempotent_on_a_freshly_loaded_school(databases, cat):
+def test_sync_is_idempotent_on_a_freshly_loaded_school(
+    databases: Databases, cat: curriculum.Catalog
+):
     from onboarding import sync as syncer
 
     spec = example_spec()
     grade_map = {g.codigo: g.grado_cneb for g in spec.grados}
-    with psycopg.connect(databases.admin_url, row_factory=dict_row) as conn:
+    with psycopg.Connection[DictRow].connect(databases.admin_url, row_factory=dict_row) as conn:
         loader.load(conn, spec, cat, 4)
         mod = spec.colegio.codigo_modular
         first = syncer.sync_curriculum(conn, cat, mod, grade_map)

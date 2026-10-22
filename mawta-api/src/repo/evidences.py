@@ -4,9 +4,11 @@ A piece of evidence carries no weight: under RVM 094-2020 a mark informs the tea
 judgement of the criterios and never feeds a final grade arithmetically.
 """
 
+from typing import Any, SupportsFloat
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 import domain
 from db import fetch_one, fetch_required
@@ -18,7 +20,7 @@ def _bad(code: str, message: str) -> AppError:
 
 
 async def create_assessment(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     *,
     class_id: UUID,
     term_id: UUID,
@@ -77,7 +79,7 @@ async def create_assessment(
 
 
 async def _link_assessment_criteria(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     class_id: UUID,
     term_id: UUID,
     assessment_id: UUID,
@@ -121,7 +123,7 @@ async def _link_assessment_criteria(
     )
 
 
-async def delete_assessment(conn: AsyncConnection, assessment_id: UUID) -> dict:
+async def delete_assessment(conn: AsyncConnection[DictRow], assessment_id: UUID) -> dict[str, Any]:
     """Soft-delete a piece of evidence; its scores stay in the student's history.
     Returns {class_id, term_id, student_id} for the audit event."""
     row = await fetch_one(
@@ -164,7 +166,7 @@ def _check_value(
             raise _bad("value_required", "a graded score needs a level")
 
 
-async def _level_id(conn: AsyncConnection, code: str) -> UUID:
+async def _level_id(conn: AsyncConnection[DictRow], code: str) -> UUID:
     """Resolve an AD/A/B/C code to the tenant's ordinal scale level."""
     row = await fetch_one(
         conn,
@@ -182,7 +184,9 @@ async def _level_id(conn: AsyncConnection, code: str) -> UUID:
     return row["id"]
 
 
-async def _assessment_scale(conn: AsyncConnection, assessment_id: UUID) -> tuple[str, float | None]:
+async def _assessment_scale(
+    conn: AsyncConnection[DictRow], assessment_id: UUID
+) -> tuple[str, float | None]:
     row = await fetch_one(
         conn,
         "select value_scale, max_score from assessments where id = %s and deleted_at is null",
@@ -193,12 +197,12 @@ async def _assessment_scale(conn: AsyncConnection, assessment_id: UUID) -> tuple
     return row["value_scale"], _float(row["max_score"])
 
 
-def _float(value: object) -> float | None:
-    return float(value) if value is not None else None  # type: ignore[arg-type]
+def _float(value: SupportsFloat | None) -> float | None:
+    return float(value) if value is not None else None
 
 
 async def create_score(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     assessment_id: UUID,
     student_id: UUID,
     teacher_id: UUID,
@@ -235,7 +239,7 @@ async def create_score(
 
 
 async def correct_score(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     score_id: UUID,
     teacher_id: UUID,
     raw_value: float | None,

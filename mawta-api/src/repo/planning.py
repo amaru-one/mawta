@@ -10,9 +10,11 @@ Patches are dicts: a key is present only when the request set that field.
 
 from dataclasses import dataclass
 from datetime import date
+from typing import Any, LiteralString
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 import domain
 from db import fetch_all, fetch_one, fetch_required
@@ -67,7 +69,7 @@ def trimmed_or_none(text: str | None) -> str | None:
 # ------------------------------------------------------------ experience --
 
 
-async def get_experience(conn: AsyncConnection, experience_id: UUID) -> dict:
+async def get_experience(conn: AsyncConnection[DictRow], experience_id: UUID) -> dict[str, Any]:
     """The whole experience for the review, criteria, evidences, sessions and summary screens."""
     e = await fetch_required(
         conn,
@@ -111,8 +113,8 @@ async def get_experience(conn: AsyncConnection, experience_id: UUID) -> dict:
 
 
 async def list_experience_criteria(
-    conn: AsyncConnection, experience_id: UUID, criterion_id: UUID | None = None
-) -> list[dict]:
+    conn: AsyncConnection[DictRow], experience_id: UUID, criterion_id: UUID | None = None
+) -> list[dict[str, Any]]:
     """The experience's criteria, or only one of them when criterion_id is set."""
     return await fetch_all(
         conn,
@@ -136,8 +138,8 @@ async def list_experience_criteria(
 
 
 async def list_experience_evidences(
-    conn: AsyncConnection, experience_id: UUID, evidence_id: UUID | None = None
-) -> list[dict]:
+    conn: AsyncConnection[DictRow], experience_id: UUID, evidence_id: UUID | None = None
+) -> list[dict[str, Any]]:
     """The experience's planned evidences, or only one of them when evidence_id is set."""
     rows = await fetch_all(
         conn,
@@ -164,8 +166,8 @@ async def list_experience_evidences(
 
 
 async def list_experience_sessions(
-    conn: AsyncConnection, experience_id: UUID, on: date | None = None
-) -> list[dict]:
+    conn: AsyncConnection[DictRow], experience_id: UUID, on: date | None = None
+) -> list[dict[str, Any]]:
     """The experience's session outline, or only the entry of one date when `on` is set."""
     return await fetch_all(
         conn,
@@ -182,7 +184,9 @@ async def list_experience_sessions(
     )
 
 
-async def _experience_warnings(conn: AsyncConnection, experience_id: UUID) -> list[dict]:
+async def _experience_warnings(
+    conn: AsyncConnection[DictRow], experience_id: UUID
+) -> list[dict[str, Any]]:
     """For every capability of the experience's competencies, the ones no accepted criterion looks
     at; then evidence-poor competencies; then how many proposals are still pending."""
     rows = await fetch_all(
@@ -205,7 +209,7 @@ async def _experience_warnings(conn: AsyncConnection, experience_id: UUID) -> li
         """,
         (experience_id,),
     )
-    out: list[dict] = [
+    out: list[dict[str, Any]] = [
         {
             "code": "capability_without_criterion",
             "competency_id": r["competency_id"],
@@ -285,7 +289,7 @@ class ExperienceHeader:
     ends_on: date
 
 
-async def lock_experience(conn: AsyncConnection, experience_id: UUID) -> ExperienceHeader:
+async def lock_experience(conn: AsyncConnection[DictRow], experience_id: UUID) -> ExperienceHeader:
     """Read an experience and lock its row, so two edits of the same experience apply one after
     the other."""
     row = await fetch_one(
@@ -303,7 +307,7 @@ async def lock_experience(conn: AsyncConnection, experience_id: UUID) -> Experie
     return ExperienceHeader(**row)
 
 
-async def _term_range(conn: AsyncConnection, term_id: UUID) -> tuple[UUID, date, date]:
+async def _term_range(conn: AsyncConnection[DictRow], term_id: UUID) -> tuple[UUID, date, date]:
     row = await fetch_one(
         conn,
         "select academic_year_id, starts_on, ends_on from terms where id = %s and deleted_at is null",
@@ -315,7 +319,7 @@ async def _term_range(conn: AsyncConnection, term_id: UUID) -> tuple[UUID, date,
 
 
 async def _check_experience_dates(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     class_id: UUID,
     experience_id: UUID | None,
     term_from: date,
@@ -357,7 +361,7 @@ async def _check_experience_dates(
 
 
 async def _check_competencies_in_subject(
-    conn: AsyncConnection, subject_id: UUID, ids: list[UUID]
+    conn: AsyncConnection[DictRow], subject_id: UUID, ids: list[UUID]
 ) -> None:
     """Every competency must be an active competency of the class's área (check_competency_subject)."""
     row = await fetch_required(
@@ -375,7 +379,7 @@ async def _check_competencies_in_subject(
 
 
 async def create_experience(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     class_id: UUID,
     *,
     term_id: UUID,
@@ -436,7 +440,9 @@ async def create_experience(
     return row["id"]
 
 
-async def update_experience(conn: AsyncConnection, experience_id: UUID, patch: dict) -> None:
+async def update_experience(
+    conn: AsyncConnection[DictRow], experience_id: UUID, patch: dict[str, Any]
+) -> None:
     """Edit an experience. New dates must keep its session outline inside them; removing a
     competency that still has criteria is refused, so no criterion is ever left on a competency
     the experience no longer works. `patch` keys: title, situation_text, starts_on, ends_on,
@@ -495,7 +501,7 @@ async def update_experience(conn: AsyncConnection, experience_id: UUID, patch: d
 
 
 async def _replace_experience_competencies(
-    conn: AsyncConnection, h: ExperienceHeader, ids: list[UUID]
+    conn: AsyncConnection[DictRow], h: ExperienceHeader, ids: list[UUID]
 ) -> None:
     if not ids:
         raise bad_input("missing_competencies", "elige al menos una competencia")
@@ -536,7 +542,7 @@ async def _replace_experience_competencies(
     )
 
 
-async def confirm_experience(conn: AsyncConnection, experience_id: UUID) -> None:
+async def confirm_experience(conn: AsyncConnection[DictRow], experience_id: UUID) -> None:
     """ "Revisar y guardar": a draft becomes planned."""
     h = await lock_experience(conn, experience_id)
     if h.status != "borrador":
@@ -547,12 +553,12 @@ async def confirm_experience(conn: AsyncConnection, experience_id: UUID) -> None
     await sync_experience(conn, h.id)
 
 
-async def delete_experience(conn: AsyncConnection, experience_id: UUID) -> None:
+async def delete_experience(conn: AsyncConnection[DictRow], experience_id: UUID) -> None:
     """Soft-delete an experience with everything planned in it. The competency links go before the
     experience: check_competency_subject reads the live experience on every write to
     experience_competencies."""
     h = await lock_experience(conn, experience_id)
-    statements = [
+    statements: list[tuple[LiteralString, bool]] = [
         (
             """update assessments set deleted_at = now()
                 where deleted_at is null
@@ -612,7 +618,7 @@ async def delete_experience(conn: AsyncConnection, experience_id: UUID) -> None:
 
 
 async def _check_criterion_competency(
-    conn: AsyncConnection, h: ExperienceHeader, competency_id: UUID
+    conn: AsyncConnection[DictRow], h: ExperienceHeader, competency_id: UUID
 ) -> None:
     """The competency must be one the experience works (check_criterion_experience)."""
     row = await fetch_required(
@@ -636,7 +642,7 @@ async def _check_criterion_competency(
 
 
 async def _check_criterion_capabilities(
-    conn: AsyncConnection, competency_id: UUID, ids: list[UUID]
+    conn: AsyncConnection[DictRow], competency_id: UUID, ids: list[UUID]
 ) -> None:
     """At least one capability, all of the criterion's competency
     (check_criterion_has_capability and the composite FK of evaluation_criterion_capabilities)."""
@@ -657,7 +663,7 @@ async def _check_criterion_capabilities(
 
 
 async def _check_criterion_performance(
-    conn: AsyncConnection, class_id: UUID, competency_id: UUID, performance_id: UUID
+    conn: AsyncConnection[DictRow], class_id: UUID, competency_id: UUID, performance_id: UUID
 ) -> None:
     """The performance must be one of the competency's for the class's grade."""
     row = await fetch_required(
@@ -681,7 +687,7 @@ async def _check_criterion_performance(
 
 
 async def create_planned_criterion(
-    conn: AsyncConnection, experience_id: UUID, inp: dict, by: str = BY_TEACHER
+    conn: AsyncConnection[DictRow], experience_id: UUID, inp: dict[str, Any], by: str = BY_TEACHER
 ) -> UUID:
     """Write a criterion for one of the experience's competencies, with its capabilities, in the
     same transaction: check_criterion_on_write fails the commit for a criterion without them.
@@ -726,12 +732,14 @@ async def create_planned_criterion(
     return row["id"]
 
 
-async def propose_criterion(conn: AsyncConnection, experience_id: UUID, inp: dict) -> UUID:
+async def propose_criterion(
+    conn: AsyncConnection[DictRow], experience_id: UUID, inp: dict[str, Any]
+) -> UUID:
     return await create_planned_criterion(conn, experience_id, inp, BY_MAWTA)
 
 
 async def _set_criterion_capabilities(
-    conn: AsyncConnection, criterion_id: UUID, competency_id: UUID, ids: list[UUID]
+    conn: AsyncConnection[DictRow], criterion_id: UUID, competency_id: UUID, ids: list[UUID]
 ) -> None:
     """Make ids the criterion's whole capability list. competency_id is copied from the criterion,
     as check_criterion_capability_competency requires."""
@@ -757,7 +765,7 @@ async def _set_criterion_capabilities(
 
 
 async def _lock_planned_criterion(
-    conn: AsyncConnection, criterion_id: UUID
+    conn: AsyncConnection[DictRow], criterion_id: UUID
 ) -> tuple[ExperienceHeader, UUID]:
     """Read a criterion of an experience and lock its experience. A global criterion is not part
     of any plan: not found."""
@@ -774,7 +782,9 @@ async def _lock_planned_criterion(
     return await lock_experience(conn, row["experience_id"]), row["competency_id"]
 
 
-async def update_planned_criterion(conn: AsyncConnection, criterion_id: UUID, patch: dict) -> None:
+async def update_planned_criterion(
+    conn: AsyncConnection[DictRow], criterion_id: UUID, patch: dict[str, Any]
+) -> None:
     """Edit a criterion; editing a proposal accepts it. `patch` keys: description,
     capability_ids, performance_id (a None value removes the performance)."""
     h, competency_id = await _lock_planned_criterion(conn, criterion_id)
@@ -812,7 +822,7 @@ async def update_planned_criterion(conn: AsyncConnection, criterion_id: UUID, pa
     )
 
 
-async def accept_planned_criterion(conn: AsyncConnection, criterion_id: UUID) -> None:
+async def accept_planned_criterion(conn: AsyncConnection[DictRow], criterion_id: UUID) -> None:
     """Accept a proposal unchanged. Accepting an accepted criterion is a no-op."""
     await _lock_planned_criterion(conn, criterion_id)
     await conn.execute(
@@ -821,7 +831,9 @@ async def accept_planned_criterion(conn: AsyncConnection, criterion_id: UUID) ->
     )
 
 
-async def get_planned_criterion(conn: AsyncConnection, criterion_id: UUID) -> dict:
+async def get_planned_criterion(
+    conn: AsyncConnection[DictRow], criterion_id: UUID
+) -> dict[str, Any]:
     row = await fetch_required(
         conn,
         """
@@ -861,8 +873,8 @@ def check_evidence_kind(kind: str) -> None:
         raise bad_input("bad_request", "kind debe ser produccion o actuacion")
 
 
-async def _check_evidence_criteria(
-    conn: AsyncConnection, experience_id: UUID, ids: list[UUID]
+async def check_evidence_criteria(
+    conn: AsyncConnection[DictRow], experience_id: UUID, ids: list[UUID]
 ) -> None:
     """At least one criterion, all of this experience (check_evidence_criterion_experience).
     They may come from any of its competencies."""
@@ -880,7 +892,7 @@ async def _check_evidence_criteria(
         raise unprocessable("criterion_other_experience", "ese criterio no es de esta experiencia")
 
 
-async def _session_entry_at(conn: AsyncConnection, experience_id: UUID, on: date) -> UUID:
+async def session_entry_at(conn: AsyncConnection[DictRow], experience_id: UUID, on: date) -> UUID:
     """The experience's session entry of a date, which a placed evidence needs."""
     row = await fetch_one(
         conn,
@@ -897,7 +909,9 @@ async def _session_entry_at(conn: AsyncConnection, experience_id: UUID, on: date
     return row["id"]
 
 
-async def _place_evidence(conn: AsyncConnection, evidence_id: UUID, entry_id: UUID | None) -> None:
+async def place_evidence(
+    conn: AsyncConnection[DictRow], evidence_id: UUID, entry_id: UUID | None
+) -> None:
     """Set where an evidence is collected, keeping both sides of the relation in step:
     planned_evidences.session_entry_id and session_outline_entries.planned_evidence_id. A session
     holds one evidence, so placing an evidence in a session unplaces the one that was there."""
@@ -926,7 +940,7 @@ async def _place_evidence(conn: AsyncConnection, evidence_id: UUID, entry_id: UU
     )
 
 
-async def _unplace_entry(conn: AsyncConnection, entry_id: UUID) -> None:
+async def unplace_entry(conn: AsyncConnection[DictRow], entry_id: UUID) -> None:
     """Empty a session entry and unplace the evidence it held."""
     await conn.execute(
         "update planned_evidences set session_entry_id = null where session_entry_id = %s",
@@ -941,7 +955,9 @@ async def _unplace_entry(conn: AsyncConnection, entry_id: UUID) -> None:
     )
 
 
-async def _set_evidence_criteria(conn: AsyncConnection, evidence_id: UUID, ids: list[UUID]) -> None:
+async def set_evidence_criteria(
+    conn: AsyncConnection[DictRow], evidence_id: UUID, ids: list[UUID]
+) -> None:
     await conn.execute(
         """
         update planned_evidence_criteria set deleted_at = now()
@@ -963,7 +979,7 @@ async def _set_evidence_criteria(conn: AsyncConnection, evidence_id: UUID, ids: 
 
 
 async def create_planned_evidence(
-    conn: AsyncConnection, experience_id: UUID, inp: dict, by: str = BY_TEACHER
+    conn: AsyncConnection[DictRow], experience_id: UUID, inp: dict[str, Any], by: str = BY_TEACHER
 ) -> UUID:
     """Write a planned evidence, optionally placed in the session entry of `session_date`.
     `inp` keys: name, kind, value_scale, max_score, criterion_ids, session_date. A teacher's
@@ -977,10 +993,10 @@ async def create_planned_evidence(
         inp.get("value_scale", ""), inp.get("max_score")
     )
     criterion_ids = dedupe(inp["criterion_ids"])
-    await _check_evidence_criteria(conn, h.id, criterion_ids)
+    await check_evidence_criteria(conn, h.id, criterion_ids)
     entry_id = None
     if inp.get("session_date") is not None:
-        entry_id = await _session_entry_at(conn, h.id, inp["session_date"])
+        entry_id = await session_entry_at(conn, h.id, inp["session_date"])
 
     row = await fetch_required(
         conn,
@@ -1001,13 +1017,15 @@ async def create_planned_evidence(
         },
     )
     evidence_id = row["id"]
-    await _set_evidence_criteria(conn, evidence_id, criterion_ids)
+    await set_evidence_criteria(conn, evidence_id, criterion_ids)
     if entry_id is not None:
-        await _place_evidence(conn, evidence_id, entry_id)
+        await place_evidence(conn, evidence_id, entry_id)
     if by == BY_TEACHER:
         await sync_experience(conn, experience_id)
     return evidence_id
 
 
-async def propose_evidence(conn: AsyncConnection, experience_id: UUID, inp: dict) -> UUID:
+async def propose_evidence(
+    conn: AsyncConnection[DictRow], experience_id: UUID, inp: dict[str, Any]
+) -> UUID:
     return await create_planned_evidence(conn, experience_id, inp, BY_MAWTA)

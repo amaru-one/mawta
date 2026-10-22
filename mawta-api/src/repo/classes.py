@@ -5,15 +5,17 @@ that (`rows or None`) because the UI was written against it.
 """
 
 from datetime import date
+from typing import Any
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 from db import fetch_all, fetch_one, fetch_required
 from repo.roster import roster_as_of
 
 
-async def _get_class_info(conn: AsyncConnection, class_id: UUID) -> dict:
+async def _get_class_info(conn: AsyncConnection[DictRow], class_id: UUID) -> dict[str, Any]:
     return await fetch_required(
         conn,
         """
@@ -27,7 +29,7 @@ async def _get_class_info(conn: AsyncConnection, class_id: UUID) -> dict:
     )
 
 
-def _session_summary(row: dict, past: bool = False, upcoming_list: bool = False) -> dict:
+def _session_summary(row: dict[str, Any], past: bool = False) -> dict[str, Any]:
     out = {
         "session_id": row["id"],
         "session_date": row["session_date"].isoformat(),
@@ -45,8 +47,8 @@ def _session_summary(row: dict, past: bool = False, upcoming_list: bool = False)
 
 
 async def get_class_dashboard(
-    conn: AsyncConnection, class_id: UUID, term: dict, today: date
-) -> dict:
+    conn: AsyncConnection[DictRow], class_id: UUID, term: dict[str, Any], today: date
+) -> dict[str, Any]:
     cls = await _get_class_info(conn, class_id)
     roster = await roster_as_of(conn, class_id, today)
 
@@ -121,7 +123,7 @@ async def get_class_dashboard(
     )
     asistencia = att["present"] / att["total"] if att["total"] > 0 else None
 
-    distribution: list[dict] = []
+    distribution: list[dict[str, Any]] = []
     if not cls["is_tutoria"]:
         rows = await fetch_all(
             conn,
@@ -258,8 +260,8 @@ _UPCOMING_SQL = """
 
 
 async def _list_sessions(
-    conn: AsyncConnection, class_id: UUID, d: date, direction: str, limit: int
-) -> list[dict] | None:
+    conn: AsyncConnection[DictRow], class_id: UUID, d: date, direction: str, limit: int
+) -> list[dict[str, Any]] | None:
     """Upcoming (ascending) or past (descending) sessions. The split is by wall clock, not by
     date alone. Past rows carry attendance and pending-grade chips. None when empty."""
     past = direction == "past"

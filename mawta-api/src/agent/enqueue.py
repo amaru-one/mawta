@@ -1,9 +1,11 @@
 """Start a generation."""
 
 from datetime import timedelta
+from typing import Any
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 from agent import JOB_KIND, MAX_ATTEMPTS
 from repo import agent_generations as gens
@@ -15,12 +17,12 @@ DEFAULT_DEADLINE = timedelta(minutes=5)
 
 
 async def enqueue(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     tenant_id: UUID,
     *,
     deadline: timedelta | None = None,
-    **fields,
-) -> dict:
+    **fields: Any,
+) -> dict[str, Any]:
     """Record a generation and queue the job that runs it, in the caller's transaction, or return
     the one already in flight for the same target. Both the API ("✦ Generar con Mawta") and the
     worker (a voice note that finished transcribing queues its redaction sweep) start generations

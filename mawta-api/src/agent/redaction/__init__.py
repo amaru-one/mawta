@@ -12,10 +12,11 @@ the note belongs to its assigned student.
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 from agent import InvalidAnswer, Prepared, Spec
 from agent.enqueue import enqueue
@@ -45,9 +46,9 @@ def target_key(voice_note_id: UUID, student_id: UUID) -> str:
 
 
 async def queue(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     tenant_id: UUID,
-    note: dict,
+    note: dict[str, Any],
     requested_by: UUID,
     reassigned: bool,
 ) -> None:
@@ -75,7 +76,7 @@ async def queue(
     )
 
 
-async def queue_after_transcript(conn: AsyncConnection, voice_note_id: UUID) -> None:
+async def queue_after_transcript(conn: AsyncConnection[DictRow], voice_note_id: UUID) -> None:
     """The hook the transcription job runs once a transcript is saved: queues the sweep, requested
     by the teacher who recorded the note."""
     note = await repo.get_voice_note_for_redaction(conn, voice_note_id)
@@ -135,7 +136,7 @@ class _State:
     classmates: dict[str, UUID] = field(default_factory=dict)
 
 
-def _describe(n: dict) -> str:
+def _describe(n: dict[str, Any]) -> str:
     """Every name a teacher might use for a student."""
     parts = [f"given name {n['given_name']}"]
     if n["preferred_name"] and n["preferred_name"].strip():
@@ -155,7 +156,7 @@ def _parse_answer(raw: Any) -> tuple[list[Fragment], bool]:
                 refers_to=_str(f["refers_to"]),
                 student_key=_str(f.get("student_key")),
             )
-            for f in (raw.get("fragments") or [])
+            for f in cast(list[Any], raw.get("fragments") or [])
         ]
         unreadable = raw.get("unreadable") or False
         if not isinstance(unreadable, bool):
@@ -174,13 +175,14 @@ def _str(value: Any) -> str:
 
 
 class RedactionAgent:
-    name = NAME
-    prompt_version = PROMPT_VERSION
+    name: str = NAME
+    prompt_version: str = PROMPT_VERSION
 
-    async def prepare(self, conn: AsyncConnection, gen: dict) -> Prepared:
+    async def prepare(self, conn: AsyncConnection[DictRow], gen: dict[str, Any]) -> Prepared:
         if gen["voice_note_id"] is None:
             raise RuntimeError(f"redaction: generation {gen['id']} has no voice note")
-        reassigned = bool((gen["input"] or {}).get("reassigned"))
+        inp: dict[str, Any] = gen["input"] or {}
+        reassigned = bool(inp.get("reassigned"))
         note = await repo.get_voice_note_for_redaction(
             conn, gen["voice_note_id"]
         )  # NotFound: final
@@ -224,7 +226,9 @@ class RedactionAgent:
             state=st,
         )
 
-    async def apply(self, conn: AsyncConnection, gen: dict, prepared: Prepared, answer: Any) -> Any:
+    async def apply(
+        self, conn: AsyncConnection[DictRow], gen: dict[str, Any], prepared: Prepared, answer: Any
+    ) -> Any:
         st: _State = prepared.state
         fragments, unreadable = _parse_answer(answer)
         for f in fragments:

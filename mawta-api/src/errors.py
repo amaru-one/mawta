@@ -1,12 +1,18 @@
 """Typed API errors and the Postgres error mapping."""
 
 from dataclasses import dataclass
+from typing import Any
 
 import psycopg
 
 
 class AppError(Exception):
     """An error carrying an HTTP status and a stable code."""
+
+    status: int
+    code: str
+    message: str
+    hint: str
 
     def __init__(self, status: int, code: str, message: str, hint: str = "") -> None:
         super().__init__(message)
@@ -15,8 +21,8 @@ class AppError(Exception):
         self.message = message
         self.hint = hint
 
-    def envelope(self) -> dict:
-        body: dict = {"code": self.code, "message": self.message}
+    def envelope(self) -> dict[str, Any]:
+        body: dict[str, Any] = {"code": self.code, "message": self.message}
         if self.hint:
             body["hint"] = self.hint
         return {"error": body}

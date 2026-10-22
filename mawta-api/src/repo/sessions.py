@@ -1,16 +1,19 @@
 """Class sessions, attendance, voice notes, notifications."""
 
 from datetime import date, datetime
+from typing import Any, LiteralString
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.abc import Params
+from psycopg.rows import DictRow
 
 from db import fetch_all, fetch_one, fetch_required
 from errors import NotFound
 from repo.roster import roster_as_of
 
 
-async def get_session_header(conn: AsyncConnection, session_id: UUID) -> dict:
+async def get_session_header(conn: AsyncConnection[DictRow], session_id: UUID) -> dict[str, Any]:
     h = await fetch_required(
         conn,
         """
@@ -42,8 +45,8 @@ async def get_session_header(conn: AsyncConnection, session_id: UUID) -> dict:
 
 
 async def get_session_roster(
-    conn: AsyncConnection, session_id: UUID, class_id: UUID, session_date: date, q: str
-) -> tuple[list[dict] | None, list[UUID]]:
+    conn: AsyncConnection[DictRow], session_id: UUID, class_id: UUID, session_date: date, q: str
+) -> tuple[list[dict[str, Any]] | None, list[UUID]]:
     """The roster-as-of-session_date for a lesson screen, optionally filtered by a name
     substring. Returns the roster (None when empty: the UI expects null) and the ordered
     student ids, so the caller can log student.read events in the same transaction."""
@@ -77,7 +80,7 @@ async def get_session_roster(
         """,
         (session_id,),
     )
-    by_student: dict[UUID, list[dict]] = {}
+    by_student: dict[UUID, list[dict[str, Any]]] = {}
     for n in notes:
         by_student.setdefault(n["student_id"], []).append(
             {"id": n["id"], "duration_ms": n["duration_ms"], "transcript": n["transcript"]}
@@ -97,7 +100,7 @@ async def get_session_roster(
 # ── attendance ──────────────────────────────────────────────────────────
 
 
-async def get_session_meta(conn: AsyncConnection, session_id: UUID) -> tuple[UUID, date]:
+async def get_session_meta(conn: AsyncConnection[DictRow], session_id: UUID) -> tuple[UUID, date]:
     """The class and calendar date of a session: the minimum needed to compute its roster."""
     row = await fetch_required(
         conn,
@@ -108,7 +111,7 @@ async def get_session_meta(conn: AsyncConnection, session_id: UUID) -> tuple[UUI
 
 
 async def upsert_attendance(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     session_id: UUID,
     student_id: UUID,
     teacher_id: UUID,
@@ -140,7 +143,11 @@ async def upsert_attendance(
 
 
 async def mark_all_present(
-    conn: AsyncConnection, session_id: UUID, class_id: UUID, teacher_id: UUID, session_date: date
+    conn: AsyncConnection[DictRow],
+    session_id: UUID,
+    class_id: UUID,
+    teacher_id: UUID,
+    session_date: date,
 ) -> int:
     """A 'present' row for every roster student with no attendance row yet, without clobbering
     explicit marks already taken."""
@@ -162,7 +169,7 @@ async def mark_all_present(
 
 
 async def maybe_stamp_attendance_taken(
-    conn: AsyncConnection, session_id: UUID, teacher_id: UUID
+    conn: AsyncConnection[DictRow], session_id: UUID, teacher_id: UUID
 ) -> None:
     """Set attendance_taken_at/_by once every roster student as of the session date has a row."""
     await conn.execute(
@@ -189,7 +196,7 @@ async def maybe_stamp_attendance_taken(
 
 
 async def create_voice_note(
-    conn: AsyncConnection,
+    conn: AsyncConnection[DictRow],
     session_id: UUID,
     student_id: UUID,
     class_id: UUID,
@@ -213,7 +220,9 @@ async def create_voice_note(
     return row["id"]
 
 
-async def get_voice_note_file(conn: AsyncConnection, voice_note_id: UUID) -> dict:
+async def get_voice_note_file(
+    conn: AsyncConnection[DictRow], voice_note_id: UUID
+) -> dict[str, Any]:
     """{audio, storage_key, mime_type}."""
     return await fetch_required(
         conn,
@@ -222,7 +231,7 @@ async def get_voice_note_file(conn: AsyncConnection, voice_note_id: UUID) -> dic
     )
 
 
-async def voice_note_exists(conn: AsyncConnection, voice_note_id: UUID) -> None:
+async def voice_note_exists(conn: AsyncConnection[DictRow], voice_note_id: UUID) -> None:
     row = await fetch_required(
         conn,
         "select exists (select 1 from voice_notes where id = %s and deleted_at is null) as ok",
@@ -232,13 +241,15 @@ async def voice_note_exists(conn: AsyncConnection, voice_note_id: UUID) -> None:
         raise NotFound
 
 
-async def _one_row_or_not_found(conn: AsyncConnection, sql: str, params: object) -> None:
+async def _one_row_or_not_found(
+    conn: AsyncConnection[DictRow], sql: LiteralString, params: Params
+) -> None:
     cur = await conn.execute(sql, params)
     if cur.rowcount == 0:
         raise NotFound
 
 
-async def delete_voice_note(conn: AsyncConnection, voice_note_id: UUID) -> None:
+async def delete_voice_note(conn: AsyncConnection[DictRow], voice_note_id: UUID) -> None:
     await _one_row_or_not_found(
         conn,
         "update voice_notes set deleted_at = now() where id = %s and deleted_at is null",
@@ -247,7 +258,7 @@ async def delete_voice_note(conn: AsyncConnection, voice_note_id: UUID) -> None:
 
 
 async def set_voice_note_transcript(
-    conn: AsyncConnection, voice_note_id: UUID, transcript: str
+    conn: AsyncConnection[DictRow], voice_note_id: UUID, transcript: str
 ) -> None:
     await _one_row_or_not_found(
         conn,
@@ -259,7 +270,9 @@ async def set_voice_note_transcript(
     )
 
 
-async def mark_voice_note_transcription_failed(conn: AsyncConnection, voice_note_id: UUID) -> None:
+async def mark_voice_note_transcription_failed(
+    conn: AsyncConnection[DictRow], voice_note_id: UUID
+) -> None:
     await _one_row_or_not_found(
         conn,
         """
@@ -274,8 +287,8 @@ async def mark_voice_note_transcription_failed(conn: AsyncConnection, voice_note
 
 
 async def list_notifications(
-    conn: AsyncConnection, teacher_id: UUID, kind: str, limit: int, before: datetime | None
-) -> list[dict] | None:
+    conn: AsyncConnection[DictRow], teacher_id: UUID, kind: str, limit: int, before: datetime | None
+) -> list[dict[str, Any]] | None:
     rows = await fetch_all(
         conn,
         """
@@ -300,7 +313,7 @@ async def list_notifications(
 
 
 async def mark_notification_read(
-    conn: AsyncConnection, notification_id: UUID, teacher_id: UUID
+    conn: AsyncConnection[DictRow], notification_id: UUID, teacher_id: UUID
 ) -> None:
     await _one_row_or_not_found(
         conn,
@@ -312,7 +325,7 @@ async def mark_notification_read(
     )
 
 
-async def mark_all_notifications_read(conn: AsyncConnection, teacher_id: UUID) -> int:
+async def mark_all_notifications_read(conn: AsyncConnection[DictRow], teacher_id: UUID) -> int:
     cur = await conn.execute(
         """
         update notifications set read_at = now()

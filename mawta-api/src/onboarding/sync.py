@@ -8,11 +8,16 @@ ordinals.
 """
 
 from dataclasses import dataclass, field
+from typing import Any, override
 from uuid import UUID
 
 import psycopg
+from psycopg.rows import DictRow
 
 from curriculum import DEFAULT_MODALITY, Catalog, capability_code
+
+# Grade code -> (its catalog grado, the school's grade_levels.id).
+Grades = dict[str, tuple[dict[str, Any], UUID]]
 
 
 @dataclass
@@ -27,6 +32,7 @@ class SyncReport:
     niveles_esperados: int = 0
     renamed: list[str] = field(default_factory=list)
 
+    @override
     def __str__(self) -> str:
         out = [
             f"Colegio:        {self.colegio} ({self.tenant_id})",
@@ -48,7 +54,7 @@ class SyncError(Exception):
 
 
 def sync_curriculum(
-    conn: psycopg.Connection, cat: Catalog, modular_code: str, grade_map: dict[str, str]
+    conn: psycopg.Connection[DictRow], cat: Catalog, modular_code: str, grade_map: dict[str, str]
 ) -> SyncReport:
     """The caller owns the transaction, exactly like load()."""
     if not grade_map:
@@ -68,10 +74,16 @@ def sync_curriculum(
     return report
 
 
-def _set_grade_cycles(conn, cat, tenant_id, grade_map, report) -> dict[str, tuple[dict, UUID]]:
+def _set_grade_cycles(
+    conn: psycopg.Connection[DictRow],
+    cat: Catalog,
+    tenant_id: UUID,
+    grade_map: dict[str, str],
+    report: SyncReport,
+) -> Grades:
     """Set grade_levels.stage and cycle from the explicit map. Only the grades the map names are
     touched."""
-    grades: dict[str, tuple[dict, UUID]] = {}
+    grades: Grades = {}
     for codigo, cneb in grade_map.items():
         cg = cat.grado[cneb]
         row = conn.execute(
@@ -96,7 +108,13 @@ def _set_grade_cycles(conn, cat, tenant_id, grade_map, report) -> dict[str, tupl
     return grades
 
 
-def _sync_competencies(conn, cat, tenant_id, grades, report) -> None:
+def _sync_competencies(
+    conn: psycopg.Connection[DictRow],
+    cat: Catalog,
+    tenant_id: UUID,
+    grades: Grades,
+    report: SyncReport,
+) -> None:
     """Walk every competency the school already has, matching by code, and insert what the catalog
     has and the school lacks. Competencies the school does not have are not created: which areas a
     school uses is its decision."""
@@ -126,7 +144,14 @@ def _sync_competencies(conn, cat, tenant_id, grades, report) -> None:
         _sync_performances(conn, cat, tenant_id, c["id"], c["code"], comp, grades, report)
 
 
-def _sync_capabilities(conn, tenant_id, comp_id, codigo, comp, report) -> None:
+def _sync_capabilities(
+    conn: psycopg.Connection[DictRow],
+    tenant_id: UUID,
+    comp_id: UUID,
+    codigo: str,
+    comp: dict[str, Any],
+    report: SyncReport,
+) -> None:
     for k, cap in enumerate(comp["capacidades"], start=1):
         cap_code = capability_code(codigo, cap["numero"])
         row = conn.execute(
@@ -153,7 +178,13 @@ def _sync_capabilities(conn, tenant_id, comp_id, codigo, comp, report) -> None:
         report.capacidades += 1
 
 
-def _sync_standards(conn, tenant_id, comp_id, comp, report) -> None:
+def _sync_standards(
+    conn: psycopg.Connection[DictRow],
+    tenant_id: UUID,
+    comp_id: UUID,
+    comp: dict[str, Any],
+    report: SyncReport,
+) -> None:
     for e in comp["estandares"]:
         cur = conn.execute(
             """
@@ -167,7 +198,16 @@ def _sync_standards(conn, tenant_id, comp_id, comp, report) -> None:
             report.estandares += 1
 
 
-def _sync_performances(conn, cat, tenant_id, comp_id, codigo, comp, grades, report) -> None:
+def _sync_performances(
+    conn: psycopg.Connection[DictRow],
+    cat: Catalog,
+    tenant_id: UUID,
+    comp_id: UUID,
+    codigo: str,
+    comp: dict[str, Any],
+    grades: Grades,
+    report: SyncReport,
+) -> None:
     for cg, level_id in grades.values():
         en_proceso = cat.en_proceso(cg["codigo"])
         expected = cat.expected_level(DEFAULT_MODALITY, cg["ciclo"])
@@ -211,7 +251,13 @@ def _sync_performances(conn, cat, tenant_id, comp_id, codigo, comp, grades, repo
                 report.desempenos += 1
 
 
-def _sync_mappings(conn, cat, tenant_id, grades, report) -> None:
+def _sync_mappings(
+    conn: psycopg.Connection[DictRow],
+    cat: Catalog,
+    tenant_id: UUID,
+    grades: Grades,
+    report: SyncReport,
+) -> None:
     seen: set[str] = set()
     for cg, _ in grades.values():
         if cg["ciclo"] in seen:

@@ -5,17 +5,19 @@ The one judgement this app records is the nivel de logro of a competencia, asser
 teacher after reading the period's evidence (RVM 094-2020, 5.1.1.3 p.2-3).
 """
 
+from typing import Any
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from psycopg.rows import DictRow
 
 from db import fetch_all, fetch_required
 from errors import AppError
 
 
 async def list_competency_capabilities(
-    conn: AsyncConnection, competency_id: UUID
-) -> list[dict] | None:
+    conn: AsyncConnection[DictRow], competency_id: UUID
+) -> list[dict[str, Any]] | None:
     """The capacidades of one competencia, for the picker used when writing a criterio."""
     rows = await fetch_all(
         conn,
@@ -30,7 +32,7 @@ async def list_competency_capabilities(
 
 
 async def create_capability(
-    conn: AsyncConnection, competency_id: UUID, code: str, name: str
+    conn: AsyncConnection[DictRow], competency_id: UUID, code: str, name: str
 ) -> UUID:
     name = name.strip()
     if not name:
@@ -57,7 +59,9 @@ async def create_capability(
     return row["id"]
 
 
-async def list_class_criteria(conn: AsyncConnection, class_id: UUID) -> list[dict] | None:
+async def list_class_criteria(
+    conn: AsyncConnection[DictRow], class_id: UUID
+) -> list[dict[str, Any]] | None:
     """Every competencia of the class's área with its general criterios (the ones written for
     the competencia rather than for an experiencia). Criterios of an experiencia are left out:
     they belong to one class's situation (RVM 094-2020, 5.1.1.1)."""
@@ -88,8 +92,8 @@ async def list_class_criteria(conn: AsyncConnection, class_id: UUID) -> list[dic
 
 
 async def list_evidence_criteria(
-    conn: AsyncConnection, class_id: UUID, term_id: UUID
-) -> list[dict] | None:
+    conn: AsyncConnection[DictRow], class_id: UUID, term_id: UUID
+) -> list[dict[str, Any]] | None:
     """Every competencia of the class's área with the criterios a new piece of evidencia may be
     read against: the accepted criterios of the class's planned experiencias in the term. Drafts
     and pending proposals are not offered. A competencia with none comes back with an empty
@@ -126,12 +130,12 @@ async def list_evidence_criteria(
     return _fold_competency_criteria(rows)
 
 
-def _fold_competency_criteria(rows: list[dict]) -> list[dict] | None:
+def _fold_competency_criteria(rows: list[dict[str, Any]]) -> list[dict[str, Any]] | None:
     """One row per (competencia, criterio) folded into one entry per competencia, in order."""
-    out: list[dict] = []
-    by_competency: dict[UUID, dict] = {}
+    out: list[dict[str, Any]] = []
+    by_competency: dict[UUID, dict[str, Any]] = {}
     for r in rows:
-        comp = by_competency.get(r["competency_id"])
+        comp: dict[str, Any] | None = by_competency.get(r["competency_id"])
         if comp is None:
             comp = {
                 "competency_id": r["competency_id"],
@@ -158,7 +162,7 @@ def _fold_competency_criteria(rows: list[dict]) -> list[dict] | None:
     return out or None
 
 
-async def delete_criterion(conn: AsyncConnection, criterion_id: UUID) -> None:
+async def delete_criterion(conn: AsyncConnection[DictRow], criterion_id: UUID) -> None:
     """Soft-delete a criterio. Evidence already tagged with it keeps the tag; a planned evidence
     is a promise of what will be observed, not a record, so the deleted criterio leaves its list."""
     cur = await conn.execute(
