@@ -9,7 +9,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from psycopg import AsyncConnection
-from psycopg.rows import dict_row
+from psycopg.rows import DictRow, dict_row
 from psycopg_pool import AsyncConnectionPool
 
 from auth import Principal
@@ -23,6 +23,7 @@ class Database:
             min_size=1,
             max_size=max_size,
             open=False,
+            connection_class=AsyncConnection[DictRow],
             kwargs={"row_factory": dict_row},
         )
 
@@ -33,7 +34,7 @@ class Database:
         await self.pool.close()
 
     @asynccontextmanager
-    async def tenant_tx(self, principal: Principal) -> AsyncIterator[AsyncConnection]:
+    async def tenant_tx(self, principal: Principal) -> AsyncIterator[AsyncConnection[DictRow]]:
         async with self.pool.connection() as conn, conn.transaction():
             await conn.execute(
                 "select set_config('app.tenant_id', %s, true), set_config('app.actor_id', %s, true)",

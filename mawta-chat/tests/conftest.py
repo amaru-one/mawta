@@ -54,16 +54,18 @@ def databases() -> Any:
     with psycopg.connect(admin, autocommit=True) as conn:
         conn.execute(f'create database "{mawta_db}"')
         conn.execute(f'create database "{langgraph_db}"')
-    with psycopg.connect(make_conninfo(**{**base, "dbname": mawta_db}), autocommit=True) as conn:
+    with psycopg.connect(
+        make_conninfo("", **{**base, "dbname": mawta_db}), autocommit=True
+    ) as conn:
         for migration in sorted((SERVER / "migrations").glob("*.sql")):
             conn.execute(goose_up(migration.read_text()))
         conn.execute((SERVER / "tests/fixture.sql").read_text())
         conn.execute("alter role mawta_chat password 'chat-test'")
     yield (
         make_conninfo(
-            **{**base, "dbname": mawta_db, "user": "mawta_chat", "password": "chat-test"}
+            "", **{**base, "dbname": mawta_db, "user": "mawta_chat", "password": "chat-test"}
         ),
-        make_conninfo(**{**base, "dbname": langgraph_db}),
+        make_conninfo("", **{**base, "dbname": langgraph_db}),
     )
     with psycopg.connect(admin, autocommit=True) as conn:
         conn.execute(f'drop database if exists "{mawta_db}" with (force)')
@@ -163,8 +165,9 @@ def fake_llm() -> FakeLLM:
 @pytest.fixture
 async def client(databases, public_keys, fake_llm) -> Any:
     chat_url, langgraph_url = databases
+    # _env_file is a pydantic-settings init option missing from the typed signature.
     settings = Settings(
-        _env_file=None,
+        _env_file=None,  # pyright: ignore[reportCallIssue]
         chat_database_url=chat_url,
         langgraph_database_url=langgraph_url,
         chat_token_public_keys=public_keys,

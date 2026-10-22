@@ -2,12 +2,13 @@
 
 import base64
 import json
+from typing import Any
 
 import pytest
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from auth import InvalidToken, TokenVerifier
-from conftest import TENANT_A, USER_QUISPE
+from tests.conftest import TENANT_A, USER_QUISPE
 
 
 @pytest.fixture
@@ -22,8 +23,8 @@ def test_a_directors_token_is_accepted(verifier, make_token):
     assert principal.role == "director"
 
 
-def unsigned(claims: dict) -> str:
-    def part(obj: dict) -> str:
+def unsigned(claims: dict[str, Any]) -> str:
+    def part(obj: dict[str, Any]) -> str:
         return base64.urlsafe_b64encode(json.dumps(obj).encode()).rstrip(b"=").decode()
 
     return f"{part({'alg': 'none', 'typ': 'JWT', 'kid': 'k-test'})}.{part(claims)}."

@@ -18,7 +18,7 @@ from typing import Annotated, Any, Literal, TypedDict
 
 from langchain_core.runnables import RunnableConfig
 from langgraph.config import get_stream_writer
-from langgraph.graph import END, START, StateGraph
+from langgraph.graph import START, StateGraph
 
 from llm import LLM
 from tools import TOOL_STATUS, TOOLS, ToolOutcome, run_tool
@@ -79,7 +79,7 @@ def build_graph(llm: LLM, max_model_calls: int, checkpointer: Any):
             }
 
         turn = await llm.respond(
-            config["configurable"]["system"],
+            config.get("configurable", {})["system"],
             state["messages"],
             TOOLS,
             lambda text: writer({"kind": "text", "delta": text}),
@@ -108,7 +108,7 @@ def build_graph(llm: LLM, max_model_calls: int, checkpointer: Any):
 
     async def tools(state: ChatState, config: RunnableConfig) -> dict[str, Any]:
         writer = get_stream_writer()
-        configurable = config["configurable"]
+        configurable = config.get("configurable", {})
         results = []
         tool_uses = [b for b in state["messages"][-1]["content"] if b.get("type") == "tool_use"]
         async with configurable["db"].tenant_tx(configurable["principal"]) as conn:
@@ -147,7 +147,7 @@ def build_graph(llm: LLM, max_model_calls: int, checkpointer: Any):
     def after_agent(state: ChatState) -> Literal["tools", "__end__"]:
         if state["stop_reason"] != "limit" and has_tool_use(state["messages"][-1]):
             return "tools"
-        return END
+        return "__end__"  # END; a Literal, so LangGraph can draw the edge
 
     graph = StateGraph(ChatState)
     graph.add_node("agent", agent)

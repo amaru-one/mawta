@@ -1,6 +1,6 @@
 """Chats belong to one director in one school."""
 
-from conftest import TENANT_A, TENANT_B, USER_FLORES, USER_QUISPE, USER_ROJAS, bearer
+from tests.conftest import TENANT_A, TENANT_B, USER_FLORES, USER_QUISPE, USER_ROJAS, bearer
 
 
 async def test_requests_without_a_valid_token_are_refused(client, make_token):

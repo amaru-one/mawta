@@ -3,7 +3,15 @@
 import json
 from typing import Any
 
-from conftest import TENANT_A, TENANT_B, USER_FLORES, USER_QUISPE, bearer, text_turn, tool_turn
+from tests.conftest import (
+    TENANT_A,
+    TENANT_B,
+    USER_FLORES,
+    USER_QUISPE,
+    bearer,
+    text_turn,
+    tool_turn,
+)
 
 
 def parse_sse(body: str) -> list[dict[str, Any]]:
