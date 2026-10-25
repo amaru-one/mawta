@@ -1,0 +1,103 @@
+{
+  "area": "DPCC",
+  "experiencias": [
+    {
+      "trimestre": 1,
+      "titulo": "¿Quién soy en esta nueva etapa?",
+      "idea": "Reflexionar sobre los cambios de la adolescencia, la autoestima y la identidad personal.",
+      "situacion": "Al empezar secundaria, los estudiantes viven cambios en su cuerpo, sus emociones y sus amistades. A veces se comparan con otros en redes sociales y se sienten inseguros. ¿Qué me hace único? ¿Cómo manejo lo que siento cuando las cosas no salen como espero?",
+      "contexto": "",
+      "competencias": ["DPCC-C1"],
+      "criterios": [
+        { "competencia": "DPCC-C1", "capacidades": [1], "texto": "Describe sus características personales, intereses y logros, reconociendo cómo han cambiado desde la infancia y valorando lo que lo hace único.", "desempeno": 1 },
+        { "competencia": "DPCC-C1", "capacidades": [2], "texto": "Explica qué emociones siente en situaciones escolares difíciles y propone estrategias para regularlas sin dañarse ni dañar a otros.", "mawta": true },
+        { "competencia": "DPCC-C1", "capacidades": [4], "texto": "Reconoce los cambios físicos y emocionales de la adolescencia y explica la importancia del autocuidado y del respeto a su cuerpo." }
+      ],
+      "evidencias": [
+        { "nombre": "Mi autobiografía ilustrada", "tipo": "produccion", "escala": "ordinal", "criterios": [0, 2] },
+        { "nombre": "Termómetro de emociones", "tipo": "produccion", "escala": "numeric", "criterios": [1] }
+      ],
+      "sesiones": [
+        ["Nuevos comienzos", "Situación significativa; expectativas"],
+        ["Así era, así soy", "Cambios desde la infancia"],
+        ["Lo que siento", "Reconocimiento de emociones"],
+        ["Cuando me enojo", "Estrategias de autorregulación"],
+        ["Cambios en la adolescencia", "Autocuidado y respeto al cuerpo"],
+        ["Mi autobiografía", "Elaboración y reflexión"]
+      ]
+    },
+    {
+      "trimestre": 1,
+      "titulo": "Normas para convivir mejor",
+      "idea": "Construir las normas de convivencia del aula de manera democrática.",
+      "situacion": "En las primeras semanas hubo conflictos en el aula por el desorden, los apodos y el uso de los espacios. El tutor propuso que los estudiantes construyan sus propias normas de convivencia. ¿Qué normas necesitamos para sentirnos bien todos? ¿Cómo hacemos para que se cumplan?",
+      "contexto": "",
+      "competencias": ["DPCC-C2"],
+      "criterios": [
+        { "competencia": "DPCC-C2", "capacidades": [1, 2], "texto": "Propone normas de convivencia que protegen los derechos de todos y explica por qué son necesarias, respetando las opiniones de sus compañeros.", "desempeno": 1 },
+        { "competencia": "DPCC-C2", "capacidades": [3], "texto": "Analiza un conflicto del aula identificando sus causas y plantea una solución basada en el diálogo y la negociación.", "mawta": true }
+      ],
+      "evidencias": [
+        { "nombre": "Acuerdos de convivencia del aula", "tipo": "produccion", "escala": "numeric", "criterios": [0] },
+        { "nombre": "Dramatización de resolución de conflictos", "tipo": "actuacion", "escala": "ordinal", "criterios": [1] }
+      ],
+      "sesiones": [
+        ["¿Qué pasa en nuestra aula?", "Situación significativa; diagnóstico"],
+        ["Derechos y deberes", "Normas y derechos"],
+        ["Proponemos normas", "Construcción participativa"],
+        ["Los conflictos", "Causas y tipos de conflicto"],
+        ["Resolvemos dialogando", "Dramatizaciones"],
+        ["Nuestros acuerdos", "Aprobación y compromiso"]
+      ]
+    },
+    {
+      "trimestre": 2,
+      "titulo": "Decisiones éticas en las redes",
+      "idea": "Analizar dilemas éticos en el uso de redes sociales: privacidad, ciberacoso y respeto.",
+      "situacion": "Un video de un estudiante de otro colegio se viralizó y fue objeto de burlas. En el aula surgió la pregunta de qué haríamos si nos pasara o si recibiéramos ese video. ¿Compartir es inocente? ¿Qué responsabilidad tenemos cuando vemos que alguien es acosado en redes?",
+      "contexto": "",
+      "competencias": ["DPCC-C1", "DPCC-C2"],
+      "criterios": [
+        { "competencia": "DPCC-C1", "capacidades": [3], "texto": "Argumenta su postura frente a un dilema ético sobre el uso de redes sociales, considerando las consecuencias para sí mismo y para los demás.", "desempeno": 4 },
+        { "competencia": "DPCC-C2", "capacidades": [4, 5], "texto": "Delibera sobre el ciberacoso como asunto público y propone acciones para prevenirlo en el colegio, sustentadas en fuentes confiables.", "mawta": true }
+      ],
+      "evidencias": [
+        { "nombre": "Análisis de dilema ético", "tipo": "produccion", "escala": "numeric", "criterios": [0] },
+        { "nombre": "Propuesta contra el ciberacoso", "tipo": "produccion", "escala": "ordinal", "criterios": [1] }
+      ],
+      "sesiones": [
+        ["Un video viral", "Situación significativa"],
+        ["¿Qué es un dilema ético?", "Dilemas y valores"],
+        ["Privacidad en redes", "Huella digital"],
+        ["Ciberacoso", "Causas y consecuencias"],
+        ["Deliberamos", "Asunto público y propuestas"],
+        ["Nuestra propuesta", "Presentación y compromiso"]
+      ]
+    },
+    {
+      "trimestre": 2,
+      "titulo": "Somos parte de una comunidad",
+      "idea": "Identificar un problema del barrio y participar en una acción ciudadana para el bien común.",
+      "situacion": "Alrededor del colegio hay basura acumulada y poca iluminación, y las familias se quejan pero nadie se organiza. El aula investigará cómo funcionan las instituciones del distrito y qué pueden hacer los adolescentes para mejorar su comunidad. ¿Quién es responsable de resolver estos problemas? ¿Qué podemos hacer nosotros?",
+      "contexto": "",
+      "competencias": ["DPCC-C1", "DPCC-C2"],
+      "criterios": [
+        { "competencia": "DPCC-C2", "capacidades": [4], "texto": "Explica qué instituciones del distrito son responsables de un problema del barrio y cómo los ciudadanos pueden participar en su solución." },
+        { "competencia": "DPCC-C2", "capacidades": [5], "texto": "Participa en el diseño de una acción ciudadana para el bien común, asumiendo responsabilidades dentro de su equipo.", "desempeno": 5 },
+        { "competencia": "DPCC-C1", "capacidades": [1, 3], "texto": "Reflexiona sobre su rol como adolescente en la comunidad y explica qué valores guían su participación en la acción ciudadana.", "mawta": true }
+      ],
+      "evidencias": [
+        { "nombre": "Diagnóstico del problema del barrio", "tipo": "produccion", "escala": "numeric", "criterios": [0] },
+        { "nombre": "Plan de acción ciudadana", "tipo": "actuacion", "escala": "ordinal", "criterios": [1, 2] }
+      ],
+      "sesiones": [
+        ["Nuestro barrio", "Situación significativa; recorrido"],
+        ["¿Quién se encarga?", "Instituciones del distrito"],
+        ["Diagnóstico", "Problemas y causas"],
+        ["Participación ciudadana", "Mecanismos de participación"],
+        ["Plan de acción", "Diseño de la acción"],
+        ["Presentamos el plan", "Socialización y reflexión"]
+      ]
+    }
+  ]
+}

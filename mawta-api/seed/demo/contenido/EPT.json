@@ -1,0 +1,98 @@
+{
+  "area": "EPT",
+  "experiencias": [
+    {
+      "trimestre": 1,
+      "titulo": "Detectamos necesidades en el colegio",
+      "idea": "Identificar necesidades de la comunidad escolar y generar ideas de emprendimiento con design thinking.",
+      "situacion": "En el colegio hay necesidades que nadie atiende: no hay dónde reparar útiles, faltan loncheras saludables y muchos estudiantes olvidan sus materiales. Un emprendimiento escolar puede resolver alguna de ellas. ¿Qué necesidad es la más importante para nuestros compañeros? ¿Qué propuesta de valor podemos ofrecer?",
+      "contexto": "",
+      "competencias": ["EPT-C1"],
+      "criterios": [
+        { "competencia": "EPT-C1", "capacidades": [1], "texto": "Identifica una necesidad real de la comunidad escolar a partir de entrevistas y observación, y formula una propuesta de valor que responde a ella.", "desempeno": 1 },
+        { "competencia": "EPT-C1", "capacidades": [2], "texto": "Trabaja cooperativamente en su equipo asumiendo un rol, cumpliendo acuerdos y aportando ideas en la generación de soluciones.", "mawta": true }
+      ],
+      "evidencias": [
+        { "nombre": "Mapa de empatía y propuesta de valor", "tipo": "produccion", "escala": "numeric", "criterios": [0] },
+        { "nombre": "Pitch de la idea de negocio", "tipo": "actuacion", "escala": "ordinal", "criterios": [0, 1] }
+      ],
+      "sesiones": [
+        ["¿Qué nos hace falta?", "Situación significativa"],
+        ["Entrevistamos a usuarios", "Empatía y entrevistas"],
+        ["Mapa de empatía", "Análisis de necesidades"],
+        ["Lluvia de ideas", "Ideación"],
+        ["Propuesta de valor", "Definición de la propuesta"],
+        ["Pitch", "Presentación de ideas"]
+      ]
+    },
+    {
+      "trimestre": 1,
+      "titulo": "Prototipamos nuestra solución",
+      "idea": "Construir y probar un prototipo de la propuesta de emprendimiento.",
+      "situacion": "Las ideas de negocio del aula fueron elegidas, pero todavía no sabemos si funcionarán. Antes de invertir, cada equipo construirá un prototipo y lo probará con usuarios reales. ¿Cómo sabemos si nuestra solución es útil? ¿Qué cambios necesita?",
+      "contexto": "",
+      "competencias": ["EPT-C1"],
+      "criterios": [
+        { "competencia": "EPT-C1", "capacidades": [3], "texto": "Construye un prototipo de su producto o servicio aplicando técnicas básicas y usando materiales disponibles de manera eficiente.", "desempeno": 4 },
+        { "competencia": "EPT-C1", "capacidades": [4], "texto": "Evalúa su prototipo con usuarios, registra sus comentarios y propone mejoras concretas sustentadas en esa información." }
+      ],
+      "evidencias": [
+        { "nombre": "Prototipo de la solución", "tipo": "produccion", "escala": "ordinal", "criterios": [0] },
+        { "nombre": "Informe de validación con usuarios", "tipo": "produccion", "escala": "numeric", "criterios": [1] }
+      ],
+      "sesiones": [
+        ["De la idea al objeto", "Situación significativa"],
+        ["Bocetos y materiales", "Diseño del prototipo"],
+        ["Construimos", "Elaboración del prototipo"],
+        ["Probamos con usuarios", "Validación"],
+        ["Mejoramos", "Iteración y reflexión"]
+      ]
+    },
+    {
+      "trimestre": 2,
+      "titulo": "Costos y precios de nuestro producto",
+      "idea": "Calcular costos, fijar precios y estimar ganancias del emprendimiento escolar.",
+      "situacion": "Los prototipos funcionaron y ahora los equipos quieren vender sus productos en el colegio. Pero no saben cuánto cobrar ni si ganarán dinero. ¿Cuánto cuesta producir cada unidad? ¿Qué precio es justo para los compradores y rentable para el equipo?",
+      "contexto": "",
+      "competencias": ["EPT-C1"],
+      "criterios": [
+        { "competencia": "EPT-C1", "capacidades": [3], "texto": "Calcula los costos fijos y variables de su producto y fija un precio de venta considerando el mercado escolar.", "desempeno": 5 },
+        { "competencia": "EPT-C1", "capacidades": [2, 4], "texto": "Estima con su equipo las ganancias del emprendimiento y evalúa si es viable, proponiendo ajustes cuando no lo es.", "mawta": true }
+      ],
+      "evidencias": [
+        { "nombre": "Hoja de costos y precio", "tipo": "produccion", "escala": "numeric", "criterios": [0] },
+        { "nombre": "Plan financiero del equipo", "tipo": "produccion", "escala": "numeric", "criterios": [1] }
+      ],
+      "sesiones": [
+        ["¿Cuánto cobramos?", "Situación significativa"],
+        ["Costos fijos y variables", "Cálculo de costos"],
+        ["Fijamos el precio", "Precio y mercado"],
+        ["¿Ganamos o perdemos?", "Punto de equilibrio"],
+        ["Plan financiero", "Elaboración y reflexión"]
+      ]
+    },
+    {
+      "trimestre": 2,
+      "titulo": "Lanzamos y evaluamos el emprendimiento",
+      "idea": "Vender el producto en el colegio y evaluar los resultados del emprendimiento.",
+      "situacion": "Llegó el momento de poner a prueba los emprendimientos: cada equipo venderá su producto durante dos semanas en los recreos. Luego evaluarán si cumplieron sus metas. ¿Qué funcionó y qué no? ¿Qué aprendimos como equipo?",
+      "contexto": "",
+      "competencias": ["EPT-C1"],
+      "criterios": [
+        { "competencia": "EPT-C1", "capacidades": [2], "texto": "Cumple las tareas de su rol durante la venta, coordina con su equipo y resuelve dificultades que surgen en el proceso.", "desempeno": 3 },
+        { "competencia": "EPT-C1", "capacidades": [4], "texto": "Evalúa los resultados de las ventas comparándolos con las metas del plan financiero y explica las causas de las diferencias.", "mawta": true }
+      ],
+      "evidencias": [
+        { "nombre": "Desempeño en la venta", "tipo": "actuacion", "escala": "ordinal", "criterios": [0] },
+        { "nombre": "Informe de resultados del emprendimiento", "tipo": "produccion", "escala": "numeric", "criterios": [1] }
+      ],
+      "sesiones": [
+        ["Preparamos el lanzamiento", "Situación significativa; organización"],
+        ["Primera semana de ventas", "Registro de ventas"],
+        ["Ajustamos la estrategia", "Análisis intermedio"],
+        ["Segunda semana de ventas", "Registro de ventas"],
+        ["Evaluamos resultados", "Informe y reflexión"]
+      ]
+    }
+  ]
+}

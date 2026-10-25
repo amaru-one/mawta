@@ -1,0 +1,116 @@
+{
+  "area": "COM",
+  "experiencias": [
+    {
+      "trimestre": 1,
+      "titulo": "Somos los nuevos de secundaria",
+      "idea": "Que los estudiantes se presenten y cuenten sus expectativas de secundaria a través de relatos personales orales y escritos.",
+      "situacion": "Llegar a secundaria significa nuevos compañeros, nuevos docentes y nuevas responsabilidades. Muchos estudiantes vienen de otros colegios y todavía no se conocen bien. El aula preparará una antología de relatos sobre quiénes son y qué esperan de esta etapa, y la presentará en una ronda oral. ¿Qué historia nuestra vale la pena contar? ¿Cómo la contamos para que otros quieran escucharla?",
+      "contexto": "",
+      "competencias": ["COM-C1", "COM-C3"],
+      "criterios": [
+        { "competencia": "COM-C1", "capacidades": [3, 4], "texto": "Narra oralmente una experiencia personal con orden cronológico, usando gestos, pausas y volumen adecuados para mantener la atención de sus compañeros.", "desempeno": 4 },
+        { "competencia": "COM-C1", "capacidades": [5, 6], "texto": "Escucha los relatos de sus compañeros, hace preguntas pertinentes y opina sobre la claridad de lo narrado con respeto." },
+        { "competencia": "COM-C3", "capacidades": [1, 2], "texto": "Escribe un relato personal adecuado a la antología del aula, organizando sus ideas en inicio, nudo y desenlace sin contradicciones.", "mawta": true },
+        { "competencia": "COM-C3", "capacidades": [3, 4], "texto": "Revisa su relato y corrige el uso de tildes, comas y conectores para que el texto sea claro para sus lectores." }
+      ],
+      "evidencias": [
+        { "nombre": "Relato personal para la antología", "tipo": "produccion", "escala": "numeric", "criterios": [2, 3] },
+        { "nombre": "Ronda de relatos orales", "tipo": "actuacion", "escala": "ordinal", "criterios": [0, 1] }
+      ],
+      "sesiones": [
+        ["Nuevos comienzos", "Situación significativa; dinámica de presentación"],
+        ["¿Cómo se cuenta una historia?", "Estructura del relato"],
+        ["Planificamos nuestro relato", "Propósito, destinatario y plan de escritura"],
+        ["Primer borrador", "Escritura del relato"],
+        ["Tildes y comas", "Normas ortográficas en el relato"],
+        ["Ensayamos la narración oral", "Recursos verbales y no verbales"],
+        ["Ronda de relatos", "Narración oral y escucha activa"],
+        ["Nuestra antología", "Edición final y reflexión"]
+      ]
+    },
+    {
+      "trimestre": 1,
+      "titulo": "Leemos mitos y leyendas del Perú",
+      "idea": "Leer mitos y leyendas de distintas regiones y reconocer su estructura y sentido.",
+      "situacion": "En casa, los abuelos cuentan historias del Muki, de la sirena de Sangrar o del origen del lago Titicaca, pero los estudiantes no siempre saben de dónde vienen. La biblioteca del colegio quiere organizar un rincón de mitos y leyendas peruanas. ¿Qué nos dicen estas historias sobre los pueblos que las crearon? ¿En qué se parecen y en qué se diferencian?",
+      "contexto": "",
+      "competencias": ["COM-C2"],
+      "criterios": [
+        { "competencia": "COM-C2", "capacidades": [1], "texto": "Identifica información explícita y relevante en mitos y leyendas, como personajes, lugares y hechos principales, distinguiéndola de los detalles secundarios.", "desempeno": 1 },
+        { "competencia": "COM-C2", "capacidades": [2], "texto": "Deduce el tema y el propósito de un mito o leyenda, y explica la enseñanza que transmite relacionándola con la cultura del pueblo que lo creó.", "mawta": true },
+        { "competencia": "COM-C2", "capacidades": [3], "texto": "Opina sobre el contenido y la forma de los textos leídos, comparando mitos de dos regiones y justificando su punto de vista con citas." }
+      ],
+      "evidencias": [
+        { "nombre": "Fichas de lectura de mitos y leyendas", "tipo": "produccion", "escala": "numeric", "criterios": [0, 1] },
+        { "nombre": "Cuadro comparativo de mitos regionales", "tipo": "produccion", "escala": "numeric", "criterios": [1, 2] }
+      ],
+      "sesiones": [
+        ["Historias que nos contaron", "Situación significativa; relatos familiares"],
+        ["Mito y leyenda", "Diferencias y características"],
+        ["Leemos mitos de la costa", "Lectura y obtención de información"],
+        ["Leemos leyendas de la sierra", "Inferencia del tema y propósito"],
+        ["Leemos relatos de la selva", "Interpretación de la enseñanza"],
+        ["Comparamos regiones", "Cuadro comparativo"],
+        ["Nuestra opinión", "Reflexión sobre forma y contenido"],
+        ["El rincón de mitos", "Organización del rincón y metacognición"]
+      ]
+    },
+    {
+      "trimestre": 2,
+      "titulo": "Opinamos sobre el uso del celular",
+      "idea": "Debatir y escribir textos argumentativos sobre el uso del celular en el colegio.",
+      "situacion": "La dirección evalúa prohibir los celulares durante toda la jornada escolar y pidió la opinión de los estudiantes. Algunos creen que distraen y otros que son útiles para aprender. El aula preparará un debate y cartas de opinión dirigidas a la dirección. ¿Qué argumentos son más sólidos? ¿Cómo convencemos sin descalificar a quien piensa distinto?",
+      "contexto": "",
+      "competencias": ["COM-C1", "COM-C2", "COM-C3"],
+      "criterios": [
+        { "competencia": "COM-C2", "capacidades": [1, 2], "texto": "Identifica la tesis y los argumentos en artículos de opinión sobre el uso del celular y deduce la intención del autor.", "desempeno": 2 },
+        { "competencia": "COM-C3", "capacidades": [1, 2], "texto": "Escribe una carta de opinión dirigida a la dirección con una tesis clara, al menos dos argumentos y una conclusión coherente.", "mawta": true },
+        { "competencia": "COM-C3", "capacidades": [3, 4], "texto": "Usa conectores de causa, consecuencia y contraste, y revisa la ortografía y puntuación de su carta antes de entregarla." },
+        { "competencia": "COM-C1", "capacidades": [3, 5], "texto": "Defiende su postura en el debate con argumentos y evidencias, respetando los turnos de palabra y respondiendo a los contraargumentos.", "desempeno": 6 }
+      ],
+      "evidencias": [
+        { "nombre": "Carta de opinión a la dirección", "tipo": "produccion", "escala": "numeric", "criterios": [1, 2] },
+        { "nombre": "Debate sobre el uso del celular", "tipo": "actuacion", "escala": "ordinal", "criterios": [3] },
+        { "nombre": "Análisis de artículos de opinión", "tipo": "produccion", "escala": "numeric", "criterios": [0] }
+      ],
+      "sesiones": [
+        ["¿Celular sí o no?", "Situación significativa; encuesta en el aula"],
+        ["Leemos opiniones", "Tesis y argumentos en artículos"],
+        ["Argumentos y evidencias", "Tipos de argumentos"],
+        ["Planificamos la carta", "Estructura de la carta de opinión"],
+        ["Escribimos y revisamos", "Conectores y ortografía"],
+        ["Preparamos el debate", "Roles y reglas del debate"],
+        ["Gran debate", "Debate en el aula"],
+        ["Entregamos las cartas", "Entrega a la dirección y reflexión"]
+      ]
+    },
+    {
+      "trimestre": 2,
+      "titulo": "Reseñamos nuestras lecturas favoritas",
+      "idea": "Leer novelas juveniles y escribir reseñas para recomendar libros a otros estudiantes.",
+      "situacion": "La biblioteca recibió nuevos libros pero casi nadie los pide en préstamo. La bibliotecaria propuso que los estudiantes de primero escriban reseñas para animar a otros a leer. Cada estudiante leerá una novela juvenil y la recomendará por escrito y en un video corto. ¿Qué hace que un libro valga la pena? ¿Cómo lo recomendamos sin contar el final?",
+      "contexto": "",
+      "competencias": ["COM-C1", "COM-C2", "COM-C3"],
+      "criterios": [
+        { "competencia": "COM-C2", "capacidades": [2, 3], "texto": "Interpreta el conflicto y la evolución del protagonista en la novela leída, y valora el estilo del autor con ejemplos del texto.", "desempeno": 3 },
+        { "competencia": "COM-C3", "capacidades": [1, 2, 4], "texto": "Escribe una reseña que resume la obra sin revelar el final, emite una valoración fundamentada y se adecúa a lectores de su edad." },
+        { "competencia": "COM-C1", "capacidades": [4, 6], "texto": "Recomienda oralmente su libro en un video breve, usando entonación, gestos y apoyo visual para despertar el interés del público.", "mawta": true }
+      ],
+      "evidencias": [
+        { "nombre": "Reseña de la novela juvenil", "tipo": "produccion", "escala": "numeric", "criterios": [0, 1] },
+        { "nombre": "Video de recomendación", "tipo": "actuacion", "escala": "ordinal", "criterios": [2] }
+      ],
+      "sesiones": [
+        ["Libros que esperan lectores", "Situación significativa; visita a la biblioteca"],
+        ["Elegimos nuestra novela", "Selección y plan de lectura"],
+        ["El conflicto del protagonista", "Interpretación del conflicto"],
+        ["¿Qué es una reseña?", "Estructura de la reseña"],
+        ["Escribimos la reseña", "Redacción y revisión"],
+        ["Preparamos el video", "Guion y recursos paraverbales"],
+        ["Grabamos la recomendación", "Producción del video"],
+        ["Compartimos las recomendaciones", "Presentación de reseñas y videos"]
+      ]
+    }
+  ]
+}

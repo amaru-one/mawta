@@ -15,19 +15,78 @@
     "fin": "2026-12-18",
     "estructura": "trimestre",
     "periodos": [
-      { "numero": 1, "nombre": "Trimestre I", "abreviatura": "T-I", "inicio": "2026-03-02", "fin": "2026-05-29", "fecha_entrega_notas": "2026-06-05" },
-      { "numero": 2, "nombre": "Trimestre II", "abreviatura": "T-II", "inicio": "2026-06-01", "fin": "2026-08-28", "fecha_entrega_notas": "2026-09-04" },
-      { "numero": 3, "nombre": "Trimestre III", "abreviatura": "T-III", "inicio": "2026-08-31", "fin": "2026-12-18", "fecha_entrega_notas": "2026-12-23" }
+      {
+        "numero": 1,
+        "nombre": "Trimestre I",
+        "abreviatura": "T-I",
+        "inicio": "2026-03-02",
+        "fin": "2026-05-29",
+        "fecha_entrega_notas": "2026-06-05"
+      },
+      {
+        "numero": 2,
+        "nombre": "Trimestre II",
+        "abreviatura": "T-II",
+        "inicio": "2026-06-01",
+        "fin": "2026-08-28",
+        "fecha_entrega_notas": "2026-09-04"
+      },
+      {
+        "numero": 3,
+        "nombre": "Trimestre III",
+        "abreviatura": "T-III",
+        "inicio": "2026-08-31",
+        "fin": "2026-12-18",
+        "fecha_entrega_notas": "2026-12-23"
+      }
     ],
     "dias_no_lectivos": [
-      { "fecha": "2026-04-02", "tipo": "feriado", "nombre": "Jueves Santo" },
-      { "fecha": "2026-04-03", "tipo": "feriado", "nombre": "Viernes Santo" },
-      { "fecha": "2026-05-01", "tipo": "feriado", "nombre": "Día del Trabajo" },
-      { "fecha": "2026-06-29", "tipo": "feriado", "nombre": "San Pedro y San Pablo" },
-      { "fecha": "2026-07-23", "tipo": "feriado", "nombre": "Día de la Fuerza Aérea del Perú" },
-      { "desde": "2026-07-27", "hasta": "2026-08-07", "tipo": "vacaciones", "nombre": "Vacaciones de medio año" },
-      { "fecha": "2026-10-08", "tipo": "feriado", "nombre": "Combate de Angamos" },
-      { "fecha": "2026-12-08", "tipo": "feriado", "nombre": "Inmaculada Concepción" }
+      {
+        "fecha": "2026-04-02",
+        "tipo": "feriado",
+        "nombre": "Jueves Santo"
+      },
+      {
+        "fecha": "2026-04-03",
+        "tipo": "feriado",
+        "nombre": "Viernes Santo"
+      },
+      {
+        "fecha": "2026-05-01",
+        "tipo": "feriado",
+        "nombre": "Día del Trabajo"
+      },
+      {
+        "fecha": "2026-06-29",
+        "tipo": "feriado",
+        "nombre": "San Pedro y San Pablo"
+      },
+      {
+        "fecha": "2026-07-23",
+        "tipo": "feriado",
+        "nombre": "Día de la Fuerza Aérea del Perú"
+      },
+      {
+        "desde": "2026-07-27",
+        "hasta": "2026-08-07",
+        "tipo": "vacaciones",
+        "nombre": "Vacaciones de medio año"
+      },
+      {
+        "fecha": "2026-08-30",
+        "tipo": "feriado",
+        "nombre": "Santa Rosa de Lima"
+      },
+      {
+        "fecha": "2026-10-08",
+        "tipo": "feriado",
+        "nombre": "Combate de Angamos"
+      },
+      {
+        "fecha": "2026-12-08",
+        "tipo": "feriado",
+        "nombre": "Inmaculada Concepción"
+      }
     ]
   },
   "docentes": [
@@ -52,6 +111,94 @@
       "cargo": "Docente de Secundaria",
       "codigo_empleado": "",
       "fecha_ingreso": ""
+    },
+    {
+      "usuario": "mhuaman",
+      "clave": "mhuaman2026",
+      "email": "mhuaman@sanfelipe.test",
+      "nombres": "Milagros",
+      "apellidos": "Huamán Torres",
+      "nombre_visible": "Milagros Huamán",
+      "cargo": "Docente de Secundaria",
+      "codigo_empleado": "",
+      "fecha_ingreso": ""
+    },
+    {
+      "usuario": "rquispe",
+      "clave": "rquispe2026",
+      "email": "rquispe@sanfelipe.test",
+      "nombres": "Raúl",
+      "apellidos": "Quispe Mamani",
+      "nombre_visible": "Raúl Quispe",
+      "cargo": "Docente de Secundaria",
+      "codigo_empleado": "",
+      "fecha_ingreso": ""
+    },
+    {
+      "usuario": "kpalomino",
+      "clave": "kpalomino2026",
+      "email": "kpalomino@sanfelipe.test",
+      "nombres": "Karen",
+      "apellidos": "Palomino Ríos",
+      "nombre_visible": "Karen Palomino",
+      "cargo": "Docente de Secundaria",
+      "codigo_empleado": "",
+      "fecha_ingreso": ""
+    },
+    {
+      "usuario": "lcardenas",
+      "clave": "lcardenas2026",
+      "email": "lcardenas@sanfelipe.test",
+      "nombres": "Lucía",
+      "apellidos": "Cárdenas Vega",
+      "nombre_visible": "Lucía Cárdenas",
+      "cargo": "Docente de Secundaria",
+      "codigo_empleado": "",
+      "fecha_ingreso": ""
+    },
+    {
+      "usuario": "jmendoza",
+      "clave": "jmendoza2026",
+      "email": "jmendoza@sanfelipe.test",
+      "nombres": "Jorge",
+      "apellidos": "Mendoza Paredes",
+      "nombre_visible": "Jorge Mendoza",
+      "cargo": "Docente de Secundaria",
+      "codigo_empleado": "",
+      "fecha_ingreso": ""
+    },
+    {
+      "usuario": "aflores",
+      "clave": "aflores2026",
+      "email": "aflores@sanfelipe.test",
+      "nombres": "Andrea",
+      "apellidos": "Flores Salazar",
+      "nombre_visible": "Andrea Flores",
+      "cargo": "Docente de Secundaria",
+      "codigo_empleado": "",
+      "fecha_ingreso": ""
+    },
+    {
+      "usuario": "rchavez",
+      "clave": "rchavez2026",
+      "email": "rchavez@sanfelipe.test",
+      "nombres": "Rosa",
+      "apellidos": "Chávez Lozano",
+      "nombre_visible": "Rosa Chávez",
+      "cargo": "Docente de Secundaria",
+      "codigo_empleado": "",
+      "fecha_ingreso": ""
+    },
+    {
+      "usuario": "dramos",
+      "clave": "dramos2026",
+      "email": "dramos@sanfelipe.test",
+      "nombres": "Diego",
+      "apellidos": "Ramos Cueva",
+      "nombre_visible": "Diego Ramos",
+      "cargo": "Docente de Secundaria",
+      "codigo_empleado": "",
+      "fecha_ingreso": ""
     }
   ],
   "areas": [
@@ -60,57 +207,889 @@
       "nombre": "Matemática",
       "icono": "calculadora",
       "es_tutoria": false,
-      "criterios_legacy": [
-        { "codigo": "MAT-C1-CR1", "descripcion": "Expresa cantidades y magnitudes usando números enteros y racionales", "capacidad": "MAT-C1-CAP1" },
-        { "codigo": "MAT-C1-CR2", "descripcion": "Selecciona y emplea estrategias de cálculo para resolver problemas con enteros", "capacidad": "MAT-C1-CAP3" },
-        { "codigo": "MAT-C1-CR3", "descripcion": "Justifica el procedimiento elegido y la razonabilidad del resultado", "capacidad": "MAT-C1-CAP4" },
-        { "codigo": "MAT-C2-CR1", "descripcion": "Plantea la ecuación o inecuación lineal que modela la situación", "capacidad": "MAT-C2-CAP1" },
-        { "codigo": "MAT-C2-CR2", "descripcion": "Aplica propiedades de igualdad para hallar el valor desconocido", "capacidad": "MAT-C2-CAP3" },
-        { "codigo": "MAT-C2-CR3", "descripcion": "Argumenta por qué dos expresiones algebraicas son equivalentes", "capacidad": "MAT-C2-CAP4" },
-        { "codigo": "MAT-C3-CR1", "descripcion": "Representa formas bidimensionales y sus transformaciones en el plano", "capacidad": "MAT-C3-CAP1" },
-        { "codigo": "MAT-C3-CR2", "descripcion": "Emplea estrategias para calcular perímetros, áreas y ubicaciones", "capacidad": "MAT-C3-CAP3" },
-        { "codigo": "MAT-C4-CR1", "descripcion": "Organiza datos en tablas y gráficos estadísticos pertinentes", "capacidad": "MAT-C4-CAP1" },
-        { "codigo": "MAT-C4-CR2", "descripcion": "Sustenta conclusiones sobre los datos a partir de medidas de tendencia central", "capacidad": "MAT-C4-CAP4" }
-      ]
+      "criterios_legacy": []
+    },
+    {
+      "codigo": "COM",
+      "nombre": "Comunicación",
+      "icono": "libro",
+      "es_tutoria": false,
+      "criterios_legacy": []
+    },
+    {
+      "codigo": "CYT",
+      "nombre": "Ciencia y Tecnología",
+      "icono": "matraz",
+      "es_tutoria": false,
+      "criterios_legacy": []
+    },
+    {
+      "codigo": "ING",
+      "nombre": "Inglés",
+      "icono": "idioma",
+      "es_tutoria": false,
+      "criterios_legacy": []
     },
     {
       "codigo": "CCSS",
       "nombre": "Ciencias Sociales",
-      "icono": "mundo",
+      "icono": "globo",
       "es_tutoria": false,
-      "criterios_legacy": [
-        { "codigo": "CCSS-C1-CR1", "descripcion": "Distingue entre fuente primaria y secundaria, y evalúa su fiabilidad", "capacidad": "CCSS-C1-CAP1" },
-        { "codigo": "CCSS-C1-CR2", "descripcion": "Ubica procesos históricos en secuencias temporales y establece simultaneidad", "capacidad": "CCSS-C1-CAP2" },
-        { "codigo": "CCSS-C1-CR3", "descripcion": "Explica un proceso histórico relacionando causas y consecuencias", "capacidad": "CCSS-C1-CAP3" },
-        { "codigo": "CCSS-C2-CR1", "descripcion": "Explica cómo interactúan los elementos naturales y sociales de un territorio", "capacidad": "CCSS-C2-CAP1" },
-        { "codigo": "CCSS-C2-CR2", "descripcion": "Interpreta mapas, croquis e imágenes para describir el espacio geográfico", "capacidad": "CCSS-C2-CAP2" },
-        { "codigo": "CCSS-C2-CR3", "descripcion": "Propone acciones concretas de conservación del ambiente en su localidad", "capacidad": "CCSS-C2-CAP3" }
-      ]
+      "criterios_legacy": []
+    },
+    {
+      "codigo": "DPCC",
+      "nombre": "Desarrollo Personal, Ciudadanía y Cívica",
+      "icono": "personas",
+      "es_tutoria": false,
+      "criterios_legacy": []
+    },
+    {
+      "codigo": "EF",
+      "nombre": "Educación Física",
+      "icono": "pelota",
+      "es_tutoria": false,
+      "criterios_legacy": []
+    },
+    {
+      "codigo": "ARTE",
+      "nombre": "Arte y Cultura",
+      "icono": "paleta",
+      "es_tutoria": false,
+      "criterios_legacy": []
+    },
+    {
+      "codigo": "ER",
+      "nombre": "Educación Religiosa",
+      "icono": "estrella",
+      "es_tutoria": false,
+      "criterios_legacy": []
+    },
+    {
+      "codigo": "EPT",
+      "nombre": "Educación para el Trabajo",
+      "icono": "maletin",
+      "es_tutoria": false,
+      "criterios_legacy": []
     }
   ],
-  "competencias_transversales": ["TR-C1", "TR-C2"],
+  "competencias_transversales": [
+    "TR-C1",
+    "TR-C2"
+  ],
   "grados": [
-    { "codigo": "1S", "etiqueta": "1ro", "nombre_largo": "Primero de secundaria", "nivel": "secundaria", "orden": 7, "grado_cneb": "1S" }
+    {
+      "codigo": "1S",
+      "etiqueta": "1ro",
+      "nombre_largo": "Primero de Secundaria",
+      "nivel": "secundaria",
+      "orden": 7,
+      "grado_cneb": "1S"
+    }
   ],
   "aulas": [
     {
       "grado": "1S",
       "seccion": "A",
       "nombre": "1ro A",
-      "tutor": "jeffrey",
+      "tutor": "gonzalo",
       "turno": "manana",
       "capacidad": 30,
       "estudiantes": [
-        { "codigo": "EST-DEMO-2026-01", "codigo_siagie": "20260000000001", "nombres": "Ana Lucía", "apellido_paterno": "Alvarado", "apellido_materno": "Quispe", "nombre_preferido": "Ana", "fecha_nacimiento": "2013-04-17", "sexo": "F", "tipo_documento": "DNI", "numero_documento": "88000001" },
-        { "codigo": "EST-DEMO-2026-02", "codigo_siagie": "20260000000002", "nombres": "Bruno", "apellido_paterno": "Castillo", "apellido_materno": "Mamani", "fecha_nacimiento": "2013-09-02", "sexo": "M", "tipo_documento": "DNI", "numero_documento": "88000002" },
-        { "codigo": "EST-DEMO-2026-03", "codigo_siagie": "20260000000003", "nombres": "Camila", "apellido_paterno": "Flores", "apellido_materno": "Huamán", "fecha_nacimiento": "2013-01-25", "sexo": "F", "tipo_documento": "DNI", "numero_documento": "88000003" },
-        { "codigo": "EST-DEMO-2026-04", "codigo_siagie": "20260000000004", "nombres": "Diego", "apellido_paterno": "Gutiérrez", "apellido_materno": "Ccahuana", "fecha_nacimiento": "2013-06-11", "sexo": "M", "tipo_documento": "DNI", "numero_documento": "88000004" },
-        { "codigo": "EST-DEMO-2026-05", "codigo_siagie": "20260000000005", "nombres": "Elena", "apellido_paterno": "Herrera", "apellido_materno": "Sulca", "fecha_nacimiento": "2013-11-30", "sexo": "F", "tipo_documento": "DNI", "numero_documento": "88000005" },
-        { "codigo": "EST-DEMO-2026-06", "codigo_siagie": "20260000000006", "nombres": "Fabián", "apellido_paterno": "Ibáñez", "apellido_materno": "Vargas", "fecha_nacimiento": "2013-03-08", "sexo": "M", "tipo_documento": "DNI", "numero_documento": "88000006" },
-        { "codigo": "EST-DEMO-2026-07", "codigo_siagie": "20260000000007", "nombres": "Gabriela", "apellido_paterno": "Jiménez", "apellido_materno": "Ticona", "nombre_preferido": "Gaby", "fecha_nacimiento": "2013-07-22", "sexo": "F", "tipo_documento": "DNI", "numero_documento": "88000007" },
-        { "codigo": "EST-DEMO-2026-08", "codigo_siagie": "20260000000008", "nombres": "Héctor", "apellido_paterno": "Lazo", "apellido_materno": "Puma", "fecha_nacimiento": "2013-02-14", "sexo": "M", "tipo_documento": "DNI", "numero_documento": "88000008", "apoyo_inclusion": true },
-        { "codigo": "EST-DEMO-2026-09", "codigo_siagie": "20260000000009", "nombres": "Isabel", "apellido_paterno": "Medina", "apellido_materno": "Chávez", "fecha_nacimiento": "2013-10-05", "sexo": "F", "tipo_documento": "DNI", "numero_documento": "88000009" },
-        { "codigo": "EST-DEMO-2026-10", "codigo_siagie": "20260000000010", "nombres": "Joaquín", "apellido_paterno": "Núñez", "apellido_materno": "Apaza", "fecha_nacimiento": "2013-05-19", "sexo": "M", "tipo_documento": "DNI", "numero_documento": "88000010" }
+        {
+          "codigo": "SF26-1A01",
+          "codigo_siagie": "15000001442001",
+          "nombres": "Valeria",
+          "apellido_paterno": "Rojas",
+          "apellido_materno": "Huamán",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2014-03-04",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78588801",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A02",
+          "codigo_siagie": "15000002141002",
+          "nombres": "Mateo",
+          "apellido_paterno": "Gutiérrez",
+          "apellido_materno": "Salas",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-07-03",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78031002",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A03",
+          "codigo_siagie": "15000005184003",
+          "nombres": "Camila",
+          "apellido_paterno": "Torres",
+          "apellido_materno": "Quispe",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2014-03-28",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78232203",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A04",
+          "codigo_siagie": "15000006317004",
+          "nombres": "Sebastián",
+          "apellido_paterno": "Flores",
+          "apellido_materno": "Medina",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-04-09",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78346704",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A05",
+          "codigo_siagie": "15000004491005",
+          "nombres": "Luciana",
+          "apellido_paterno": "Mendoza",
+          "apellido_materno": "Paredes",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-05-24",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78854605",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A06",
+          "codigo_siagie": "15000003229006",
+          "nombres": "Diego",
+          "apellido_paterno": "Castillo",
+          "apellido_materno": "Ramos",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2014-01-11",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78121306",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A07",
+          "codigo_siagie": "15000008497007",
+          "nombres": "Ximena",
+          "apellido_paterno": "Vargas",
+          "apellido_materno": "León",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-04-17",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78874407",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A08",
+          "codigo_siagie": "15000009172008",
+          "nombres": "Thiago",
+          "apellido_paterno": "Chávez",
+          "apellido_materno": "Rivera",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-04-29",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78864808",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A09",
+          "codigo_siagie": "15000001332009",
+          "nombres": "Fernanda",
+          "apellido_paterno": "Silva",
+          "apellido_materno": "Cárdenas",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-04-05",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78074909",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A10",
+          "codigo_siagie": "15000000197010",
+          "nombres": "Adrián",
+          "apellido_paterno": "Morales",
+          "apellido_materno": "Ortiz",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-12-23",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78315210",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A11",
+          "codigo_siagie": "15000002277011",
+          "nombres": "Renata",
+          "apellido_paterno": "Espinoza",
+          "apellido_materno": "Vega",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-11-24",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78056511",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A12",
+          "codigo_siagie": "15000000554012",
+          "nombres": "Joaquín",
+          "apellido_paterno": "Díaz",
+          "apellido_materno": "Campos",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2014-01-29",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78258912",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A13",
+          "codigo_siagie": "15000008640013",
+          "nombres": "Isabella",
+          "apellido_paterno": "Herrera",
+          "apellido_materno": "Núñez",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-08-11",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78842113",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A14",
+          "codigo_siagie": "15000001582014",
+          "nombres": "Gael",
+          "apellido_paterno": "Ríos",
+          "apellido_materno": "Palomino",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-12-12",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78005914",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A15",
+          "codigo_siagie": "15000007184015",
+          "nombres": "Antonella",
+          "apellido_paterno": "Cruz",
+          "apellido_materno": "Benites",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-12-18",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78340815",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A16",
+          "codigo_siagie": "15000004421016",
+          "nombres": "Leonardo",
+          "apellido_paterno": "Aguilar",
+          "apellido_materno": "Soto",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-06-03",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78611216",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A17",
+          "codigo_siagie": "15000005702017",
+          "nombres": "Mía",
+          "apellido_paterno": "Sánchez",
+          "apellido_materno": "Loayza",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2014-03-10",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78229417",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A18",
+          "codigo_siagie": "15000001844018",
+          "nombres": "Santiago",
+          "apellido_paterno": "Ramírez",
+          "apellido_materno": "Poma",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-05-13",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78625718",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A19",
+          "codigo_siagie": "15000008289019",
+          "nombres": "Daniela",
+          "apellido_paterno": "Peña",
+          "apellido_materno": "Arias",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-08-04",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78631719",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A20",
+          "codigo_siagie": "15000008710020",
+          "nombres": "Bruno",
+          "apellido_paterno": "Salazar",
+          "apellido_materno": "Ccori",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-05-11",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78872020",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A21",
+          "codigo_siagie": "15000008309021",
+          "nombres": "Kiara",
+          "apellido_paterno": "Navarro",
+          "apellido_materno": "Inga",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2014-01-10",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78667321",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A22",
+          "codigo_siagie": "15000004096022",
+          "nombres": "Emilio",
+          "apellido_paterno": "Cabrera",
+          "apellido_materno": "Tito",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-11-05",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78945122",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A23",
+          "codigo_siagie": "15000001244023",
+          "nombres": "Abigail",
+          "apellido_paterno": "Paredes",
+          "apellido_materno": "Choque",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-10-22",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78251723",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": true
+        },
+        {
+          "codigo": "SF26-1A24",
+          "codigo_siagie": "15000006995024",
+          "nombres": "Rodrigo",
+          "apellido_paterno": "Ortega",
+          "apellido_materno": "Mamani",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2014-03-17",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78986124",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A25",
+          "codigo_siagie": "15000000423025",
+          "nombres": "Nicole",
+          "apellido_paterno": "Vásquez",
+          "apellido_materno": "Yupanqui",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2014-01-18",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78501425",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A26",
+          "codigo_siagie": "15000003156026",
+          "nombres": "Gabriel",
+          "apellido_paterno": "Fernández",
+          "apellido_materno": "Huanca",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2014-01-02",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78661126",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A27",
+          "codigo_siagie": "15000008804027",
+          "nombres": "Brenda",
+          "apellido_paterno": "Quispe",
+          "apellido_materno": "Condori",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2014-02-05",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78337627",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1A28",
+          "codigo_siagie": "15000008316028",
+          "nombres": "Kevin",
+          "apellido_paterno": "Huamaní",
+          "apellido_materno": "Flores",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-06-08",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78409128",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        }
+      ]
+    },
+    {
+      "grado": "1S",
+      "seccion": "B",
+      "nombre": "1ro B",
+      "tutor": "rquispe",
+      "turno": "manana",
+      "capacidad": 30,
+      "estudiantes": [
+        {
+          "codigo": "SF26-1B01",
+          "codigo_siagie": "15000001415001",
+          "nombres": "Ariana",
+          "apellido_paterno": "Lozano",
+          "apellido_materno": "Bravo",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-09-15",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78153601",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B02",
+          "codigo_siagie": "15000001939002",
+          "nombres": "Matías",
+          "apellido_paterno": "Romero",
+          "apellido_materno": "Valdez",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-08-23",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78980602",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B03",
+          "codigo_siagie": "15000005834003",
+          "nombres": "Sofía",
+          "apellido_paterno": "Guerrero",
+          "apellido_materno": "Sánchez",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2014-02-15",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78370503",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": true
+        },
+        {
+          "codigo": "SF26-1B04",
+          "codigo_siagie": "15000003046004",
+          "nombres": "Alonso",
+          "apellido_paterno": "Pacheco",
+          "apellido_materno": "Tello",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-04-30",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78045504",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B05",
+          "codigo_siagie": "15000004730005",
+          "nombres": "Valentina",
+          "apellido_paterno": "Medina",
+          "apellido_materno": "Chávez",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-11-13",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78600705",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B06",
+          "codigo_siagie": "15000002871006",
+          "nombres": "Lucas",
+          "apellido_paterno": "Zapata",
+          "apellido_materno": "Rojas",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-10-31",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78467006",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B07",
+          "codigo_siagie": "15000008946007",
+          "nombres": "Micaela",
+          "apellido_paterno": "Cáceres",
+          "apellido_materno": "Luna",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-06-18",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78123807",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B08",
+          "codigo_siagie": "15000008919008",
+          "nombres": "Benjamín",
+          "apellido_paterno": "Delgado",
+          "apellido_materno": "Ruiz",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-12-16",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78282708",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B09",
+          "codigo_siagie": "15000002538009",
+          "nombres": "Alessandra",
+          "apellido_paterno": "Málaga",
+          "apellido_materno": "Pinto",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2014-02-24",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78884309",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B10",
+          "codigo_siagie": "15000009487010",
+          "nombres": "Franco",
+          "apellido_paterno": "Vera",
+          "apellido_materno": "Gallegos",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-11-14",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78352510",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B11",
+          "codigo_siagie": "15000007443011",
+          "nombres": "Zoe",
+          "apellido_paterno": "Ibáñez",
+          "apellido_materno": "Carrasco",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2014-02-07",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78219911",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B12",
+          "codigo_siagie": "15000007650012",
+          "nombres": "Dylan",
+          "apellido_paterno": "Montes",
+          "apellido_materno": "Aguirre",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-06-14",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78412612",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B13",
+          "codigo_siagie": "15000002571013",
+          "nombres": "Catalina",
+          "apellido_paterno": "Rivas",
+          "apellido_materno": "Mejía",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2014-01-10",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78995813",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B14",
+          "codigo_siagie": "15000003625014",
+          "nombres": "Ian",
+          "apellido_paterno": "Solís",
+          "apellido_materno": "Calderón",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-09-10",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78396814",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B15",
+          "codigo_siagie": "15000002133015",
+          "nombres": "Josefina",
+          "apellido_paterno": "Bustamante",
+          "apellido_materno": "Ponce",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2014-03-24",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78559515",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B16",
+          "codigo_siagie": "15000006986016",
+          "nombres": "Facundo",
+          "apellido_paterno": "Arce",
+          "apellido_materno": "Villanueva",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-06-30",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78002016",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B17",
+          "codigo_siagie": "15000002153017",
+          "nombres": "Romina",
+          "apellido_paterno": "Tapia",
+          "apellido_materno": "Salinas",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-08-16",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78982517",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B18",
+          "codigo_siagie": "15000005787018",
+          "nombres": "Tomás",
+          "apellido_paterno": "Rosales",
+          "apellido_materno": "Ugarte",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-08-16",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78794618",
+          "fecha_matricula": "2026-06-01",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B19",
+          "codigo_siagie": "15000002912019",
+          "nombres": "Paula",
+          "apellido_paterno": "Galindo",
+          "apellido_materno": "Ascencio",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-06-02",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78377019",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B20",
+          "codigo_siagie": "15000003999020",
+          "nombres": "Iker",
+          "apellido_paterno": "Montoya",
+          "apellido_materno": "Huerta",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-06-29",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78700320",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B21",
+          "codigo_siagie": "15000008377021",
+          "nombres": "Milagros",
+          "apellido_paterno": "Cornejo",
+          "apellido_materno": "Apaza",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-08-11",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78904221",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B22",
+          "codigo_siagie": "15000008502022",
+          "nombres": "Jhon",
+          "apellido_paterno": "Lazo",
+          "apellido_materno": "Ticona",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-06-09",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78478822",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B23",
+          "codigo_siagie": "15000001604023",
+          "nombres": "Yesenia",
+          "apellido_paterno": "Cahuana",
+          "apellido_materno": "Llanos",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-08-18",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78861323",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B24",
+          "codigo_siagie": "15000005237024",
+          "nombres": "Piero",
+          "apellido_paterno": "Saldaña",
+          "apellido_materno": "Quiroz",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-10-31",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78233524",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B25",
+          "codigo_siagie": "15000008017025",
+          "nombres": "Rosa",
+          "apellido_paterno": "Huillca",
+          "apellido_materno": "Puma",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-05-23",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78451825",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B26",
+          "codigo_siagie": "15000008794026",
+          "nombres": "Erick",
+          "apellido_paterno": "Mallma",
+          "apellido_materno": "Laura",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-04-29",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78704926",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B27",
+          "codigo_siagie": "15000006945027",
+          "nombres": "Lizbeth",
+          "apellido_paterno": "Ccahuana",
+          "apellido_materno": "Rojas",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-08-26",
+          "sexo": "F",
+          "tipo_documento": "DNI",
+          "numero_documento": "78067627",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        },
+        {
+          "codigo": "SF26-1B28",
+          "codigo_siagie": "15000004311028",
+          "nombres": "Brayan",
+          "apellido_paterno": "Yauri",
+          "apellido_materno": "Cutipa",
+          "nombre_preferido": "",
+          "fecha_nacimiento": "2013-07-05",
+          "sexo": "M",
+          "tipo_documento": "DNI",
+          "numero_documento": "78705928",
+          "fecha_matricula": "2026-03-02",
+          "apoyo_inclusion": false
+        }
       ]
     }
   ],
@@ -121,19 +1100,95 @@
       "area": "MAT",
       "aula": "1S-A",
       "docente": "jeffrey",
-      "horas_semanales": 5,
-      "salon": "Aula 101",
+      "horas_semanales": 4.0,
+      "salon": "Aula 1A",
       "horario": [
-        { "dia": "lunes", "inicio": "08:00", "fin": "09:30" },
-        { "dia": "miércoles", "inicio": "08:00", "fin": "09:30" },
-        { "dia": "viernes", "inicio": "10:00", "fin": "11:00" }
+        {
+          "dia": "lunes",
+          "inicio": "08:00",
+          "fin": "09:30",
+          "salon": ""
+        },
+        {
+          "dia": "viernes",
+          "inicio": "08:00",
+          "fin": "09:30",
+          "salon": ""
+        }
       ],
-      "sesiones": [
-        { "fecha": "2026-03-02", "tema": "Números enteros" },
-        { "fecha": "2026-03-04", "tema": "Operaciones con números enteros" },
-        { "fecha": "2026-03-06", "tema": "Problemas con números enteros" },
-        { "fecha": "2026-03-09", "tema": "Números racionales" }
-      ]
+      "sesiones": []
+    },
+    {
+      "nombre": "Comunicación 1ro A",
+      "codigo": "COM-1A",
+      "area": "COM",
+      "aula": "1S-A",
+      "docente": "mhuaman",
+      "horas_semanales": 4.0,
+      "salon": "Aula 1A",
+      "horario": [
+        {
+          "dia": "lunes",
+          "inicio": "09:45",
+          "fin": "11:15",
+          "salon": ""
+        },
+        {
+          "dia": "miercoles",
+          "inicio": "09:45",
+          "fin": "11:15",
+          "salon": ""
+        }
+      ],
+      "sesiones": []
+    },
+    {
+      "nombre": "Ciencia y Tecnología 1ro A",
+      "codigo": "CYT-1A",
+      "area": "CYT",
+      "aula": "1S-A",
+      "docente": "rquispe",
+      "horas_semanales": 4.0,
+      "salon": "Aula 1A",
+      "horario": [
+        {
+          "dia": "martes",
+          "inicio": "11:30",
+          "fin": "13:00",
+          "salon": ""
+        },
+        {
+          "dia": "jueves",
+          "inicio": "11:30",
+          "fin": "13:00",
+          "salon": ""
+        }
+      ],
+      "sesiones": []
+    },
+    {
+      "nombre": "Inglés 1ro A",
+      "codigo": "ING-1A",
+      "area": "ING",
+      "aula": "1S-A",
+      "docente": "kpalomino",
+      "horas_semanales": 3.0,
+      "salon": "Aula 1A",
+      "horario": [
+        {
+          "dia": "martes",
+          "inicio": "13:00",
+          "fin": "13:45",
+          "salon": ""
+        },
+        {
+          "dia": "viernes",
+          "inicio": "11:30",
+          "fin": "13:00",
+          "salon": ""
+        }
+      ],
+      "sesiones": []
     },
     {
       "nombre": "Ciencias Sociales 1ro A",
@@ -141,16 +1196,323 @@
       "area": "CCSS",
       "aula": "1S-A",
       "docente": "gonzalo",
-      "horas_semanales": 3,
-      "salon": "Aula 101",
+      "horas_semanales": 3.0,
+      "salon": "Aula 1A",
       "horario": [
-        { "dia": "martes", "inicio": "08:00", "fin": "09:30" },
-        { "dia": "jueves", "inicio": "10:00", "fin": "11:30" }
+        {
+          "dia": "lunes",
+          "inicio": "13:00",
+          "fin": "13:45",
+          "salon": ""
+        },
+        {
+          "dia": "jueves",
+          "inicio": "08:00",
+          "fin": "09:30",
+          "salon": ""
+        }
       ],
-      "sesiones": [
-        { "fecha": "2026-03-03", "tema": "Fuentes históricas: primarias y secundarias" },
-        { "fecha": "2026-03-05", "tema": "El poblamiento de América" }
-      ]
+      "sesiones": []
+    },
+    {
+      "nombre": "Desarrollo Personal, Ciudadanía y Cívica 1ro A",
+      "codigo": "DPCC-1A",
+      "area": "DPCC",
+      "aula": "1S-A",
+      "docente": "lcardenas",
+      "horas_semanales": 2.0,
+      "salon": "Aula 1A",
+      "horario": [
+        {
+          "dia": "lunes",
+          "inicio": "11:30",
+          "fin": "13:00",
+          "salon": ""
+        }
+      ],
+      "sesiones": []
+    },
+    {
+      "nombre": "Educación Física 1ro A",
+      "codigo": "EF-1A",
+      "area": "EF",
+      "aula": "1S-A",
+      "docente": "jmendoza",
+      "horas_semanales": 2.0,
+      "salon": "Losa deportiva",
+      "horario": [
+        {
+          "dia": "miercoles",
+          "inicio": "08:00",
+          "fin": "09:30",
+          "salon": ""
+        }
+      ],
+      "sesiones": []
+    },
+    {
+      "nombre": "Arte y Cultura 1ro A",
+      "codigo": "ARTE-1A",
+      "area": "ARTE",
+      "aula": "1S-A",
+      "docente": "aflores",
+      "horas_semanales": 2.0,
+      "salon": "Aula 1A",
+      "horario": [
+        {
+          "dia": "miercoles",
+          "inicio": "11:30",
+          "fin": "13:00",
+          "salon": ""
+        }
+      ],
+      "sesiones": []
+    },
+    {
+      "nombre": "Educación Religiosa 1ro A",
+      "codigo": "ER-1A",
+      "area": "ER",
+      "aula": "1S-A",
+      "docente": "rchavez",
+      "horas_semanales": 2.0,
+      "salon": "Aula 1A",
+      "horario": [
+        {
+          "dia": "viernes",
+          "inicio": "09:45",
+          "fin": "11:15",
+          "salon": ""
+        }
+      ],
+      "sesiones": []
+    },
+    {
+      "nombre": "Educación para el Trabajo 1ro A",
+      "codigo": "EPT-1A",
+      "area": "EPT",
+      "aula": "1S-A",
+      "docente": "dramos",
+      "horas_semanales": 2.0,
+      "salon": "Aula 1A",
+      "horario": [
+        {
+          "dia": "jueves",
+          "inicio": "09:45",
+          "fin": "11:15",
+          "salon": ""
+        }
+      ],
+      "sesiones": []
+    },
+    {
+      "nombre": "Matemática 1ro B",
+      "codigo": "MAT-1B",
+      "area": "MAT",
+      "aula": "1S-B",
+      "docente": "jeffrey",
+      "horas_semanales": 4.0,
+      "salon": "Aula 1B",
+      "horario": [
+        {
+          "dia": "miercoles",
+          "inicio": "08:00",
+          "fin": "09:30",
+          "salon": ""
+        },
+        {
+          "dia": "viernes",
+          "inicio": "11:30",
+          "fin": "13:00",
+          "salon": ""
+        }
+      ],
+      "sesiones": []
+    },
+    {
+      "nombre": "Comunicación 1ro B",
+      "codigo": "COM-1B",
+      "area": "COM",
+      "aula": "1S-B",
+      "docente": "mhuaman",
+      "horas_semanales": 4.0,
+      "salon": "Aula 1B",
+      "horario": [
+        {
+          "dia": "miercoles",
+          "inicio": "11:30",
+          "fin": "13:00",
+          "salon": ""
+        },
+        {
+          "dia": "viernes",
+          "inicio": "08:00",
+          "fin": "09:30",
+          "salon": ""
+        }
+      ],
+      "sesiones": []
+    },
+    {
+      "nombre": "Ciencia y Tecnología 1ro B",
+      "codigo": "CYT-1B",
+      "area": "CYT",
+      "aula": "1S-B",
+      "docente": "rquispe",
+      "horas_semanales": 4.0,
+      "salon": "Aula 1B",
+      "horario": [
+        {
+          "dia": "lunes",
+          "inicio": "11:30",
+          "fin": "13:00",
+          "salon": ""
+        },
+        {
+          "dia": "jueves",
+          "inicio": "08:00",
+          "fin": "09:30",
+          "salon": ""
+        }
+      ],
+      "sesiones": []
+    },
+    {
+      "nombre": "Inglés 1ro B",
+      "codigo": "ING-1B",
+      "area": "ING",
+      "aula": "1S-B",
+      "docente": "kpalomino",
+      "horas_semanales": 3.0,
+      "salon": "Aula 1B",
+      "horario": [
+        {
+          "dia": "miercoles",
+          "inicio": "13:00",
+          "fin": "13:45",
+          "salon": ""
+        },
+        {
+          "dia": "viernes",
+          "inicio": "09:45",
+          "fin": "11:15",
+          "salon": ""
+        }
+      ],
+      "sesiones": []
+    },
+    {
+      "nombre": "Ciencias Sociales 1ro B",
+      "codigo": "CCSS-1B",
+      "area": "CCSS",
+      "aula": "1S-B",
+      "docente": "gonzalo",
+      "horas_semanales": 3.0,
+      "salon": "Aula 1B",
+      "horario": [
+        {
+          "dia": "jueves",
+          "inicio": "11:30",
+          "fin": "13:00",
+          "salon": ""
+        },
+        {
+          "dia": "viernes",
+          "inicio": "13:00",
+          "fin": "13:45",
+          "salon": ""
+        }
+      ],
+      "sesiones": []
+    },
+    {
+      "nombre": "Desarrollo Personal, Ciudadanía y Cívica 1ro B",
+      "codigo": "DPCC-1B",
+      "area": "DPCC",
+      "aula": "1S-B",
+      "docente": "lcardenas",
+      "horas_semanales": 2.0,
+      "salon": "Aula 1B",
+      "horario": [
+        {
+          "dia": "martes",
+          "inicio": "11:30",
+          "fin": "13:00",
+          "salon": ""
+        }
+      ],
+      "sesiones": []
+    },
+    {
+      "nombre": "Educación Física 1ro B",
+      "codigo": "EF-1B",
+      "area": "EF",
+      "aula": "1S-B",
+      "docente": "jmendoza",
+      "horas_semanales": 2.0,
+      "salon": "Losa deportiva",
+      "horario": [
+        {
+          "dia": "lunes",
+          "inicio": "09:45",
+          "fin": "11:15",
+          "salon": ""
+        }
+      ],
+      "sesiones": []
+    },
+    {
+      "nombre": "Arte y Cultura 1ro B",
+      "codigo": "ARTE-1B",
+      "area": "ARTE",
+      "aula": "1S-B",
+      "docente": "aflores",
+      "horas_semanales": 2.0,
+      "salon": "Aula 1B",
+      "horario": [
+        {
+          "dia": "martes",
+          "inicio": "09:45",
+          "fin": "11:15",
+          "salon": ""
+        }
+      ],
+      "sesiones": []
+    },
+    {
+      "nombre": "Educación Religiosa 1ro B",
+      "codigo": "ER-1B",
+      "area": "ER",
+      "aula": "1S-B",
+      "docente": "rchavez",
+      "horas_semanales": 2.0,
+      "salon": "Aula 1B",
+      "horario": [
+        {
+          "dia": "miercoles",
+          "inicio": "09:45",
+          "fin": "11:15",
+          "salon": ""
+        }
+      ],
+      "sesiones": []
+    },
+    {
+      "nombre": "Educación para el Trabajo 1ro B",
+      "codigo": "EPT-1B",
+      "area": "EPT",
+      "aula": "1S-B",
+      "docente": "dramos",
+      "horas_semanales": 2.0,
+      "salon": "Aula 1B",
+      "horario": [
+        {
+          "dia": "martes",
+          "inicio": "08:00",
+          "fin": "09:30",
+          "salon": ""
+        }
+      ],
+      "sesiones": []
     }
   ]
 }
