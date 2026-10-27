@@ -1,0 +1,97 @@
+{
+  "area": "ER",
+  "experiencias": [
+    {
+      "trimestre": 1,
+      "titulo": "La dignidad de toda persona",
+      "idea": "Reflexionar sobre la dignidad humana desde la fe y su relación con el respeto a los demás.",
+      "situacion": "En el aula, algunos compañeros son tratados con apodos por su forma de hablar o su procedencia. La fe cristiana enseña que toda persona es digna porque es amada por Dios. ¿Qué significa reconocer la dignidad del otro? ¿Cómo se nota en nuestro trato diario?",
+      "contexto": "",
+      "competencias": ["ER-C1"],
+      "criterios": [
+        { "competencia": "ER-C1", "capacidades": [1], "texto": "Explica, a partir de textos bíblicos, por qué toda persona es digna y libre, y relaciona esta idea con situaciones de su vida escolar.", "desempeno": 1 },
+        { "competencia": "ER-C1", "capacidades": [2], "texto": "Dialoga con respeto sobre las creencias de sus compañeros, reconociendo lo que comparten sobre la dignidad humana.", "mawta": true }
+      ],
+      "evidencias": [
+        { "nombre": "Reflexión escrita sobre la dignidad", "tipo": "produccion", "escala": "numeric", "criterios": [0] },
+        { "nombre": "Círculo de diálogo", "tipo": "actuacion", "escala": "ordinal", "criterios": [1] }
+      ],
+      "sesiones": [
+        ["Nombres, no apodos", "Situación significativa"],
+        ["Creados a imagen de Dios", "Textos bíblicos sobre dignidad"],
+        ["Libres y responsables", "Libertad y dignidad"],
+        ["Diálogo entre creencias", "Respeto a la diversidad religiosa"],
+        ["Mi reflexión", "Escritura y círculo de diálogo"]
+      ]
+    },
+    {
+      "trimestre": 1,
+      "titulo": "Semana Santa en mi familia",
+      "idea": "Conocer el sentido de la Semana Santa y las tradiciones familiares que la acompañan.",
+      "situacion": "En Semana Santa muchas familias del aula mantienen tradiciones como las procesiones o los doce platos, pero los estudiantes no siempre conocen su sentido. ¿Qué celebramos en Semana Santa? ¿Qué significan las tradiciones de nuestras familias?",
+      "contexto": "",
+      "competencias": ["ER-C1", "ER-C2"],
+      "criterios": [
+        { "competencia": "ER-C1", "capacidades": [2], "texto": "Describe una tradición familiar de Semana Santa y explica su relación con el mensaje cristiano de la pasión y resurrección de Jesús.", "desempeno": 2 },
+        { "competencia": "ER-C2", "capacidades": [1], "texto": "Propone una acción concreta de servicio inspirada en el mensaje de Semana Santa y la realiza con su familia o su comunidad.", "mawta": true }
+      ],
+      "evidencias": [
+        { "nombre": "Entrevista familiar sobre tradiciones", "tipo": "produccion", "escala": "numeric", "criterios": [0] },
+        { "nombre": "Testimonio de la acción de servicio", "tipo": "actuacion", "escala": "ordinal", "criterios": [1] }
+      ],
+      "sesiones": [
+        ["Tradiciones de mi familia", "Situación significativa"],
+        ["El sentido de la Pascua", "Pasión y resurrección"],
+        ["Entrevistamos a la familia", "Preparación de la entrevista"],
+        ["Servir como Jesús", "Planificación de la acción"],
+        ["Compartimos testimonios", "Socialización y reflexión"]
+      ]
+    },
+    {
+      "trimestre": 2,
+      "titulo": "Mi proyecto de vida",
+      "idea": "Elaborar un proyecto de vida personal a la luz de los valores de la fe.",
+      "situacion": "Al pasar a secundaria, los estudiantes empiezan a preguntarse qué quieren ser y cómo lograrlo. A veces se dejan llevar por lo que otros esperan de ellos. ¿Qué tipo de persona quiero ser? ¿Qué valores me ayudarán a lograr mis metas?",
+      "contexto": "",
+      "competencias": ["ER-C2"],
+      "criterios": [
+        { "competencia": "ER-C2", "capacidades": [2], "texto": "Formula metas personales para su proyecto de vida y explica cómo los valores de su fe orientan sus decisiones para alcanzarlas.", "desempeno": 1 },
+        { "competencia": "ER-C2", "capacidades": [1], "texto": "Identifica personas de su entorno que son testimonio de fe y servicio, y explica qué aprende de ellas para su propio proyecto.", "mawta": true }
+      ],
+      "evidencias": [
+        { "nombre": "Proyecto de vida personal", "tipo": "produccion", "escala": "ordinal", "criterios": [0, 1] },
+        { "nombre": "Ficha sobre testimonios de vida", "tipo": "produccion", "escala": "numeric", "criterios": [1] }
+      ],
+      "sesiones": [
+        ["¿Quién quiero ser?", "Situación significativa"],
+        ["Mis valores", "Valores y decisiones"],
+        ["Testimonios que inspiran", "Personas de fe y servicio"],
+        ["Metas y caminos", "Elaboración del proyecto"],
+        ["Comparto mi proyecto", "Socialización y reflexión"]
+      ]
+    },
+    {
+      "trimestre": 2,
+      "titulo": "Santa Rosa y el servicio a los demás",
+      "idea": "Conocer la vida de Santa Rosa de Lima como ejemplo de servicio a los más necesitados.",
+      "situacion": "Santa Rosa de Lima es patrona de América y del Perú, y su vida estuvo dedicada a los enfermos y pobres de la ciudad. ¿Qué nos enseña su vida hoy? ¿Cómo podemos servir a los demás desde nuestra realidad de estudiantes?",
+      "contexto": "",
+      "competencias": ["ER-C1", "ER-C2"],
+      "criterios": [
+        { "competencia": "ER-C1", "capacidades": [1, 2], "texto": "Explica cómo la vida de Santa Rosa expresa su fe y su compromiso con los demás, y la relaciona con el mensaje del Evangelio.", "desempeno": 3 },
+        { "competencia": "ER-C2", "capacidades": [1, 2], "texto": "Participa en una acción solidaria del aula y reflexiona sobre cómo su fe se traduce en actos concretos de servicio." }
+      ],
+      "evidencias": [
+        { "nombre": "Biografía ilustrada de Santa Rosa", "tipo": "produccion", "escala": "numeric", "criterios": [0] },
+        { "nombre": "Acción solidaria del aula", "tipo": "actuacion", "escala": "ordinal", "criterios": [1] }
+      ],
+      "sesiones": [
+        ["Una santa limeña", "Situación significativa"],
+        ["La vida de Santa Rosa", "Lectura de su biografía"],
+        ["Fe y servicio", "El Evangelio en la vida de Rosa"],
+        ["Planificamos la acción solidaria", "Organización"],
+        ["Servimos y reflexionamos", "Acción y reflexión"]
+      ]
+    }
+  ]
+}

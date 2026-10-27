@@ -1,0 +1,107 @@
+{
+  "area": "ING",
+  "experiencias": [
+    {
+      "trimestre": 1,
+      "titulo": "Meet my new classmates",
+      "idea": "Presentarse en inglés y conocer a los compañeros: datos personales, gustos y rutinas.",
+      "situacion": "En el aula hay estudiantes que vienen de distintos colegios y un intercambio virtual con un colegio de Canadá empezará pronto. Para participar, cada estudiante necesita presentarse en inglés y entender las presentaciones de otros. ¿Cómo nos presentamos en inglés de forma clara y amable? ¿Qué preguntas podemos hacer para conocer a alguien?",
+      "contexto": "",
+      "competencias": ["ING-C1"],
+      "criterios": [
+        { "competencia": "ING-C1", "capacidades": [1, 2], "texto": "Identifica en audios breves en inglés el nombre, la edad, el origen y los gustos de una persona, y deduce el significado de palabras por el contexto.", "desempeno": 1 },
+        { "competencia": "ING-C1", "capacidades": [3, 4], "texto": "Se presenta oralmente en inglés con información personal, gustos y rutinas, usando pronunciación comprensible y apoyo de gestos.", "mawta": true },
+        { "competencia": "ING-C1", "capacidades": [5], "texto": "Formula y responde preguntas personales simples en inglés durante un diálogo con un compañero, manteniendo la conversación." }
+      ],
+      "evidencias": [
+        { "nombre": "Listening quiz: personal information", "tipo": "produccion", "escala": "numeric", "criterios": [0] },
+        { "nombre": "Self-introduction video", "tipo": "actuacion", "escala": "ordinal", "criterios": [1, 2] }
+      ],
+      "sesiones": [
+        ["Hello, nice to meet you!", "Greetings and introductions"],
+        ["Where are you from?", "Countries, nationalities, verb to be"],
+        ["My favorite things", "Likes and dislikes"],
+        ["My daily routine", "Present simple and routines"],
+        ["Asking questions", "Wh- questions"],
+        ["Listening practice", "Personal information in audios"],
+        ["Rehearsing my video", "Pronunciation and gestures"],
+        ["Sharing our videos", "Presentation and reflection"]
+      ]
+    },
+    {
+      "trimestre": 1,
+      "titulo": "A healthy food menu",
+      "idea": "Leer y comentar menús y etiquetas de alimentos en inglés para proponer una lonchera saludable.",
+      "situacion": "En el quiosco del colegio se venden productos con etiquetas en inglés que pocos entienden. El aula quiere proponer un menú saludable bilingüe para la lonchera escolar. ¿Qué información nos dan las etiquetas? ¿Cómo describimos en inglés un menú saludable?",
+      "contexto": "",
+      "competencias": ["ING-C1", "ING-C2"],
+      "criterios": [
+        { "competencia": "ING-C2", "capacidades": [1], "texto": "Obtiene información explícita de etiquetas y menús en inglés, como ingredientes, cantidades y precios, para comparar productos.", "desempeno": 1 },
+        { "competencia": "ING-C2", "capacidades": [2, 3], "texto": "Deduce si un producto es saludable a partir de la información de la etiqueta en inglés y opina sobre su consumo con razones simples.", "mawta": true },
+        { "competencia": "ING-C1", "capacidades": [3, 5], "texto": "Describe oralmente en inglés el menú saludable que propone, usando cantidades y adjetivos, y responde preguntas de sus compañeros." }
+      ],
+      "evidencias": [
+        { "nombre": "Food label reading worksheet", "tipo": "produccion", "escala": "numeric", "criterios": [0, 1] },
+        { "nombre": "Healthy menu presentation", "tipo": "actuacion", "escala": "ordinal", "criterios": [2] }
+      ],
+      "sesiones": [
+        ["What's in my lunchbox?", "Food vocabulary"],
+        ["Countable and uncountable", "Some, any, how much, how many"],
+        ["Reading food labels", "Ingredients and nutrition facts"],
+        ["Is it healthy?", "Inferring and giving opinions"],
+        ["Designing the menu", "Menu planning in groups"],
+        ["Presenting the menu", "Oral presentation and reflection"]
+      ]
+    },
+    {
+      "trimestre": 2,
+      "titulo": "Places in my town",
+      "idea": "Describir lugares del distrito y dar indicaciones en inglés para una guía turística.",
+      "situacion": "Turistas extranjeros visitan el malecón y los parques del distrito, pero muchas veces se pierden porque nadie les sabe dar indicaciones en inglés. El aula elaborará una guía breve de lugares del distrito y practicará cómo orientar a un visitante. ¿Qué lugares recomendaríamos? ¿Cómo explicamos el camino en inglés?",
+      "contexto": "",
+      "competencias": ["ING-C1", "ING-C2"],
+      "criterios": [
+        { "competencia": "ING-C2", "capacidades": [1, 2], "texto": "Obtiene e interpreta información de folletos turísticos en inglés, identificando lugares, horarios y actividades recomendadas.", "desempeno": 2 },
+        { "competencia": "ING-C1", "capacidades": [3, 5], "texto": "Da indicaciones orales en inglés para llegar a un lugar del distrito usando preposiciones de lugar y expresiones de dirección.", "mawta": true },
+        { "competencia": "ING-C1", "capacidades": [1, 6], "texto": "Comprende indicaciones orales en inglés y evalúa si son claras, sugiriendo mejoras a sus compañeros." }
+      ],
+      "evidencias": [
+        { "nombre": "Brochure comprehension quiz", "tipo": "produccion", "escala": "numeric", "criterios": [0] },
+        { "nombre": "Giving directions role-play", "tipo": "actuacion", "escala": "ordinal", "criterios": [1, 2] }
+      ],
+      "sesiones": [
+        ["Welcome to our town", "Places in town vocabulary"],
+        ["Where is the park?", "Prepositions of place"],
+        ["Reading brochures", "Tourist information"],
+        ["Turn left, go straight", "Giving directions"],
+        ["Role-play practice", "Dialogues with tourists"],
+        ["Role-play performance", "Performance and feedback"]
+      ]
+    },
+    {
+      "trimestre": 2,
+      "titulo": "Famous Peruvians",
+      "idea": "Leer biografías breves en inglés de peruanos destacados y presentarlas oralmente.",
+      "situacion": "En el mural del aula queremos colocar a peruanos que inspiran, pero el intercambio con el colegio de Canadá pide hacerlo en inglés. Cada grupo leerá una biografía breve y presentará al personaje. ¿Qué hizo especial a esa persona? ¿Cómo contamos su vida en pasado?",
+      "contexto": "",
+      "competencias": ["ING-C1", "ING-C2"],
+      "criterios": [
+        { "competencia": "ING-C2", "capacidades": [1, 2], "texto": "Identifica en biografías breves en inglés las fechas y logros principales del personaje, y deduce el significado de verbos en pasado por el contexto.", "desempeno": 1 },
+        { "competencia": "ING-C2", "capacidades": [3], "texto": "Opina en inglés sobre el aporte del personaje leído y lo compara con otro, usando expresiones simples de opinión.", "mawta": true },
+        { "competencia": "ING-C1", "capacidades": [3, 4], "texto": "Presenta oralmente en inglés la vida del personaje usando el pasado simple, con pronunciación comprensible y apoyo visual." }
+      ],
+      "evidencias": [
+        { "nombre": "Biography reading test", "tipo": "produccion", "escala": "numeric", "criterios": [0, 1] },
+        { "nombre": "Famous Peruvian presentation", "tipo": "actuacion", "escala": "ordinal", "criterios": [2] }
+      ],
+      "sesiones": [
+        ["Peruvians who inspire", "Introduction; famous people"],
+        ["Past simple: regular verbs", "Grammar in biographies"],
+        ["Past simple: irregular verbs", "Reading short biographies"],
+        ["What do you think?", "Giving opinions"],
+        ["Preparing the presentation", "Group work and visuals"],
+        ["Presentations", "Oral presentations and reflection"]
+      ]
+    }
+  ]
+}

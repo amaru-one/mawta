@@ -1,0 +1,113 @@
+{
+  "area": "CCSS",
+  "experiencias": [
+    {
+      "trimestre": 1,
+      "titulo": "Los primeros pobladores del Perú",
+      "idea": "Investigar el poblamiento de América y de nuestro territorio analizando fuentes arqueológicas.",
+      "situacion": "En una visita virtual al museo, los estudiantes vieron puntas de proyectil y restos de Lauricocha y se preguntaron cómo llegaron los primeros seres humanos a estas tierras. Distintas teorías explican el poblamiento de América y no todas usan las mismas pruebas. ¿Cómo sabemos lo que pasó hace miles de años? ¿Qué teoría tiene mejores evidencias?",
+      "contexto": "",
+      "competencias": ["CCSS-C1"],
+      "criterios": [
+        { "competencia": "CCSS-C1", "capacidades": [1], "texto": "Identifica en fuentes arqueológicas y textos qué información aportan sobre los primeros pobladores y distingue cuál es fuente primaria y cuál secundaria.", "desempeno": 1 },
+        { "competencia": "CCSS-C1", "capacidades": [2], "texto": "Ordena en una línea de tiempo los periodos del poblamiento americano y peruano usando las convenciones de antes y después de Cristo.", "mawta": true },
+        { "competencia": "CCSS-C1", "capacidades": [3], "texto": "Explica las teorías del poblamiento de América comparando sus argumentos y señalando qué evidencias respaldan a cada una." }
+      ],
+      "evidencias": [
+        { "nombre": "Ficha de análisis de fuentes arqueológicas", "tipo": "produccion", "escala": "numeric", "criterios": [0] },
+        { "nombre": "Línea de tiempo del poblamiento", "tipo": "produccion", "escala": "numeric", "criterios": [1, 2] }
+      ],
+      "sesiones": [
+        ["¿Cómo llegaron los primeros humanos?", "Situación significativa; preguntas iniciales"],
+        ["Las fuentes nos hablan", "Fuentes primarias y secundarias"],
+        ["Teorías del poblamiento", "Teorías inmigracionistas y su evidencia"],
+        ["Los primeros peruanos", "Lauricocha, Toquepala y Guitarrero"],
+        ["Medimos el tiempo histórico", "Cronología, a.C. y d.C."],
+        ["Construimos la línea de tiempo", "Elaboración de la línea de tiempo"],
+        ["Debatimos las teorías", "Comparación de argumentos"],
+        ["Lo que aprendimos", "Presentación y metacognición"]
+      ]
+    },
+    {
+      "trimestre": 1,
+      "titulo": "Nuestro territorio y sus riesgos",
+      "idea": "Reconocer las regiones naturales del Perú y los peligros de desastres en el entorno del colegio.",
+      "situacion": "Cada año, las lluvias y huaicos afectan a distintas regiones del país y en Lima el riesgo de sismos es permanente. El colegio necesita actualizar su mapa de riesgos y las familias quieren saber qué zonas del distrito son más seguras. ¿Qué características de nuestro territorio aumentan los riesgos? ¿Qué podemos hacer para estar preparados?",
+      "contexto": "El colegio participará en el simulacro nacional multipeligro de mayo.",
+      "competencias": ["CCSS-C2"],
+      "criterios": [
+        { "competencia": "CCSS-C2", "capacidades": [1], "texto": "Explica cómo se relacionan el relieve, el clima y la ocupación del territorio en la aparición de peligros como sismos, huaicos e inundaciones.", "desempeno": 2 },
+        { "competencia": "CCSS-C2", "capacidades": [2], "texto": "Usa mapas, planos y fotografías para ubicar las zonas de riesgo del distrito y describe la información que cada fuente le proporciona." },
+        { "competencia": "CCSS-C2", "capacidades": [3], "texto": "Propone acciones concretas de prevención para el colegio y las familias a partir del análisis de los peligros identificados en el mapa.", "mawta": true }
+      ],
+      "evidencias": [
+        { "nombre": "Mapa de riesgos del entorno escolar", "tipo": "produccion", "escala": "numeric", "criterios": [0, 1] },
+        { "nombre": "Exposición del plan de prevención", "tipo": "actuacion", "escala": "ordinal", "criterios": [2] }
+      ],
+      "sesiones": [
+        ["¿Qué tan seguro es nuestro barrio?", "Situación significativa; experiencias previas"],
+        ["Las regiones naturales", "Relieve y clima del Perú"],
+        ["Peligros naturales y riesgo", "Peligro, vulnerabilidad y riesgo"],
+        ["Leemos mapas y planos", "Escala, leyenda y orientación"],
+        ["Recorremos el entorno", "Identificación de zonas de riesgo"],
+        ["Elaboramos el mapa de riesgos", "Mapa de riesgos del colegio"],
+        ["Plan de prevención", "Acciones de prevención y simulacro"],
+        ["Exponemos nuestro plan", "Exposición y reflexión"]
+      ]
+    },
+    {
+      "trimestre": 2,
+      "titulo": "Caral, la ciudad más antigua de América",
+      "idea": "Estudiar Caral y las primeras sociedades andinas para explicar cómo surgió la civilización en el Perú.",
+      "situacion": "Caral fue declarada Patrimonio de la Humanidad y es la ciudad más antigua de América, pero muchos estudiantes nunca han oído hablar de ella. Una revista escolar pidió al aula una edición especial que explique por qué Caral es importante para entender nuestra historia. ¿Cómo logró organizarse una sociedad hace cinco mil años? ¿Qué nos enseña hoy?",
+      "contexto": "",
+      "competencias": ["CCSS-C1", "CCSS-C2"],
+      "criterios": [
+        { "competencia": "CCSS-C1", "capacidades": [1, 3], "texto": "Explica las causas del surgimiento de Caral relacionando la información de fuentes arqueológicas con la organización social, económica y religiosa de sus habitantes.", "desempeno": 3 },
+        { "competencia": "CCSS-C1", "capacidades": [2], "texto": "Ubica a Caral en el tiempo y la compara con otras civilizaciones antiguas, reconociendo cambios y permanencias en la vida de las sociedades andinas." },
+        { "competencia": "CCSS-C2", "capacidades": [1, 2], "texto": "Describe cómo los pobladores de Caral aprovecharon el valle de Supe y sus recursos, usando mapas y fuentes para explicar su relación con el ambiente.", "mawta": true }
+      ],
+      "evidencias": [
+        { "nombre": "Artículo para la revista escolar", "tipo": "produccion", "escala": "numeric", "criterios": [0, 1] },
+        { "nombre": "Infografía del valle de Supe", "tipo": "produccion", "escala": "numeric", "criterios": [2] }
+      ],
+      "sesiones": [
+        ["Una ciudad de cinco mil años", "Situación significativa; video de Caral"],
+        ["¿Qué nos dicen las pirámides?", "Análisis de fuentes arqueológicas"],
+        ["La sociedad de Caral", "Organización social, económica y religiosa"],
+        ["Caral y el mundo", "Comparación con otras civilizaciones"],
+        ["El valle de Supe", "Relación sociedad y ambiente"],
+        ["Escribimos el artículo", "Planificación y redacción del artículo"],
+        ["Diseñamos la infografía", "Elaboración de la infografía"],
+        ["Edición especial", "Socialización de la revista y reflexión"]
+      ]
+    },
+    {
+      "trimestre": 2,
+      "titulo": "El agua de nuestra cuenca",
+      "idea": "Analizar la cuenca del río Rímac y el uso responsable del agua en Lima.",
+      "situacion": "Lima es una ciudad en el desierto que depende casi por completo del río Rímac. En los últimos meses hubo cortes de agua en el distrito y las familias se preguntan de dónde viene el agua y por qué falta. ¿Cómo llega el agua del Rímac a nuestras casas? ¿Qué acciones podemos tomar para cuidarla?",
+      "contexto": "",
+      "competencias": ["CCSS-C1", "CCSS-C2"],
+      "criterios": [
+        { "competencia": "CCSS-C2", "capacidades": [1, 2], "texto": "Explica el recorrido del agua en la cuenca del Rímac usando mapas y datos, e identifica los problemas ambientales que afectan su calidad y cantidad.", "desempeno": 1 },
+        { "competencia": "CCSS-C2", "capacidades": [3], "texto": "Propone una campaña de uso responsable del agua para su familia y su colegio, sustentada en el diagnóstico del consumo real." },
+        { "competencia": "CCSS-C1", "capacidades": [1, 2], "texto": "Compara cómo se gestionaba el agua en las sociedades prehispánicas y en la Lima actual, reconociendo cambios y permanencias a partir de fuentes.", "mawta": true }
+      ],
+      "evidencias": [
+        { "nombre": "Diagnóstico del consumo de agua familiar", "tipo": "produccion", "escala": "numeric", "criterios": [0, 2] },
+        { "nombre": "Campaña por el agua", "tipo": "actuacion", "escala": "ordinal", "criterios": [1] }
+      ],
+      "sesiones": [
+        ["¿De dónde viene el agua?", "Situación significativa; cortes de agua"],
+        ["La cuenca del Rímac", "Partes de una cuenca"],
+        ["Problemas de nuestra cuenca", "Contaminación y escasez"],
+        ["El agua en el pasado", "Canales y amunas prehispánicas"],
+        ["Medimos nuestro consumo", "Diagnóstico del consumo familiar"],
+        ["Planificamos la campaña", "Mensajes y acciones de la campaña"],
+        ["Preparamos los materiales", "Elaboración de materiales"],
+        ["Lanzamos la campaña", "Presentación de la campaña y reflexión"]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "area": "CYT",
+  "experiencias": [
+    {
+      "trimestre": 1,
+      "titulo": "¿Qué hay en el agua que tomamos?",
+      "idea": "Indagar sobre la calidad del agua del colegio: mezclas, sustancias y métodos de separación.",
+      "situacion": "En el colegio algunos estudiantes dicen que el agua del caño sabe extraño y otros prefieren comprar agua embotellada. Antes de opinar, el aula investigará qué contiene el agua que llega al colegio y si los métodos caseros de purificación funcionan. ¿El agua del caño es una sustancia pura o una mezcla? ¿Qué método la deja más limpia?",
+      "contexto": "",
+      "competencias": ["CYT-C1", "CYT-C2"],
+      "criterios": [
+        { "competencia": "CYT-C1", "capacidades": [1, 2], "texto": "Formula una pregunta de indagación y una hipótesis sobre la eficacia de métodos caseros de purificación, y diseña un procedimiento con materiales y variables definidas.", "desempeno": 1 },
+        { "competencia": "CYT-C1", "capacidades": [3, 4], "texto": "Registra en tablas los resultados de filtrar, decantar y hervir muestras de agua, y analiza los datos para confirmar o refutar su hipótesis.", "mawta": true },
+        { "competencia": "CYT-C1", "capacidades": [5], "texto": "Comunica las conclusiones de su indagación señalando las limitaciones del procedimiento y propone mejoras." },
+        { "competencia": "CYT-C2", "capacidades": [1], "texto": "Explica la diferencia entre sustancias puras y mezclas usando el modelo de partículas, con ejemplos del agua del colegio.", "desempeno": 1 }
+      ],
+      "evidencias": [
+        { "nombre": "Informe de indagación sobre purificación del agua", "tipo": "produccion", "escala": "numeric", "criterios": [0, 1, 2] },
+        { "nombre": "Prueba escrita sobre mezclas y sustancias", "tipo": "produccion", "escala": "numeric", "criterios": [3] }
+      ],
+      "sesiones": [
+        ["¿Qué tomamos cuando tomamos agua?", "Situación significativa; preguntas iniciales"],
+        ["Sustancias y mezclas", "Modelo de partículas"],
+        ["Planteamos la indagación", "Pregunta, hipótesis y variables"],
+        ["Diseñamos el experimento", "Procedimiento y materiales"],
+        ["Filtramos y decantamos", "Experimentación y registro de datos"],
+        ["Analizamos resultados", "Tablas y gráficos"],
+        ["Escribimos el informe", "Conclusiones y limitaciones"],
+        ["Compartimos hallazgos", "Socialización y metacognición"]
+      ]
+    },
+    {
+      "trimestre": 1,
+      "titulo": "La célula: unidad de la vida",
+      "idea": "Observar células con el microscopio y explicar su estructura y funciones.",
+      "situacion": "El laboratorio del colegio recibió microscopios nuevos y el aula será la primera en usarlos. Observaremos células de cebolla, de la mucosa bucal y de hojas para descubrir qué tienen en común todos los seres vivos. ¿Todas las células son iguales? ¿Cómo hacen las células para mantenerse vivas?",
+      "contexto": "",
+      "competencias": ["CYT-C1", "CYT-C2"],
+      "criterios": [
+        { "competencia": "CYT-C2", "capacidades": [1], "texto": "Explica la estructura y función de las partes de la célula animal y vegetal, y establece semejanzas y diferencias entre ellas.", "desempeno": 2 },
+        { "competencia": "CYT-C2", "capacidades": [2], "texto": "Argumenta cómo el invento del microscopio cambió el conocimiento sobre los seres vivos, usando información de fuentes confiables.", "mawta": true },
+        { "competencia": "CYT-C1", "capacidades": [3, 4], "texto": "Registra con dibujos rotulados sus observaciones al microscopio y compara lo observado con los modelos de célula estudiados." }
+      ],
+      "evidencias": [
+        { "nombre": "Bitácora de observaciones al microscopio", "tipo": "produccion", "escala": "numeric", "criterios": [2] },
+        { "nombre": "Modelo tridimensional de la célula", "tipo": "produccion", "escala": "ordinal", "criterios": [0, 1] }
+      ],
+      "sesiones": [
+        ["Lo que no vemos a simple vista", "Situación significativa; historia del microscopio"],
+        ["Uso del microscopio", "Partes y manejo del microscopio"],
+        ["Células vegetales", "Observación de cebolla y hojas"],
+        ["Células animales", "Observación de mucosa bucal"],
+        ["Organelos y funciones", "Estructura celular"],
+        ["Construimos el modelo", "Modelo tridimensional"],
+        ["Presentamos los modelos", "Exposición y reflexión"]
+      ]
+    },
+    {
+      "trimestre": 2,
+      "titulo": "Energía en casa",
+      "idea": "Investigar el consumo de energía eléctrica en casa y las transformaciones de la energía.",
+      "situacion": "Las familias del aula comentan que el recibo de luz ha subido en los últimos meses. Para entender por qué, cada estudiante revisará los aparatos de su casa y su consumo. ¿Qué aparatos consumen más energía? ¿En qué se transforma la energía eléctrica que usamos?",
+      "contexto": "",
+      "competencias": ["CYT-C1", "CYT-C2"],
+      "criterios": [
+        { "competencia": "CYT-C2", "capacidades": [1], "texto": "Explica las transformaciones de la energía en aparatos de uso cotidiano, identificando la energía útil y la que se disipa como calor.", "desempeno": 6 },
+        { "competencia": "CYT-C1", "capacidades": [3, 4], "texto": "Recoge datos del consumo eléctrico de los aparatos de su casa, los organiza en tablas y gráficos e identifica cuáles consumen más.", "mawta": true },
+        { "competencia": "CYT-C1", "capacidades": [5], "texto": "Comunica a su familia recomendaciones de ahorro de energía sustentadas en los datos que recogió y analizó." },
+        { "competencia": "CYT-C2", "capacidades": [2], "texto": "Opina sobre el impacto ambiental de las distintas fuentes de energía eléctrica del Perú, con argumentos basados en información científica." }
+      ],
+      "evidencias": [
+        { "nombre": "Auditoría de energía del hogar", "tipo": "produccion", "escala": "numeric", "criterios": [1, 2] },
+        { "nombre": "Prueba escrita sobre transformaciones de energía", "tipo": "produccion", "escala": "numeric", "criterios": [0, 3] }
+      ],
+      "sesiones": [
+        ["¿Por qué sube el recibo?", "Situación significativa; recibos de luz"],
+        ["Formas de energía", "Energía cinética, potencial, térmica, eléctrica"],
+        ["Transformaciones de energía", "Aparatos y transformaciones"],
+        ["Medimos el consumo", "Potencia y tiempo de uso"],
+        ["Organizamos los datos", "Tablas y gráficos"],
+        ["Fuentes de energía del Perú", "Hidroeléctricas, térmicas y renovables"],
+        ["Recomendaciones de ahorro", "Conclusiones de la auditoría"],
+        ["Compartimos con la familia", "Socialización y reflexión"]
+      ]
+    },
+    {
+      "trimestre": 2,
+      "titulo": "Biodiversidad de nuestras lomas",
+      "idea": "Conocer el ecosistema de las lomas costeras y su biodiversidad.",
+      "situacion": "Cada invierno, las lomas de Lima se cubren de verde gracias a la neblina, pero el crecimiento urbano las está reduciendo. Muchos estudiantes nunca las han visitado. ¿Cómo sobrevive la vida en las lomas con tan poca agua? ¿Qué pasaría si desaparecen?",
+      "contexto": "",
+      "competencias": ["CYT-C2"],
+      "criterios": [
+        { "competencia": "CYT-C2", "capacidades": [1], "texto": "Explica las relaciones entre los seres vivos de las lomas y su ambiente, describiendo cadenas alimenticias y adaptaciones a la escasez de agua.", "desempeno": 9 },
+        { "competencia": "CYT-C2", "capacidades": [2], "texto": "Argumenta las consecuencias de la urbanización sobre la biodiversidad de las lomas y propone medidas de conservación sustentadas.", "mawta": true }
+      ],
+      "evidencias": [
+        { "nombre": "Infografía del ecosistema de lomas", "tipo": "produccion", "escala": "numeric", "criterios": [0] },
+        { "nombre": "Foro sobre la conservación de las lomas", "tipo": "actuacion", "escala": "ordinal", "criterios": [1] }
+      ],
+      "sesiones": [
+        ["Un oasis de neblina", "Situación significativa; video de las lomas"],
+        ["Ecosistemas y biodiversidad", "Componentes de un ecosistema"],
+        ["Cadenas y redes alimenticias", "Relaciones tróficas"],
+        ["Adaptaciones a la sequía", "Adaptaciones de plantas y animales"],
+        ["Elaboramos la infografía", "Diseño de la infografía"],
+        ["Foro de conservación", "Debate y propuestas"]
+      ]
+    }
+  ]
+}

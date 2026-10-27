@@ -1,0 +1,117 @@
+{
+  "area": "MAT",
+  "experiencias": [
+    {
+      "trimestre": 1,
+      "titulo": "Las cuentas de la tiendita escolar",
+      "idea": "Que los estudiantes lleven las cuentas de la tiendita del aula con números enteros y decimales: ingresos, gastos, ganancias y pérdidas.",
+      "situacion": "Cada recreo, la tiendita del aula vende frutas y refrescos, pero nadie sabe si gana o pierde dinero. El comité de aula necesita llevar un registro claro de compras, ventas y deudas para decidir qué conviene vender. Los estudiantes registrarán las operaciones de dos semanas y las representarán con números enteros y decimales. ¿Cómo sabemos si la tiendita gana o pierde? ¿Qué decisión tomarían con esas cuentas?",
+      "contexto": "",
+      "competencias": ["MAT-C1"],
+      "criterios": [
+        { "competencia": "MAT-C1", "capacidades": [1], "texto": "Representa con números enteros y decimales los ingresos, gastos y deudas de la tiendita, expresando las ganancias y pérdidas como cantidades positivas y negativas.", "desempeno": 1 },
+        { "competencia": "MAT-C1", "capacidades": [2, 3], "texto": "Calcula el saldo semanal de la tiendita combinando adiciones y sustracciones con enteros y decimales, y explica el procedimiento que siguió para obtenerlo.", "mawta": true },
+        { "competencia": "MAT-C1", "capacidades": [4], "texto": "Justifica con ejemplos de las cuentas de la tiendita si una afirmación sobre ganancias o pérdidas es verdadera, usando las propiedades de las operaciones." }
+      ],
+      "evidencias": [
+        { "nombre": "Registro de cuentas de la tiendita", "tipo": "produccion", "escala": "numeric", "criterios": [0, 1] },
+        { "nombre": "Informe al comité de aula", "tipo": "produccion", "escala": "ordinal", "criterios": [1, 2] }
+      ],
+      "sesiones": [
+        ["¿Gana o pierde la tiendita?", "Situación inicial; saberes previos sobre ganancia y pérdida"],
+        ["Números enteros en las cuentas", "Representación de ingresos y deudas con enteros"],
+        ["Sumamos y restamos enteros", "Adición y sustracción de enteros con datos de la tiendita"],
+        ["Precios con decimales", "Operaciones con decimales en precios y vueltos"],
+        ["Armamos el registro semanal", "Organización de datos en una tabla de ingresos y egresos"],
+        ["El saldo de la semana", "Cálculo del saldo y verificación de resultados"],
+        ["¿Es cierto lo que dicen?", "Argumentación sobre afirmaciones con ejemplos y contraejemplos"],
+        ["Presentamos el informe", "Socialización del informe y reflexión sobre lo aprendido"]
+      ]
+    },
+    {
+      "trimestre": 1,
+      "titulo": "Patrones en el mosaico del patio",
+      "idea": "Usar el diseño del mosaico del patio para trabajar patrones, expresiones algebraicas y figuras geométricas.",
+      "situacion": "El colegio quiere renovar el piso del patio con un mosaico de losetas de colores que siga un patrón. La dirección pidió a primero de secundaria proponer diseños y calcular cuántas losetas de cada color se necesitarán según el tamaño del patio. ¿Qué regla permite saber cuántas losetas habrá en cualquier fila? ¿Qué formas geométricas encajan sin dejar espacios?",
+      "contexto": "",
+      "competencias": ["MAT-C2", "MAT-C3"],
+      "criterios": [
+        { "competencia": "MAT-C2", "capacidades": [1, 3], "texto": "Encuentra la regla de formación de un patrón de losetas y la expresa como una expresión algebraica que permite calcular cualquier término.", "desempeno": 1 },
+        { "competencia": "MAT-C2", "capacidades": [2, 4], "texto": "Explica con ejemplos del mosaico por qué su regla funciona para cualquier fila y comprueba su validez con casos concretos." },
+        { "competencia": "MAT-C3", "capacidades": [1, 2], "texto": "Describe las formas geométricas del mosaico y sus propiedades, identificando cuáles cubren el plano sin dejar espacios ni superponerse.", "mawta": true },
+        { "competencia": "MAT-C3", "capacidades": [3, 4], "texto": "Construye en papel cuadriculado un diseño con traslaciones y simetrías, y argumenta qué transformaciones usó para lograrlo." }
+      ],
+      "evidencias": [
+        { "nombre": "Ficha de patrones del mosaico", "tipo": "produccion", "escala": "numeric", "criterios": [0, 1] },
+        { "nombre": "Diseño del mosaico a escala", "tipo": "produccion", "escala": "numeric", "criterios": [2, 3] },
+        { "nombre": "Exposición del diseño a la dirección", "tipo": "actuacion", "escala": "ordinal", "criterios": [1, 3] }
+      ],
+      "sesiones": [
+        ["Un patio para renovar", "Situación significativa; observación de mosaicos"],
+        ["Descubrimos el patrón", "Patrones de repetición y crecimiento"],
+        ["De la regla a la expresión", "Expresiones algebraicas para patrones"],
+        ["Formas que cubren el plano", "Polígonos regulares y teselados"],
+        ["Traslaciones y simetrías", "Transformaciones en el plano cartesiano"],
+        ["Diseñamos el mosaico", "Construcción del diseño a escala"],
+        ["Calculamos las losetas", "Uso de la regla para el tamaño real del patio"],
+        ["Presentamos a la dirección", "Exposición y retroalimentación"]
+      ]
+    },
+    {
+      "trimestre": 2,
+      "titulo": "Planificamos el paseo de fin de trimestre",
+      "idea": "Organizar el presupuesto del paseo del aula usando proporcionalidad, porcentajes y ecuaciones.",
+      "situacion": "El aula quiere hacer un paseo a Pachacámac al cierre del trimestre, pero el presupuesto de las familias es limitado. Hay que comparar cotizaciones de movilidad, calcular descuentos por grupo y decidir cuánto debe aportar cada estudiante. ¿Cuál es la opción más conveniente? ¿Cuánto paga cada uno si se suman o retiran participantes?",
+      "contexto": "",
+      "competencias": ["MAT-C1", "MAT-C2"],
+      "criterios": [
+        { "competencia": "MAT-C1", "capacidades": [1, 3], "texto": "Calcula descuentos y aumentos porcentuales en las cotizaciones del paseo y compara cuál opción resulta más económica para el aula.", "desempeno": 1 },
+        { "competencia": "MAT-C1", "capacidades": [2, 4], "texto": "Explica con sus propias palabras por qué un descuento sucesivo no equivale a sumar los porcentajes, usando los datos de las cotizaciones." },
+        { "competencia": "MAT-C2", "capacidades": [1, 2], "texto": "Plantea una ecuación lineal que relaciona el costo total del paseo con el número de participantes y la resuelve para hallar el aporte individual.", "mawta": true },
+        { "competencia": "MAT-C2", "capacidades": [3, 4], "texto": "Usa tablas de proporcionalidad para predecir cómo cambia el aporte cuando varía el número de estudiantes y justifica si la relación es directa o inversa." }
+      ],
+      "evidencias": [
+        { "nombre": "Cuadro comparativo de cotizaciones", "tipo": "produccion", "escala": "numeric", "criterios": [0, 1] },
+        { "nombre": "Presupuesto final del paseo", "tipo": "produccion", "escala": "numeric", "criterios": [2, 3] },
+        { "nombre": "Práctica de ecuaciones y porcentajes", "tipo": "produccion", "escala": "numeric", "criterios": [0, 2] }
+      ],
+      "sesiones": [
+        ["¿Cuánto cuesta el paseo?", "Situación significativa; recojo de cotizaciones"],
+        ["Porcentajes en las cotizaciones", "Descuentos y aumentos porcentuales"],
+        ["Descuentos sucesivos", "Comparación de descuentos sucesivos y simples"],
+        ["Más estudiantes, menos aporte", "Proporcionalidad directa e inversa"],
+        ["La ecuación del paseo", "Planteamiento y resolución de ecuaciones lineales"],
+        ["Practicamos lo aprendido", "Práctica de ecuaciones y porcentajes"],
+        ["Armamos el presupuesto", "Elaboración del presupuesto final"],
+        ["Decidimos en asamblea", "Presentación del presupuesto y reflexión"]
+      ]
+    },
+    {
+      "trimestre": 2,
+      "titulo": "Una maqueta para nuestro barrio",
+      "idea": "Construir la maqueta a escala de una zona del barrio para trabajar escalas, áreas, perímetros y ubicación en el plano.",
+      "situacion": "La municipalidad abrió un concurso para proponer mejoras en los parques del distrito. El aula preparará la maqueta a escala del parque más cercano al colegio, con sus áreas verdes, juegos y caminos, y propondrá dónde ubicar nuevos espacios. ¿Cómo representamos el parque sin deformarlo? ¿Cuánto espacio queda realmente disponible?",
+      "contexto": "",
+      "competencias": ["MAT-C3"],
+      "criterios": [
+        { "competencia": "MAT-C3", "capacidades": [1], "texto": "Representa el parque en un plano a escala, conservando las proporciones de sus áreas verdes, caminos y juegos.", "desempeno": 1 },
+        { "competencia": "MAT-C3", "capacidades": [2, 3], "texto": "Calcula perímetros y áreas de las zonas del parque con figuras compuestas, y describe la ubicación de cada zona usando coordenadas y puntos cardinales." },
+        { "competencia": "MAT-C3", "capacidades": [4], "texto": "Argumenta con medidas y cálculos por qué su propuesta de nuevos espacios cabe en el parque sin afectar las áreas verdes.", "mawta": true }
+      ],
+      "evidencias": [
+        { "nombre": "Plano a escala del parque", "tipo": "produccion", "escala": "numeric", "criterios": [0, 1] },
+        { "nombre": "Maqueta y sustentación de la propuesta", "tipo": "actuacion", "escala": "ordinal", "criterios": [1, 2] }
+      ],
+      "sesiones": [
+        ["Recorremos el parque", "Situación significativa; toma de medidas"],
+        ["¿Qué es una escala?", "Escalas numéricas y gráficas"],
+        ["Dibujamos el plano", "Representación a escala en papel cuadriculado"],
+        ["Áreas de figuras compuestas", "Cálculo de áreas y perímetros"],
+        ["Nos ubicamos en el plano", "Coordenadas y puntos cardinales"],
+        ["Construimos la maqueta", "Elaboración de la maqueta"],
+        ["Ensayamos la sustentación", "Argumentos con medidas"],
+        ["Presentamos la propuesta", "Sustentación y reflexión"]
+      ]
+    }
+  ]
+}

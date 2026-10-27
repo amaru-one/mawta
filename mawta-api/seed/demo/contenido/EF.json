@@ -1,0 +1,101 @@
+{
+  "area": "EF",
+  "experiencias": [
+    {
+      "trimestre": 1,
+      "titulo": "Conozco mi cuerpo en movimiento",
+      "idea": "Evaluar la condición física inicial y reconocer las capacidades físicas propias.",
+      "situacion": "Al iniciar el año, muchos estudiantes no saben cuál es su condición física ni qué capacidades necesitan mejorar. El aula realizará pruebas sencillas para conocer su punto de partida y elaborará un plan personal. ¿Qué tan resistente, veloz y flexible soy? ¿Qué puedo mejorar este año?",
+      "contexto": "",
+      "competencias": ["EF-C1", "EF-C2"],
+      "criterios": [
+        { "competencia": "EF-C1", "capacidades": [1], "texto": "Reconoce sus capacidades físicas a partir de pruebas de resistencia, velocidad y flexibilidad, y explica cómo intervienen en sus movimientos.", "desempeno": 1 },
+        { "competencia": "EF-C2", "capacidades": [1, 2], "texto": "Registra sus resultados de condición física y propone metas realistas de mejora, incluyendo hábitos de hidratación y descanso.", "mawta": true }
+      ],
+      "evidencias": [
+        { "nombre": "Ficha de condición física inicial", "tipo": "produccion", "escala": "numeric", "criterios": [0, 1] },
+        { "nombre": "Circuito de capacidades físicas", "tipo": "actuacion", "escala": "ordinal", "criterios": [0] }
+      ],
+      "sesiones": [
+        ["¿Cómo está mi cuerpo?", "Situación significativa; calentamiento"],
+        ["Prueba de resistencia", "Test de Cooper adaptado"],
+        ["Velocidad y flexibilidad", "Pruebas físicas"],
+        ["Mis resultados", "Registro y metas"],
+        ["Circuito físico", "Circuito de capacidades"]
+      ]
+    },
+    {
+      "trimestre": 1,
+      "titulo": "Jugamos vóley en equipo",
+      "idea": "Aprender los fundamentos del vóley y practicar juegos predeportivos cooperativos.",
+      "situacion": "El vóley es el deporte favorito de muchas familias del barrio, pero en el aula pocos dominan el voleo y el saque. Se acerca el campeonato interno de primero y los equipos deben prepararse. ¿Cómo jugamos en equipo para que todos participen? ¿Qué estrategias nos ayudan a ganar respetando al rival?",
+      "contexto": "El colegio organiza un campeonato interno de vóley entre secciones en mayo.",
+      "competencias": ["EF-C1", "EF-C3"],
+      "criterios": [
+        { "competencia": "EF-C3", "capacidades": [1], "texto": "Participa en juegos de vóley respetando las reglas y a sus compañeros, y promueve la inclusión de todos en su equipo.", "desempeno": 1 },
+        { "competencia": "EF-C3", "capacidades": [2], "texto": "Aplica estrategias de juego en equipo, como la rotación y la recepción en tres toques, y las ajusta según el desempeño del rival.", "mawta": true },
+        { "competencia": "EF-C1", "capacidades": [2], "texto": "Ejecuta el voleo y el saque con coordinación y control del balón en situaciones de juego." }
+      ],
+      "evidencias": [
+        { "nombre": "Prueba de fundamentos del vóley", "tipo": "actuacion", "escala": "numeric", "criterios": [2] },
+        { "nombre": "Desempeño en el campeonato interno", "tipo": "actuacion", "escala": "ordinal", "criterios": [0, 1] }
+      ],
+      "sesiones": [
+        ["Rumbo al campeonato", "Situación significativa; formación de equipos"],
+        ["El voleo", "Fundamentos técnicos"],
+        ["El saque", "Saque bajo y alto"],
+        ["Rotación y estrategia", "Táctica de juego"],
+        ["Partidos de práctica", "Juego reducido"],
+        ["Campeonato interno", "Partidos y reflexión"]
+      ]
+    },
+    {
+      "trimestre": 2,
+      "titulo": "Me alimento bien para rendir mejor",
+      "idea": "Relacionar la alimentación, la actividad física y la salud en la vida diaria.",
+      "situacion": "Muchos estudiantes llegan sin desayunar y se cansan rápido en las clases de educación física. Otros consumen bebidas azucaradas en el recreo. ¿Qué relación hay entre lo que comemos y cómo rendimos? ¿Qué hábitos podemos cambiar?",
+      "contexto": "",
+      "competencias": ["EF-C2"],
+      "criterios": [
+        { "competencia": "EF-C2", "capacidades": [1], "texto": "Explica la relación entre la alimentación, la hidratación y el rendimiento físico usando información de su propio registro de hábitos.", "desempeno": 2 },
+        { "competencia": "EF-C2", "capacidades": [2], "texto": "Incorpora en su rutina prácticas de alimentación saludable y pausas activas, y evalúa los cambios que observa en su rendimiento.", "mawta": true }
+      ],
+      "evidencias": [
+        { "nombre": "Diario de hábitos saludables", "tipo": "produccion", "escala": "numeric", "criterios": [0, 1] },
+        { "nombre": "Rutina de pausas activas", "tipo": "actuacion", "escala": "ordinal", "criterios": [1] }
+      ],
+      "sesiones": [
+        ["¿Desayunaste hoy?", "Situación significativa"],
+        ["Alimentación y energía", "Nutrientes y rendimiento"],
+        ["Hidratación", "Agua y actividad física"],
+        ["Pausas activas", "Diseño de rutinas"],
+        ["Mi diario de hábitos", "Registro y evaluación"]
+      ]
+    },
+    {
+      "trimestre": 2,
+      "titulo": "Danzas del Perú en movimiento",
+      "idea": "Expresar emociones y cultura a través de la danza y la expresión corporal.",
+      "situacion": "Para el aniversario patrio, el colegio quiere que cada aula prepare una coreografía basada en una danza peruana. Algunos estudiantes sienten vergüenza de bailar frente a otros. ¿Cómo comunicamos emociones con el cuerpo? ¿Qué nos cuenta la danza que elegimos?",
+      "contexto": "Actuación por Fiestas Patrias en la última semana de julio.",
+      "competencias": ["EF-C1", "EF-C3"],
+      "criterios": [
+        { "competencia": "EF-C1", "capacidades": [2], "texto": "Crea secuencias de movimiento con ritmo y coordinación, expresando con el cuerpo las emociones y el sentido de la danza elegida.", "desempeno": 3 },
+        { "competencia": "EF-C1", "capacidades": [1], "texto": "Ajusta su postura, equilibrio y desplazamientos en el espacio para coordinar sus movimientos con los de su grupo.", "mawta": true },
+        { "competencia": "EF-C3", "capacidades": [1], "texto": "Colabora con su grupo en la creación de la coreografía, respetando las ideas de todos y asumiendo un rol." }
+      ],
+      "evidencias": [
+        { "nombre": "Coreografía grupal", "tipo": "actuacion", "escala": "ordinal", "criterios": [0, 1, 2] },
+        { "nombre": "Ficha de autoevaluación del proceso", "tipo": "produccion", "escala": "numeric", "criterios": [2] }
+      ],
+      "sesiones": [
+        ["Danzas de nuestra tierra", "Situación significativa; elección de danza"],
+        ["Ritmo y coordinación", "Pasos básicos"],
+        ["Expresión corporal", "Emociones en movimiento"],
+        ["Creamos la coreografía", "Trabajo grupal"],
+        ["Ensayo general", "Ajustes y retroalimentación"],
+        ["Presentación", "Muestra y reflexión"]
+      ]
+    }
+  ]
+}

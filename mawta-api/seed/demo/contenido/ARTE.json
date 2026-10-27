@@ -1,0 +1,100 @@
+{
+  "area": "ARTE",
+  "experiencias": [
+    {
+      "trimestre": 1,
+      "titulo": "El arte textil andino",
+      "idea": "Apreciar los textiles andinos y su simbología, y crear diseños inspirados en ellos.",
+      "situacion": "En la casa de varios estudiantes hay mantas y chumpis tejidos por sus abuelas, pero pocos saben qué significan sus figuras. Los textiles andinos guardan siglos de historia en sus colores y formas. ¿Qué nos cuentan los tejidos? ¿Cómo podemos crear un diseño propio que dialogue con esa tradición?",
+      "contexto": "",
+      "competencias": ["ARTE-C1", "ARTE-C2"],
+      "criterios": [
+        { "competencia": "ARTE-C1", "capacidades": [1, 2], "texto": "Describe los elementos visuales de un textil andino, como colores, formas y simetrías, y explica su significado en el contexto cultural en que fue creado.", "desempeno": 1 },
+        { "competencia": "ARTE-C2", "capacidades": [1, 2], "texto": "Crea un diseño textil propio combinando símbolos andinos y elementos de su vida actual, explorando distintas técnicas y materiales.", "mawta": true },
+        { "competencia": "ARTE-C2", "capacidades": [3], "texto": "Presenta su diseño explicando las decisiones que tomó y recoge comentarios de sus compañeros para mejorarlo." }
+      ],
+      "evidencias": [
+        { "nombre": "Ficha de apreciación de textiles", "tipo": "produccion", "escala": "numeric", "criterios": [0] },
+        { "nombre": "Diseño textil propio", "tipo": "produccion", "escala": "ordinal", "criterios": [1, 2] }
+      ],
+      "sesiones": [
+        ["Tejidos de la familia", "Situación significativa"],
+        ["Leemos un textil", "Elementos visuales y simbología"],
+        ["Historia del textil andino", "Contexto cultural"],
+        ["Bocetos y símbolos", "Exploración de técnicas"],
+        ["Creamos el diseño", "Proceso creativo"],
+        ["Galería del aula", "Socialización y reflexión"]
+      ]
+    },
+    {
+      "trimestre": 1,
+      "titulo": "Sonidos de mi comunidad",
+      "idea": "Explorar los sonidos del entorno y crear un paisaje sonoro del barrio.",
+      "situacion": "El barrio está lleno de sonidos: vendedores ambulantes, combis, campanas y música en las casas. Normalmente no les prestamos atención. ¿Qué nos dicen los sonidos sobre el lugar donde vivimos? ¿Cómo podemos componer con ellos una pieza que represente nuestra comunidad?",
+      "contexto": "",
+      "competencias": ["ARTE-C1", "ARTE-C2"],
+      "criterios": [
+        { "competencia": "ARTE-C1", "capacidades": [1, 3], "texto": "Identifica cualidades del sonido como altura, intensidad y timbre en grabaciones del barrio, y reflexiona sobre las emociones que le producen." },
+        { "competencia": "ARTE-C2", "capacidades": [1, 2], "texto": "Compone en grupo un paisaje sonoro organizando sonidos grabados y producidos con objetos, con una intención expresiva clara.", "desempeno": 2 }
+      ],
+      "evidencias": [
+        { "nombre": "Paisaje sonoro del barrio", "tipo": "produccion", "escala": "ordinal", "criterios": [1] },
+        { "nombre": "Bitácora de escucha", "tipo": "produccion", "escala": "numeric", "criterios": [0] }
+      ],
+      "sesiones": [
+        ["¿Cómo suena mi barrio?", "Situación significativa; escucha activa"],
+        ["Cualidades del sonido", "Altura, intensidad, timbre, duración"],
+        ["Grabamos sonidos", "Recolección sonora"],
+        ["Componemos", "Organización del paisaje sonoro"],
+        ["Escuchamos nuestras obras", "Presentación y reflexión"]
+      ]
+    },
+    {
+      "trimestre": 2,
+      "titulo": "Retablos que cuentan historias",
+      "idea": "Apreciar el retablo ayacuchano y crear un retablo sobre la vida escolar.",
+      "situacion": "Los retablos ayacuchanos narran en pequeñas escenas fiestas, oficios y hechos de la historia. El colegio quiere que cada aula cuente su propia historia en un retablo. ¿Qué escenas de nuestra vida escolar merecen ser contadas? ¿Cómo las organizamos en un espacio pequeño?",
+      "contexto": "",
+      "competencias": ["ARTE-C1", "ARTE-C2"],
+      "criterios": [
+        { "competencia": "ARTE-C1", "capacidades": [2, 3], "texto": "Explica cómo el retablo ayacuchano refleja la vida y la historia de su comunidad, y opina sobre su valor como patrimonio cultural.", "desempeno": 2 },
+        { "competencia": "ARTE-C2", "capacidades": [2, 3], "texto": "Construye un retablo que narra escenas de su vida escolar, planificando la composición y evaluando el resultado con su equipo.", "mawta": true }
+      ],
+      "evidencias": [
+        { "nombre": "Retablo de la vida escolar", "tipo": "produccion", "escala": "ordinal", "criterios": [1] },
+        { "nombre": "Reseña sobre el retablo ayacuchano", "tipo": "produccion", "escala": "numeric", "criterios": [0] }
+      ],
+      "sesiones": [
+        ["Pequeñas cajas, grandes historias", "Situación significativa"],
+        ["El retablo ayacuchano", "Historia y técnica"],
+        ["Planificamos escenas", "Bocetos y composición"],
+        ["Construimos el retablo", "Modelado y pintura"],
+        ["Mostramos los retablos", "Presentación y reflexión"]
+      ]
+    },
+    {
+      "trimestre": 2,
+      "titulo": "Teatro para la convivencia",
+      "idea": "Crear una pequeña obra de teatro sobre situaciones de convivencia escolar.",
+      "situacion": "Las situaciones de exclusión y burla también ocurren en nuestro colegio, aunque a veces no las vemos. El teatro permite ponerse en el lugar del otro. ¿Qué historias de convivencia queremos contar? ¿Cómo hacemos que el público reflexione?",
+      "contexto": "",
+      "competencias": ["ARTE-C2"],
+      "criterios": [
+        { "competencia": "ARTE-C2", "capacidades": [1, 2], "texto": "Crea con su grupo una escena teatral breve sobre la convivencia, usando voz, gesto y desplazamiento para construir personajes creíbles.", "desempeno": 1 },
+        { "competencia": "ARTE-C2", "capacidades": [3], "texto": "Evalúa la presentación de su grupo y la de otros, señalando qué recursos lograron generar reflexión en el público." }
+      ],
+      "evidencias": [
+        { "nombre": "Obra teatral breve", "tipo": "actuacion", "escala": "ordinal", "criterios": [0] },
+        { "nombre": "Ficha de coevaluación", "tipo": "produccion", "escala": "numeric", "criterios": [1] }
+      ],
+      "sesiones": [
+        ["Historias que pasan", "Situación significativa"],
+        ["Juegos teatrales", "Voz, gesto y espacio"],
+        ["Creamos personajes", "Construcción de personajes"],
+        ["Escribimos la escena", "Guion breve"],
+        ["Ensayamos", "Ensayo con retroalimentación"],
+        ["Función en el aula", "Presentación y coevaluación"]
+      ]
+    }
+  ]
+}
