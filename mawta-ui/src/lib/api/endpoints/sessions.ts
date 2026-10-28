@@ -1,10 +1,5 @@
 import { apiGet, apiSend, apiUpload } from '../client';
-import type {
-	SessionRosterDto,
-	SessionStatus,
-	VoiceNoteAttributionDto,
-	VoiceNoteStatus,
-} from '../dto';
+import type { SessionRosterDto, SessionStatus, VoiceNoteStatus } from '../dto';
 
 export function getSession(sessionId: string, q?: string): Promise<SessionRosterDto> {
 	const qs = q ? `?q=${encodeURIComponent(q)}` : '';
@@ -41,21 +36,4 @@ export function saveVoiceNote(voiceNoteId: string): Promise<{ status: VoiceNoteS
 
 export function discardVoiceNote(voiceNoteId: string): Promise<{ status: VoiceNoteStatus }> {
 	return apiSend<{ status: VoiceNoteStatus }>('POST', `/voice-notes/${voiceNoteId}/discard`);
-}
-
-// A voice note the name sweep discarded (it named only classmates) was
-// recorded on the wrong student: move it. The note is swept again around its
-// new student, so it comes back as pending.
-export function reassignVoiceNote(
-	voiceNoteId: string,
-	studentId: string
-): Promise<VoiceNoteAttributionDto> {
-	return apiSend<VoiceNoteAttributionDto>('POST', `/voice-notes/${voiceNoteId}/reassign`, {
-		student_id: studentId,
-	});
-}
-
-// The teacher keeps a discarded note on its student: it does belong there.
-export function confirmVoiceNote(voiceNoteId: string): Promise<VoiceNoteAttributionDto> {
-	return apiSend<VoiceNoteAttributionDto>('POST', `/voice-notes/${voiceNoteId}/confirm`);
 }
