@@ -28,14 +28,16 @@ class ToolOutcome:
 
 
 SECTIONS_TOOL: dict[str, Any] = {
-    "name": "secciones_del_colegio",
-    "description": (
-        "Lists the sections of the director's school: academic year, grade, "
-        "section, shift and status. Use it for any question about the school's "
-        'sections, grades or classrooms ("salones").'
-    ),
-    "input_schema": {"type": "object", "properties": {}, "additionalProperties": False},
-    "eager_input_streaming": True,
+    "type": "function",
+    "function": {
+        "name": "secciones_del_colegio",
+        "description": (
+            "Lists the sections of the director's school: academic year, grade, "
+            "section, shift and status. Use it for any question about the school's "
+            'sections, grades or classrooms ("salones").'
+        ),
+        "parameters": {"type": "object", "properties": {}, "additionalProperties": False},
+    },
 }
 
 TOOLS = [SECTIONS_TOOL]

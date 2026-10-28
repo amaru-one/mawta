@@ -144,17 +144,26 @@ class FakeLLM:
         turn = self.turns.pop(0)
         if isinstance(turn, Exception):
             raise turn
-        for block in turn.content:
-            if block.get("type") == "text":
-                for start in range(0, len(block["text"]), 7):
-                    on_text(block["text"][start : start + 7])
+        text = turn.message.get("content") or ""
+        for start in range(0, len(text), 7):
+            on_text(text[start : start + 7])
         return turn
 
 
-def tool_turn(tool_id: str = "toolu_1") -> ModelTurn:
+def tool_turn(tool_id: str = "call_1", arguments: str = "{}") -> ModelTurn:
     return ModelTurn(
-        content=[{"type": "tool_use", "id": tool_id, "name": "secciones_del_colegio", "input": {}}],
-        stop_reason="tool_use",
+        message={
+            "role": "assistant",
+            "content": None,
+            "tool_calls": [
+                {
+                    "id": tool_id,
+                    "type": "function",
+                    "function": {"name": "secciones_del_colegio", "arguments": arguments},
+                }
+            ],
+        },
+        stop_reason="tool_calls",
         model="fake-model",
         input_tokens=100,
         output_tokens=10,
@@ -163,8 +172,8 @@ def tool_turn(tool_id: str = "toolu_1") -> ModelTurn:
 
 def text_turn(text: str) -> ModelTurn:
     return ModelTurn(
-        content=[{"type": "text", "text": text}],
-        stop_reason="end_turn",
+        message={"role": "assistant", "content": text},
+        stop_reason="stop",
         model="fake-model",
         input_tokens=150,
         output_tokens=20,
@@ -187,7 +196,7 @@ async def client(
         chat_database_url=chat_url,
         langgraph_database_url=langgraph_url,
         chat_token_public_keys=public_keys,
-        anthropic_api_key="unused-in-tests",
+        chat_model="ollama:fake-model",
     )
     app = create_app(settings, fake_llm)
     async with app.router.lifespan_context(app):
