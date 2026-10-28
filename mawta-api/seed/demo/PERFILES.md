@@ -12,7 +12,7 @@ contiene a propósito, para comparar con lo que responde el chat del director.
   las competencias de cada área. Un área con C en más de la mitad de sus competencias va
   a recuperación; el perfil *riesgo* tiene C en todas las competencias de cinco áreas.
 
-Volumen: 80 experiencias, 220 criterios, 166 evidencias, 480 sesiones esquema, 4607 notas, 2664 niveles, 374 conclusiones, 1055 notas de voz.
+Volumen: 80 experiencias, 220 criterios, 166 evidencias, 480 sesiones esquema, 4607 notas, 2664 niveles, 374 conclusiones, 1049 notas de voz.
 
 ## Perfiles
 

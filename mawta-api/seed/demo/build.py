@@ -348,9 +348,6 @@ def students() -> list[Student]:
             st.siagie = f"{15000000000000 + H(code, 'siagie') * 1000 + i:014d}"
             st.dni = f"{78000000 + H(code, 'dni') * 100 + i:08d}"
             out.append(st)
-    names = [st.given for st in out]
-    if len(names) != len(set(names)):
-        raise RuntimeError("given names must be unique: the voice-note redaction relies on it")
     return out
 
 
@@ -737,13 +734,6 @@ NOTE_TEXT = {
     ],
 }
 
-# Notes that name only a classmate: the redaction agent must discard them as
-# mentions_other_student. Pending in T-III.
-CLASSMATE_ONLY = [
-    "{c} hoy estuvo muy inquieto, se paró varias veces y distrajo a su grupo al {a}.",
-    "Al {a}, {c} ayudó mucho a su grupo y explicó el procedimiento a los demás.",
-]
-
 
 @dataclass
 class Note:
@@ -752,8 +742,6 @@ class Note:
     area: str
     day: dt.date
     transcript: str
-    redacted: str | None
-    status: str  # attribution_status
     duration_ms: int
 
 
@@ -800,26 +788,10 @@ def notes() -> list[Note]:
                         acts = ACTIVITY[area.code]
                         act = acts[H(st.code, day, "act") % len(acts)]
                         transcript = text.format(n=st.given, c=mate.given, a=act)
-                        redacted = text.format(n="[ESTUDIANTE]", c="[COMPAÑERO_1]", a=act)
-                        if term < 3:
-                            redacted_value, status = redacted, "ok"
-                        else:
-                            redacted_value, status = None, "pending"
                         words = len(transcript.split())
                         out.append(Note(ID("seed-note", f"{st.code}:{area.code}:{day}"), st,
-                                        area.code, day, transcript, redacted_value, status,
+                                        area.code, day, transcript,
                                         words * 420 + H(st.code, day, "ms") % 1500))  # fmt: skip
-        # a few T-III notes that name only a classmate, for the discard path
-    for k, st in enumerate([st for st in STUDENTS if st.profile == "media"][:6]):
-        code = AREAS[k % len(AREAS)].code
-        days = class_dates(code, st.section, dt.date(2026, 9, 14), NOTES_UNTIL)
-        day = days[H(st.code, "mate-only") % len(days)]
-        mates = [m for m in section_students(st.section) if m.code != st.code]
-        mate = mates[H(st.code, "mate-only-who") % len(mates)]
-        acts = ACTIVITY[code]
-        text = CLASSMATE_ONLY[k % len(CLASSMATE_ONLY)].format(c=mate.given, a=acts[k % len(acts)])
-        out.append(Note(ID("seed-note", f"{st.code}:{code}:{day}:mate"), st, code, day, text,
-                        None, "pending", len(text.split()) * 420))  # fmt: skip
     return out
 
 
@@ -1162,7 +1134,7 @@ update planned_evidences pe
     note_rows: list[Row] = []
     for n in NOTES:
         note_rows.append((n.id, n.student.id, n.area, n.student.section, n.day.isoformat(),
-                          n.duration_ms, n.transcript, n.redacted, n.status))  # fmt: skip
+                          n.duration_ms, n.transcript))  # fmt: skip
     w(SECTION_NOTES.format(tenant=TENANT, rows=values(note_rows),
                            classes=values([(class_id(a.code, s), a.code, s,
                                             teacher_id(a.teacher))
@@ -1460,14 +1432,8 @@ SECTION_NOTES = """
 -- Notas de voz: SOLO TEXTO. No hay audio (audio, storage_key y mime_type
 -- nulos), así que la ruta del audio responde 404; la transcripción es la
 -- evidencia. Se concentran en estudiantes con dificultades y en los
--- destacados, como pasa en un aula real.
---
---   T-I y T-II: ya barridas (transcript_redacted con [ESTUDIANTE] y
---               [COMPAÑERO_1]) y atribuidas ('ok'): el agente de conclusiones
---               las puede leer.
---   T-III:      'pending', para probar el agente de barrido. Unas pocas nombran
---               solo a un compañero y deben terminar descartadas
---               (mentions_other_student).
+-- destacados, como pasa en un aula real. Todas quedan transcritas: el agente
+-- de conclusiones las lee tal cual, con los nombres que dijo el docente.
 --
 -- Cada nota cuelga de la primera sesión de su fecha y solo entra si esa sesión
 -- ya se dictó.
@@ -1476,20 +1442,18 @@ SECTION_NOTES = """
 with clases (class_id, area, seccion, teacher_id) as (values
 {classes}
 ),
-notas (id, student_id, area, seccion, fecha, duration_ms, transcript, redacted, estado) as (values
+notas (id, student_id, area, seccion, fecha, duration_ms, transcript) as (values
 {rows}
 )
 insert into voice_notes
   (id, tenant_id, session_id, student_id, class_id, teacher_id, recorded_at, duration_ms,
-   transcription_status, transcript, transcript_redacted, attribution_status,
-   attribution_checked_at)
+   transcription_status, transcript)
 select n.id::uuid, '{tenant}', s.id, n.student_id::uuid, c.class_id::uuid, c.teacher_id::uuid,
-       s.scheduled_start_at + interval '20 minutes', n.duration_ms, 'completed', n.transcript,
-       n.redacted, n.estado, case when n.estado = 'ok' then s.scheduled_end_at end
+       s.scheduled_start_at + interval '20 minutes', n.duration_ms, 'completed', n.transcript
   from notas n
   join clases c on c.area = n.area and c.seccion = n.seccion
   join lateral (
-    select id, scheduled_start_at, scheduled_end_at from class_sessions
+    select id, scheduled_start_at from class_sessions
      where class_id = c.class_id::uuid and session_date = n.fecha::date and status = 'completed'
      order by scheduled_start_at limit 1
   ) s on true;
