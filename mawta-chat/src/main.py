@@ -74,6 +74,7 @@ def create_app(settings: Settings | None = None, llm: LLM | None = None) -> Fast
             client_for(ref, cfg.endpoints(), timeout=120.0),
             ref,
             max_tokens=cfg.chat_max_tokens,
+            reasoning_effort=cfg.chat_reasoning_effort,
         )
         app.state.verifier = TokenVerifier(cfg.chat_token_public_keys)
         app.state.db = Database(cfg.chat_database_url)

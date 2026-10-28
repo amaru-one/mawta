@@ -68,9 +68,20 @@ def client_for(ref: ModelRef, ep: Endpoints, timeout: float) -> AsyncOpenAI:
     return AsyncOpenAI(base_url=url, api_key=key, timeout=timeout, max_retries=1)
 
 
-def extra_body(ref: ModelRef) -> dict[str, object] | None:
-    """OpenRouter routes a request to any provider that serves the model; require_parameters keeps
-    it to the ones that honour every parameter sent (the JSON schema, the tools)."""
+REASONING_EFFORTS = ("", "none", "minimal", "low", "medium", "high")
+
+
+def extra_body(ref: ModelRef, reasoning_effort: str = "") -> dict[str, object] | None:
+    """What goes in the request besides the standard fields.
+
+    OpenRouter routes a request to any provider that serves the model; require_parameters keeps
+    it to the ones that honour every parameter sent (the JSON schema, the tools).
+
+    reasoning_effort is only sent when configured. Models that reason first (gemma4, qwen3) spend
+    their max_tokens on hidden reasoning unless told otherwise; "none" turns it off in Ollama."""
+    body: dict[str, object] = {}
     if ref.provider == OPENROUTER:
-        return {"provider": {"require_parameters": True}}
-    return None
+        body["provider"] = {"require_parameters": True}
+    if reasoning_effort:
+        body["reasoning_effort"] = reasoning_effort
+    return body or None

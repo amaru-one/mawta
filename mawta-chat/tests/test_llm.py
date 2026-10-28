@@ -131,6 +131,15 @@ async def test_a_plain_answer_has_no_tool_calls():
     assert fake.completions.kwargs["extra_body"] is None
 
 
+async def test_reasoning_effort_is_sent_only_when_set():
+    fake = FakeClient([chunk({"content": "Hola"}, finish="stop")])
+    llm = OpenAICompatLLM(cast(AsyncOpenAI, cast(object, fake)), parse("ollama:m"), 10, "none")
+
+    await llm.respond("s", [], [], lambda _: None)
+
+    assert fake.completions.kwargs["extra_body"] == {"reasoning_effort": "none"}
+
+
 def test_chat_model_must_be_provider_model():
     cfg = Settings(**BASE, chat_model="ollama:gemma4:12b-it-qat")
     assert str(cfg.model_ref()) == "ollama:gemma4:12b-it-qat"

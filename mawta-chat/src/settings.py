@@ -5,7 +5,7 @@ from typing import ClassVar
 from pydantic import SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from providers import Endpoints, ModelRef, configured, parse
+from providers import REASONING_EFFORTS, Endpoints, ModelRef, configured, parse
 
 
 class Settings(BaseSettings):
@@ -28,8 +28,18 @@ class Settings(BaseSettings):
     openrouter_api_key: SecretStr = SecretStr("")
 
     chat_max_tokens: int = 16000
+    # Sent to the model only when set; "none" stops a model that reasons first
+    # (gemma4, qwen3) from spending its token budget on hidden reasoning.
+    chat_reasoning_effort: str = ""
     # Model calls per question (each tool round is one more call).
     chat_max_model_calls: int = 6
+
+    @field_validator("chat_reasoning_effort")
+    @classmethod
+    def _reasoning_effort(cls, value: str) -> str:
+        if value not in REASONING_EFFORTS:
+            raise ValueError(f"must be one of {REASONING_EFFORTS[1:]} or empty")
+        return value
 
     @field_validator("chat_model")
     @classmethod

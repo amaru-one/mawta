@@ -158,4 +158,5 @@ to 350 characters, **draft or final**: `422 conclusion_too_short` or
 | `OLLAMA_URL`, `OLLAMA_API_KEY` | `http://127.0.0.1:11434/v1`, empty |
 | `OPENROUTER_URL`, `OPENROUTER_API_KEY` | `https://openrouter.ai/api/v1`, empty |
 | `AGENT_TIMEOUT`, `AGENT_DEADLINE` | `90s` per model call, `5m` per generation; raise both for a slow local model |
+| `AGENT_REASONING_EFFORT` | empty (not sent); `none` stops a model that reasons first (gemma4, qwen3) from spending its token budget on hidden reasoning |
 | `CONCLUSIONS_AGENT_PRICE_{INPUT,OUTPUT,CACHE_READ,CACHE_WRITE}_PER_MTOK` | 0 (cost unknown) |

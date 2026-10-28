@@ -46,10 +46,14 @@ class OpenAICompatLLM:
     ref: ModelRef
     model: str
     max_tokens: int
+    reasoning_effort: str
 
-    def __init__(self, client: AsyncOpenAI, ref: ModelRef, max_tokens: int) -> None:
+    def __init__(
+        self, client: AsyncOpenAI, ref: ModelRef, max_tokens: int, reasoning_effort: str = ""
+    ) -> None:
         self.client = client
         self.ref = ref
+        self.reasoning_effort = reasoning_effort
         # The whole "provider:model", which is what chat.messages records.
         self.model = str(ref)
         self.max_tokens = max_tokens
@@ -73,7 +77,7 @@ class OpenAICompatLLM:
             tools=cast(list[ChatCompletionToolParam], tools),
             stream=True,
             stream_options={"include_usage": True},
-            extra_body=extra_body(self.ref),
+            extra_body=extra_body(self.ref, self.reasoning_effort),
         )
         text: list[str] = []
         calls: dict[int, dict[str, Any]] = {}

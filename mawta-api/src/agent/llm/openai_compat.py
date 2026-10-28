@@ -17,14 +17,18 @@ class OpenAICompat:
     name: str
     _ref: ModelRef | None
     _client: AsyncOpenAI | None
+    _reasoning_effort: str
 
-    def __init__(self, ref: ModelRef | None, client: AsyncOpenAI | None) -> None:
+    def __init__(
+        self, ref: ModelRef | None, client: AsyncOpenAI | None, reasoning_effort: str = ""
+    ) -> None:
         """No ref or no client is allowed so the server boots without a model; generate() then
         fails permanently and the HTTP layer answers agent_unavailable before ever enqueueing.
         The name is the whole "provider:model", which is what agent_generations records."""
         self.name = str(ref) if ref is not None else ""
         self._ref = ref
         self._client = client
+        self._reasoning_effort = reasoning_effort
 
     async def generate(self, req: Request) -> Response:
         if self._ref is None or self._client is None:
@@ -57,7 +61,7 @@ class OpenAICompat:
                 max_tokens=req.max_tokens,
                 messages=messages,
                 response_format=response_format,
-                extra_body=extra_body(self._ref),
+                extra_body=extra_body(self._ref, self._reasoning_effort),
             )
         except Exception as exc:
             raise classify(exc) from exc

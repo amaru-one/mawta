@@ -12,7 +12,7 @@ from typing import Annotated, Any, ClassVar
 from pydantic import BeforeValidator, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
-from agent.llm.providers import Endpoints, ModelRef, parse
+from agent.llm.providers import REASONING_EFFORTS, Endpoints, ModelRef, parse
 
 _DURATION_PART = re.compile(r"(\d+(?:\.\d+)?)(ns|us|µs|ms|s|m|h)")
 _UNIT_SECONDS = {
@@ -85,6 +85,9 @@ class Settings(BaseSettings):
     # (AGENT_DEADLINE). A slow local model needs both raised.
     agent_timeout: Duration = 90.0
     agent_deadline: Duration = 300.0
+    # Sent to the agents' models only when set. "none" stops a model that reasons first (gemma4,
+    # qwen3) from spending its token budget on hidden reasoning.
+    agent_reasoning_effort: str = ""
     agent_price_input_per_mtok: float = 0
     agent_price_output_per_mtok: float = 0
     agent_price_cache_read_per_mtok: float = 0
@@ -132,6 +135,13 @@ class Settings(BaseSettings):
     def _non_negative(cls, value: float) -> float:
         if value < 0:
             raise ValueError("price must not be negative")
+        return value
+
+    @field_validator("agent_reasoning_effort")
+    @classmethod
+    def _reasoning_effort(cls, value: str) -> str:
+        if value not in REASONING_EFFORTS:
+            raise ValueError(f"must be one of {REASONING_EFFORTS[1:]} or empty")
         return value
 
     @field_validator("planning_agent_model", "conclusions_agent_model")

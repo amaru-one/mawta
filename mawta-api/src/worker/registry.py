@@ -69,7 +69,7 @@ def agent_model(cfg: Settings, which: str) -> OpenAICompat:
     ep = cfg.endpoints()
     if ref is None or not configured(ref, ep):
         return OpenAICompat(ref, None)
-    return OpenAICompat(ref, client_for(ref, ep, cfg.agent_timeout))
+    return OpenAICompat(ref, client_for(ref, ep, cfg.agent_timeout), cfg.agent_reasoning_effort)
 
 
 def build_runner(api: Api) -> Runner:

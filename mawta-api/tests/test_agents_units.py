@@ -138,6 +138,7 @@ def test_provider_configured_and_extra_body():
     assert configured(parse("openrouter:x"), keyed)
     assert extra_body(parse("openrouter:x")) == {"provider": {"require_parameters": True}}
     assert extra_body(parse("ollama:x")) is None
+    assert extra_body(parse("ollama:x"), "none") == {"reasoning_effort": "none"}
 
 
 def _completion(
