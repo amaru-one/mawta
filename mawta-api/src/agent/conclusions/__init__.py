@@ -3,7 +3,7 @@
 It proposes the conclusión descriptiva of one student in one competency and term ("juicio docente
 basado en evidencias […] Señala avances, dificultades y recomendaciones", RVM 094-2020, glossary)
 from the competency's criteria and capabilities, the student's evidences of the term and the
-teacher's voice notes, already swept of names.
+teacher's voice notes as transcribed.
 
 One bounded call, like the planning agent: the server gathers all the material, the model answers
 by filling a fixed schema, and every avance and dificultad must cite the evidences or notes it
@@ -26,8 +26,8 @@ from agent.conclusions.guard import guard, name_words
 from agent.llm import Block, Tool
 from errors import AppError
 from repo import conclusion_context as ctx_repo
+from repo.conclusion_context import current_tenant_id
 from repo.home import tenant_today
-from repo.redaction import current_tenant_id
 
 # The one difficulty a student at AD may have when the material shows none: the norm still asks
 # every conclusion to state them.
@@ -35,7 +35,7 @@ NO_DIFFICULTIES_AD = "No presenta dificultades significativas en esta competenci
 
 NAME = "conclusions"  # the agent_generations.agent value of this agent
 KIND_CONCLUSION = "conclusion"  # what this agent generates
-PROMPT_VERSION = "conclusions-2026-10-14.1"  # changes whenever prompts/ change
+PROMPT_VERSION = "conclusions-2026-10-28.1"  # changes whenever prompts/ change
 
 # The least evidence a conclusion can stand on: the teacher-asserted level plus this many distinct
 # evidences with a live graded score. Voice notes never count toward it: they complement, they do
@@ -84,12 +84,7 @@ ERR_INSUFFICIENT_EVIDENCE = AppError(
 )
 
 # Warning codes.
-# Some notes were discarded but others were used: the teacher is told how many, and does not see
-# them.
-WARN_VOICE_NOTES_DISCARDED = "voice_notes_discarded"
-# Every note of the student was discarded: the worst case, the only one where the teacher is shown
-# the discarded notes to move or confirm.
-WARN_ALL_VOICE_NOTES_DISCARDED = "all_voice_notes_discarded"
+# Some notes are still being transcribed: the proposal does not read them yet.
 WARN_VOICE_NOTES_PENDING = "voice_notes_pending"
 # No note at all: the proposal is less precise.
 WARN_NO_VOICE_NOTES = "no_voice_notes"
@@ -112,7 +107,7 @@ class Material:
     standard: dict[str, Any] | None = None
     evidences: list[dict[str, Any]] = field(default_factory=list)
     voice_notes: list[dict[str, Any]] = field(default_factory=list)
-    note_counts: dict[str, Any] = field(default_factory=lambda: {"discarded": 0, "pending": 0})
+    note_counts: dict[str, Any] = field(default_factory=lambda: {"pending": 0})
     earlier: list[dict[str, Any]] = field(default_factory=list)
     graded: int = 0
 
@@ -122,11 +117,6 @@ class Material:
             raise ERR_LEVEL_REQUIRED
         if self.graded < MIN_GRADED_EVIDENCES:
             raise ERR_INSUFFICIENT_EVIDENCE
-
-    def only_discarded_notes(self) -> bool:
-        """The worst case: the student has voice notes in the term, and the sweep discarded
-        every one of them."""
-        return not self.voice_notes and self.note_counts["discarded"] > 0
 
     def _variety_warnings(self) -> list[dict[str, Any]]:
         """Graded evidence that is narrow: one kind, or one experience. Only speaks once the
@@ -157,14 +147,10 @@ class Material:
     def warnings(self) -> list[dict[str, Any]]:
         """What the teacher should know about this material."""
         out: list[dict[str, Any]] = []
-        discarded, pending = self.note_counts["discarded"], self.note_counts["pending"]
-        if self.only_discarded_notes():
-            out.append({"code": WARN_ALL_VOICE_NOTES_DISCARDED, "count": discarded})
-        elif discarded > 0:
-            out.append({"code": WARN_VOICE_NOTES_DISCARDED, "count": discarded})
+        pending = self.note_counts["pending"]
         if pending > 0:
             out.append({"code": WARN_VOICE_NOTES_PENDING, "count": pending})
-        if not self.voice_notes and discarded == 0:
+        if not self.voice_notes:
             out.append({"code": WARN_NO_VOICE_NOTES})
         return out + self._variety_warnings()
 
@@ -304,7 +290,7 @@ def render(m: Material) -> tuple[str, Refs]:
         head = f"- {key} ({n['recorded_at'].strftime('%Y-%m-%d')}"
         if n["session_topic"]:
             head += f", session «{n['session_topic']}»"
-        b.append(f"{head}): {n['transcript_redacted']}")
+        b.append(f"{head}): {n['transcript']}")
     b.append("</voice_notes>")
     if m.earlier:
         b += ["", "<earlier_terms>"]

@@ -26,8 +26,7 @@ EXPIRED_GENERATION_MESSAGE = (
 )
 
 _COLUMNS = """
-    id, agent, kind, class_id, experience_id, student_id, competency_id, term_id, voice_note_id,
-    requested_by, target_key, status, input, result, error, attempts, deadline_at, created_at,
+    id, agent, kind, class_id, experience_id, student_id, competency_id, term_id, requested_by, target_key, status, input, result, error, attempts, deadline_at, created_at,
     finished_at"""
 
 
@@ -86,7 +85,6 @@ async def create_generation(
     student_id: UUID | None = None,
     competency_id: UUID | None = None,
     term_id: UUID | None = None,
-    voice_note_id: UUID | None = None,
     input: dict[str, Any] | None = None,  # noqa: A002
 ) -> tuple[dict[str, Any], bool]:
     """Record a request, or return the one already in flight for the same target
@@ -98,9 +96,9 @@ async def create_generation(
         f"""
         insert into agent_generations
           (tenant_id, agent, kind, class_id, experience_id, student_id, competency_id, term_id,
-           voice_note_id, requested_by, target_key, input, deadline_at)
+           requested_by, target_key, input, deadline_at)
         values (app.current_tenant_id(), %(agent)s, %(kind)s, %(class)s, %(exp)s, %(student)s,
-                %(comp)s, %(term)s, %(note)s, %(by)s, %(key)s, %(input)s,
+                %(comp)s, %(term)s, %(by)s, %(key)s, %(input)s,
                 now() + make_interval(secs => %(secs)s))
         on conflict (tenant_id, target_key) where status in ('pending', 'running') do nothing
         returning {_COLUMNS}
@@ -113,7 +111,6 @@ async def create_generation(
             "student": student_id,
             "comp": competency_id,
             "term": term_id,
-            "note": voice_note_id,
             "by": requested_by,
             "key": target_key,
             "input": jsonb(input if input is not None else {}),

@@ -33,7 +33,7 @@ class Fake:
             raise LLMError("llm: fake has no more replies", permanent=True)
         reply = self.replies.pop(0)
         value = json.loads(reply.input) if isinstance(reply.input, str) else reply.input
-        resp = Response(input=value, usage=reply.usage, message_id="fake", stop_reason="tool_use")
+        resp = Response(input=value, usage=reply.usage, message_id="fake", stop_reason="stop")
         if reply.error is not None:
             reply.error.response = resp
             raise reply.error

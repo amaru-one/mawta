@@ -289,12 +289,15 @@ def log_agent_usage(
     duration_ms: int,
     outcome: str,
     error_class: str = "",
+    error_reason: str = "",
     input_tokens: int = 0,
     output_tokens: int = 0,
     cache_read_tokens: int = 0,
     cache_write_tokens: int = 0,
     cost_usd: float | None = None,
 ) -> None:
+    """error_reason is the LLMError's own message ("llm: answer cut off at max_tokens"): written
+    by Mawta, never the provider's body or the model's text, so it carries no school data."""
     fields: dict[str, Any] = {
         "event": "agent.usage",
         "generation_id": generation_id,
@@ -311,6 +314,8 @@ def log_agent_usage(
     }
     if error_class:
         fields["error_class"] = error_class
+    if error_reason:
+        fields["error_reason"] = error_reason
     if cost_usd is not None:
         fields.update(cost_usd=cost_usd, cost_source="configured_prices")
     else:

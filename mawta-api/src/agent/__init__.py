@@ -1,6 +1,6 @@
 """The shared base of Mawta's agents.
 
-Mawta runs several narrow agents (planning, descriptive conclusions, a redaction sweep) and none
+Mawta runs several narrow agents (planning, descriptive conclusions) and none
 of them acts on its own: each generation is one bounded model call over data the server chose,
 answered by filling a fixed schema, and the server validates that answer and decides what is
 stored. What an agent proposes is saved as pending until the teacher accepts or edits it.

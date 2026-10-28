@@ -32,7 +32,9 @@ from tests.test_planning import teacher as teacher  # noqa: F401
 
 @pytest.fixture
 async def agent_client(make_client: MakeClient):
-    return await make_client(anthropic_api_key="test-key")
+    return await make_client(
+        planning_agent_model="ollama:test-model", conclusions_agent_model="ollama:test-model"
+    )
 
 
 @pytest.fixture

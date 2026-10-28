@@ -2,8 +2,9 @@
 
 One narrow operation: a single request that must answer by filling one JSON schema, so every
 agent gets structured output it can validate before anything reaches the database. Agents depend
-on the Model protocol; the Anthropic implementation is in anthropic.py and a scripted fake for
-tests in fake.py.
+on the Model protocol; the implementation for any OpenAI-compatible provider (Ollama, OpenRouter)
+is in openai_compat.py, which provider a model runs on is in providers.py, and a scripted fake for
+tests is in fake.py.
 """
 
 from dataclasses import dataclass, field

@@ -125,7 +125,7 @@ class Runner:
 
     def bind(self, agent: Agent, model: Model, prices: Prices) -> "Runner":
         """Register an agent that runs on its own model and prices instead of the runner's default
-        (e.g. the redaction sweep on a small, cheap model)."""
+        (e.g. the conclusions agent on a model of its own)."""
         self.agents[agent.name] = agent
         self.models[agent.name] = (model, prices)
         return self
@@ -296,6 +296,7 @@ class Runner:
             duration_ms=int((time.monotonic() - start) * 1000),
             outcome="error" if error else "success",
             error_class=("permanent" if error.permanent else "transient") if error else "",
+            error_reason=str(error) if error else "",
             input_tokens=resp.usage.input_tokens,
             output_tokens=resp.usage.output_tokens,
             cache_read_tokens=resp.usage.cache_read_tokens,

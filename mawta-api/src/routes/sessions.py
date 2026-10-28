@@ -1,4 +1,4 @@
-"""Class sessions, attendance, voice notes and their attribution."""
+"""Class sessions, attendance and voice notes."""
 
 import os
 from pathlib import Path
@@ -12,13 +12,11 @@ import media
 from errors import AppError, bad_request, conflict, unprocessable
 from repo import events as events_repo
 from repo import jobs as jobs_repo
-from repo import redaction as redaction_repo
 from repo import sessions as repo
 from web import (
     api_of,
     no_content,
     parse_date,
-    parse_uuid,
     path_uuid,
     read_body,
     tc_of,
@@ -248,80 +246,6 @@ async def handle_voice_note_discard(request: Request) -> Response:
         await repo.delete_voice_note(conn, voice_note_id)
         await events_repo.log_event(conn, "voice_note.discarded", "voice_note", voice_note_id)
     return no_content()
-
-
-# A voice note the name sweep discarded (it named only classmates, never its student) stays out
-# of the descriptive conclusions without asking anyone. The teacher only sees it when it matters
-# (when discarding it leaves too little evidence to propose a conclusion) and then decides: the
-# note was recorded on the wrong student (reassign) or it does belong here (confirm).
-
-
-async def handle_voice_note_reassign(request: Request) -> Response:
-    """Move the note to another student of the same class and sweep it again around that
-    student. Until the new sweep finishes the note is pending."""
-    api, tc = api_of(request), tc_of(request)
-    voice_note_id = path_uuid(request, "voiceNoteID")
-    req = await read_body(request, {"student_id": str}, "invalid body")
-    student_id = parse_uuid(req["student_id"], "invalid student_id")
-
-    async with api.db.tenant_tx(tc) as conn:
-        await authz.require_voice_note_access(conn, tc, voice_note_id)
-        note = await redaction_repo.get_voice_note_for_redaction(conn, voice_note_id)
-        await authz.require_student_on_roster(conn, tc, note["class_id"], student_id)
-        if note["student_id"] == student_id:
-            raise AppError(
-                422,
-                "same_student",
-                "La nota ya está guardada en este estudiante. Usa «Sí es de este estudiante».",
-            )
-        await redaction_repo.reassign_voice_note(conn, voice_note_id, student_id)
-        await events_repo.log_event(
-            conn,
-            "voice_note.reassigned",
-            "voice_note",
-            voice_note_id,
-            {"from_student_id": str(note["student_id"])},
-            student_id,
-            note["class_id"],
-        )
-        out = {
-            "id": voice_note_id,
-            "student_id": student_id,
-            "attribution_status": redaction_repo.ATTRIBUTION_PENDING,
-        }
-        if not api.settings.anthropic_api_key.get_secret_value():
-            return write_json(out)  # stays pending until the agents can run
-        from agent import redaction as redaction_agent
-
-        note["student_id"] = student_id
-        assert tc.teacher_id is not None
-        await redaction_agent.queue(conn, tc.tenant_id, note, tc.teacher_id, True)
-    return write_json(out)
-
-
-async def handle_voice_note_confirm(request: Request) -> Response:
-    """The teacher says a discarded note does belong to its student. Only a note discarded for
-    naming other students can be confirmed: an unreadable one has nothing to use."""
-    api, tc = api_of(request), tc_of(request)
-    voice_note_id = path_uuid(request, "voiceNoteID")
-    async with api.db.tenant_tx(tc) as conn:
-        await authz.require_voice_note_access(conn, tc, voice_note_id)
-        note = await redaction_repo.get_voice_note_for_redaction(conn, voice_note_id)
-        await redaction_repo.confirm_voice_note(conn, voice_note_id)
-        await events_repo.log_event(
-            conn,
-            "voice_note.confirmed",
-            "voice_note",
-            voice_note_id,
-            student_id=note["student_id"],
-            class_id=note["class_id"],
-        )
-        out = {
-            "id": voice_note_id,
-            "student_id": note["student_id"],
-            "attribution_status": redaction_repo.ATTRIBUTION_CONFIRMED,
-        }
-    return write_json(out)
 
 
 _ = os

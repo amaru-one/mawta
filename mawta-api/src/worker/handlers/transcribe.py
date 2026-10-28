@@ -22,13 +22,8 @@ class Transcriber(Protocol):
     async def transcribe(self, audio_mp3: bytes, /) -> str: ...
 
 
-# Runs in the job's transaction once a transcript is saved (the registry queues the redaction
-# sweep of the note with it).
-AfterTranscript = Callable[[AsyncConnection[DictRow], UUID], Awaitable[None]]
-
-
 def voice_note_transcribe(
-    transcriber: Transcriber, *after: AfterTranscript
+    transcriber: Transcriber,
 ) -> Callable[[AsyncConnection[DictRow], int, dict[str, Any]], Awaitable[None]]:
     """A handler bound to one Transcriber, built once when the registry is assembled."""
 
@@ -62,7 +57,5 @@ def voice_note_transcribe(
             return
         # any other error is transient: let the worker's normal backoff retry
         await repo.set_voice_note_transcript(conn, voice_note_id, text)
-        for hook in after:
-            await hook(conn, voice_note_id)
 
     return handle

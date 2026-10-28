@@ -24,9 +24,8 @@ async def enqueue(
     **fields: Any,
 ) -> dict[str, Any]:
     """Record a generation and queue the job that runs it, in the caller's transaction, or return
-    the one already in flight for the same target. Both the API ("✦ Generar con Mawta") and the
-    worker (a voice note that finished transcribing queues its redaction sweep) start generations
-    through here. `fields` are create_generation's: agent, kind, class_id, requested_by,
+    the one already in flight for the same target. The API ("✦ Generar con Mawta") starts
+    generations through here. `fields` are create_generation's: agent, kind, class_id, requested_by,
     target_key and the optional scope columns."""
     gen, created = await gens.create_generation(
         conn, deadline=deadline or DEFAULT_DEADLINE, **fields

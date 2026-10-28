@@ -12,6 +12,8 @@ from typing import Annotated, Any, ClassVar
 from pydantic import BeforeValidator, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
+from agent.llm.providers import Endpoints, ModelRef, parse
+
 _DURATION_PART = re.compile(r"(\d+(?:\.\d+)?)(ns|us|µs|ms|s|m|h)")
 _UNIT_SECONDS = {
     "ns": 1e-9,
@@ -70,20 +72,25 @@ class Settings(BaseSettings):
     transcribe_openrouter_api_key: str = ""
     transcribe_model: str = "openai/whisper-large-v3"
 
-    anthropic_api_key: SecretStr = SecretStr("")
-    planning_agent_model: str = "claude-sonnet-5-5"
+    # Where the agents' models run (see agent/llm/providers.py). Each agent names its model as
+    # "provider:model", e.g. "ollama:gemma4:12b-it-qat" or "openrouter:qwen/qwen3-30b-a3b".
+    # Empty: that agent is unavailable and its routes answer agent_unavailable.
+    ollama_url: str = "http://127.0.0.1:11434/v1"
+    ollama_api_key: SecretStr = SecretStr("")
+    openrouter_url: str = "https://openrouter.ai/api/v1"
+    openrouter_api_key: SecretStr = SecretStr("")
+
+    planning_agent_model: str = ""
+    # One model call (AGENT_TIMEOUT) and a whole generation, repair round included
+    # (AGENT_DEADLINE). A slow local model needs both raised.
     agent_timeout: Duration = 90.0
+    agent_deadline: Duration = 300.0
     agent_price_input_per_mtok: float = 0
     agent_price_output_per_mtok: float = 0
     agent_price_cache_read_per_mtok: float = 0
     agent_price_cache_write_per_mtok: float = 0
 
-    redaction_agent_model: str = "claude-haiku-5-5"
-    redaction_agent_price_input_per_mtok: float = 0
-    redaction_agent_price_output_per_mtok: float = 0
-    redaction_agent_price_cache_read_per_mtok: float = 0
-    redaction_agent_price_cache_write_per_mtok: float = 0
-    conclusions_agent_model: str = "claude-sonnet-5-5"
+    conclusions_agent_model: str = ""
     conclusions_agent_price_input_per_mtok: float = 0
     conclusions_agent_price_output_per_mtok: float = 0
     conclusions_agent_price_cache_read_per_mtok: float = 0
@@ -116,10 +123,6 @@ class Settings(BaseSettings):
         "agent_price_output_per_mtok",
         "agent_price_cache_read_per_mtok",
         "agent_price_cache_write_per_mtok",
-        "redaction_agent_price_input_per_mtok",
-        "redaction_agent_price_output_per_mtok",
-        "redaction_agent_price_cache_read_per_mtok",
-        "redaction_agent_price_cache_write_per_mtok",
         "conclusions_agent_price_input_per_mtok",
         "conclusions_agent_price_output_per_mtok",
         "conclusions_agent_price_cache_read_per_mtok",
@@ -130,6 +133,13 @@ class Settings(BaseSettings):
         if value < 0:
             raise ValueError("price must not be negative")
         return value
+
+    @field_validator("planning_agent_model", "conclusions_agent_model")
+    @classmethod
+    def _provider_model(cls, value: str) -> str:
+        if value.strip():
+            parse(value)  # raises with a message naming the expected format
+        return value.strip()
 
     @model_validator(mode="after")
     def _check(self) -> "Settings":
@@ -155,8 +165,21 @@ class Settings(BaseSettings):
         host, _, port = self.http_addr.rpartition(":")
         return (host or "0.0.0.0", int(port))
 
+    def agent_model(self, which: str) -> ModelRef | None:
+        """The model of "planning" or "conclusions", or None when that agent has none."""
+        value = self.planning_agent_model if which == "planning" else self.conclusions_agent_model
+        return parse(value) if value else None
+
+    def endpoints(self) -> Endpoints:
+        return Endpoints(
+            ollama_url=self.ollama_url,
+            ollama_api_key=self.ollama_api_key.get_secret_value(),
+            openrouter_url=self.openrouter_url,
+            openrouter_api_key=self.openrouter_api_key.get_secret_value(),
+        )
+
     def prices(self, which: str) -> AgentPrices:
-        """Prices for "agent" (planning), "redaction" or "conclusions"."""
+        """Prices for "planning" or "conclusions"."""
         prefix = "agent" if which == "planning" else which + "_agent"
         return AgentPrices(
             input_per_mtok=getattr(self, f"{prefix}_price_input_per_mtok"),
