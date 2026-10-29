@@ -90,7 +90,7 @@ def default_registry(api: Api, runner: Runner | None = None) -> Registry:
     runs Mawta's agents and manages its own transactions (OwnTx)."""
     cfg = api.settings
     stt_client = SttClient(
-        cfg.transcribe_openrouter_api_key, cfg.transcribe_model, logger=api.logger
+        cfg.openrouter_api_key.get_secret_value(), cfg.transcribe_model, logger=api.logger
     )
     # A saved transcript queues its name sweep, but only when the sweep has a model: without one
     # every sweep would fail, and the note simply stays pending until one is configured (the

@@ -49,9 +49,9 @@ services:
       CORS_ORIGINS: https://${DOMAIN}
       LOG_LEVEL: info
       SESSION_COOKIE_SECURE: 'true'
-      # Voice-note transcription (OpenRouter Whisper). Left optional so a
+      # One OpenRouter key: voice-note transcription (Whisper) always uses it,
+      # and so does any agent on an "openrouter:" model. Left optional so a
       # missing key doesn't block deploys; transcribe jobs fail until it's set.
-      TRANSCRIBE_OPENROUTER_API_KEY: ${TRANSCRIBE_OPENROUTER_API_KEY:-}
       # Mawta's agents ("✦ Generar con Mawta"), on open models through any
       # OpenAI-compatible provider. Every agent names its own model as
       # "provider:model": local (the school's model server) or openrouter; the

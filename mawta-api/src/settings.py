@@ -60,7 +60,7 @@ class Settings(BaseSettings):
     log_level: str = "info"
     request_body_capture: bool = False
 
-    transcribe_openrouter_api_key: str = ""
+    # Voice-note transcription: Whisper through OpenRouter, with OPENROUTER_API_KEY (below).
     transcribe_model: str = "openai/whisper-large-v3"
 
     # Where the agents' models run (see agent/llm/providers.py). Every agent names its own model as
@@ -70,6 +70,9 @@ class Settings(BaseSettings):
     local_llm_url: str = "http://127.0.0.1:11434/v1"
     local_llm_api_key: SecretStr = SecretStr("")
     openrouter_url: str = "https://openrouter.ai/api/v1"
+    # One OpenRouter account for everything that uses it: the voice-note transcription always,
+    # and any agent whose model is "openrouter:...". A school running only local models needs it
+    # for transcription alone.
     openrouter_api_key: SecretStr = SecretStr("")
 
     planning_agent_model: str = ""
