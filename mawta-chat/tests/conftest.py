@@ -196,7 +196,7 @@ async def client(
         chat_database_url=chat_url,
         langgraph_database_url=langgraph_url,
         chat_token_public_keys=public_keys,
-        chat_model="ollama:fake-model",
+        chat_model="local:fake-model",
     )
     app = create_app(settings, fake_llm)
     async with app.router.lifespan_context(app):

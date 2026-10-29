@@ -12,7 +12,7 @@ from typing import Annotated, Any, ClassVar
 from pydantic import BeforeValidator, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
-from agent.llm.providers import REASONING_EFFORTS, Endpoints, ModelRef, parse
+from agent.llm.providers import REASONING_EFFORTS, Endpoints, ModelRef, configured, parse
 
 _DURATION_PART = re.compile(r"(\d+(?:\.\d+)?)(ns|us|µs|ms|s|m|h)")
 _UNIT_SECONDS = {
@@ -43,15 +43,6 @@ def parse_duration(value: Any) -> float:
 Duration = Annotated[float, BeforeValidator(parse_duration)]
 
 
-class AgentPrices(BaseSettings):
-    """One agent model's prices in US dollars per million tokens."""
-
-    input_per_mtok: float = 0
-    output_per_mtok: float = 0
-    cache_read_per_mtok: float = 0
-    cache_write_per_mtok: float = 0
-
-
 class Settings(BaseSettings):
     model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
         env_file=".env", extra="ignore", env_ignore_empty=True, populate_by_name=True
@@ -72,32 +63,27 @@ class Settings(BaseSettings):
     transcribe_openrouter_api_key: str = ""
     transcribe_model: str = "openai/whisper-large-v3"
 
-    # Where the agents' models run (see agent/llm/providers.py). Each agent names its model as
-    # "provider:model", e.g. "ollama:gemma4:12b-it-qat" or "openrouter:qwen/qwen3-30b-a3b".
-    # Empty: that agent is unavailable and its routes answer agent_unavailable.
-    ollama_url: str = "http://127.0.0.1:11434/v1"
-    ollama_api_key: SecretStr = SecretStr("")
+    # Where the agents' models run (see agent/llm/providers.py). Every agent names its own model as
+    # "provider:model": "local:<model>" is the school's model server (Ollama, vLLM… on a DGX Spark
+    # or a cloud server), "openrouter:<model>" is OpenRouter. Agents never share a model setting:
+    # an empty one makes that agent unavailable and its routes answer agent_unavailable.
+    local_llm_url: str = "http://127.0.0.1:11434/v1"
+    local_llm_api_key: SecretStr = SecretStr("")
     openrouter_url: str = "https://openrouter.ai/api/v1"
     openrouter_api_key: SecretStr = SecretStr("")
 
     planning_agent_model: str = ""
+    redaction_agent_model: str = ""
+    conclusions_agent_model: str = ""
+    # Sent to each agent's model only when set. "none" stops a model that reasons first (gemma4,
+    # qwen3) from spending its token budget on hidden reasoning.
+    planning_agent_reasoning_effort: str = ""
+    redaction_agent_reasoning_effort: str = ""
+    conclusions_agent_reasoning_effort: str = ""
     # One model call (AGENT_TIMEOUT) and a whole generation, repair round included
     # (AGENT_DEADLINE). A slow local model needs both raised.
     agent_timeout: Duration = 90.0
     agent_deadline: Duration = 300.0
-    # Sent to the agents' models only when set. "none" stops a model that reasons first (gemma4,
-    # qwen3) from spending its token budget on hidden reasoning.
-    agent_reasoning_effort: str = ""
-    agent_price_input_per_mtok: float = 0
-    agent_price_output_per_mtok: float = 0
-    agent_price_cache_read_per_mtok: float = 0
-    agent_price_cache_write_per_mtok: float = 0
-
-    conclusions_agent_model: str = ""
-    conclusions_agent_price_input_per_mtok: float = 0
-    conclusions_agent_price_output_per_mtok: float = 0
-    conclusions_agent_price_cache_read_per_mtok: float = 0
-    conclusions_agent_price_cache_write_per_mtok: float = 0
 
     session_cookie_name: str = "mawta_session"
     # Fails closed: Secure unless a dev .env turns it off.
@@ -122,29 +108,17 @@ class Settings(BaseSettings):
         return value
 
     @field_validator(
-        "agent_price_input_per_mtok",
-        "agent_price_output_per_mtok",
-        "agent_price_cache_read_per_mtok",
-        "agent_price_cache_write_per_mtok",
-        "conclusions_agent_price_input_per_mtok",
-        "conclusions_agent_price_output_per_mtok",
-        "conclusions_agent_price_cache_read_per_mtok",
-        "conclusions_agent_price_cache_write_per_mtok",
+        "planning_agent_reasoning_effort",
+        "redaction_agent_reasoning_effort",
+        "conclusions_agent_reasoning_effort",
     )
-    @classmethod
-    def _non_negative(cls, value: float) -> float:
-        if value < 0:
-            raise ValueError("price must not be negative")
-        return value
-
-    @field_validator("agent_reasoning_effort")
     @classmethod
     def _reasoning_effort(cls, value: str) -> str:
         if value not in REASONING_EFFORTS:
             raise ValueError(f"must be one of {REASONING_EFFORTS[1:]} or empty")
         return value
 
-    @field_validator("planning_agent_model", "conclusions_agent_model")
+    @field_validator("planning_agent_model", "redaction_agent_model", "conclusions_agent_model")
     @classmethod
     def _provider_model(cls, value: str) -> str:
         if value.strip():
@@ -175,27 +149,27 @@ class Settings(BaseSettings):
         host, _, port = self.http_addr.rpartition(":")
         return (host or "0.0.0.0", int(port))
 
-    def agent_model(self, which: str) -> ModelRef | None:
-        """The model of "planning" or "conclusions", or None when that agent has none."""
-        value = self.planning_agent_model if which == "planning" else self.conclusions_agent_model
+    def agent_model(self, agent: str) -> ModelRef | None:
+        """The model of one agent ("planning", "redaction", "conclusions"), or None when it has
+        none."""
+        value: str = getattr(self, f"{agent}_agent_model")
         return parse(value) if value else None
+
+    def agent_ready(self, agent: str) -> bool:
+        """The agent has a model and its provider has what it needs (an address for the local
+        server, a key for OpenRouter)."""
+        ref = self.agent_model(agent)
+        return ref is not None and configured(ref, self.endpoints())
+
+    def agent_reasoning_effort(self, agent: str) -> str:
+        return getattr(self, f"{agent}_agent_reasoning_effort")
 
     def endpoints(self) -> Endpoints:
         return Endpoints(
-            ollama_url=self.ollama_url,
-            ollama_api_key=self.ollama_api_key.get_secret_value(),
+            local_url=self.local_llm_url,
+            local_api_key=self.local_llm_api_key.get_secret_value(),
             openrouter_url=self.openrouter_url,
             openrouter_api_key=self.openrouter_api_key.get_secret_value(),
-        )
-
-    def prices(self, which: str) -> AgentPrices:
-        """Prices for "planning" or "conclusions"."""
-        prefix = "agent" if which == "planning" else which + "_agent"
-        return AgentPrices(
-            input_per_mtok=getattr(self, f"{prefix}_price_input_per_mtok"),
-            output_per_mtok=getattr(self, f"{prefix}_price_output_per_mtok"),
-            cache_read_per_mtok=getattr(self, f"{prefix}_price_cache_read_per_mtok"),
-            cache_write_per_mtok=getattr(self, f"{prefix}_price_cache_write_per_mtok"),
         )
 
 

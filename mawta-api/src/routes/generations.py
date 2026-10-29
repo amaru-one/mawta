@@ -19,8 +19,8 @@ from starlette.responses import Response
 import authz
 from agent import conclusions as conclusions_agent
 from agent import planning as planning_agent
+from agent import redaction as redaction_agent
 from agent.enqueue import enqueue
-from agent.llm.providers import configured
 from db import TenantCtx
 from errors import AppError, bad_request
 from repo import agent_generations as gens
@@ -28,6 +28,7 @@ from repo import conclusion_context as ctx_repo
 from repo import events as events_repo
 from repo import planning as planning_repo
 from repo import planning_plan as plan_repo
+from repo import redaction as redaction_repo
 from repo.terms import resolve_term
 from web import (
     api_of,
@@ -57,10 +58,9 @@ def to_generation_response(gen: dict[str, Any], now: datetime | None = None) -> 
 
 def agent_available(request: Request, agent: str) -> None:
     """503 agent_unavailable when the agent has no model, or its provider lacks what it needs (an
-    address for Ollama, a key for OpenRouter), so the app can offer manual creation only."""
-    cfg = api_of(request).settings
-    ref = cfg.agent_model(agent)
-    if ref is None or not configured(ref, cfg.endpoints()):
+    address for the local server, a key for OpenRouter), so the app can offer manual creation
+    only."""
+    if not api_of(request).settings.agent_ready(agent):
         raise AppError(
             503,
             "agent_unavailable",
@@ -244,6 +244,18 @@ async def _conclusion_scope(
     return conclusions_agent.Scope(class_id, student_id, competency_id, term["id"])
 
 
+async def _queue_pending_sweeps(
+    conn: AsyncConnection[DictRow], tc: TenantCtx, scope: conclusions_agent.Scope
+) -> None:
+    """Queue the name sweep of the student's transcribed notes in the term that were never swept."""
+    ids = await redaction_repo.pending_voice_notes_for_student_term(
+        conn, scope.class_id, scope.student_id, scope.term_id
+    )
+    for note_id in ids:
+        note = await redaction_repo.get_voice_note_for_redaction(conn, note_id)
+        await redaction_agent.queue(conn, tc.tenant_id, note, note["teacher_id"], False)
+
+
 async def handle_generate_conclusion(request: Request) -> Response:
     api, tc = api_of(request), tc_of(request)
     class_id = path_uuid(request, "classID")
@@ -258,20 +270,37 @@ async def handle_generate_conclusion(request: Request) -> Response:
     gen: dict[str, Any] | None = None
     async with api.db.tenant_tx(tc) as conn:
         scope = await _conclusion_scope(conn, tc, class_id, student_id, competency_id, term_param)
+        # Notes recorded before the sweep existed, or while no model was configured, are swept
+        # now. The proposal may start before they finish; it then says how many notes were still
+        # in process.
+        if api.settings.agent_ready("redaction"):
+            await _queue_pending_sweeps(conn, tc, scope)
         m = await conclusions_agent.gather(conn, scope)
         try:
             m.check()
         except AppError as exc:
             if exc is not conclusions_agent.ERR_INSUFFICIENT_EVIDENCE:
                 raise
+            # Not an error for the transaction: the sweeps queued above must still commit.
             thin = {
                 "error": {"code": exc.code, "message": exc.message},
                 "evidence": {
                     "graded_count": m.graded,
                     "minimum": conclusions_agent.MIN_GRADED_EVIDENCES,
                     "usable_voice_notes": len(m.voice_notes),
+                    "discarded_voice_notes": [],
                 },
             }
+            if m.only_discarded_notes():
+                thin["evidence"][
+                    "discarded_voice_notes"
+                ] = await ctx_repo.list_discarded_voice_notes(
+                    conn, class_id, student_id, scope.term_id
+                )
+                assert tc.teacher_id is not None
+                await events_repo.log_student_reads(
+                    conn, [student_id], tc.teacher_id, class_id, None
+                )
         else:
             gen = await start_generation(
                 conn,
@@ -313,3 +342,28 @@ async def handle_latest_conclusion_generation(request: Request) -> Response:
             assert tc.teacher_id is not None
             await events_repo.log_student_reads(conn, [student_id], tc.teacher_id, class_id, None)
     return write_json({"generation": out})
+
+
+async def handle_discarded_voice_notes(request: Request) -> Response:
+    """The notes the sweep discarded for this student in the term, only when they are all the
+    student has: that is the one case the teacher is asked to look at them (move or confirm).
+    Otherwise {"voice_notes": []}."""
+    api, tc = api_of(request), tc_of(request)
+    class_id = path_uuid(request, "classID")
+    student_id = path_uuid(request, "studentID")
+    term_param = query_uuid(request, "term_id")
+    notes: list[dict[str, Any]] = []
+    async with api.db.tenant_tx(tc) as conn:
+        await authz.require_class_access(conn, tc, class_id)
+        await authz.require_student_on_roster(conn, tc, class_id, student_id)
+        term = await resolve_term(conn, class_id, term_param)
+        usable, counts = await ctx_repo.list_conclusion_voice_notes(
+            conn, class_id, student_id, term["id"]
+        )
+        if not usable and counts["discarded"] > 0:
+            notes = await ctx_repo.list_discarded_voice_notes(
+                conn, class_id, student_id, term["id"]
+            )
+            assert tc.teacher_id is not None
+            await events_repo.log_student_reads(conn, [student_id], tc.teacher_id, class_id, None)
+    return write_json({"voice_notes": notes})

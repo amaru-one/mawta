@@ -337,7 +337,12 @@ export type ConclusionPointDto = {
 };
 
 export type ConclusionWarningCode =
-	'voice_notes_pending' | 'no_voice_notes' | 'evidence_single_kind' | 'evidence_single_experience';
+	| 'voice_notes_discarded'
+	| 'all_voice_notes_discarded'
+	| 'voice_notes_pending'
+	| 'no_voice_notes'
+	| 'evidence_single_kind'
+	| 'evidence_single_experience';
 
 export type ConclusionWarningDto = { code: ConclusionWarningCode; count?: number; kind?: string };
 
@@ -359,11 +364,30 @@ export type ConclusionProposalDto = {
 
 export type LatestConclusionGenerationDto = { generation: GenerationDto | null };
 
+// A voice note the name sweep discarded: it named only classmates, or could
+// not be read. Shown only when every note of the student was discarded.
+export type DiscardedVoiceNoteDto = {
+	id: string;
+	recorded_at: string;
+	duration_ms: number;
+	transcript: string | null;
+	discard_reason: 'mentions_other_student' | 'unreadable';
+};
+
+export type DiscardedVoiceNotesDto = { voice_notes: DiscardedVoiceNoteDto[] | null };
+
 // The body of a 422 insufficient_evidence on "Generar con Mawta".
 export type InsufficientEvidenceDto = {
 	graded_count: number;
 	minimum: number;
 	usable_voice_notes: number;
+	discarded_voice_notes: DiscardedVoiceNoteDto[] | null;
+};
+
+export type VoiceNoteAttributionDto = {
+	id: string;
+	student_id: string;
+	attribution_status: 'pending' | 'ok' | 'discarded' | 'confirmed' | 'reassigned';
 };
 
 // --- Criterios de evaluación ------------------------------------------------

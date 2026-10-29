@@ -3,7 +3,7 @@
 Python API powering the Mawta app on top of the Postgres schema in `migrations/`. Stack: Starlette
 + `psycopg` 3, hand-written SQL (no ORM), an in-process Postgres-backed job queue, forced
 row-level security per tenant, open models for the agents through any OpenAI-compatible provider
-(a local Ollama or OpenRouter; see `.env.example`). It replaced the
+(the school's own model server or OpenRouter, one model per agent; see `.env.example`). It replaced the
 former Go `mawta-server`; the HTTP contract, the database and the log format are unchanged.
 
 ## Prereqs
@@ -22,8 +22,8 @@ curl localhost:8080/healthz
 ```
 
 Config comes from the environment and `.env` — same variable names as before (`DATABASE_URL`,
-`ADMIN_DATABASE_URL`, `HTTP_ADDR`, `CORS_ORIGINS`, `WORKER_*`, `OLLAMA_*`, `OPENROUTER_*`,
-`*_AGENT_MODEL` as `provider:model`, `AGENT_TIMEOUT`, `AGENT_DEADLINE`,
+`ADMIN_DATABASE_URL`, `HTTP_ADDR`, `CORS_ORIGINS`, `WORKER_*`, `LOCAL_LLM_*`, `OPENROUTER_*`,
+`*_AGENT_MODEL` as `provider:model`, `*_AGENT_REASONING_EFFORT`, `AGENT_TIMEOUT`, `AGENT_DEADLINE`,
 `SESSION_*`, `LOGIN_*`, `BCRYPT_COST`, `CHAT_TOKEN_*`, `TRANSCRIBE_*`, `STORAGE_DIR`, `LOG_LEVEL`,
 `REQUEST_BODY_CAPTURE`). An empty variable counts as unset; an invalid value stops the boot
 instead of silently using the default.

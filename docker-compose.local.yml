@@ -41,7 +41,7 @@ services:
       CORS_ORIGINS: http://localhost:5173,http://localhost:4173
       LOG_LEVEL: info
       SESSION_COOKIE_SECURE: 'false' # dev over plain http://localhost
-      OLLAMA_URL: http://host.docker.internal:11434/v1 # the Ollama running on this computer
+      LOCAL_LLM_URL: http://host.docker.internal:11434/v1 # the Ollama running on this computer
     volumes:
       - api_audio:/data/audio
     extra_hosts:
@@ -65,7 +65,7 @@ services:
     environment:
       CHAT_DATABASE_URL: postgres://mawta_chat:mawta_chat@host.docker.internal:55432/mawta?sslmode=disable
       LANGGRAPH_DATABASE_URL: postgres://postgres:mawta@host.docker.internal:55432/langgraph?sslmode=disable
-      OLLAMA_URL: http://host.docker.internal:11434/v1
+      LOCAL_LLM_URL: http://host.docker.internal:11434/v1
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     logging: *default-logging

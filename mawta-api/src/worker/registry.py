@@ -9,14 +9,13 @@ from psycopg.rows import DictRow
 
 import applog
 import domain
-from agent.llm import Prices
 from agent.llm.openai_compat import OpenAICompat
-from agent.llm.providers import client_for, configured
+from agent.llm.providers import client_for
 from agent.runner import Outcome, Runner
 from settings import Settings
 from stt import Client as SttClient
 from web import Api
-from worker.handlers.transcribe import voice_note_transcribe
+from worker.handlers.transcribe import AfterTranscript, voice_note_transcribe
 
 # Job is the claimed row handed to a handler.
 
@@ -61,36 +60,28 @@ def agent_generate(runner: Runner) -> OwnTxHandler:
     return handle
 
 
-def agent_model(cfg: Settings, which: str) -> OpenAICompat:
-    """The model of one agent, from its "provider:model" setting. Without a model, or without
+def agent_model(cfg: Settings, agent: str) -> OpenAICompat:
+    """The model of one agent, from its own "provider:model" setting. Without a model, or without
     what its provider needs, the model has no client: the routes answer agent_unavailable and a
     generation that still reaches it fails permanently."""
-    ref = cfg.agent_model(which)
-    ep = cfg.endpoints()
-    if ref is None or not configured(ref, ep):
+    ref = cfg.agent_model(agent)
+    if ref is None or not cfg.agent_ready(agent):
         return OpenAICompat(ref, None)
-    return OpenAICompat(ref, client_for(ref, ep, cfg.agent_timeout), cfg.agent_reasoning_effort)
+    client = client_for(ref, cfg.endpoints(), cfg.agent_timeout)
+    return OpenAICompat(ref, client, cfg.agent_reasoning_effort(agent))
 
 
 def build_runner(api: Api) -> Runner:
-    """The agents and the models they run on: planning on the runner's default model, conclusions
-    on its own, each with its own prices."""
+    """Every agent with the model it runs on: each has its own, so the name sweep can run on a
+    small model and the conclusions on a larger one."""
     from agent.conclusions import ConclusionsAgent
     from agent.planning import PlanningAgent
+    from agent.redaction import RedactionAgent
 
     cfg = api.settings
-    runner = Runner(
-        api.db,
-        agent_model(cfg, "planning"),
-        Prices(**cfg.prices("planning").model_dump()),
-        api.logger,
-        PlanningAgent(),
-    )
-    runner.bind(
-        ConclusionsAgent(),
-        agent_model(cfg, "conclusions"),
-        Prices(**cfg.prices("conclusions").model_dump()),
-    )
+    runner = Runner(api.db, api.logger)
+    for agent in (PlanningAgent(), RedactionAgent(), ConclusionsAgent()):
+        runner.bind(agent, agent_model(cfg, agent.name))
     return runner
 
 
@@ -101,7 +92,15 @@ def default_registry(api: Api, runner: Runner | None = None) -> Registry:
     stt_client = SttClient(
         cfg.transcribe_openrouter_api_key, cfg.transcribe_model, logger=api.logger
     )
-    transcribe = voice_note_transcribe(stt_client)
+    # A saved transcript queues its name sweep, but only when the sweep has a model: without one
+    # every sweep would fail, and the note simply stays pending until one is configured (the
+    # conclusions endpoint queues pending notes again).
+    after: list[AfterTranscript] = []
+    if cfg.agent_ready("redaction"):
+        from agent.redaction import queue_after_transcript
+
+        after.append(queue_after_transcript)
+    transcribe = voice_note_transcribe(stt_client, *after)
 
     async def transcribe_job(conn: AsyncConnection[DictRow], job: Job) -> None:
         await transcribe(conn, job.id, job.payload)

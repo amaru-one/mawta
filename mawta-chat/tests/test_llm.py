@@ -121,7 +121,7 @@ async def test_stream_assembles_text_and_tool_calls():
 async def test_a_plain_answer_has_no_tool_calls():
     fake = FakeClient([chunk({"content": "Hola"}, finish="stop")])
     llm = OpenAICompatLLM(
-        cast(AsyncOpenAI, cast(object, fake)), parse("ollama:gemma4:12b-it-qat"), 10
+        cast(AsyncOpenAI, cast(object, fake)), parse("local:gemma4:12b-it-qat"), 10
     )
 
     turn = await llm.respond("s", [], [], lambda _: None)
@@ -133,7 +133,7 @@ async def test_a_plain_answer_has_no_tool_calls():
 
 async def test_reasoning_effort_is_sent_only_when_set():
     fake = FakeClient([chunk({"content": "Hola"}, finish="stop")])
-    llm = OpenAICompatLLM(cast(AsyncOpenAI, cast(object, fake)), parse("ollama:m"), 10, "none")
+    llm = OpenAICompatLLM(cast(AsyncOpenAI, cast(object, fake)), parse("local:m"), 10, "none")
 
     await llm.respond("s", [], [], lambda _: None)
 
@@ -141,8 +141,8 @@ async def test_reasoning_effort_is_sent_only_when_set():
 
 
 def test_chat_model_must_be_provider_model():
-    cfg = Settings(**BASE, chat_model="ollama:gemma4:12b-it-qat")
-    assert str(cfg.model_ref()) == "ollama:gemma4:12b-it-qat"
+    cfg = Settings(**BASE, chat_model="local:gemma4:12b-it-qat")
+    assert str(cfg.model_ref()) == "local:gemma4:12b-it-qat"
     for bad in ("gemma4", "anthropic:claude"):
         with pytest.raises(ValidationError):
             Settings(**BASE, chat_model=bad)

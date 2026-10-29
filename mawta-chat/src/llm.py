@@ -1,7 +1,8 @@
 """The model behind the chat, behind a small interface so tests can swap it.
 
-It speaks the OpenAI-compatible chat completions API, so the same code runs on a local Ollama or on
-OpenRouter: CHAT_MODEL says which ("ollama:gemma4:12b-it-qat", "openrouter:qwen/qwen3-30b-a3b").
+It speaks the OpenAI-compatible chat completions API, so the same code runs on the school's own
+model server (Ollama, vLLM: "local") or on OpenRouter: CHAT_MODEL says which
+("local:gemma4:12b-it-qat", "openrouter:qwen/qwen3-30b-a3b").
 """
 
 from collections.abc import Callable

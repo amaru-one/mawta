@@ -175,8 +175,9 @@ on top of it:
   and at risk of repeating the grade (C in every competency of five áreas), plus
   inclusion support and one student who joined in T-II. `seed/demo/PERFILES.md`
   is the answer key: each student's profile, C counts and consecutive C.
-- **Voice notes, text only.** No audio (the audio route answers 404). Every note
-  is transcribed, and the conclusions agent reads it as the teacher said it.
+- **Voice notes, text only.** No audio (the audio route answers 404). T-I and T-II
+  notes are already swept and attributed; T-III notes are pending, for the
+  redaction agent.
 
 The three files are generated; do not edit them by hand. Change the generator or
 the content in `seed/demo/contenido/<AREA>.json` (one file per área: experiences,

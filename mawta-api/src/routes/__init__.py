@@ -56,6 +56,8 @@ def _teacher_routes() -> list[tuple[str, str, Handler]]:
         ("GET", "/voice-notes/{voiceNoteID}/audio", sessions.handle_voice_note_audio),
         ("POST", "/voice-notes/{voiceNoteID}/save", sessions.handle_voice_note_save),
         ("POST", "/voice-notes/{voiceNoteID}/discard", sessions.handle_voice_note_discard),
+        ("POST", "/voice-notes/{voiceNoteID}/reassign", sessions.handle_voice_note_reassign),
+        ("POST", "/voice-notes/{voiceNoteID}/confirm", sessions.handle_voice_note_confirm),
         ("POST", "/assessments/{assessmentID}/scores", evidences.handle_create_score),
         ("POST", "/scores/{scoreID}/correct", evidences.handle_correct_score),
         # Niveles de logro: the official MINEDU record (RVM 094-2020 / 048-2024).
@@ -158,6 +160,11 @@ def _teacher_routes() -> list[tuple[str, str, Handler]]:
             "GET",
             "/classes/{classID}/students/{studentID}/conclusions/generation",
             generations.handle_latest_conclusion_generation,
+        ),
+        (
+            "GET",
+            "/classes/{classID}/students/{studentID}/voice-notes/discarded",
+            generations.handle_discarded_voice_notes,
         ),
         ("GET", "/notifications", notifications.handle_list_notifications),
         (

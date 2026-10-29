@@ -3,6 +3,7 @@ import type {
 	AssertCompetencyLevelDto,
 	CompetencyLevelsDto,
 	ConclusionCreateDto,
+	DiscardedVoiceNotesDto,
 	GenerationDto,
 	LatestConclusionGenerationDto,
 } from '../dto';
@@ -76,5 +77,18 @@ export function getLatestConclusionGeneration(
 	if (termId) params.set('term_id', termId);
 	return apiGet<LatestConclusionGenerationDto>(
 		`/classes/${classId}/students/${studentId}/conclusions/generation?${params}`
+	);
+}
+
+// The student's voice notes the name sweep discarded, only when they are all
+// the student has this term (otherwise an empty list).
+export function getDiscardedVoiceNotes(
+	classId: string,
+	studentId: string,
+	termId?: string
+): Promise<DiscardedVoiceNotesDto> {
+	const qs = termId ? `?term_id=${termId}` : '';
+	return apiGet<DiscardedVoiceNotesDto>(
+		`/classes/${classId}/students/${studentId}/voice-notes/discarded${qs}`
 	);
 }

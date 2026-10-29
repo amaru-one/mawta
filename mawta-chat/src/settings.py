@@ -18,12 +18,14 @@ class Settings(BaseSettings):
     # {"kid": "<base64 Ed25519 public key>"} — the keys mawta-server signs the
     # director's chat token with (chat-director D002).
     chat_token_public_keys: dict[str, str]
-    # The chat's model as "provider:model", e.g. "ollama:gemma4:12b-it-qat" or
+    # The chat's model as "provider:model", e.g. "local:gemma4:12b-it-qat" or
     # "openrouter:qwen/qwen3-30b-a3b" (see providers.py).
     chat_model: str
 
-    ollama_url: str = "http://127.0.0.1:11434/v1"
-    ollama_api_key: SecretStr = SecretStr("")
+    # The school's own model server ("local"): Ollama on a laptop, Ollama or vLLM on a DGX Spark
+    # or a cloud GPU server.
+    local_llm_url: str = "http://127.0.0.1:11434/v1"
+    local_llm_api_key: SecretStr = SecretStr("")
     openrouter_url: str = "https://openrouter.ai/api/v1"
     openrouter_api_key: SecretStr = SecretStr("")
 
@@ -58,8 +60,8 @@ class Settings(BaseSettings):
 
     def endpoints(self) -> Endpoints:
         return Endpoints(
-            ollama_url=self.ollama_url,
-            ollama_api_key=self.ollama_api_key.get_secret_value(),
+            local_url=self.local_llm_url,
+            local_api_key=self.local_llm_api_key.get_secret_value(),
             openrouter_url=self.openrouter_url,
             openrouter_api_key=self.openrouter_api_key.get_secret_value(),
         )

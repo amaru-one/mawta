@@ -2,7 +2,7 @@
 
 The director chat service: a school director asks questions about their school and gets answers built from Mawta's data, streamed over Server-Sent Events.
 
-Python 3.14, FastAPI, LangGraph and an open model through any OpenAI-compatible provider (a local Ollama or OpenRouter, `CHAT_MODEL=provider:model`), managed with [`uv`](https://docs.astral.sh/uv/). It is a separate service from `mawta-api` (Python) and shares only:
+Python 3.14, FastAPI, LangGraph and an open model through any OpenAI-compatible provider (the school's own model server — Ollama or vLLM, on a laptop, a DGX Spark or a cloud server — or OpenRouter, `CHAT_MODEL=provider:model`), managed with [`uv`](https://docs.astral.sh/uv/). It is a separate service from `mawta-api` (Python) and shares only:
 
 - **the login** — the director signs in to Mawta, and `mawta-api` issues a short-lived chat token (`GET /api/v1/auth/chat-token`, Ed25519). This service only verifies it with the public key;
 - **the `mawta` database** — connected as the `mawta_chat` role, which can read only the `chat_api` views and write only the `chat` schema (migration `00006`). Postgres RLS limits every query to the director's school and chats.
@@ -18,7 +18,7 @@ LangGraph's checkpoints (the conversation state of each chat) live in their own 
 | `src/db.py` | `mawta_chat` pool; `tenant_tx` sets `app.tenant_id` / `app.actor_id` per transaction |
 | `src/graph.py` | LangGraph graph (agent ↔ tools) and the system prompt |
 | `src/llm.py` | The model through the OpenAI-compatible API (streaming, tool calls), behind a small interface |
-| `src/providers.py` | `provider:model`: which provider (Ollama or OpenRouter) a model runs on |
+| `src/providers.py` | `provider:model`: which provider (`local` or `openrouter`) a model runs on |
 | `src/tools.py` | The chat's tools (reads `chat_api` only) |
 | `src/protocol.py` | Protocol v1 events streamed to the UI |
 | `src/repo.py` | Queries on the `chat` schema |

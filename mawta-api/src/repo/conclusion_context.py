@@ -13,6 +13,11 @@ from db import fetch_all, fetch_one, fetch_required
 from repo.competencies import conclusion_requirement as requirement_of
 from repo.competencies import expected_standards, stage_and_cycle
 from repo.planning import MIN_CONCLUSION_EVIDENCES
+from repo.redaction import (
+    ATTRIBUTION_DISCARDED,
+    ATTRIBUTION_PENDING,
+    student_names,
+)
 from repo.roster import roster_as_of
 
 __all__ = ["MIN_CONCLUSION_EVIDENCES"]
@@ -171,13 +176,14 @@ async def list_conclusion_evidence(
 async def list_conclusion_voice_notes(
     conn: AsyncConnection[DictRow], class_id: UUID, student_id: UUID, term_id: UUID
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    """The student's transcribed voice notes of the class in the term, oldest first, and how many
-    are still being transcribed. Returns (notes, {"pending": n}). Failed or skipped
-    transcriptions are not in process, just absent."""
+    """The student's swept, usable voice notes of the class in the term, oldest first, and counts
+    of the discarded ones and the ones not swept yet (still transcribing or waiting for the
+    sweep). Returns (notes, {"discarded": n, "pending": n})."""
     rows = await fetch_all(
         conn,
         """
-        select vn.id, vn.recorded_at, cs.topic as session_topic, vn.transcript,
+        select vn.id, vn.recorded_at, cs.topic as session_topic,
+               vn.transcript_redacted as redacted, vn.attribution_status as status,
                vn.transcription_status as transcription
           from voice_notes vn
           join class_sessions cs on cs.id = vn.session_id
@@ -187,21 +193,46 @@ async def list_conclusion_voice_notes(
         """,
         (class_id, student_id, term_id),
     )
-    counts = {"pending": 0}
+    counts = {"discarded": 0, "pending": 0}
     out: list[dict[str, Any]] = []
     for r in rows:
-        if r["transcription"] in ("pending", "queued", "processing"):
-            counts["pending"] += 1
-        elif r["transcription"] == "completed" and r["transcript"]:
+        if r["status"] == ATTRIBUTION_DISCARDED:
+            counts["discarded"] += 1
+        elif r["status"] == ATTRIBUTION_PENDING:
+            # Failed or skipped transcriptions will never be swept: they are not "in process",
+            # just absent.
+            if r["transcription"] not in ("failed", "skipped"):
+                counts["pending"] += 1
+        elif r["redacted"]:
             out.append(
                 {
                     "id": r["id"],
                     "recorded_at": r["recorded_at"],
                     "session_topic": r["session_topic"],
-                    "transcript": r["transcript"],
+                    "transcript_redacted": r["redacted"],
                 }
             )
     return out, counts
+
+
+async def list_discarded_voice_notes(
+    conn: AsyncConnection[DictRow], class_id: UUID, student_id: UUID, term_id: UUID
+) -> list[dict[str, Any]]:
+    """The student's discarded notes in a class and term, newest first. Shown to the teacher only
+    when discarding them leaves too little evidence; the teacher recorded them, so the original
+    transcript is shown."""
+    return await fetch_all(
+        conn,
+        """
+        select vn.id, vn.recorded_at, vn.duration_ms, vn.transcript, vn.discard_reason
+          from voice_notes vn
+          join class_sessions cs on cs.id = vn.session_id
+         where vn.class_id = %s and vn.student_id = %s and cs.term_id = %s
+           and vn.deleted_at is null and vn.attribution_status = 'discarded'
+         order by vn.recorded_at desc, vn.id
+        """,
+        (class_id, student_id, term_id),
+    )
 
 
 async def list_earlier_term_conclusions(
@@ -241,21 +272,3 @@ async def roster_names(
     final check that a proposed conclusion names no one."""
     ids = await roster_as_of(conn, class_id, today)
     return await student_names(conn, [*ids, student_id])
-
-
-async def student_names(conn: AsyncConnection[DictRow], ids: list[UUID]) -> list[dict[str, Any]]:
-    """Names as the school recorded them, ordered by surname."""
-    return await fetch_all(
-        conn,
-        """
-        select id, given_name, preferred_name, paternal_surname, maternal_surname
-          from students where id = any(%s::uuid[]) and deleted_at is null
-         order by paternal_surname, maternal_surname, given_name, id
-        """,
-        (ids,),
-    )
-
-
-async def current_tenant_id(conn: AsyncConnection[DictRow]) -> UUID:
-    row = await fetch_required(conn, "select app.current_tenant_id() as id")
-    return row["id"]

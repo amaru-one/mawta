@@ -13,7 +13,7 @@ from typing import Any
 import pytest
 
 from agent import MAX_ATTEMPTS
-from agent.llm import LLMError, Model, Prices, Request, Response, Usage
+from agent.llm import LLMError, Model, Request, Response, Usage
 from agent.llm.fake import Fake, FakeReply
 from agent.planning import PlanningAgent
 from agent.runner import MSG_INVALID_ANSWER, MSG_RETRY_LATER, Outcome, Runner
@@ -33,7 +33,7 @@ from tests.test_planning import teacher as teacher  # noqa: F401
 @pytest.fixture
 async def agent_client(make_client: MakeClient):
     return await make_client(
-        planning_agent_model="ollama:test-model", conclusions_agent_model="ollama:test-model"
+        planning_agent_model="local:test-model", conclusions_agent_model="local:test-model"
     )
 
 
@@ -44,8 +44,7 @@ async def gplanner(agent_client: Client, teacher: str, class_id: uuid.UUID):
 
 def new_runner(client: Client, model: Model) -> Runner:
     api = client.app.state.api
-    prices = Prices(input_per_mtok=3, output_per_mtok=15)
-    return Runner(api.db, model, prices, api.logger, PlanningAgent())
+    return Runner(api.db, api.logger).bind(PlanningAgent(), model)
 
 
 async def run_job(
@@ -152,12 +151,11 @@ async def test_experience_proposal_from_an_idea(
     await p.call("POST", f"/api/v1/classes/{p.class_id}/experiences", saved, 201)
 
     cur = await admin.execute(
-        "select input_tokens + output_tokens as tokens, cost_usd from agent_generations"
-        " where id = %s",
+        "select input_tokens + output_tokens as tokens from agent_generations where id = %s",
         (gen["id"],),
     )
     row = returned(await cur.fetchone())
-    assert row["tokens"] == 1500 and row["cost_usd"] > 0
+    assert row["tokens"] == 1500
 
 
 async def test_generate_criteria_fills_only_gaps(gplanner: Planner, agent_client: Client):

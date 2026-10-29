@@ -1,5 +1,6 @@
-"""Unit tests of the pieces around the agents: the conclusion guard, the OpenAI-compatible
-client (providers, schema, answers, errors), the STT client and the transcribe handler."""
+"""Unit tests of the pieces around the agents: redaction replace, the conclusion guard, the
+OpenAI-compatible client (providers, schema, answers, errors), the STT client and the
+transcribe handler."""
 
 import base64
 import json
@@ -19,11 +20,18 @@ from agent.conclusions.guard import guard, name_words
 from agent.llm import LLMError
 from agent.llm.openai_compat import OpenAICompat, classify, read_completion, strict_schema
 from agent.llm.providers import Endpoints, configured, extra_body, parse
+from agent.redaction.replace import Fragment, LocateError, attribution, locate, redact
 from db import returned
+from repo import redaction as rrepo
 from stt import Client, SttError, SttPermanentError
 from tests.conftest import Admin
 from tests.conftest import Client as AppClient
 from worker.handlers.transcribe import voice_note_transcribe
+
+
+def frag(text: str, refers_to: str = "other_person", key: str = "") -> Fragment:
+    return Fragment(text, refers_to, key)
+
 
 # ------------------------------------------------------------- conclusion material --
 
@@ -58,6 +66,48 @@ def test_render_says_when_there_is_no_standard():
 
     text, _ = render(_material(None))
     assert "Expected standard: not available for this competency." in text
+
+
+# ------------------------------------------------------------- redaction --
+
+
+def test_locate_whole_words_longest_first_and_case_folded():
+    transcript = "La mamá de Lucía vino. lucía habló con Juan."
+    spans = locate(transcript, [frag("Lucía"), frag("la mamá de Lucía"), frag("Juan")])
+    assert [transcript[s.start : s.end] for s in spans] == ["La mamá de Lucía", "lucía", "Juan"]
+
+
+def test_locate_ignores_substrings_and_fails_on_missing_text():
+    with pytest.raises(LocateError):
+        locate("Anita vino", [frag("Ana")])
+    with pytest.raises(LocateError):
+        locate("hola", [frag("Pedro")])
+
+
+def test_redact_numbers_classmates_by_first_appearance():
+    transcript = "Luis y Marta ayudaron a Sofía; luego Luis se fue."
+    frags = [
+        frag("Sofía", "assigned_student"),
+        frag("Luis", "classmate", "S1"),
+        frag("Marta", "classmate", "S2"),
+    ]
+    spans = locate(transcript, frags)
+    text, tokens = redact(transcript, spans)
+    assert (
+        text == "[COMPAÑERO_1] y [COMPAÑERO_2] ayudaron a [ESTUDIANTE]; luego [COMPAÑERO_1] se fue."
+    )
+    assert tokens == ["[COMPAÑERO_1]", "[COMPAÑERO_2]", "[ESTUDIANTE]", "[COMPAÑERO_1]"]
+
+
+def test_attribution_rules():
+    other = locate("Luis ayudó", [frag("Luis", "classmate", "S1")])
+    assert attribution(other, False, False) == (
+        rrepo.ATTRIBUTION_DISCARDED,
+        rrepo.DISCARD_MENTIONS_OTHER_STUDENT,
+    )
+    assert attribution(other, False, True) == (rrepo.ATTRIBUTION_REASSIGNED, None)
+    assert attribution([], True, True) == (rrepo.ATTRIBUTION_DISCARDED, rrepo.DISCARD_UNREADABLE)
+    assert attribution([], False, False) == (rrepo.ATTRIBUTION_OK, None)
 
 
 # ----------------------------------------------------------------- guard --
@@ -115,30 +165,30 @@ def test_classify_provider_errors():
 
 
 def test_parse_provider_model():
-    ref = parse("ollama:gemma4:12b-it-qat")
-    assert (ref.provider, ref.model) == ("ollama", "gemma4:12b-it-qat")
-    assert str(ref) == "ollama:gemma4:12b-it-qat"
+    ref = parse("local:gemma4:12b-it-qat")
+    assert (ref.provider, ref.model) == ("local", "gemma4:12b-it-qat")
+    assert str(ref) == "local:gemma4:12b-it-qat"
     ref = parse(" openrouter:qwen/qwen3-30b-a3b ")
     assert (ref.provider, ref.model) == ("openrouter", "qwen/qwen3-30b-a3b")
-    for bad in ("gemma4", "ollma:gemma4", "ollama:", ":gemma4"):
+    for bad in ("gemma4", "ollama:gemma4", "local:", ":gemma4"):
         with pytest.raises(ValueError):
             parse(bad)
 
 
 def test_provider_configured_and_extra_body():
     ep = Endpoints(
-        ollama_url="http://127.0.0.1:11434/v1",
-        ollama_api_key="",
+        local_url="http://127.0.0.1:11434/v1",
+        local_api_key="",
         openrouter_url="https://openrouter.ai/api/v1",
         openrouter_api_key="",
     )
-    assert configured(parse("ollama:x"), ep)
+    assert configured(parse("local:x"), ep)
     assert not configured(parse("openrouter:x"), ep)  # no key
-    keyed = Endpoints(ep.ollama_url, "", ep.openrouter_url, "k")
+    keyed = Endpoints(ep.local_url, "", ep.openrouter_url, "k")
     assert configured(parse("openrouter:x"), keyed)
     assert extra_body(parse("openrouter:x")) == {"provider": {"require_parameters": True}}
-    assert extra_body(parse("ollama:x")) is None
-    assert extra_body(parse("ollama:x"), "none") == {"reasoning_effort": "none"}
+    assert extra_body(parse("local:x")) is None
+    assert extra_body(parse("local:x"), "none") == {"reasoning_effort": "none"}
 
 
 def _completion(
@@ -196,10 +246,22 @@ def test_settings_validate_agent_models():
 
     from settings import Settings
 
-    cfg = Settings(database_url="postgres://x", planning_agent_model="ollama:gemma4:12b-it-qat")
+    cfg = Settings(
+        database_url="postgres://x",
+        planning_agent_model="local:gemma4:12b-it-qat",
+        redaction_agent_model="openrouter:qwen/qwen3-8b",
+        redaction_agent_reasoning_effort="none",
+    )
     ref = cfg.agent_model("planning")
-    assert ref is not None and str(ref) == "ollama:gemma4:12b-it-qat"
+    assert ref is not None and str(ref) == "local:gemma4:12b-it-qat"
+    assert cfg.agent_ready("planning")
+    # each agent has its own model: the sweep's is not the planner's, and needs its own key
+    assert str(cfg.agent_model("redaction")) == "openrouter:qwen/qwen3-8b"
+    assert not cfg.agent_ready("redaction")
+    assert cfg.agent_reasoning_effort("redaction") == "none"
+    assert cfg.agent_reasoning_effort("planning") == ""
     assert cfg.agent_model("conclusions") is None  # empty: that agent is unavailable
+    assert not cfg.agent_ready("conclusions")
     with pytest.raises(ValidationError):
         Settings(database_url="postgres://x", conclusions_agent_model="gemma4")
 

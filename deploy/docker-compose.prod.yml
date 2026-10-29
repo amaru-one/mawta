@@ -53,13 +53,19 @@ services:
       # missing key doesn't block deploys; transcribe jobs fail until it's set.
       TRANSCRIBE_OPENROUTER_API_KEY: ${TRANSCRIBE_OPENROUTER_API_KEY:-}
       # Mawta's agents ("✦ Generar con Mawta"), on open models through any
-      # OpenAI-compatible provider. Each agent names its model as
-      # "provider:model" (ollama or openrouter); the demo droplet uses
-      # OpenRouter. Optional: without a model the generation routes answer
-      # agent_unavailable and teachers plan by hand.
+      # OpenAI-compatible provider. Every agent names its own model as
+      # "provider:model": local (the school's model server) or openrouter; the
+      # demo droplet uses OpenRouter. Optional: without a model an agent's
+      # routes answer agent_unavailable and teachers work by hand.
+      LOCAL_LLM_URL: ${LOCAL_LLM_URL:-}
+      LOCAL_LLM_API_KEY: ${LOCAL_LLM_API_KEY:-}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       PLANNING_AGENT_MODEL: ${PLANNING_AGENT_MODEL:-}
+      PLANNING_AGENT_REASONING_EFFORT: ${PLANNING_AGENT_REASONING_EFFORT:-}
+      REDACTION_AGENT_MODEL: ${REDACTION_AGENT_MODEL:-}
+      REDACTION_AGENT_REASONING_EFFORT: ${REDACTION_AGENT_REASONING_EFFORT:-}
       CONCLUSIONS_AGENT_MODEL: ${CONCLUSIONS_AGENT_MODEL:-}
+      CONCLUSIONS_AGENT_REASONING_EFFORT: ${CONCLUSIONS_AGENT_REASONING_EFFORT:-}
       # The director's token for the chat service (GET /api/v1/auth/chat-token).
       # Generate with `uv run chatkey --kid k1` (in mawta-api). Optional: without it the
       # route answers chat_unavailable; a set but invalid key stops the API
@@ -98,6 +104,9 @@ services:
       # "provider:model", e.g. openrouter:<model>; an openrouter model needs
       # OPENROUTER_API_KEY or the service refuses to start.
       CHAT_MODEL: ${CHAT_MODEL:?set CHAT_MODEL in .env}
+      CHAT_REASONING_EFFORT: ${CHAT_REASONING_EFFORT:-}
+      LOCAL_LLM_URL: ${LOCAL_LLM_URL:-}
+      LOCAL_LLM_API_KEY: ${LOCAL_LLM_API_KEY:-}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
     # A small droplet (2 GB, 1 CPU): the chat must not starve Postgres or the API.
     mem_limit: 512m

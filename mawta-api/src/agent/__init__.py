@@ -1,13 +1,13 @@
 """The shared base of Mawta's agents.
 
-Mawta runs several narrow agents (planning, descriptive conclusions) and none
+Mawta runs several narrow agents (planning, descriptive conclusions, a redaction sweep) and none
 of them acts on its own: each generation is one bounded model call over data the server chose,
 answered by filling a fixed schema, and the server validates that answer and decides what is
 stored. What an agent proposes is saved as pending until the teacher accepts or edits it.
 
 This package owns what every agent repeats: the generation lifecycle in agent_generations, the
 model call outside any database transaction, retries, a one-time repair of an invalid answer,
-deadlines, usage and cost accounting. An agent only supplies what is its own: what context it
+deadlines and usage accounting. An agent only supplies what is its own: what context it
 reads (prepare), what it asks (the Spec), and how it validates and stores the answer (apply).
 """
 

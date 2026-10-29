@@ -1,8 +1,8 @@
 """The last check before a proposal reaches a teacher (and, once saved, SIAGIE): no replacement
 token and no name of a student on the roster may appear in the text.
 
-Voice notes and score feedback reach the model as the teacher wrote or said them, names
-included, so this check is what keeps every name out of the conclusion.
+It is not a redaction method (the sweep already ran on the voice notes) but a net for whatever
+slipped through, including names the teacher wrote in a score's feedback.
 """
 
 import re

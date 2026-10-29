@@ -26,7 +26,8 @@ EXPIRED_GENERATION_MESSAGE = (
 )
 
 _COLUMNS = """
-    id, agent, kind, class_id, experience_id, student_id, competency_id, term_id, requested_by, target_key, status, input, result, error, attempts, deadline_at, created_at,
+    id, agent, kind, class_id, experience_id, student_id, competency_id, term_id, voice_note_id,
+    requested_by, target_key, status, input, result, error, attempts, deadline_at, created_at,
     finished_at"""
 
 
@@ -39,7 +40,7 @@ def expired(gen: dict[str, Any], now: datetime | None = None) -> bool:
 
 @dataclass
 class Usage:
-    """What the model calls of one attempt cost. Added to the generation's totals, so retries
+    """The tokens the model calls of one attempt used. Added to the generation's totals, so retries
     are counted too."""
 
     model: str = ""
@@ -48,7 +49,6 @@ class Usage:
     output_tokens: int = 0
     cache_read_tokens: int = 0
     cache_write_tokens: int = 0
-    cost_usd: float = 0.0
 
     def params(self) -> dict[str, Any]:
         return {
@@ -58,7 +58,6 @@ class Usage:
             "output": self.output_tokens,
             "cache_read": self.cache_read_tokens,
             "cache_write": self.cache_write_tokens,
-            "cost": self.cost_usd,
         }
 
 
@@ -68,8 +67,7 @@ _ADD_USAGE = """
     input_tokens = input_tokens + %(input)s,
     output_tokens = output_tokens + %(output)s,
     cache_read_tokens = cache_read_tokens + %(cache_read)s,
-    cache_write_tokens = cache_write_tokens + %(cache_write)s,
-    cost_usd = cost_usd + %(cost)s"""
+    cache_write_tokens = cache_write_tokens + %(cache_write)s"""
 
 
 async def create_generation(
@@ -85,6 +83,7 @@ async def create_generation(
     student_id: UUID | None = None,
     competency_id: UUID | None = None,
     term_id: UUID | None = None,
+    voice_note_id: UUID | None = None,
     input: dict[str, Any] | None = None,  # noqa: A002
 ) -> tuple[dict[str, Any], bool]:
     """Record a request, or return the one already in flight for the same target
@@ -96,9 +95,9 @@ async def create_generation(
         f"""
         insert into agent_generations
           (tenant_id, agent, kind, class_id, experience_id, student_id, competency_id, term_id,
-           requested_by, target_key, input, deadline_at)
+           voice_note_id, requested_by, target_key, input, deadline_at)
         values (app.current_tenant_id(), %(agent)s, %(kind)s, %(class)s, %(exp)s, %(student)s,
-                %(comp)s, %(term)s, %(by)s, %(key)s, %(input)s,
+                %(comp)s, %(term)s, %(note)s, %(by)s, %(key)s, %(input)s,
                 now() + make_interval(secs => %(secs)s))
         on conflict (tenant_id, target_key) where status in ('pending', 'running') do nothing
         returning {_COLUMNS}
@@ -111,6 +110,7 @@ async def create_generation(
             "student": student_id,
             "comp": competency_id,
             "term": term_id,
+            "note": voice_note_id,
             "by": requested_by,
             "key": target_key,
             "input": jsonb(input if input is not None else {}),
@@ -180,7 +180,7 @@ async def record_generation_usage(
     conn: AsyncConnection[DictRow], generation_id: UUID, usage: Usage
 ) -> None:
     """Add an attempt's usage without finishing the generation: a transient failure that will be
-    retried still cost money."""
+    retried still used tokens."""
     await conn.execute(
         f"update agent_generations set {_ADD_USAGE} where id = %(id)s",
         {**usage.params(), "id": generation_id},
