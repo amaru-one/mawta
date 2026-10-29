@@ -12,6 +12,8 @@ from typing import Annotated, Any, ClassVar
 from pydantic import BeforeValidator, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
+from agent.llm.providers import REASONING_EFFORTS, Endpoints, ModelRef, configured, parse
+
 _DURATION_PART = re.compile(r"(\d+(?:\.\d+)?)(ns|us|µs|ms|s|m|h)")
 _UNIT_SECONDS = {
     "ns": 1e-9,
@@ -41,15 +43,6 @@ def parse_duration(value: Any) -> float:
 Duration = Annotated[float, BeforeValidator(parse_duration)]
 
 
-class AgentPrices(BaseSettings):
-    """One agent model's prices in US dollars per million tokens."""
-
-    input_per_mtok: float = 0
-    output_per_mtok: float = 0
-    cache_read_per_mtok: float = 0
-    cache_write_per_mtok: float = 0
-
-
 class Settings(BaseSettings):
     model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
         env_file=".env", extra="ignore", env_ignore_empty=True, populate_by_name=True
@@ -67,27 +60,33 @@ class Settings(BaseSettings):
     log_level: str = "info"
     request_body_capture: bool = False
 
-    transcribe_openrouter_api_key: str = ""
+    # Voice-note transcription: Whisper through OpenRouter, with OPENROUTER_API_KEY (below).
     transcribe_model: str = "openai/whisper-large-v3"
 
-    anthropic_api_key: SecretStr = SecretStr("")
-    planning_agent_model: str = "claude-sonnet-5-5"
-    agent_timeout: Duration = 90.0
-    agent_price_input_per_mtok: float = 0
-    agent_price_output_per_mtok: float = 0
-    agent_price_cache_read_per_mtok: float = 0
-    agent_price_cache_write_per_mtok: float = 0
+    # Where the agents' models run (see agent/llm/providers.py). Every agent names its own model as
+    # "provider:model": "local:<model>" is the school's model server (Ollama, vLLM… on a DGX Spark
+    # or a cloud server), "openrouter:<model>" is OpenRouter. Agents never share a model setting:
+    # an empty one makes that agent unavailable and its routes answer agent_unavailable.
+    local_llm_url: str = "http://127.0.0.1:11434/v1"
+    local_llm_api_key: SecretStr = SecretStr("")
+    openrouter_url: str = "https://openrouter.ai/api/v1"
+    # One OpenRouter account for everything that uses it: the voice-note transcription always,
+    # and any agent whose model is "openrouter:...". A school running only local models needs it
+    # for transcription alone.
+    openrouter_api_key: SecretStr = SecretStr("")
 
-    redaction_agent_model: str = "claude-haiku-5-5"
-    redaction_agent_price_input_per_mtok: float = 0
-    redaction_agent_price_output_per_mtok: float = 0
-    redaction_agent_price_cache_read_per_mtok: float = 0
-    redaction_agent_price_cache_write_per_mtok: float = 0
-    conclusions_agent_model: str = "claude-sonnet-5-5"
-    conclusions_agent_price_input_per_mtok: float = 0
-    conclusions_agent_price_output_per_mtok: float = 0
-    conclusions_agent_price_cache_read_per_mtok: float = 0
-    conclusions_agent_price_cache_write_per_mtok: float = 0
+    planning_agent_model: str = ""
+    redaction_agent_model: str = ""
+    conclusions_agent_model: str = ""
+    # Sent to each agent's model only when set. "none" stops a model that reasons first (gemma4,
+    # qwen3) from spending its token budget on hidden reasoning.
+    planning_agent_reasoning_effort: str = ""
+    redaction_agent_reasoning_effort: str = ""
+    conclusions_agent_reasoning_effort: str = ""
+    # One model call (AGENT_TIMEOUT) and a whole generation, repair round included
+    # (AGENT_DEADLINE). A slow local model needs both raised.
+    agent_timeout: Duration = 90.0
+    agent_deadline: Duration = 300.0
 
     session_cookie_name: str = "mawta_session"
     # Fails closed: Secure unless a dev .env turns it off.
@@ -112,24 +111,22 @@ class Settings(BaseSettings):
         return value
 
     @field_validator(
-        "agent_price_input_per_mtok",
-        "agent_price_output_per_mtok",
-        "agent_price_cache_read_per_mtok",
-        "agent_price_cache_write_per_mtok",
-        "redaction_agent_price_input_per_mtok",
-        "redaction_agent_price_output_per_mtok",
-        "redaction_agent_price_cache_read_per_mtok",
-        "redaction_agent_price_cache_write_per_mtok",
-        "conclusions_agent_price_input_per_mtok",
-        "conclusions_agent_price_output_per_mtok",
-        "conclusions_agent_price_cache_read_per_mtok",
-        "conclusions_agent_price_cache_write_per_mtok",
+        "planning_agent_reasoning_effort",
+        "redaction_agent_reasoning_effort",
+        "conclusions_agent_reasoning_effort",
     )
     @classmethod
-    def _non_negative(cls, value: float) -> float:
-        if value < 0:
-            raise ValueError("price must not be negative")
+    def _reasoning_effort(cls, value: str) -> str:
+        if value not in REASONING_EFFORTS:
+            raise ValueError(f"must be one of {REASONING_EFFORTS[1:]} or empty")
         return value
+
+    @field_validator("planning_agent_model", "redaction_agent_model", "conclusions_agent_model")
+    @classmethod
+    def _provider_model(cls, value: str) -> str:
+        if value.strip():
+            parse(value)  # raises with a message naming the expected format
+        return value.strip()
 
     @model_validator(mode="after")
     def _check(self) -> "Settings":
@@ -155,14 +152,27 @@ class Settings(BaseSettings):
         host, _, port = self.http_addr.rpartition(":")
         return (host or "0.0.0.0", int(port))
 
-    def prices(self, which: str) -> AgentPrices:
-        """Prices for "agent" (planning), "redaction" or "conclusions"."""
-        prefix = "agent" if which == "planning" else which + "_agent"
-        return AgentPrices(
-            input_per_mtok=getattr(self, f"{prefix}_price_input_per_mtok"),
-            output_per_mtok=getattr(self, f"{prefix}_price_output_per_mtok"),
-            cache_read_per_mtok=getattr(self, f"{prefix}_price_cache_read_per_mtok"),
-            cache_write_per_mtok=getattr(self, f"{prefix}_price_cache_write_per_mtok"),
+    def agent_model(self, agent: str) -> ModelRef | None:
+        """The model of one agent ("planning", "redaction", "conclusions"), or None when it has
+        none."""
+        value: str = getattr(self, f"{agent}_agent_model")
+        return parse(value) if value else None
+
+    def agent_ready(self, agent: str) -> bool:
+        """The agent has a model and its provider has what it needs (an address for the local
+        server, a key for OpenRouter)."""
+        ref = self.agent_model(agent)
+        return ref is not None and configured(ref, self.endpoints())
+
+    def agent_reasoning_effort(self, agent: str) -> str:
+        return getattr(self, f"{agent}_agent_reasoning_effort")
+
+    def endpoints(self) -> Endpoints:
+        return Endpoints(
+            local_url=self.local_llm_url,
+            local_api_key=self.local_llm_api_key.get_secret_value(),
+            openrouter_url=self.openrouter_url,
+            openrouter_api_key=self.openrouter_api_key.get_secret_value(),
         )
 
 

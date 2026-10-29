@@ -30,7 +30,7 @@ services:
     ports:
       - '8080:8080'
     env_file:
-      - ./mawta-api/.env # picks up TRANSCRIBE_OPENROUTER_API_KEY; environment: below overrides the rest for the containerized DB host
+      - ./mawta-api/.env # the agents' models and keys (see mawta-api/.env.example); environment: below overrides the rest for the containerized hosts
     environment:
       DATABASE_URL: postgres://mawta_app:mawta_app@host.docker.internal:55432/mawta?sslmode=disable
       ADMIN_DATABASE_URL: postgres://postgres:mawta@host.docker.internal:55432/mawta?sslmode=disable
@@ -41,6 +41,7 @@ services:
       CORS_ORIGINS: http://localhost:5173,http://localhost:4173
       LOG_LEVEL: info
       SESSION_COOKIE_SECURE: 'false' # dev over plain http://localhost
+      LOCAL_LLM_URL: http://host.docker.internal:11434/v1 # the Ollama running on this computer
     volumes:
       - api_audio:/data/audio
     extra_hosts:
@@ -59,11 +60,12 @@ services:
     ports:
       - '8001:8001'
     env_file:
-      - path: ./mawta-chat/.env # CHAT_TOKEN_PUBLIC_KEYS, ANTHROPIC_API_KEY; environment: below overrides the DB hosts
+      - path: ./mawta-chat/.env # CHAT_TOKEN_PUBLIC_KEYS, CHAT_MODEL, OPENROUTER_API_KEY; environment: below overrides the hosts
         required: false
     environment:
       CHAT_DATABASE_URL: postgres://mawta_chat:mawta_chat@host.docker.internal:55432/mawta?sslmode=disable
       LANGGRAPH_DATABASE_URL: postgres://postgres:mawta@host.docker.internal:55432/langgraph?sslmode=disable
+      LOCAL_LLM_URL: http://host.docker.internal:11434/v1
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     logging: *default-logging

@@ -7,7 +7,7 @@ stored. What an agent proposes is saved as pending until the teacher accepts or 
 
 This package owns what every agent repeats: the generation lifecycle in agent_generations, the
 model call outside any database transaction, retries, a one-time repair of an invalid answer,
-deadlines, usage and cost accounting. An agent only supplies what is its own: what context it
+deadlines and usage accounting. An agent only supplies what is its own: what context it
 reads (prepare), what it asks (the Spec), and how it validates and stores the answer (apply).
 """
 

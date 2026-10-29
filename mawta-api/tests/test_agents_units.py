@@ -1,5 +1,6 @@
 """Unit tests of the pieces around the agents: redaction replace, the conclusion guard, the
-Anthropic client's schema/classification, the STT client and the transcribe handler."""
+OpenAI-compatible client (providers, schema, answers, errors), the STT client and the
+transcribe handler."""
 
 import base64
 import json
@@ -9,6 +10,7 @@ from typing import Any
 
 import httpx
 import pytest
+from openai.types.chat import ChatCompletion
 from psycopg import AsyncConnection
 from psycopg.rows import DictRow
 
@@ -16,7 +18,8 @@ import applog
 from agent.conclusions import Material
 from agent.conclusions.guard import guard, name_words
 from agent.llm import LLMError
-from agent.llm.anthropic import classify, strict_schema
+from agent.llm.openai_compat import OpenAICompat, classify, read_completion, strict_schema
+from agent.llm.providers import Endpoints, configured, extra_body, parse
 from agent.redaction.replace import Fragment, LocateError, attribution, locate, redact
 from db import returned
 from repo import redaction as rrepo
@@ -145,18 +148,131 @@ def test_strict_schema_closes_every_object_without_mutating_input():
 
 
 def test_classify_provider_errors():
-    import anthropic
-    import httpx2  # the HTTP client the anthropic SDK is typed against
+    import httpx2  # the HTTP client the openai SDK is typed against
+    import openai
 
-    def status(code: int) -> anthropic.APIStatusError:
+    def status(code: int) -> openai.APIStatusError:
         resp = httpx2.Response(code, request=httpx2.Request("POST", "https://x"))
-        return anthropic.APIStatusError("boom", response=resp, body=None)
+        return openai.APIStatusError("boom", response=resp, body=None)
 
     assert classify(status(429)).permanent is False
-    assert classify(status(529)).permanent is False
+    assert classify(status(503)).permanent is False
+    assert classify(status(408)).permanent is False
     assert classify(status(400)).permanent is True
+    assert classify(status(404)).permanent is True
     assert classify(RuntimeError("net")).permanent is False
     assert isinstance(classify(status(400)), LLMError)
+
+
+def test_parse_provider_model():
+    ref = parse("local:gemma4:12b-it-qat")
+    assert (ref.provider, ref.model) == ("local", "gemma4:12b-it-qat")
+    assert str(ref) == "local:gemma4:12b-it-qat"
+    ref = parse(" openrouter:qwen/qwen3-30b-a3b ")
+    assert (ref.provider, ref.model) == ("openrouter", "qwen/qwen3-30b-a3b")
+    for bad in ("gemma4", "ollama:gemma4", "local:", ":gemma4"):
+        with pytest.raises(ValueError):
+            parse(bad)
+
+
+def test_provider_configured_and_extra_body():
+    ep = Endpoints(
+        local_url="http://127.0.0.1:11434/v1",
+        local_api_key="",
+        openrouter_url="https://openrouter.ai/api/v1",
+        openrouter_api_key="",
+    )
+    assert configured(parse("local:x"), ep)
+    assert not configured(parse("openrouter:x"), ep)  # no key
+    keyed = Endpoints(ep.local_url, "", ep.openrouter_url, "k")
+    assert configured(parse("openrouter:x"), keyed)
+    assert extra_body(parse("openrouter:x")) == {"provider": {"require_parameters": True}}
+    assert extra_body(parse("local:x")) is None
+    assert extra_body(parse("local:x"), "none") == {"reasoning_effort": "none"}
+
+
+def _completion(
+    content: str | None,
+    finish: str = "stop",
+    refusal: str | None = None,
+    cached: int | None = None,
+) -> ChatCompletion:
+    usage: dict[str, Any] = {"prompt_tokens": 120, "completion_tokens": 30, "total_tokens": 150}
+    if cached is not None:
+        usage["prompt_tokens_details"] = {"cached_tokens": cached}
+    return ChatCompletion.model_validate(
+        {
+            "id": "cmpl-1",
+            "object": "chat.completion",
+            "created": 0,
+            "model": "m",
+            "choices": [
+                {
+                    "index": 0,
+                    "finish_reason": finish,
+                    "message": {"role": "assistant", "content": content, "refusal": refusal},
+                }
+            ],
+            "usage": usage,
+        }
+    )
+
+
+def test_read_completion_answers_and_usage():
+    resp = read_completion(_completion('{"a": 1}', cached=100))
+    assert resp.input == {"a": 1}
+    assert (resp.usage.input_tokens, resp.usage.output_tokens) == (120, 30)
+    assert resp.usage.cache_read_tokens == 100
+    assert read_completion(_completion('```json\n{"a": 2}\n```')).input == {"a": 2}
+    assert read_completion(_completion('{"a": 3}')).usage.cache_read_tokens == 0
+
+
+def test_read_completion_unusable_answers_are_permanent_and_keep_usage():
+    cases = [
+        _completion("not json"),
+        _completion('{"a": 1', finish="length"),
+        _completion(None, finish="content_filter"),
+        _completion(None, refusal="no"),
+    ]
+    for completion in cases:
+        with pytest.raises(LLMError) as err:
+            read_completion(completion)
+        assert err.value.permanent is True
+        assert err.value.response.usage.input_tokens == 120
+
+
+def test_settings_validate_agent_models():
+    from pydantic import ValidationError
+
+    from settings import Settings
+
+    cfg = Settings(
+        database_url="postgres://x",
+        planning_agent_model="local:gemma4:12b-it-qat",
+        redaction_agent_model="openrouter:qwen/qwen3-8b",
+        redaction_agent_reasoning_effort="none",
+    )
+    ref = cfg.agent_model("planning")
+    assert ref is not None and str(ref) == "local:gemma4:12b-it-qat"
+    assert cfg.agent_ready("planning")
+    # each agent has its own model: the sweep's is not the planner's, and needs its own key
+    assert str(cfg.agent_model("redaction")) == "openrouter:qwen/qwen3-8b"
+    assert not cfg.agent_ready("redaction")
+    assert cfg.agent_reasoning_effort("redaction") == "none"
+    assert cfg.agent_reasoning_effort("planning") == ""
+    assert cfg.agent_model("conclusions") is None  # empty: that agent is unavailable
+    assert not cfg.agent_ready("conclusions")
+    with pytest.raises(ValidationError):
+        Settings(database_url="postgres://x", conclusions_agent_model="gemma4")
+
+
+async def test_unconfigured_model_fails_permanently():
+    from agent.llm import Request, Tool
+
+    req = Request(system=[], prompt="x", tool=Tool("t", "d", {}), max_tokens=10)
+    with pytest.raises(LLMError) as err:
+        await OpenAICompat(None, None).generate(req)
+    assert err.value.permanent is True
 
 
 # ------------------------------------------------------------------- stt --

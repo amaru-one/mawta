@@ -40,7 +40,7 @@ def expired(gen: dict[str, Any], now: datetime | None = None) -> bool:
 
 @dataclass
 class Usage:
-    """What the model calls of one attempt cost. Added to the generation's totals, so retries
+    """The tokens the model calls of one attempt used. Added to the generation's totals, so retries
     are counted too."""
 
     model: str = ""
@@ -49,7 +49,6 @@ class Usage:
     output_tokens: int = 0
     cache_read_tokens: int = 0
     cache_write_tokens: int = 0
-    cost_usd: float = 0.0
 
     def params(self) -> dict[str, Any]:
         return {
@@ -59,7 +58,6 @@ class Usage:
             "output": self.output_tokens,
             "cache_read": self.cache_read_tokens,
             "cache_write": self.cache_write_tokens,
-            "cost": self.cost_usd,
         }
 
 
@@ -69,8 +67,7 @@ _ADD_USAGE = """
     input_tokens = input_tokens + %(input)s,
     output_tokens = output_tokens + %(output)s,
     cache_read_tokens = cache_read_tokens + %(cache_read)s,
-    cache_write_tokens = cache_write_tokens + %(cache_write)s,
-    cost_usd = cost_usd + %(cost)s"""
+    cache_write_tokens = cache_write_tokens + %(cache_write)s"""
 
 
 async def create_generation(
@@ -183,7 +180,7 @@ async def record_generation_usage(
     conn: AsyncConnection[DictRow], generation_id: UUID, usage: Usage
 ) -> None:
     """Add an attempt's usage without finishing the generation: a transient failure that will be
-    retried still cost money."""
+    retried still used tokens."""
     await conn.execute(
         f"update agent_generations set {_ADD_USAGE} where id = %(id)s",
         {**usage.params(), "id": generation_id},

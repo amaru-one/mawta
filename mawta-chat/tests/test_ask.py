@@ -82,10 +82,10 @@ async def test_the_next_question_carries_the_history(
     await ask(client, me, thread["id"], "¿De qué turno es?")
 
     sent = fake_llm.calls[-1]
-    assert [m["role"] for m in sent] == ["user", "assistant", "user", "assistant", "user"]
+    assert [m["role"] for m in sent] == ["user", "assistant", "tool", "assistant", "user"]
     assert sent[0]["content"] == "¿Cuántas secciones hay?"
-    assert sent[1]["content"][0]["type"] == "tool_use"
-    assert sent[2]["content"][0]["type"] == "tool_result"
+    assert sent[1]["tool_calls"][0]["function"]["name"] == "secciones_del_colegio"
+    assert sent[2]["tool_call_id"] == sent[1]["tool_calls"][0]["id"]
     assert sent[-1]["content"] == "¿De qué turno es?"
 
 
@@ -129,3 +129,18 @@ async def test_asking_in_someone_elses_chat_is_not_found(
     )
     assert response.status_code == 404
     assert fake_llm.calls == []
+
+
+async def test_tool_arguments_that_are_not_json_answer_as_a_tool_error(
+    client: httpx.AsyncClient, make_token: MakeToken, fake_llm: FakeLLM
+):
+    me = bearer(make_token(USER_QUISPE, TENANT_A))
+    thread = (await client.post("/threads", headers=me)).json()
+    fake_llm.script(tool_turn(arguments="{no es json"), text_turn("No pude consultarlo."))
+
+    events = await ask(client, me, thread["id"], "¿Qué secciones hay?")
+
+    assert not [e for e in events if e["tipo"] == "tabla"]
+    sent = fake_llm.calls[-1]
+    assert sent[-1]["role"] == "tool"
+    assert "not valid JSON" in sent[-1]["content"]

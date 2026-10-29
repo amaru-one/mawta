@@ -289,8 +289,8 @@ async def handle_voice_note_reassign(request: Request) -> Response:
             "student_id": student_id,
             "attribution_status": redaction_repo.ATTRIBUTION_PENDING,
         }
-        if not api.settings.anthropic_api_key.get_secret_value():
-            return write_json(out)  # stays pending until the agents can run
+        if not api.settings.agent_ready("redaction"):
+            return write_json(out)  # stays pending until the sweep has a model
         from agent import redaction as redaction_agent
 
         note["student_id"] = student_id

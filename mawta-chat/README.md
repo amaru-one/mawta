@@ -2,7 +2,7 @@
 
 The director chat service: a school director asks questions about their school and gets answers built from Mawta's data, streamed over Server-Sent Events.
 
-Python 3.14, FastAPI, LangGraph and the Anthropic SDK, managed with [`uv`](https://docs.astral.sh/uv/). It is a separate service from `mawta-api` (Python) and shares only:
+Python 3.14, FastAPI, LangGraph and an open model through any OpenAI-compatible provider (the school's own model server — Ollama or vLLM, on a laptop, a DGX Spark or a cloud server — or OpenRouter, `CHAT_MODEL=provider:model`), managed with [`uv`](https://docs.astral.sh/uv/). It is a separate service from `mawta-api` (Python) and shares only:
 
 - **the login** — the director signs in to Mawta, and `mawta-api` issues a short-lived chat token (`GET /api/v1/auth/chat-token`, Ed25519). This service only verifies it with the public key;
 - **the `mawta` database** — connected as the `mawta_chat` role, which can read only the `chat_api` views and write only the `chat` schema (migration `00006`). Postgres RLS limits every query to the director's school and chats.
@@ -17,7 +17,8 @@ LangGraph's checkpoints (the conversation state of each chat) live in their own 
 | `src/auth.py` | Chat token verification |
 | `src/db.py` | `mawta_chat` pool; `tenant_tx` sets `app.tenant_id` / `app.actor_id` per transaction |
 | `src/graph.py` | LangGraph graph (agent ↔ tools) and the system prompt |
-| `src/llm.py` | Claude through the Anthropic SDK, behind a small interface |
+| `src/llm.py` | The model through the OpenAI-compatible API (streaming, tool calls), behind a small interface |
+| `src/providers.py` | `provider:model`: which provider (`local` or `openrouter`) a model runs on |
 | `src/tools.py` | The chat's tools (reads `chat_api` only) |
 | `src/protocol.py` | Protocol v1 events streamed to the UI |
 | `src/repo.py` | Queries on the `chat` schema |
@@ -66,7 +67,8 @@ Deployed with the rest of Mawta on every push to `main` (`.github/workflows/depl
 | `MAWTA_CHAT_PASSWORD` | Password of the `mawta_chat` role (migration `00006` creates the role without one) |
 | `LANGGRAPH_PASSWORD` | Password of the `mawta_langgraph` role, owner of the `langgraph` database |
 | `CHAT_TOKEN_PUBLIC_KEYS` | `{"k1":"<base64 public key>"}`, matching `CHAT_TOKEN_SIGNING_KEY` / `CHAT_TOKEN_KEY_ID` |
-| `ANTHROPIC_API_KEY` | Shared with `mawta-api`'s agents |
+| `CHAT_MODEL` | `provider:model`; on the demo droplet an `openrouter:` model |
+| `OPENROUTER_API_KEY` | Needed by an `openrouter:` model; shared with `mawta-api`'s agents |
 
 The `langgraph` database is not a goose migration (it is not part of the `mawta` database). It was created once, by hand:
 
@@ -86,4 +88,4 @@ uv run ruff check . && uv run ruff format --check .
 MAWTA_TEST_ADMIN_URL='postgres://postgres:postgres@localhost:55499/postgres?sslmode=disable' uv run pytest
 ```
 
-The tests create two throwaway databases, apply `mawta-api`'s migrations and test fixture (`tests/fixture.sql`), and replace Claude with a scripted fake, so they never call the API. Without `MAWTA_TEST_ADMIN_URL` the database tests are skipped.
+The tests create two throwaway databases, apply `mawta-api`'s migrations and test fixture (`tests/fixture.sql`), and replace the model with a scripted fake, so they never call a provider. Without `MAWTA_TEST_ADMIN_URL` the database tests are skipped.

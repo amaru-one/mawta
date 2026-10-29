@@ -71,7 +71,7 @@ class Client:
         usage = UsageMetadata()
         if not self.api_key:
             # No provider call happens, so no usage event: nothing to account.
-            raise SttPermanentError("stt: TRANSCRIBE_OPENROUTER_API_KEY not configured")
+            raise SttPermanentError("stt: OPENROUTER_API_KEY not configured")
 
         body = {
             "model": self.model,

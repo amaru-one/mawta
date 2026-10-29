@@ -2,8 +2,9 @@
 
 One narrow operation: a single request that must answer by filling one JSON schema, so every
 agent gets structured output it can validate before anything reaches the database. Agents depend
-on the Model protocol; the Anthropic implementation is in anthropic.py and a scripted fake for
-tests in fake.py.
+on the Model protocol; the implementation for any OpenAI-compatible provider (Ollama, OpenRouter)
+is in openai_compat.py, which provider a model runs on is in providers.py, and a scripted fake for
+tests is in fake.py.
 """
 
 from dataclasses import dataclass, field
@@ -80,27 +81,3 @@ class Model(Protocol):
     name: str
 
     async def generate(self, req: Request) -> Response: ...
-
-
-@dataclass(frozen=True)
-class Prices:
-    """A model's prices in US dollars per million tokens. They come from configuration: the
-    server does not guess them, and with none a generation records its tokens and a zero,
-    unknown cost."""
-
-    input_per_mtok: float = 0.0
-    output_per_mtok: float = 0.0
-    cache_read_per_mtok: float = 0.0
-    cache_write_per_mtok: float = 0.0
-
-    def known(self) -> bool:
-        return self.input_per_mtok > 0 or self.output_per_mtok > 0
-
-    def cost(self, u: Usage) -> float:
-        m = 1_000_000.0
-        return (
-            u.input_tokens * self.input_per_mtok / m
-            + u.output_tokens * self.output_per_mtok / m
-            + u.cache_read_tokens * self.cache_read_per_mtok / m
-            + u.cache_write_tokens * self.cache_write_per_mtok / m
-        )

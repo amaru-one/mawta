@@ -4,7 +4,7 @@ Mawta proposes the *conclusión descriptiva* of one student in one competency
 and term. The teacher reviews, edits and saves it through the existing
 conclusions endpoint; Mawta never saves or finalises it on their behalf.
 
-Two agents take part (`internal/agent`):
+Two agents take part (`src/agent`), each on its own model:
 
 | Agent | Kind | When it runs | What it reads | What it writes |
 |---|---|---|---|---|
@@ -68,9 +68,10 @@ The student's discarded notes in the term (`id`, `recorded_at`,
 case**; `{"voice_notes": []}` otherwise. The UI loads it when a proposal
 carries the warning `all_voice_notes_discarded`.
 
-- The sweep is queued by the transcription job when `ANTHROPIC_API_KEY` is
-  set. Notes left `pending` (recorded before the sweep existed, or while no key
-  was configured) are queued again when a conclusion is requested.
+- The sweep is queued by the transcription job when the sweep has a model
+  (`REDACTION_AGENT_MODEL`, with what its provider needs). Notes left `pending`
+  (recorded before the sweep existed, or while it had no model) are queued
+  again when a conclusion is requested.
 
 ### `POST /voice-notes/{voiceNoteID}/reassign`
 
@@ -114,7 +115,8 @@ the competency belongs to the class's área.
 
 Before queueing, the server sweeps any pending notes and checks the minimum:
 
-- `503 agent_unavailable` — no model configured.
+- `503 agent_unavailable` — `CONCLUSIONS_AGENT_MODEL` is empty, or its provider lacks what it
+  needs (an address for the local server, a key for OpenRouter).
 - `422 level_required` — no level asserted yet.
 - `422 insufficient_evidence` — fewer graded evidences than the minimum. The
   body carries the numbers and, in the worst case (every note discarded),
@@ -224,10 +226,14 @@ to 350 characters, **draft or final**: `422 conclusion_too_short` or
 
 ## Privacy
 
+- Every agent runs on the model its own variable names (chat-director D004):
+  on the school's own model server (`local`: a DGX Spark, or a cloud server for
+  a school without one) nothing leaves Mawta's operator; through OpenRouter,
+  what the agent reads goes to that provider and belongs in the school's
+  data-processing agreement.
 - Audio already goes to the speech-to-text provider. The sweep sends the
-  transcript and the section's names to the model provider: recognising a
-  misspelled name needs them. Both belong in the school's data-processing
-  agreement.
+  transcript and the section's names to its model: recognising a misspelled
+  name needs them.
 - The conclusions agent only reads `transcript_redacted`, and the student is
   `[ESTUDIANTE]` in its prompt. Score feedback is the teacher's free text and
   is **not** swept; the output guard is what keeps a name written there out
@@ -237,9 +243,14 @@ to 350 characters, **draft or final**: `422 conclusion_too_short` or
 
 ## Configuration
 
+Each agent has its own model and reasoning setting; no agent shares another's.
+
 | Variable | Default |
 |---|---|
-| `REDACTION_AGENT_MODEL` | `claude-haiku-5-5` |
-| `REDACTION_AGENT_PRICE_{INPUT,OUTPUT,CACHE_READ,CACHE_WRITE}_PER_MTOK` | 0 (cost unknown) |
-| `CONCLUSIONS_AGENT_MODEL` | `claude-sonnet-5-5` |
-| `CONCLUSIONS_AGENT_PRICE_{INPUT,OUTPUT,CACHE_READ,CACHE_WRITE}_PER_MTOK` | 0 (cost unknown) |
+| `REDACTION_AGENT_MODEL`, `CONCLUSIONS_AGENT_MODEL` | empty (agent unavailable); `provider:model`, e.g. `local:qwen3:4b` or `openrouter:openai/gpt-oss-120b` |
+| `REDACTION_AGENT_REASONING_EFFORT`, `CONCLUSIONS_AGENT_REASONING_EFFORT` | empty (not sent); `none` stops a model that reasons first (gemma4, qwen3) from spending its token budget on hidden reasoning |
+| `LOCAL_LLM_URL`, `LOCAL_LLM_API_KEY` | `http://127.0.0.1:11434/v1`, empty: the school's own OpenAI-compatible model server (Ollama, vLLM) |
+| `OPENROUTER_URL`, `OPENROUTER_API_KEY` | `https://openrouter.ai/api/v1`, empty |
+| `AGENT_TIMEOUT`, `AGENT_DEADLINE` | `90s` per model call, `5m` per generation; raise both for a slow local model |
+
+Generations record the model (`provider:model`), the prompt version and the tokens used; no cost.

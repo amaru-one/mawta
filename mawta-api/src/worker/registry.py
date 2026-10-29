@@ -9,9 +9,10 @@ from psycopg.rows import DictRow
 
 import applog
 import domain
-from agent.llm import Prices
-from agent.llm.anthropic import Anthropic
+from agent.llm.openai_compat import OpenAICompat
+from agent.llm.providers import client_for
 from agent.runner import Outcome, Runner
+from settings import Settings
 from stt import Client as SttClient
 from web import Api
 from worker.handlers.transcribe import AfterTranscript, voice_note_transcribe
@@ -59,33 +60,28 @@ def agent_generate(runner: Runner) -> OwnTxHandler:
     return handle
 
 
+def agent_model(cfg: Settings, agent: str) -> OpenAICompat:
+    """The model of one agent, from its own "provider:model" setting. Without a model, or without
+    what its provider needs, the model has no client: the routes answer agent_unavailable and a
+    generation that still reaches it fails permanently."""
+    ref = cfg.agent_model(agent)
+    if ref is None or not cfg.agent_ready(agent):
+        return OpenAICompat(ref, None)
+    client = client_for(ref, cfg.endpoints(), cfg.agent_timeout)
+    return OpenAICompat(ref, client, cfg.agent_reasoning_effort(agent))
+
+
 def build_runner(api: Api) -> Runner:
-    """The agents and the models they run on. planning runs on the default model; the redaction
-    sweep and the conclusions agent each on their own, with their own prices."""
+    """Every agent with the model it runs on: each has its own, so the name sweep can run on a
+    small model and the conclusions on a larger one."""
     from agent.conclusions import ConclusionsAgent
     from agent.planning import PlanningAgent
     from agent.redaction import RedactionAgent
 
     cfg = api.settings
-    key = cfg.anthropic_api_key.get_secret_value()
-    prices = Prices(**cfg.prices("planning").model_dump())
-    runner = Runner(
-        api.db,
-        Anthropic(key, cfg.planning_agent_model, cfg.agent_timeout),
-        prices,
-        api.logger,
-        PlanningAgent(),
-    )
-    runner.bind(
-        RedactionAgent(),
-        Anthropic(key, cfg.redaction_agent_model, cfg.agent_timeout),
-        Prices(**cfg.prices("redaction").model_dump()),
-    )
-    runner.bind(
-        ConclusionsAgent(),
-        Anthropic(key, cfg.conclusions_agent_model, cfg.agent_timeout),
-        Prices(**cfg.prices("conclusions").model_dump()),
-    )
+    runner = Runner(api.db, api.logger)
+    for agent in (PlanningAgent(), RedactionAgent(), ConclusionsAgent()):
+        runner.bind(agent, agent_model(cfg, agent.name))
     return runner
 
 
@@ -94,13 +90,13 @@ def default_registry(api: Api, runner: Runner | None = None) -> Registry:
     runs Mawta's agents and manages its own transactions (OwnTx)."""
     cfg = api.settings
     stt_client = SttClient(
-        cfg.transcribe_openrouter_api_key, cfg.transcribe_model, logger=api.logger
+        cfg.openrouter_api_key.get_secret_value(), cfg.transcribe_model, logger=api.logger
     )
-    # A saved transcript queues its name sweep, but only when the agents can run: without a key
+    # A saved transcript queues its name sweep, but only when the sweep has a model: without one
     # every sweep would fail, and the note simply stays pending until one is configured (the
     # conclusions endpoint queues pending notes again).
     after: list[AfterTranscript] = []
-    if cfg.anthropic_api_key.get_secret_value():
+    if cfg.agent_ready("redaction"):
         from agent.redaction import queue_after_transcript
 
         after.append(queue_after_transcript)

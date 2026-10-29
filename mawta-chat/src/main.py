@@ -24,8 +24,9 @@ import repo
 from auth import InvalidToken, Principal, TokenVerifier
 from db import Database
 from graph import SYSTEM_PROMPT, build_graph, thread_key
-from llm import LLM, AnthropicLLM
+from llm import LLM, OpenAICompatLLM
 from protocol import event, to_sse
+from providers import client_for
 from settings import Settings
 
 log = logging.getLogger("mawta_chat")
@@ -68,11 +69,12 @@ def create_app(settings: Settings | None = None, llm: LLM | None = None) -> Fast
         # Settings reads its required fields from the environment, which the
         # checker cannot see.
         cfg = settings or Settings()  # pyright: ignore[reportCallIssue]
-        model = llm or AnthropicLLM(
-            api_key=cfg.anthropic_api_key.get_secret_value(),
-            model=cfg.chat_model,
-            effort=cfg.chat_effort,
+        ref = cfg.model_ref()
+        model = llm or OpenAICompatLLM(
+            client_for(ref, cfg.endpoints(), timeout=120.0),
+            ref,
             max_tokens=cfg.chat_max_tokens,
+            reasoning_effort=cfg.chat_reasoning_effort,
         )
         app.state.verifier = TokenVerifier(cfg.chat_token_public_keys)
         app.state.db = Database(cfg.chat_database_url)

@@ -19,7 +19,7 @@ from psycopg.rows import DictRow
 import applog
 from agent import JOB_KIND, Agent, InvalidAnswer, Prepared, Spec
 from agent import llm as llm_pkg
-from agent.llm import LLMError, Model, Prices
+from agent.llm import LLMError, Model
 from db import Database, TenantCtx
 from errors import AppError, NotFound
 from repo import agent_generations as gens
@@ -68,13 +68,12 @@ def final_message(exc: Exception) -> tuple[str, bool]:
     return "", False
 
 
-def _usage_of(prices: Prices, u: llm_pkg.Usage) -> gens.Usage:
+def _usage_of(u: llm_pkg.Usage) -> gens.Usage:
     return gens.Usage(
         input_tokens=u.input_tokens,
         output_tokens=u.output_tokens,
         cache_read_tokens=u.cache_read_tokens,
         cache_write_tokens=u.cache_write_tokens,
-        cost_usd=prices.cost(u) if prices.known() else 0.0,
     )
 
 
@@ -85,7 +84,6 @@ def _add_usage(a: gens.Usage, b: gens.Usage) -> gens.Usage:
         output_tokens=a.output_tokens + b.output_tokens,
         cache_read_tokens=a.cache_read_tokens + b.cache_read_tokens,
         cache_write_tokens=a.cache_write_tokens + b.cache_write_tokens,
-        cost_usd=a.cost_usd + b.cost_usd,
     )
 
 
@@ -101,37 +99,26 @@ def repair_spec(spec: Spec, previous: Any, why: InvalidAnswer) -> Spec:
 
 
 class Runner:
-    """Runs generations for the registered agents."""
+    """Runs generations for the registered agents, each on its own model: there is no shared
+    default, so choosing a model for one agent never changes another's."""
 
     db: Database
-    model: Model
-    prices: Prices
     logger: logging.Logger | None
 
-    def __init__(
-        self,
-        database: Database,
-        model: Model,
-        prices: Prices,
-        logger: logging.Logger | None,
-        *agents: Agent,
-    ) -> None:
+    def __init__(self, database: Database, logger: logging.Logger | None) -> None:
         self.db = database
-        self.model = model
-        self.prices = prices
         self.logger = logger
-        self.agents: dict[str, Agent] = {a.name: a for a in agents}
-        self.models: dict[str, tuple[Model, Prices]] = {}
+        self.agents: dict[str, Agent] = {}
+        self.models: dict[str, Model] = {}
 
-    def bind(self, agent: Agent, model: Model, prices: Prices) -> "Runner":
-        """Register an agent that runs on its own model and prices instead of the runner's default
-        (e.g. the redaction sweep on a small, cheap model)."""
+    def bind(self, agent: Agent, model: Model) -> "Runner":
+        """Register an agent and the model it runs on."""
         self.agents[agent.name] = agent
-        self.models[agent.name] = (model, prices)
+        self.models[agent.name] = model
         return self
 
-    def _model_for(self, agent_name: str) -> tuple[Model, Prices]:
-        return self.models.get(agent_name, (self.model, self.prices))
+    def _model_for(self, agent_name: str) -> Model:
+        return self.models[agent_name]
 
     async def run(
         self, tenant_id: UUID, payload: dict[str, Any], attempt: int, max_attempts: int
@@ -195,12 +182,12 @@ class Runner:
 
         # 2. Call the model (with one repair round for an unusable answer), then 3. apply the
         # answer in a fresh transaction.
-        model, prices = self._model_for(gen["agent"])
+        model = self._model_for(gen["agent"])
         usage = gens.Usage(model=model.name, prompt_version=ag.prompt_version)
         spec = prep.spec
         for round_no in range(2):
-            resp, call_err = await self._call(model, prices, gen, attempt, spec)
-            usage = _add_usage(usage, _usage_of(prices, resp.usage))
+            resp, call_err = await self._call(model, gen, attempt, spec)
+            usage = _add_usage(usage, _usage_of(resp.usage))
             if call_err is not None:
                 if call_err.permanent:
                     return Outcome.FAILED, await self._fail_tx(
@@ -265,7 +252,7 @@ class Runner:
         )
 
     async def _call(
-        self, model: Model, prices: Prices, gen: dict[str, Any], attempt: int, spec: Spec
+        self, model: Model, gen: dict[str, Any], attempt: int, spec: Spec
     ) -> tuple[llm_pkg.Response, LLMError | None]:
         """One model call; logs its usage."""
         start = time.monotonic()
@@ -296,11 +283,11 @@ class Runner:
             duration_ms=int((time.monotonic() - start) * 1000),
             outcome="error" if error else "success",
             error_class=("permanent" if error.permanent else "transient") if error else "",
+            error_reason=str(error) if error else "",
             input_tokens=resp.usage.input_tokens,
             output_tokens=resp.usage.output_tokens,
             cache_read_tokens=resp.usage.cache_read_tokens,
             cache_write_tokens=resp.usage.cache_write_tokens,
-            cost_usd=prices.cost(resp.usage) if prices.known() else None,
         )
         return resp, error
 

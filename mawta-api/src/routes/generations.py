@@ -7,7 +7,7 @@ asserted and there must be enough graded evidence) so the teacher learns at once
 help.
 """
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID
 
@@ -56,10 +56,11 @@ def to_generation_response(gen: dict[str, Any], now: datetime | None = None) -> 
     return out
 
 
-def agent_available(request: Request) -> None:
-    """503 agent_unavailable when no model is configured, so the app can offer manual creation
+def agent_available(request: Request, agent: str) -> None:
+    """503 agent_unavailable when the agent has no model, or its provider lacks what it needs (an
+    address for the local server, a key for OpenRouter), so the app can offer manual creation
     only."""
-    if not api_of(request).settings.anthropic_api_key.get_secret_value():
+    if not api_of(request).settings.agent_ready(agent):
         raise AppError(
             503,
             "agent_unavailable",
@@ -67,12 +68,20 @@ def agent_available(request: Request) -> None:
         )
 
 
+def deadline_of(request: Request) -> timedelta:
+    """How long a generation may take before the app shows it as failed (AGENT_DEADLINE). A slow
+    local model needs more than the default."""
+    return timedelta(seconds=api_of(request).settings.agent_deadline)
+
+
 async def start_generation(
-    conn: AsyncConnection[DictRow], tc: TenantCtx, **fields: Any
+    conn: AsyncConnection[DictRow], tc: TenantCtx, deadline: timedelta, **fields: Any
 ) -> dict[str, Any]:
     """Record a generation for the requesting teacher and queue its job, or return the one already
     running for the same target. `agent` says which agent serves it."""
-    return await enqueue(conn, tc.tenant_id, requested_by=tc.teacher_id, **fields)
+    return await enqueue(
+        conn, tc.tenant_id, requested_by=tc.teacher_id, deadline=deadline, **fields
+    )
 
 
 def accepted(gen: dict[str, Any]) -> Response:
@@ -113,7 +122,7 @@ async def handle_create_experience_proposal(request: Request) -> Response:
     if not idea:
         raise AppError(400, "missing_idea", "cuéntale a Mawta tu idea en una o dos frases")
     competencies = [parse_uuid(s, "invalid competency_ids") for s in competency_ids]
-    agent_available(request)
+    agent_available(request, planning_agent.NAME)
 
     async with api.db.tenant_tx(tc) as conn:
         await authz.require_class_access(conn, tc, class_id)
@@ -129,6 +138,7 @@ async def handle_create_experience_proposal(request: Request) -> Response:
         gen = await start_generation(
             conn,
             tc,
+            deadline=deadline_of(request),
             agent=planning_agent.NAME,
             kind=planning_agent.KIND_EXPERIENCE,
             class_id=class_id,
@@ -146,7 +156,7 @@ async def handle_generate_criteria(request: Request) -> Response:
     experience_id = path_uuid(request, "experienceID")
     raw = await read_json(request)
     competency_id = parse_uuid(body_field(raw, "competency_id", str), "invalid competency_id")
-    agent_available(request)
+    agent_available(request, planning_agent.NAME)
 
     async with api.db.tenant_tx(tc) as conn:
         class_id = await authz.require_experience_access(conn, tc, experience_id)
@@ -160,6 +170,7 @@ async def handle_generate_criteria(request: Request) -> Response:
         gen = await start_generation(
             conn,
             tc,
+            deadline=deadline_of(request),
             agent=planning_agent.NAME,
             kind=planning_agent.KIND_CRITERIA,
             class_id=class_id,
@@ -175,12 +186,13 @@ async def handle_generate_criteria(request: Request) -> Response:
 async def _generate_for_experience(request: Request, kind: str) -> Response:
     api, tc = api_of(request), tc_of(request)
     experience_id = path_uuid(request, "experienceID")
-    agent_available(request)
+    agent_available(request, planning_agent.NAME)
     async with api.db.tenant_tx(tc) as conn:
         class_id = await authz.require_experience_access(conn, tc, experience_id)
         gen = await start_generation(
             conn,
             tc,
+            deadline=deadline_of(request),
             agent=planning_agent.NAME,
             kind=kind,
             class_id=class_id,
@@ -252,7 +264,7 @@ async def handle_generate_conclusion(request: Request) -> Response:
     competency_id = parse_uuid(body_field(raw, "competency_id", str), "invalid competency_id")
     term_raw = body_field(raw, "term_id", str | None)
     term_param = parse_uuid(term_raw, "invalid term_id") if term_raw else None
-    agent_available(request)
+    agent_available(request, conclusions_agent.NAME)
 
     thin: dict[str, Any] | None = None
     gen: dict[str, Any] | None = None
@@ -261,7 +273,8 @@ async def handle_generate_conclusion(request: Request) -> Response:
         # Notes recorded before the sweep existed, or while no model was configured, are swept
         # now. The proposal may start before they finish; it then says how many notes were still
         # in process.
-        await _queue_pending_sweeps(conn, tc, scope)
+        if api.settings.agent_ready("redaction"):
+            await _queue_pending_sweeps(conn, tc, scope)
         m = await conclusions_agent.gather(conn, scope)
         try:
             m.check()
@@ -292,6 +305,7 @@ async def handle_generate_conclusion(request: Request) -> Response:
             gen = await start_generation(
                 conn,
                 tc,
+                deadline=deadline_of(request),
                 agent=conclusions_agent.NAME,
                 kind=conclusions_agent.KIND_CONCLUSION,
                 class_id=class_id,
