@@ -28,7 +28,8 @@ from llm import ModelTurn
 from main import create_app
 from settings import Settings
 
-SERVER = Path(__file__).resolve().parents[2] / "mawta-api"
+HERE = Path(__file__).resolve().parent
+SERVER = HERE.parents[1] / "mawta-api"
 
 # Rows of internal/dbtest/fixture.sql.
 TENANT_A = UUID("a0000000-0000-4000-8000-000000000001")  # I.E. Cristo Rey
@@ -65,6 +66,7 @@ def databases() -> Iterator[tuple[str, str]]:
         for migration in sorted((SERVER / "migrations").glob("*.sql")):
             conn.execute(goose_up(migration.read_text()))
         conn.execute(cast(LiteralString, (SERVER / "tests/fixture.sql").read_text()))
+        conn.execute(cast(LiteralString, (HERE / "fixture_logros.sql").read_text()))
         conn.execute("alter role mawta_chat password 'chat-test'")
     yield (
         make_conninfo(
@@ -150,7 +152,9 @@ class FakeLLM:
         return turn
 
 
-def tool_turn(tool_id: str = "call_1", arguments: str = "{}") -> ModelTurn:
+def tool_turn(
+    tool_id: str = "call_1", arguments: str = "{}", name: str = "datos_del_colegio"
+) -> ModelTurn:
     return ModelTurn(
         message={
             "role": "assistant",
@@ -159,7 +163,7 @@ def tool_turn(tool_id: str = "call_1", arguments: str = "{}") -> ModelTurn:
                 {
                     "id": tool_id,
                     "type": "function",
-                    "function": {"name": "secciones_del_colegio", "arguments": arguments},
+                    "function": {"name": name, "arguments": arguments},
                 }
             ],
         },
