@@ -10,6 +10,7 @@ from auth import Principal
 from db import Database
 from tests.conftest import TENANT_A, TENANT_B, USER_FLORES, USER_QUISPE
 from tools import TOOL_STATUS, TOOLS, ToolOutcome, run_tool
+from tools.promotion import Area, project_end_of_cycle, project_mid_cycle, rule_for
 
 DIRECTORS = {TENANT_A: USER_QUISPE, TENANT_B: USER_FLORES}
 
@@ -66,6 +67,7 @@ async def test_school_data_lists_periods_sections_and_teachers(chat_url: str):
     # By grade, not alphabetically; Iván left 3ro A, so it has 3 students.
     assert out.blocks[0]["tipo"] == "tabla"
     assert out.blocks[0]["filas"] == [
+        ["Segundo de secundaria", "2do A", "Mañana", None, 4],
         ["Tercero de secundaria", "3ro A", "Mañana", "Marco Rojas", 3],
         ["Quinto de secundaria", "5to B", "Mañana", None, 5],
     ]
@@ -90,11 +92,11 @@ async def test_summary_defaults_to_the_last_period_with_levels(chat_url: str):
     assert out.result["periodo"] == "Bimestre III"  # B-IV is current but has no levels yet
     assert out.result["agrupado_por"] == "area"
     # Only live levels of área competencies: Elena's corrected C and her transversal C are out.
-    assert out.result["totales"] == {"AD": 0, "A": 8, "B": 5, "C": 13}
+    assert out.result["totales"] == {"AD": 0, "A": 24, "B": 20, "C": 18}
     bars = out.blocks[0]
     assert bars["tipo"] == "barras_apiladas"
     assert bars["categorias"] == ["AD", "A", "B", "C"]
-    assert bars["grupos"][0] == {"etiqueta": "Matemática", "valores": [0, 3, 2, 5]}
+    assert bars["grupos"][0] == {"etiqueta": "Matemática", "valores": [0, 8, 4, 6]}
 
 
 async def test_summary_of_an_area_by_competency_names_the_ones_without_levels(chat_url: str):
@@ -112,7 +114,11 @@ async def test_summary_of_an_area_by_competency_names_the_ones_without_levels(ch
 async def test_summary_by_section(chat_url: str):
     out = await call(chat_url, "resumen_de_niveles", {"agrupar_por": "seccion"})
 
-    assert [(g["grupo"], g["C"]) for g in out.result["grupos"]] == [("3ro A", 10), ("5to B", 3)]
+    assert [(g["grupo"], g["C"]) for g in out.result["grupos"]] == [
+        ("2do A", 5),
+        ("3ro A", 10),
+        ("5to B", 3),
+    ]
 
 
 async def test_a_period_without_levels_says_so_instead_of_inventing(chat_url: str):
@@ -135,9 +141,11 @@ async def test_a_school_with_no_levels_at_all_has_no_data(chat_url: str):
 async def test_students_with_c_by_section_then_surname(chat_url: str):
     out = await call(chat_url, "alumnos_con_c")
 
-    assert out.result["alumnos_con_C"] == 5
-    assert out.result["total_de_C"] == 13
+    assert out.result["alumnos_con_C"] == 7
+    assert out.result["total_de_C"] == 18
     assert [(row[0], row[1], row[2]) for row in out.blocks[0]["filas"]] == [
+        ("Luis Medina Nuñez", "2do A", 1),
+        ("Marta Núñez Ortiz", "2do A", 4),
         ("Fabiola Flores Gil", "3ro A", 8),
         ("Gabriel Gomez Huaman", "3ro A", 2),
         ("Ana Alvarez Ruiz", "5to B", 1),
@@ -185,32 +193,109 @@ async def test_risk_with_a_longer_minimum(chat_url: str):
 # --- proyeccion_de_promocion ----------------------------------------------------------------
 
 
-async def test_promotion_projection_follows_the_area_rule(chat_url: str):
+async def test_promotion_projection_applies_the_rule_of_each_grade(chat_url: str):
     out = await call(chat_url, "proyeccion_de_promocion")
 
     assert out.result["es_proyeccion"] is True
     assert out.result["con_los_niveles_de"] == "Bimestre III"
-    assert [(r["alumno"], r["areas_no_aprobadas"], r["situacion_proyectada"])
-            for r in out.result["filas"]] == [
-        ("Fabiola Flores Gil", ["Matemática", "Comunicación", "Inglés", "Ciencia y Tecnología"],
-         "en riesgo de permanecer"),
+    assert "1.°, 3.° y 4.°" in out.result["regla"] and "2.° y 5.°" in out.result["regla"]
+    situations = {r["alumno"]: r["situacion_proyectada"] for r in out.result["filas"]}
+    assert situations == {
+        # 2do A, end of cycle. Julia (no C, half in A/AD in 3 áreas) is promoted, so not listed.
+        "Kiara Lazo Mena": "iría a recuperación",  # all B: no área with half in A or AD
+        "Luis Medina Nuñez": "iría a recuperación",  # one C is enough to miss promotion
+        "Marta Núñez Ortiz": "en riesgo de permanecer",  # C in exactly half of 4 áreas
+        # 3ro A, mid cycle. Hilda (all A) is promoted.
+        "Fabiola Flores Gil": "en riesgo de permanecer",
         # EPT has one competency, in C; CYT has one C of two, so half is B or above: passed.
-        ("Gabriel Gomez Huaman", ["Educación para el Trabajo"], "iría a recuperación"),
-    ]  # fmt: skip
-    assert out.result["alumnos_por_situacion"] == {
-        "promovería": 1,
-        "iría a recuperación": 1,
-        "en riesgo de permanecer": 1,
+        "Gabriel Gomez Huaman": "iría a recuperación",
+        # 5to B closes a cycle too, and has only Matemática: no 3 áreas to promote with.
+        "Ana Alvarez Ruiz": "iría a recuperación",
+        "Bruno Bravo Soto": "iría a recuperación",
+        "Carla Cordova Ttito": "iría a recuperación",
+        "Diego Diaz Uscamayta": "iría a recuperación",
+        "Elena Espinoza Vilca": "iría a recuperación",
     }
-    # 5to has another rule: no projection for it, and the tool says so.
-    assert out.result["grados_sin_proyeccion"] == ["Quinto de secundaria"]
+    assert out.result["alumnos_por_situacion"] == {
+        "promovería": 2,
+        "iría a recuperación": 8,
+        "en riesgo de permanecer": 2,
+    }
+    assert "grados_sin_proyeccion" not in out.result
+    gabriel = next(r for r in out.result["filas"] if r["alumno"].startswith("Gabriel"))
+    assert gabriel["areas_no_aprobadas"] == ["Educación para el Trabajo"]
+    assert out.blocks[0]["columnas"] == ["Alumno", "Sección", "Situación proyectada", "Motivo"]
 
 
-async def test_promotion_for_a_grade_without_the_rule(chat_url: str):
-    out = await call(chat_url, "proyeccion_de_promocion", {"grado": "quinto"})
+async def test_promotion_of_one_grade_states_only_its_rule(chat_url: str):
+    out = await call(chat_url, "proyeccion_de_promocion", {"grado": "segundo"})
 
-    assert out.result.get("filas", []) == []
-    assert "Quinto de secundaria" in out.result["aviso"]
+    assert [r["alumno"] for r in out.result["filas"]] == [
+        "Kiara Lazo Mena",
+        "Luis Medina Nuñez",
+        "Marta Núñez Ortiz",
+    ]
+    assert "2.° y 5.°" in out.result["regla"] and "1.°, 3.° y 4.°" not in out.result["regla"]
+    marta = out.result["filas"][2]
+    assert marta["areas_con_C_en_la_mitad_o_mas"] == [
+        "Matemática",
+        "Comunicación",
+        "Inglés",
+        "Ciencia y Tecnología",
+    ]
+
+
+def area(name: str, *levels: str) -> Area:
+    return Area(
+        name,
+        with_level=len(levels),
+        a_or_above=sum(lv in ("AD", "A") for lv in levels),
+        b_or_above=sum(lv != "C" for lv in levels),
+        c=levels.count("C"),
+    )
+
+
+def test_the_same_levels_project_differently_mid_cycle_and_at_its_end():
+    # C in exactly half of the competencies of four áreas (cuadro 5.1.3.A, RVM 048-2024).
+    marta = [area("MAT", "C", "A"), area("COM", "C", "B"), area("ING", "C", "A"),
+             area("CYT", "C", "B"), area("EPT", "A")]  # fmt: skip
+    assert project_mid_cycle(marta).situation == "promovería"  # half is B or above
+    assert project_end_of_cycle(marta).situation == "en riesgo de permanecer"  # half is C
+
+    all_b = [area(n, "B", "B") for n in ("MAT", "COM", "ING", "CYT")]
+    assert project_mid_cycle(all_b).situation == "promovería"
+    assert project_end_of_cycle(all_b).situation == "iría a recuperación"
+    assert "ninguna área" in project_end_of_cycle(all_b).reason
+
+
+def test_mid_cycle_repeats_from_four_areas_with_more_than_half_c():
+    three = [area(n, "C", "C", "B") for n in ("MAT", "COM", "ING")] + [area("CYT", "A")]
+    four = [area(n, "C", "C", "B") for n in ("MAT", "COM", "ING", "CYT")]
+    assert project_mid_cycle(three).situation == "iría a recuperación"
+    assert project_mid_cycle(four).situation == "en riesgo de permanecer"
+
+
+def test_end_of_cycle_promotes_with_three_areas_in_a_and_no_c():
+    three_a = [area("MAT", "A", "B"), area("COM", "AD", "A"), area("ING", "A"), area("CYT", "B")]
+    two_a = [area("MAT", "A", "B"), area("COM", "AD", "A"), area("ING", "B"), area("CYT", "B")]
+    assert project_end_of_cycle(three_a).situation == "promovería"
+    assert project_end_of_cycle(two_a).situation == "iría a recuperación"
+
+
+@pytest.mark.parametrize(
+    ("stage", "position", "rule"),
+    [
+        ("secundaria", 1, "mid"),
+        ("secundaria", 3, "mid"),
+        ("secundaria", 4, "mid"),
+        ("secundaria", 2, "end"),
+        ("secundaria", 5, "end"),
+        ("primaria", 3, None),
+        (None, 1, None),
+    ],
+)
+def test_the_rule_of_each_grade(stage: str | None, position: int, rule: str | None):
+    assert rule_for(stage, position) == rule
 
 
 # --- historial_del_alumno -------------------------------------------------------------------
@@ -288,7 +373,11 @@ async def test_an_unknown_grade_or_area_answers_with_the_options(chat_url: str):
     grade = await call(chat_url, "alumnos_con_c", {"grado": "primero"})
     area = await call(chat_url, "alumnos_con_c", {"area": "robótica"})
 
-    assert grade.result["opciones"] == ["Tercero de secundaria", "Quinto de secundaria"]
+    assert grade.result["opciones"] == [
+        "Segundo de secundaria",
+        "Tercero de secundaria",
+        "Quinto de secundaria",
+    ]
     assert "Matemática" in area.result["opciones"]
 
 

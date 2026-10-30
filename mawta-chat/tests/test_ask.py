@@ -45,7 +45,9 @@ async def test_a_question_uses_the_tool_and_streams_the_answer(
 ):
     me = bearer(make_token(USER_QUISPE, TENANT_A))
     thread = (await client.post("/threads", headers=me)).json()
-    fake_llm.script(tool_turn(), text_turn("Tu colegio tiene dos secciones: 3ro A y 5to B."))
+    fake_llm.script(
+        tool_turn(), text_turn("Tu colegio tiene tres secciones: 2do A, 3ro A y 5to B.")
+    )
 
     events = await ask(client, me, thread["id"], "¿Qué secciones tiene mi colegio?")
 
@@ -54,9 +56,9 @@ async def test_a_question_uses_the_tool_and_streams_the_answer(
     assert kinds[0] == "estado" and kinds[-1] == "fin"
     assert "Consultando los datos del colegio…" in [e.get("texto") for e in events]
     table = next(e for e in events if e["tipo"] == "tabla")
-    assert [row[1] for row in table["filas"]] == ["3ro A", "5to B"]
+    assert [row[1] for row in table["filas"]] == ["2do A", "3ro A", "5to B"]
     answer = "".join(e["delta"] for e in events if e["tipo"] == "texto")
-    assert answer == "Tu colegio tiene dos secciones: 3ro A y 5to B."
+    assert answer == "Tu colegio tiene tres secciones: 2do A, 3ro A y 5to B."
     assert kinds.index("tabla") < kinds.index("texto")
 
     messages = (await client.get(f"/threads/{thread['id']}/messages", headers=me)).json()

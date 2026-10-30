@@ -49,7 +49,7 @@ Read-only, defined by chat-director decision D003. Each applies the glossary in 
 | `resumen_de_niveles` | AD/A/B/C counts by área, competency or section in a period; competencies with no level | `barras_apiladas` |
 | `alumnos_con_c` | Students with C in at least one competency of a period | `tabla` |
 | `riesgo_por_competencia` | C in the same competency in consecutive periods (a period with no level breaks the streak) | `tabla` |
-| `proyeccion_de_promocion` | Projected situation by áreas not passed (1.°, 3.° and 4.° de secundaria only) | `tabla` |
+| `proyeccion_de_promocion` | Projected situation per secondary student, with its reason: the rule of 1.°, 3.° and 4.°, or the stricter end-of-cycle rule of 2.° and 5.° (cuadro 5.1.3.A, RVM 048-2024) | `tabla` |
 | `historial_del_alumno` | One student's level per competency and period; empty = sin nivel, never C | `matriz` |
 
 Without a period, a tool uses the last one with levels: teachers assert levels when a period closes, so the current one usually has none.
