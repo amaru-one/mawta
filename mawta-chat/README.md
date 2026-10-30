@@ -19,7 +19,7 @@ LangGraph's checkpoints (the conversation state of each chat) live in their own 
 | `src/graph.py` | LangGraph graph (agent ↔ tools) and the system prompt |
 | `src/llm.py` | The model through the OpenAI-compatible API (streaming, tool calls), behind a small interface |
 | `src/providers.py` | `provider:model`: which provider (`local` or `openrouter`) a model runs on |
-| `src/tools.py` | The chat's tools (reads `chat_api` only) |
+| `src/tools/` | The chat's six tools, one module each, plus `resolve.py` (what the director wrote → period, grade, section, área, student) and `blocks.py` (the blocks they return). They read `chat_api` only |
 | `src/protocol.py` | Protocol v1 events streamed to the UI |
 | `src/repo.py` | Queries on the `chat` schema |
 
@@ -37,11 +37,26 @@ Every route except `/health` needs `Authorization: Bearer <chat token>`.
 | `GET /threads/{id}/messages` | Messages, as protocol v1 blocks |
 | `POST /threads/{id}/messages` | Ask (`{"texto": "..."}`); the answer streams as SSE |
 
-Streamed events (`protocol.py`): `estado`, `texto` (`delta`), `tabla`, `grafico`, `error`, `fin` (`message_id`). Each carries `"version": 1`.
+Streamed events (`protocol.py`): `estado`, `texto` (`delta`), `tabla`, `barras_apiladas`, `matriz`, `error`, `fin` (`message_id`). Each carries `"version": 1`.
+
+## Tools
+
+Read-only, defined by chat-director decision D003. Each applies the glossary in its own SQL (the `chat_api` views only hand over clean data), returns one fixed kind of block, and, when what the director wrote matches several things or nothing, answers with the options (`necesita_aclaracion`) so the model asks. Students are listed by section and surname, never ranked. Mawta does not record attendance yet, so no tool covers it.
+
+| Tool | Answers | Block |
+|---|---|---|
+| `datos_del_colegio` | Periods (which is current, which have levels), sections, tutors, teachers per class, students per section | `tabla` |
+| `resumen_de_niveles` | AD/A/B/C counts by área, competency or section in a period; competencies with no level | `barras_apiladas` |
+| `alumnos_con_c` | Students with C in at least one competency of a period | `tabla` |
+| `riesgo_por_competencia` | C in the same competency in consecutive periods (a period with no level breaks the streak) | `tabla` |
+| `proyeccion_de_promocion` | Projected situation by áreas not passed (1.°, 3.° and 4.° de secundaria only) | `tabla` |
+| `historial_del_alumno` | One student's level per competency and period; empty = sin nivel, never C | `matriz` |
+
+Without a period, a tool uses the last one with levels: teachers assert levels when a period closes, so the current one usually has none.
 
 ## Running it locally
 
-Against the local Postgres container from `mawta-api/docs/local-postgres-setup.md` (`mawta-pg`, migrated to at least `00006`):
+Against the local Postgres container from `mawta-api/docs/local-postgres-setup.md` (`mawta-pg`, migrated to at least `00009`):
 
 ```sh
 # once: a password for mawta_chat, and LangGraph's own database

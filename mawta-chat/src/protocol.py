@@ -7,7 +7,12 @@ Streamed events:
     estado   {"texto"}                         what the chat is doing now
     texto    {"delta"}                         a fragment of the answer text
     tabla    {"titulo", "columnas", "filas", "nota"}
-    grafico  {"forma", "titulo", ...}          barras | lineas | torta (level 1)
+    barras_apiladas {"titulo", "categorias", "grupos": [{"etiqueta", "valores"}], "nota"}
+                                               one bar per group, split into categorias
+                                               (AD, A, B, C), drawn at 100 %
+    matriz   {"titulo", "columnas", "filas": [{"grupo", "etiqueta", "celdas"}], "nota"}
+                                               rows grouped under a heading × columns; a
+                                               null cell is empty
     error    {"codigo", "mensaje"}
     fin      {"message_id"}                    the answer is complete and saved
 
