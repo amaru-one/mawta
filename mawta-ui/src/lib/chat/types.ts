@@ -11,10 +11,27 @@ export type TableBlock = {
 	nota?: string;
 };
 export type ErrorBlock = { tipo: 'error'; codigo: string; mensaje: string };
+// One bar per group, split into categorias (AD, A, B, C), drawn at 100 %.
+export type StackedBarsBlock = {
+	tipo: 'barras_apiladas';
+	titulo: string;
+	categorias: string[];
+	grupos: { etiqueta: string; valores: number[] }[];
+	nota?: string;
+};
+// Rows grouped under a heading × columns; a null cell is empty.
+export type MatrixBlock = {
+	tipo: 'matriz';
+	titulo: string;
+	columnas: string[];
+	filas: { grupo: string; etiqueta: string; celdas: (string | null)[] }[];
+	nota?: string;
+};
 // Any block type this UI does not know yet (e.g. `grafico` before level 1)
 // is kept and ignored when rendering.
 export type UnknownBlock = { tipo: string; [key: string]: unknown };
-export type Block = TextBlock | TableBlock | ErrorBlock | UnknownBlock;
+export type Block =
+	TextBlock | TableBlock | StackedBarsBlock | MatrixBlock | ErrorBlock | UnknownBlock;
 
 export type Thread = { id: string; title: string; created_at: string; updated_at: string };
 
@@ -39,6 +56,12 @@ export function isTextBlock(block: Block): block is TextBlock {
 }
 export function isTableBlock(block: Block): block is TableBlock {
 	return block.tipo === 'tabla' && Array.isArray((block as TableBlock).filas);
+}
+export function isStackedBarsBlock(block: Block): block is StackedBarsBlock {
+	return block.tipo === 'barras_apiladas' && Array.isArray((block as StackedBarsBlock).grupos);
+}
+export function isMatrixBlock(block: Block): block is MatrixBlock {
+	return block.tipo === 'matriz' && Array.isArray((block as MatrixBlock).filas);
 }
 export function isErrorBlock(block: Block): block is ErrorBlock {
 	return block.tipo === 'error';

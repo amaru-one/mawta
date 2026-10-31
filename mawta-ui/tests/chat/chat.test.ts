@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
+import { matrixAsTable, stackedBarsAsTable } from '../../src/lib/chat/blocks/asTable';
 import { groupThreads } from '../../src/lib/chat/groups';
 import { renderMarkdown } from '../../src/lib/chat/markdown';
 import { createSseParser, readSse } from '../../src/lib/chat/sse';
@@ -125,5 +126,45 @@ describe('Chat token', () => {
 		serveTokens(60);
 		expect(await chatToken()).toBe('t1');
 		expect(await chatToken(true)).toBe('t2');
+	});
+});
+
+describe('chart blocks shown as tables', () => {
+	test('stacked bars: one row per group with its total', () => {
+		const table = stackedBarsAsTable({
+			tipo: 'barras_apiladas',
+			titulo: 'Niveles por área — T-II',
+			categorias: ['AD', 'A', 'B', 'C'],
+			grupos: [
+				{ etiqueta: 'Matemática', valores: [3, 20, 25, 8] },
+				{ etiqueta: 'Comunicación', valores: [5, 30, 18, 3] },
+			],
+			nota: 'Trimestre II',
+		});
+		expect(table.columnas).toEqual(['', 'AD', 'A', 'B', 'C', 'Total']);
+		expect(table.filas).toEqual([
+			['Matemática', 3, 20, 25, 8, 56],
+			['Comunicación', 5, 30, 18, 3, 56],
+		]);
+		expect(table.nota).toBe('Trimestre II');
+	});
+
+	test('matrix: the group heading once, empty cells kept as null', () => {
+		const table = matrixAsTable({
+			tipo: 'matriz',
+			titulo: 'Niveles de Brenda',
+			columnas: ['T-I', 'T-II', 'T-III'],
+			filas: [
+				{ grupo: 'Matemática', etiqueta: 'MAT-C1', celdas: ['C', 'C', null] },
+				{ grupo: 'Matemática', etiqueta: 'MAT-C4', celdas: [null, null, null] },
+				{ grupo: 'Inglés', etiqueta: 'ING-C1', celdas: ['B', 'C', null] },
+			],
+		});
+		expect(table.columnas).toEqual(['', '', 'T-I', 'T-II', 'T-III']);
+		expect(table.filas).toEqual([
+			['Matemática', 'MAT-C1', 'C', 'C', null],
+			['', 'MAT-C4', null, null, null],
+			['Inglés', 'ING-C1', 'B', 'C', null],
+		]);
 	});
 });
