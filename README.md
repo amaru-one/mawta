@@ -109,4 +109,4 @@ and the one-command local setup.
 
 ## License
 
-[MIT](LICENSE) © 2026 The Mawta Authors · Created by Jeffrey Orihuela
+[MIT](LICENSE) © 2026 The Mawta Authors
