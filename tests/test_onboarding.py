@@ -1,0 +1,158 @@
+"""Onboarding: the catalog, the file validation and the loader."""
+
+import copy
+import json
+from collections.abc import Callable
+from pathlib import Path
+
+import pytest
+from sqlalchemy import func, select, text
+
+import curriculum
+from db import admin_engine
+from mawta_schema.tables import School
+from onboarding import derive_id
+from onboarding import load as loader
+from onboarding import spec as spec_mod
+from onboarding import sync as syncer
+from onboarding.validate import ValidationErrors, validate
+from tests.conftest import Databases, migrated_database
+
+ROOT = Path(__file__).resolve().parents[1]
+EXAMPLE = Path(__file__).resolve().parent / "data" / "ejemplo-san-felipe.json"
+TEMPLATE = ROOT / "onboarding" / "plantilla.json"
+
+
+@pytest.fixture(scope="module")
+def cat():
+    return curriculum.load()
+
+
+def example_spec():
+    return spec_mod.decode(EXAMPLE.read_text(encoding="utf-8"))
+
+
+def test_catalog_loads_and_resolves_codes(cat: curriculum.Catalog):
+    assert cat.fuente
+    assert cat.expected_level("ebr", "ciclo_vii") == 7
+    mat = cat.competencia_by_code("MAT-C1")
+    assert mat is not None and mat["capacidades"]
+    assert curriculum.capability_code("MAT-C1", 2) == "MAT-C1-CAP2"
+    # only the last grade of a cycle reaches the standard
+    last_vi = cat.last_grade_of_cycle("ciclo_vi")
+    assert last_vi is not None
+    assert cat.en_proceso("1S") and not cat.en_proceso(last_vi)
+
+
+def test_catalog_rejects_unknown_keys(tmp_path: Path):
+    root = tmp_path / "cneb"
+    (root / "competencias").mkdir(parents=True)
+    (root / "cneb.json").write_text(json.dumps({"fuente": "x", "grados": [], "oops": 1}))
+    (root / "areas.json").write_text(json.dumps({"areas": [], "transversales": []}))
+    with pytest.raises(curriculum.CatalogError) as err:
+        curriculum.load(root)
+    assert "oops" in str(err.value)
+
+
+def test_example_file_is_valid(cat: curriculum.Catalog):
+    validate(example_spec(), cat)
+
+
+def test_template_reports_every_unfilled_placeholder(cat: curriculum.Catalog):
+    spec = spec_mod.decode(TEMPLATE.read_text(encoding="utf-8"))
+    with pytest.raises(ValidationErrors) as err:
+        validate(spec, cat)
+    assert len(err.value.errors) > 3
+    assert all(": " in e for e in err.value.errors)
+
+
+def test_unknown_key_and_wrong_type_are_decode_errors():
+    with pytest.raises(spec_mod.DecodeError, match="apellido_paterrno"):
+        spec_mod.decode('{"aulas": [{"estudiantes": [{"apellido_paterrno": "x"}]}]}')
+    with pytest.raises(spec_mod.DecodeError, match="anio"):
+        spec_mod.decode('{"anio_escolar": {"anio": "2026"}}')
+    with pytest.raises(spec_mod.DecodeError, match="línea"):
+        spec_mod.decode("{not json")
+
+
+# One broken field each, and the words the error must use to name it.
+MUTATIONS: list[tuple[Callable[[spec_mod.Spec], None], str]] = [
+    (lambda s: setattr(s.colegio, "codigo_modular", "123"), "7 dígitos"),
+    (lambda s: setattr(s.docentes[0], "usuario", "Bad User"), "minúsculas"),
+    (lambda s: setattr(s.clases[0], "area", "NOPE"), "no está en la lista de áreas"),
+    (lambda s: setattr(s.clases[0], "aula", "9X-Z"), "no existe"),
+    (lambda s: setattr(s.anio_escolar, "estructura", "decenio"), "no es válido"),
+]
+
+
+@pytest.mark.parametrize("mutate,fragment", MUTATIONS)
+def test_validation_names_the_problem(
+    cat: curriculum.Catalog, mutate: Callable[[spec_mod.Spec], None], fragment: str
+):
+    spec = copy.deepcopy(example_spec())
+    mutate(spec)
+    with pytest.raises(ValidationErrors) as err:
+        validate(spec, cat)
+    assert any(fragment in e for e in err.value.errors), err.value.errors
+
+
+@pytest.fixture(scope="module")
+def empty_database():
+    """A migrated database with no school yet: onboarding installs one."""
+    with migrated_database([]) as dbs:
+        yield dbs
+
+
+def test_ids_match_postgres_md5(databases: Databases):
+    with admin_engine(databases.admin_url).connect() as conn:
+        md5_id = conn.execute(text("select md5('student:0723519:EST-1')::uuid")).scalar_one()
+    assert derive_id("student", "0723519", "EST-1") == md5_id
+
+
+def test_load_creates_the_school_and_rolls_back(empty_database: Databases, cat: curriculum.Catalog):
+    spec = example_spec()
+    with admin_engine(empty_database.admin_url).connect() as conn:
+        summary = loader.load(conn, spec, cat, 4)
+        assert summary.docentes == len(spec.docentes) and summary.sesiones > 0
+        assert summary.estudiantes == sum(len(a.estudiantes) for a in spec.aulas)
+        mod = spec.colegio.codigo_modular
+        school = conn.execute(select(School.id, School.modular_code)).one()
+        assert school.modular_code == mod
+        assert school.id == derive_id("school", mod, "") == summary.school_id
+        # a second load into the same database is refused up front: one school per database
+        with pytest.raises(ValidationErrors, match="ya tiene su colegio"):
+            loader.load(conn, spec, cat, 4)
+        conn.rollback()
+        assert conn.execute(select(func.count()).select_from(School)).scalar_one() == 0
+
+
+def test_a_database_with_a_school_refuses_another(databases: Databases, cat: curriculum.Catalog):
+    with admin_engine(databases.admin_url).connect() as conn:
+        with pytest.raises(ValidationErrors, match="Cristo Rey"):
+            loader.load(conn, example_spec(), cat, 4)
+        conn.rollback()
+
+
+def test_sync_is_idempotent_on_a_freshly_loaded_school(
+    empty_database: Databases, cat: curriculum.Catalog
+):
+    spec = example_spec()
+    grade_map = {g.codigo: g.grado_cneb for g in spec.grados}
+    with admin_engine(empty_database.admin_url).connect() as conn:
+        loader.load(conn, spec, cat, 4)
+        mod = spec.colegio.codigo_modular
+        first = syncer.sync_curriculum(conn, cat, mod, grade_map)
+        second = syncer.sync_curriculum(conn, cat, mod, grade_map)
+        assert first.competencias > 0 and first.renamed == []
+        assert (second.capacidades, second.estandares, second.desempenos) == (0, 0, 0)
+        assert second.niveles_esperados == 0 and second.grados == 0
+        conn.rollback()
+
+
+def test_sync_refuses_another_schools_code(empty_database: Databases, cat: curriculum.Catalog):
+    spec = example_spec()
+    with admin_engine(empty_database.admin_url).connect() as conn:
+        loader.load(conn, spec, cat, 4)
+        with pytest.raises(syncer.SyncError, match="esta base es de"):
+            syncer.sync_curriculum(conn, cat, "9999999", {"1S": "1S"})
+        conn.rollback()

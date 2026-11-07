@@ -1,0 +1,388 @@
+{
+  "numero_cneb": 28,
+  "nombre": "Se desenvuelve en los entornos virtuales generados por las TIC",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Personaliza entornos virtuales"
+    },
+    {
+      "numero": 2,
+      "nombre": "Gestiona información del entorno virtual"
+    },
+    {
+      "numero": 3,
+      "nombre": "Interactúa en entornos virtuales"
+    },
+    {
+      "numero": 4,
+      "nombre": "Crea objetos virtuales en diversos formatos"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Este nivel tiene como base el nivel 1 de la competencia “Indaga mediante métodos científicos”."
+    },
+    {
+      "nivel": 2,
+      "texto": "Se desenvuelve en los entornos virtuales cuando busca y manipula objetos del entorno virtual para realizar actividades preferidas que le permitan registrar, comunicar ideas y emociones."
+    },
+    {
+      "nivel": 3,
+      "texto": "Se desenvuelve en los entornos virtuales cuando analiza y ejecuta procedimientos para elaborar o modificar objetos virtuales que representan y comunican vivencias en espacios virtuales adecuados a su edad, realizando intentos sucesivos hasta concretar su propósito."
+    },
+    {
+      "nivel": 4,
+      "texto": "Se desenvuelve en los entornos virtuales cuando comprende los procedimientos e intercambios que realiza para elegir y aplicar estrategias, participar en actividades colaborativas, así como para representar experiencias y conceptos a través de objetos virtuales."
+    },
+    {
+      "nivel": 5,
+      "texto": "Se desenvuelve en los entornos virtuales cuando personaliza de manera coherente y organizada su espacio virtual representando su identidad, conocimiento y formas de interacción con otros. Elabora material digital (presentaciones, videos, documentos, diseños, entre otros) comparando y seleccionando distintas actividades según sus necesidades, actitudes y valores."
+    },
+    {
+      "nivel": 6,
+      "texto": "Se desenvuelve en los entornos virtuales cuando integra distintas actividades, actitudes y conocimientos de diversos contextos socioculturales en su entorno virtual personal. Crea materiales digitales (presentaciones, videos, documentos, diseños, entre otros) que responden a necesidades concretas de acuerdo a sus procesos cognitivos y la manifestación de su individualidad."
+    },
+    {
+      "nivel": 7,
+      "texto": "Se desenvuelve en los entornos virtuales cuando interactúa en diversos espacios (como portales educativos, foros, redes sociales, entre otros) de manera consciente y sistemática administrando información y creando materiales digitales en interacción con sus pares de distintos contextos socioculturales expresando su identidad personal."
+    },
+    {
+      "nivel": 8,
+      "texto": "Se desenvuelve en los entornos virtuales cuando optimiza sus estrategias de participación, creación, construcción del conocimiento y expresión de su individualidad para consolidar, gestionar y compartir su experiencia en diversos contextos socioculturales."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1P",
+      "orden": 1,
+      "texto": "Navega en entornos virtuales y realiza búsquedas de información como parte de una actividad. Ejemplo: El estudiante busca información en un libro digital o en contenidos de un CD-ROM."
+    },
+    {
+      "grado": "1P",
+      "orden": 2,
+      "texto": "Participa en juegos interactivos en los que realiza simulaciones y problematizaciones para desarrollar aprendizajes en las áreas curriculares."
+    },
+    {
+      "grado": "1P",
+      "orden": 3,
+      "texto": "Explora dispositivos tecnológicos, como radio, televisión, videograbadora, cámara, tablet, teléfonos celulares, entre otros, y los utiliza en actividades específicas teniendo en cuenta criterios de seguridad y cuidado."
+    },
+    {
+      "grado": "2P",
+      "orden": 1,
+      "texto": "Navega en entornos virtuales, realiza búsquedas de información y utiliza herramientas digitales para afianzar sus aprendizajes de las áreas curriculares."
+    },
+    {
+      "grado": "2P",
+      "orden": 2,
+      "texto": "Selecciona y organiza información de acuerdo al formato digital en el que está elaborada, para su accesibilidad y utilización."
+    },
+    {
+      "grado": "2P",
+      "orden": 3,
+      "texto": "Participa en juegos interactivos o en redes virtuales siguiendo orientaciones y pautas cuando desarrolla actividades de aprendizaje."
+    },
+    {
+      "grado": "2P",
+      "orden": 4,
+      "texto": "Elabora materiales digitales combinando imágenes y textos, y utiliza graficadores o procesadores de textos básicos cuando realiza historias, cuentos o expresa ideas."
+    },
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Navega en entornos virtuales y selecciona aplicaciones y recursos digitales de distintos formatos según un propósito definido cuando desarrolla aprendizajes de las áreas curriculares. Ejemplo: El estudiante representa una idea utilizando organizadores visuales."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Utiliza procedimientos para descargar, enviar, guardar y copiar información de diversos programas y aplicaciones digitales."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Utiliza espacios y servicios virtuales de participación en red cuando intercambia información con sus pares."
+    },
+    {
+      "grado": "3P",
+      "orden": 4,
+      "texto": "Elabora materiales digitales combinando textos, imágenes, audios y videos, y utiliza un presentador gráfico cuando expresa experiencias y comunica sus ideas."
+    },
+    {
+      "grado": "3P",
+      "orden": 5,
+      "texto": "Utiliza bloques gráficos o instrucciones simples en secuencias lógicas para simular comportamientos de objetos o seres vivos diseñados previamente."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Configura aplicaciones y herramientas digitales cuando desarrolla actividades de aprendizaje. Ejemplo: El estudiante cambia el fondo de pantalla de cualquier dispositivo."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Realiza diversas búsquedas de información y selecciona y utiliza lo más relevante según el propósito de aprendizaje."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Realiza procedimientos para organizar los documentos digitales y utilizar las aplicaciones o los recursos de su entorno virtual personalizado."
+    },
+    {
+      "grado": "4P",
+      "orden": 4,
+      "texto": "Intercambia experiencias en espacios virtuales compartidos de manera organizada considerando las normas de trabajo colaborativo con medios sincrónicos (chat, videoconferencia) y asincrónicos (foros, wikis, correos electrónicos)."
+    },
+    {
+      "grado": "4P",
+      "orden": 5,
+      "texto": "Elabora materiales digitales, como videos, audios, animaciones y presentaciones, combinando diferentes recursos multimedia para representar sus vivencias, ideas, conceptos, historias o relatos."
+    },
+    {
+      "grado": "4P",
+      "orden": 6,
+      "texto": "Realiza secuencias lógica o procedimientos para la resolución de problemas."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Modifica un entorno virtual personalizado cuando organiza información y materiales digitales que utiliza frecuentemente según las necesidades, el contexto y las actividades en las que participa. Ejemplo: El estudiante cambia el nombre de un archivo."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Organiza información, según su propósito de estudio, de diversas fuentes y materiales digitales. Ejemplo: El estudiante organiza información en carpetas u otros medios digitales."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Aplica normas de comportamiento y seguridad en actividades colaborativas en espacios virtuales compartidos, con respeto hacia los aportes de sus pares. Ejemplo: El estudiante utiliza los códigos de netiqueta."
+    },
+    {
+      "grado": "5P",
+      "orden": 4,
+      "texto": "Participa en entornos virtuales con aplicaciones que representen objetos reales como virtuales simulando comportamientos y sus características. Ejemplo: El estudiante utiliza un aplicativo de realidad aumentada, así puede observar el proceso de traslación de la Tierra e interactuar con el objeto simulado."
+    },
+    {
+      "grado": "5P",
+      "orden": 5,
+      "texto": "Elabora documentos, presentaciones, hojas de cálculo u organizadores gráficos para explicar ideas, proyectos y tareas, con base en información de diversas fuentes, y los comparte con sus pares."
+    },
+    {
+      "grado": "5P",
+      "orden": 6,
+      "texto": "Realiza programaciones simples que simulan procesos o comportamientos de objetos construidos de su propio entorno, para resolver determinados problemas o retos."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Modifica un entorno virtual personalizado cuando clasifica aplicaciones y herramientas de navegación, para utilizarlo según las necesidades, el contexto y las actividades en las que participa."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Emplea portafolios digitales cuando organiza la información que obtuvo, de manera que esté disponible para actividades frecuentes. Ejemplo: El estudiante crea un blog para difundir las actividades de “El día del logro”."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Accede a entornos virtuales establecidos, mediante credenciales de identificación digital y considerando procedimientos seguros, éticos y responsables; por ejemplo, para ingresar a una red social."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Construye objetos virtuales a partir de información seleccionada de diversas fuentes y materiales digitales que respalden sus opiniones o posturas en los diversos trabajos que realiza. Ejemplo: El estudiante hace uso de un presentador visual."
+    },
+    {
+      "grado": "6P",
+      "orden": 5,
+      "texto": "Participa en actividades comunicativas con entornos virtuales compartidos, mediante el uso de diversas herramientas y medios digitales; por ejemplo, en la participación en videoconferencias."
+    },
+    {
+      "grado": "6P",
+      "orden": 6,
+      "texto": "Elabora documentos, hojas de cálculo y presentaciones digitales utilizando diferentes recursos digitales multimedia y aplicaciones de simulación interactiva de la realidad cuando presenta ideas y proyectos."
+    },
+    {
+      "grado": "6P",
+      "orden": 7,
+      "texto": "Programa secuencias lógicas cuando simula procesos o comportamientos de acuerdo a la construcción de un diseño elaborado para presentar soluciones; por ejemplo, para mostrar una historieta interactiva."
+    },
+    {
+      "grado": "6P",
+      "orden": 8,
+      "texto": "Utiliza herramientas de software y plataformas digitales cuando aprende diversas áreas del conocimiento de manera autorregulada y consciente. Por ejemplo: El estudiante accede a un portal educativo y utiliza los recursos digitales."
+    },
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Navega en diversos entornos virtuales recomendados adaptando funcionalidades básicas de acuerdo con sus necesidades de manera pertinente y responsable."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Clasifica información de diversas fuentes y entornos teniendo en cuenta la pertinencia y exactitud del contenido reconociendo los derechos de autor. Ejemplo: Accede a múltiples libros digitales obteniendo información de cada uno de ellos en un documento y citando la fuente."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Registra datos mediante hoja de cálculo que le permita ordenar y secuenciar información relevante."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Participa en actividades interactivas y comunicativas de manera pertinente cuando expresa su identidad personal y sociocultural en entornos virtuales determinados, como redes virtuales, portales educativos y grupos en red. Ejemplo: Participa en un proyecto colaborativo virtual de educación ambiental y tecnología, y recopila evidencias (fotos, videos y propuestas) utilizando foros y grupos."
+    },
+    {
+      "grado": "1S",
+      "orden": 5,
+      "texto": "Utiliza herramientas multimedia e interactivas cuando desarrolla capacidades relacionadas con diversas áreas del conocimiento. Ejemplo: Resuelve problemas de cantidad con un software interactivo mediante videos, audios y evaluación."
+    },
+    {
+      "grado": "1S",
+      "orden": 6,
+      "texto": "Elabora proyectos escolares de su comunidad y localidad utilizando documentos y presentaciones digitales."
+    },
+    {
+      "grado": "1S",
+      "orden": 7,
+      "texto": "Desarrolla procedimientos lógicos y secuenciales para plantear soluciones a enunciados concretos con lenguajes de programación de código escrito bloques gráficos. Ejemplo: Elabora un diagrama de flujo para explicar la preparación de un pastel."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Organiza aplicaciones y materiales digitales según su utilidad y propósitos variados en un entorno virtual determinado, como televisor, computadora personal, dispositivo móvil, aula virtual, entre otros, para uso personal y necesidades educativas. Ejemplo: Abre más de dos aplicaciones a la vez, abre una aplicación de video y otra de procesador de texto para generar el resumen del video."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Contrasta información recopilada de diversas fuentes y entornos que respondan a consignas y necesidades de investigación o tareas escolares, y resume la información en un documento con pertinencia y considerando la autoría."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Procesa datos mediante hojas de cálculo y base de datos cuando representa gráficamente información con criterios e indicaciones."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Participa en actividades colaborativas en comunidades y redes virtuales para intercambiar y compartir información de manera individual o en grupos de trabajo desde perspectivas multiculturales y de acuerdo con su contexto."
+    },
+    {
+      "grado": "2S",
+      "orden": 5,
+      "texto": "Elabora animaciones, videos y material interactivo en distintos formatos con creatividad e iniciativa, con aplicaciones de modelado y multimedia."
+    },
+    {
+      "grado": "2S",
+      "orden": 6,
+      "texto": "Resuelve situaciones problemáticas mediante la programación de código con procedimientos y secuencias lógicas estructuradas planteando soluciones creativas."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Construye su perfil personal cuando accede a aplicaciones o plataformas de distintos propósitos, y se integra a comunidades colaborativas virtuales. Ejemplo: Agrega fotos e intereses personales en su perfil del portal Perú Educa."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Establece búsquedas utilizando filtros en diferentes entornos virtuales que respondan a necesidades de información."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Clasifica y organiza la información obtenida de acuerdo con criterios establecidos y cita las fuentes en forma apropiada con eficiencia y efectividad."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Aplica funciones de cálculo cuando resuelve problemas matemáticos utilizando hojas de cálculo y base de datos."
+    },
+    {
+      "grado": "3S",
+      "orden": 5,
+      "texto": "Establece diálogos significativos y acordes con su edad en el desarrollo de un proyecto o identificación de un problema o una actividad planteada con sus pares en entornos virtuales compartidos. Ejemplo: Participa en un foro."
+    },
+    {
+      "grado": "3S",
+      "orden": 6,
+      "texto": "Diseña objetos virtuales cuando representa ideas u otros elementos mediante el modelado de diseño. Ejemplo: Diseña el logotipo de su proyecto de emprendimiento estudiantil."
+    },
+    {
+      "grado": "3S",
+      "orden": 7,
+      "texto": "Desarrolla secuencias lógicas o juegos digitales que simulen procesos u objetos que lleven a realizar tareas del mundo real con criterio y creatividad. Ejemplo: Elabora un programa que simule el movimiento de una polea."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Accede a plataformas virtuales para desarrollar aprendizajes de diversas áreas curriculares seleccionando opciones, herramientas y aplicaciones, y realizando configuraciones de manera autónoma y responsable."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Emplea diversas fuentes con criterios de credibilidad, pertinencia y eficacia utilizando herramientas digitales de autor cuando realiza investigación sobre un tema específico."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Aplica diversas funciones de cálculo combinadas para solucionar situaciones diversas cuando sistematiza información en una base de datos y la representa gráficamente."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Comparte y evalúa sus proyectos escolares demostrando habilidades relacionadas con las áreas curriculares cuando plantea soluciones y propuestas creativas en las comunidades virtuales en las que participa. Ejemplo: Participa en una comunidad de programación de historietas interactivas."
+    },
+    {
+      "grado": "4S",
+      "orden": 5,
+      "texto": "Documenta proyectos escolares cuando combina animaciones, videos y material interactivo en distintos formatos con creatividad e iniciativa. Ejemplo: Crea un blog para promocionar y difundir su proyecto de emprendimiento."
+    },
+    {
+      "grado": "4S",
+      "orden": 6,
+      "texto": "Publica proyectos escolares utilizando información diversa según pautas de organización y citación combinando materiales digitales de diferentes formatos. Ejemplo: Crea un álbum virtual como galería de arte con imágenes obtenidas de diversas fuentes, o muestra una galería virtual con texto, videos y fotos de culturas diversas."
+    },
+    {
+      "grado": "4S",
+      "orden": 7,
+      "texto": "Programa secuencias lógicas estableciendo condiciones de decisión que presenten soluciones acordes con el problema planteado con eficacia."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Optimiza el desarrollo de proyectos cuando configura diversos entornos virtuales de software y hardware de acuerdo con determinadas necesidades cuando reconoce su identidad digital, con responsabilidad y eficiencia."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Administra bases de datos aplicando filtros, criterios de consultas y organización de información para mostrar reportes e informes que demuestren análisis y capacidad de síntesis."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Desarrolla proyectos productivos y de emprendimiento aplicando de manera idónea herramientas TIC que mejoren los resultados."
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Elabora objetos virtuales con aplicaciones de modelado en 3D cuando desarrolla proyectos de innovación y emprendimiento. Ejemplo: Modela en 3D el prototipo de su producto."
+    },
+    {
+      "grado": "5S",
+      "orden": 5,
+      "texto": "Administra comunidades virtuales asumiendo distintos roles, estableciendo vínculos acordes con sus necesidades e intereses, y valorando el trabajo colaborativo."
+    },
+    {
+      "grado": "5S",
+      "orden": 6,
+      "texto": "Construye prototipos robóticos que permitan solucionar problemas de su entorno."
+    },
+    {
+      "grado": "5S",
+      "orden": 7,
+      "texto": "Publica y comparte, en diversos medios virtuales, proyectos o investigaciones, y genera actividades de colaboración y diálogo en distintas comunidades y redes virtuales."
+    }
+  ]
+}

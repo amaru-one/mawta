@@ -1,0 +1,47 @@
+# On main: the CI, then the image to DigitalOcean's registry, then mawta-ops is told the new
+# version so it deploys it (mawta-ops/.github/workflows/deploy.yml).
+#
+# Needs: secret DIGITALOCEAN_ACCESS_TOKEN (registry write), variable DOCR_REGISTRY (the registry
+# name), secret OPS_DISPATCH_TOKEN (a token allowed to send repository_dispatch to mawta-ops).
+# This repository is public: the secrets stay out of pull requests from forks, which run ci.yml
+# only.
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  image:
+    needs: ci
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      - run: doctl registry login --expiry-seconds 900
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: registry.digitalocean.com/${{ vars.DOCR_REGISTRY }}/mawta:${{ github.sha }}
+
+  tell-ops:
+    needs: image
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.OPS_DISPATCH_TOKEN }}
+          repository: amaru-one/mawta-ops
+          event-type: release
+          client-payload: '{"component": "app", "version": "${{ github.sha }}"}'

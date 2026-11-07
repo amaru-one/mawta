@@ -1,0 +1,62 @@
+# Checks on every pull request, and the gate of every release (release.yml calls this file).
+#
+# The database tests create their own throwaway databases inside the Postgres service. Setting
+# MAWTA_TEST_ADMIN_URL is what makes them count: without it they skip, and a run that verified
+# nothing would look green. The last step fails the job if anything was skipped.
+name: CI
+
+on:
+  pull_request:
+  workflow_call:
+
+jobs:
+  backend:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 2s --health-timeout 5s
+          --health-retries 20
+    env:
+      MAWTA_TEST_ADMIN_URL: postgres://postgres:postgres@127.0.0.1:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.13.5"
+      # Voice notes are transcoded with ffmpeg (tests/test_media.py runs it). A static build is
+      # one download with no system libraries; it is checked against the md5 published next to it.
+      - name: Install a static ffmpeg
+        working-directory: ${{ runner.temp }}
+        run: |
+          base=https://johnvansickle.com/ffmpeg/releases
+          curl -fsSL --retry 5 --retry-delay 5 -O "$base/ffmpeg-release-amd64-static.tar.xz"
+          curl -fsSL --retry 5 --retry-delay 5 -O "$base/ffmpeg-release-amd64-static.tar.xz.md5"
+          md5sum -c ffmpeg-release-amd64-static.tar.xz.md5
+          tar -xJf ffmpeg-release-amd64-static.tar.xz --strip-components=1 --wildcards '*/ffmpeg'
+          sudo install -m 0755 ffmpeg /usr/local/bin/ffmpeg
+          ffmpeg -version | head -1
+      - run: uv sync --locked
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run pyright
+      - name: The models and the migrations agree (alembic check)
+        env:
+          PGPASSWORD: postgres
+          MAWTA_MIGRATIONS_URL: postgres://postgres:postgres@127.0.0.1:5432/alembic_check
+        run: |
+          psql -h 127.0.0.1 -U postgres -c 'create database alembic_check'
+          uv run alembic upgrade head
+          uv run alembic check
+      - name: Tests (none may be skipped)
+        run: |
+          set -o pipefail
+          uv run pytest -rs | tee pytest.log
+          if grep -q " skipped" pytest.log; then
+            echo "some tests were skipped: every test must run in CI" >&2
+            exit 1
+          fi

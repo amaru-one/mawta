@@ -1,0 +1,266 @@
+{
+  "areas": [
+    {
+      "codigo": "MAT",
+      "nombre": "Matemática",
+      "niveles": [
+        "primaria",
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "MAT-C1",
+          "numero_cneb": 23
+        },
+        {
+          "codigo": "MAT-C2",
+          "numero_cneb": 24
+        },
+        {
+          "codigo": "MAT-C3",
+          "numero_cneb": 26
+        },
+        {
+          "codigo": "MAT-C4",
+          "numero_cneb": 25
+        }
+      ]
+    },
+    {
+      "codigo": "CCSS",
+      "nombre": "Ciencias Sociales",
+      "niveles": [
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "CCSS-C1",
+          "numero_cneb": 17
+        },
+        {
+          "codigo": "CCSS-C2",
+          "numero_cneb": 18
+        },
+        {
+          "codigo": "CCSS-C3",
+          "numero_cneb": 19
+        }
+      ]
+    },
+    {
+      "codigo": "PS",
+      "nombre": "Personal Social",
+      "niveles": [
+        "primaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "PS-C1",
+          "numero_cneb": 1
+        },
+        {
+          "codigo": "PS-C2",
+          "numero_cneb": 16
+        },
+        {
+          "codigo": "PS-C3",
+          "numero_cneb": 17
+        },
+        {
+          "codigo": "PS-C4",
+          "numero_cneb": 18
+        },
+        {
+          "codigo": "PS-C5",
+          "numero_cneb": 19
+        }
+      ]
+    },
+    {
+      "codigo": "DPCC",
+      "nombre": "Desarrollo Personal, Ciudadanía y Cívica",
+      "niveles": [
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "DPCC-C1",
+          "numero_cneb": 1
+        },
+        {
+          "codigo": "DPCC-C2",
+          "numero_cneb": 16
+        }
+      ]
+    },
+    {
+      "codigo": "EF",
+      "nombre": "Educación Física",
+      "niveles": [
+        "primaria",
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "EF-C1",
+          "numero_cneb": 2
+        },
+        {
+          "codigo": "EF-C2",
+          "numero_cneb": 3
+        },
+        {
+          "codigo": "EF-C3",
+          "numero_cneb": 4
+        }
+      ]
+    },
+    {
+      "codigo": "ARTE",
+      "nombre": "Arte y Cultura",
+      "niveles": [
+        "primaria",
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "ARTE-C1",
+          "numero_cneb": 5
+        },
+        {
+          "codigo": "ARTE-C2",
+          "numero_cneb": 6
+        }
+      ]
+    },
+    {
+      "codigo": "COM",
+      "nombre": "Comunicación",
+      "niveles": [
+        "primaria",
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "COM-C1",
+          "numero_cneb": 7
+        },
+        {
+          "codigo": "COM-C2",
+          "numero_cneb": 8
+        },
+        {
+          "codigo": "COM-C3",
+          "numero_cneb": 9
+        }
+      ]
+    },
+    {
+      "codigo": "CSL",
+      "nombre": "Castellano como Segunda Lengua",
+      "niveles": [
+        "primaria",
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "CSL-C1",
+          "numero_cneb": 10
+        },
+        {
+          "codigo": "CSL-C2",
+          "numero_cneb": 11
+        },
+        {
+          "codigo": "CSL-C3",
+          "numero_cneb": 12
+        }
+      ]
+    },
+    {
+      "codigo": "ING",
+      "nombre": "Inglés como Lengua Extranjera",
+      "niveles": [
+        "primaria",
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "ING-C1",
+          "numero_cneb": 13
+        },
+        {
+          "codigo": "ING-C2",
+          "numero_cneb": 14
+        },
+        {
+          "codigo": "ING-C3",
+          "numero_cneb": 15
+        }
+      ]
+    },
+    {
+      "codigo": "CYT",
+      "nombre": "Ciencia y Tecnología",
+      "niveles": [
+        "primaria",
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "CYT-C1",
+          "numero_cneb": 20
+        },
+        {
+          "codigo": "CYT-C2",
+          "numero_cneb": 21
+        },
+        {
+          "codigo": "CYT-C3",
+          "numero_cneb": 22
+        }
+      ]
+    },
+    {
+      "codigo": "EPT",
+      "nombre": "Educación para el Trabajo",
+      "niveles": [
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "EPT-C1",
+          "numero_cneb": 27
+        }
+      ]
+    },
+    {
+      "codigo": "ER",
+      "nombre": "Educación Religiosa",
+      "niveles": [
+        "primaria",
+        "secundaria"
+      ],
+      "competencias": [
+        {
+          "codigo": "ER-C1",
+          "numero_cneb": 30
+        },
+        {
+          "codigo": "ER-C2",
+          "numero_cneb": 31
+        }
+      ]
+    }
+  ],
+  "transversales": [
+    {
+      "codigo": "TR-C1",
+      "numero_cneb": 28
+    },
+    {
+      "codigo": "TR-C2",
+      "numero_cneb": 29
+    }
+  ]
+}

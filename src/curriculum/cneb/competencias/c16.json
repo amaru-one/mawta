@@ -1,0 +1,387 @@
+{
+  "numero_cneb": 16,
+  "nombre": "Convive y participa democráticamente",
+  "capacidades": [
+    {
+      "numero": 1,
+      "nombre": "Interactúa con todas las personas"
+    },
+    {
+      "numero": 2,
+      "nombre": "Construye normas y asume acuerdos y leyes"
+    },
+    {
+      "numero": 3,
+      "nombre": "Maneja conflictos de manera constructiva"
+    },
+    {
+      "numero": 4,
+      "nombre": "Delibera sobre asuntos públicos"
+    },
+    {
+      "numero": 5,
+      "nombre": "Participa en acciones que promueven el bienestar común"
+    }
+  ],
+  "estandares": [
+    {
+      "nivel": 1,
+      "texto": "Convive y participa cuando se relaciona con niños y adultos de su espacio cotidiano desde su propia iniciativa. Manifiesta a través de movimientos, gestos o palabras las situaciones que le agradan o le incomodan. Colabora en el cuidado de los materiales y espacios comunes."
+    },
+    {
+      "nivel": 2,
+      "texto": "Convive y participa democráticamente cuando interactúa de manera respetuosa con sus compañeros desde su propia iniciativa, cumple con sus deberes y se interesa por conocer más sobre las diferentes costumbres y características de las personas de su entorno inmediato. Participa y propone acuerdos y normas de convivencia para el bien común. Realiza acciones con otros para el buen uso de los espacios, materiales y recursos comunes."
+    },
+    {
+      "nivel": 3,
+      "texto": "Convive y participa democráticamente cuando se relaciona con los demás respetando las diferencias y cumpliendo con sus deberes. Conoce las costumbres y características de las personas de su localidad o región. Construye de manera colectiva acuerdos y normas. Usa estrategias sencillas para resolver conflictos. Realiza acciones específicas para el beneficio de todos a partir de la deliberación sobre asuntos de interés común tomando como fuente sus experiencias previas."
+    },
+    {
+      "nivel": 4,
+      "texto": "Convive y participa democráticamente cuando se relaciona con los demás respetando las diferencias, expresando su desacuerdo frente a situaciones que vulneran la convivencia y cumpliendo con sus deberes. Conoce las manifestaciones culturales de su localidad, región o país. Construye y evalúa acuerdos y normas tomando en cuenta el punto de vista de los demás. Recurre al diálogo para manejar conflictos. Propone y realiza acciones colectivas orientadas al bienestar común a partir de la deliberación sobre asuntos de interés público, en la que se da cuenta que existen opiniones distintas a la suya."
+    },
+    {
+      "nivel": 5,
+      "texto": "Convive y participa democráticamente cuando se relaciona con los demás, respetando las diferencias, los derechos de cada uno, cumpliendo y evaluando sus deberes. Se interesa por relacionarse con personas de culturas distintas y conocer sus costumbres. Construye y evalúa normas de convivencia tomando en cuenta sus derechos. Maneja conflictos utilizando el diálogo y la mediación con base en criterios de igualdad o equidad. Propone, planifica y realiza acciones colectivas orientadas al bien común, la solidaridad, la protección de las personas vulnerables y la defensa de sus derechos. Delibera sobre asuntos de interés público con argumentos basados en fuentes y toma en cuenta la opinión de los demás."
+    },
+    {
+      "nivel": 6,
+      "texto": "Convive y participa democráticamente cuando se relaciona con los demás, respetando las diferencias y los derechos de cada uno, cumpliendo sus deberes y buscando que otros también las cumplan. Se relaciona con personas de culturas distintas, respetando sus costumbres. Construye y evalúa de manera colectiva las normas de convivencia en el aula y en la escuela con base en principios democráticos. Ejerce el rol de mediador en su grupo haciendo uso de la negociación y el diálogo para el manejo de conflictos. Propone, planifica y ejecuta acciones de manera cooperativa, dirigidas a promover el bien común, la defensa de sus derechos y el cumplimiento de sus deberes como miembro de una comunidad. Delibera sobre asuntos públicos formulando preguntas sobre sus causas y consecuencias, analizando argumentos contrarios a los propios y argumentando su postura basándose en fuentes y en otras opiniones."
+    },
+    {
+      "nivel": 7,
+      "texto": "Convive y participa democráticamente, relacionándose con los demás, respetando las diferencias y promoviendo los derechos de todos, así como cumpliendo sus deberes y evaluando sus consecuencias. Se relaciona con personas de diferentes culturas respetando sus costumbres y creencias. Evalúa y propone normas para la convivencia social basadas en los principios democráticos y en la legislación vigente. Utiliza estrategias de negociación y diálogo para el manejo de conflictos. Asume deberes en la organización y ejecución de acciones colectivas para promover sus derechos y deberes frente a situaciones que involucran a su comunidad. Delibera sobre asuntos públicos con argumentos basados en fuentes confiables, los principios democráticos y la institucionalidad, y aporta a la construcción de consensos. Rechaza posiciones que legitiman la violencia o la vulneración de derechos."
+    },
+    {
+      "nivel": 8,
+      "texto": "Convive y participa democráticamente, relacionándose con los demás respetando los derechos humanos y reconociendo la ley como garantía de la libertad y la justicia. Valora la diversidad y se relaciona interculturalmente con las personas de diferentes culturas. Utiliza reflexivamente diversos instrumentos legales para proponer normas aplicables a distintas escalas. Maneja adecuadamente los conflictos en diversos escenarios. Asume un papel protagónico para proponer, organizar y ejecutar acciones que promuevan y defiendan los derechos humanos, la justicia y el reconocimiento de la diversidad cultural. Delibera sobre asuntos públicos a partir del análisis multidimensional, sustentando su postura en fuentes confiables y principios democráticos, y estando dispuesto a reajustar su posición a partir de argumentos razonados, para aportar a la construcción de consensos."
+    }
+  ],
+  "desempenos": [
+    {
+      "grado": "1P",
+      "orden": 1,
+      "texto": "Establece relaciones con sus compañeros respetando sus características físicas o culturales. Identifica sus derechos y cumple con sus deberes en el aula de acuerdo a su edad, para beneficio de todos."
+    },
+    {
+      "grado": "1P",
+      "orden": 2,
+      "texto": "Describe las características culturales que distinguen al pueblo de origen de sus familiares (bailes, comidas, vestimenta, etc.) y las comparte."
+    },
+    {
+      "grado": "1P",
+      "orden": 3,
+      "texto": "Participa en la elaboración de acuerdos y normas, y los cumple."
+    },
+    {
+      "grado": "1P",
+      "orden": 4,
+      "texto": "Utiliza estrategias para manejar sus conflictos en el aula con ayuda de un adulto; de esta manera, propicia el buen trato entre compañeros."
+    },
+    {
+      "grado": "1P",
+      "orden": 5,
+      "texto": "Delibera sobre asuntos de interés común enfatizando en los que se generan durante la convivencia diaria en el aula, para proponer y participar en actividades colectivas orientadas al bienestar de todos, a partir de la identificación de necesidades."
+    },
+    {
+      "grado": "2P",
+      "orden": 1,
+      "texto": "Comparte actividades con sus compañeros respetando sus diferencias y tratándolos con amabilidad y respeto. Cumple con sus deberes en el aula, para beneficio de todos y de acuerdo a su edad."
+    },
+    {
+      "grado": "2P",
+      "orden": 2,
+      "texto": "Describe las características culturales que distinguen a su localidad o región (bailes, comidas, vestimenta, etc.) y las comparte."
+    },
+    {
+      "grado": "2P",
+      "orden": 3,
+      "texto": "Participa en la elaboración de acuerdos y normas que reflejen el buen trato entre compañeros, y los cumple."
+    },
+    {
+      "grado": "2P",
+      "orden": 4,
+      "texto": "Utiliza estrategias para manejar sus conflictos en el aula con ayuda de un adulto; de esta manera, propicia el buen trato entre compañeros."
+    },
+    {
+      "grado": "2P",
+      "orden": 5,
+      "texto": "Delibera sobre asuntos de interés común enfatizando en los que se generan durante la convivencia diaria en el aula, para proponer y participar en actividades colectivas orientadas al reconocimiento y respeto de sus derechos como niños y niñas, a partir de situaciones cotidianas."
+    },
+    {
+      "grado": "3P",
+      "orden": 1,
+      "texto": "Muestra un trato respetuoso e inclusivo con sus compañeros de aula y expresa su desacuerdo en situaciones de maltrato en su institución educativa. Cumple con sus deberes."
+    },
+    {
+      "grado": "3P",
+      "orden": 2,
+      "texto": "Describe algunas manifestaciones culturales de su localidad o de su pueblo de origen. Se refiere a sí mismo como integrante de una localidad específica o de un pueblo originario."
+    },
+    {
+      "grado": "3P",
+      "orden": 3,
+      "texto": "Participa en la elaboración de acuerdos y normas de convivencia en el aula, teniendo en cuenta los deberes y derechos del niño, y escucha las propuestas de sus compañeros; explica la importancia de la participación de todos en dicha elaboración."
+    },
+    {
+      "grado": "3P",
+      "orden": 4,
+      "texto": "Interviene al observar un conflicto entre compañeros: recurre al diálogo o a un adulto cercano para que intervenga si es necesario."
+    },
+    {
+      "grado": "3P",
+      "orden": 5,
+      "texto": "Delibera sobre asuntos de interés público para proponer y participar en actividades colectivas orientadas al bien común (seguridad vial, entre otras), a partir de situaciones cotidianas, y reconoce que existen opiniones distintas a la suya."
+    },
+    {
+      "grado": "4P",
+      "orden": 1,
+      "texto": "Muestra un trato respetuoso e inclusivo con sus compañeros de aula y expresa su desacuerdo en situaciones reales e hipotéticas de maltrato y discriminación por razones de etnia, edad, género o discapacidad (niños, ancianos y personas con discapacidad). Cumple con sus deberes."
+    },
+    {
+      "grado": "4P",
+      "orden": 2,
+      "texto": "Explica algunas manifestaciones culturales de su localidad, región o país. Se refiere a sí mismo como integrante de una localidad específica o de un pueblo originario."
+    },
+    {
+      "grado": "4P",
+      "orden": 3,
+      "texto": "Participa en la elaboración de acuerdos y normas de convivencia en el aula, teniendo en cuenta los deberes y derechos del niño, y considera las propuestas de sus compañeros. Evalúa el cumplimiento de dichos acuerdos y normas, y propone cómo mejorarlo."
+    },
+    {
+      "grado": "4P",
+      "orden": 4,
+      "texto": "Propone alternativas de solución a los conflictos por los que atraviesa: recurre al diálogo y a la intervención de mediadores si lo cree necesario."
+    },
+    {
+      "grado": "4P",
+      "orden": 5,
+      "texto": "Delibera sobre asuntos de interés público (problemas de seguridad vial, delincuencia juvenil, incumplimiento de sus derechos, etc.) para proponer y participar en actividades colectivas orientadas al bien común, y reconoce que existen opiniones distintas a la suya."
+    },
+    {
+      "grado": "5P",
+      "orden": 1,
+      "texto": "Muestra un trato respetuoso e inclusivo con sus compañeros de aula y propone acciones para mejorar la convivencia a partir de la reflexión sobre conductas propias o de otros. Evalúa el cumplimiento de sus deberes."
+    },
+    {
+      "grado": "5P",
+      "orden": 2,
+      "texto": "Muestra interés por participar en actividades que le permitan relacionarse con sus compañeros y personas de distintas culturas para conocer sus costumbres."
+    },
+    {
+      "grado": "5P",
+      "orden": 3,
+      "texto": "Participa en la construcción consensuada de normas de convivencia del aula, teniendo en cuenta los deberes y derechos del niño, y evalúa su cumplimiento."
+    },
+    {
+      "grado": "5P",
+      "orden": 4,
+      "texto": "Utiliza el diálogo y la negociación para superar los conflictos. Explica que los conflictos se originan por no reconocer a los otros como sujetos con los mismos derechos y por falta de control de las emociones."
+    },
+    {
+      "grado": "5P",
+      "orden": 5,
+      "texto": "Propone, a partir de un diagnóstico y de la deliberación sobre asuntos públicos, acciones orientadas al bien común, la solidaridad, la protección de personas vulnerables y la defensa de sus derechos. Sustenta su posición basándose en fuentes."
+    },
+    {
+      "grado": "6P",
+      "orden": 1,
+      "texto": "Establece relaciones con sus compañeros sin discriminarlos. Propone acciones para mejorar la interacción entre compañeros, a partir de la reflexión sobre conductas propias o de otros, en las que se evidencian los prejuicios y estereotipos más comunes de su entorno (de género, raciales, entre otros). Evalúa el cumplimiento de sus deberes y los de sus compañeros, y propone cómo mejorarlo."
+    },
+    {
+      "grado": "6P",
+      "orden": 2,
+      "texto": "Se comunica por diversos medios con personas de una cultura distinta a la suya (afrodescendiente, tusán, nisei, entre otras), para aprender de ella."
+    },
+    {
+      "grado": "6P",
+      "orden": 3,
+      "texto": "Participa en la construcción consensuada de normas de convivencia del aula, teniendo en cuenta los deberes y derechos del niño, y evalúa su cumplimiento. Cumple con sus deberes y promueve que sus compañeros también lo hagan."
+    },
+    {
+      "grado": "6P",
+      "orden": 4,
+      "texto": "Recurre al diálogo o a mediadores para solucionar conflictos y buscar la igualdad o equidad; propone alternativas de solución."
+    },
+    {
+      "grado": "6P",
+      "orden": 5,
+      "texto": "Propone, a partir de un diagnóstico y de la deliberación sobre asuntos públicos, acciones orientadas al bien común, la solidaridad, la protección de personas vulnerables y la defensa de sus derechos, tomando en cuenta la opinión de los demás. Sustenta su posición basándose en fuentes."
+    },
+    {
+      "grado": "1S",
+      "orden": 1,
+      "texto": "Establece relaciones basadas en el respeto y el diálogo con sus compañeros y compañeras, cuestiona los prejuicios y estereotipos más comunes que se dan en su entorno, y cumple sus deberes en la escuela."
+    },
+    {
+      "grado": "1S",
+      "orden": 2,
+      "texto": "Intercambia costumbres mostrando respeto por las diferencias."
+    },
+    {
+      "grado": "1S",
+      "orden": 3,
+      "texto": "Evalúa los acuerdos y las normas que regulan la convivencia en su escuela en función de si se basan en los derechos y deberes del niño y del adolescente."
+    },
+    {
+      "grado": "1S",
+      "orden": 4,
+      "texto": "Interviene ante conflictos cercanos a él utilizando el diálogo y la negociación."
+    },
+    {
+      "grado": "1S",
+      "orden": 5,
+      "texto": "Delibera sobre asuntos públicos cuando obtiene información de diversas fuentes, sustenta su posición sobre la base de argumentos y aporta a la construcción de consensos que contribuyan al bien común."
+    },
+    {
+      "grado": "1S",
+      "orden": 6,
+      "texto": "Propone acciones colectivas en la escuela en apoyo a grupos vulnerables en situación de desventaja social y económica tomando como base los derechos del niño."
+    },
+    {
+      "grado": "2S",
+      "orden": 1,
+      "texto": "Demuestra actitudes de respeto por sus compañeros, defiende sus derechos ante situaciones de vulneración, y cuestiona los prejuicios y estereotipos por etnia, género, ciclo vital o discapacidad más comunes de su entorno. Cumple sus deberes en la escuela y localidad, y promueve que los demás también los cumplan."
+    },
+    {
+      "grado": "2S",
+      "orden": 2,
+      "texto": "Intercambia costumbres mostrando respeto por las diferencias."
+    },
+    {
+      "grado": "2S",
+      "orden": 3,
+      "texto": "Propone normas que regulan la convivencia en la escuela y el uso responsable de las vías públicas de su localidad. Evalúa esas normas críticamente a partir de los principios democráticos y las modifica cuando se contraponen con sus derechos."
+    },
+    {
+      "grado": "2S",
+      "orden": 4,
+      "texto": "Actúa como mediador en conflictos de sus compañeros haciendo uso de habilidades sociales, el diálogo y la negociación."
+    },
+    {
+      "grado": "2S",
+      "orden": 5,
+      "texto": "Delibera sobre asuntos públicos cuando indaga sus causas y consecuencias, examina argumentos contrarios a los propios, y sustenta su posición basándose en principios democráticos y valores cívicos. Aporta a la construcción de consensos que contribuyan al bien común."
+    },
+    {
+      "grado": "2S",
+      "orden": 6,
+      "texto": "Participa cooperativamente en la planeación y ejecución de acciones en defensa de los derechos de la niñez. Asimismo, cumple responsablemente sus deberes y responsabilidades."
+    },
+    {
+      "grado": "3S",
+      "orden": 1,
+      "texto": "Realiza acciones en el aula y la escuela que promueven integración de todos sus compañeros y compañeras, y cuestiona los prejuicios y estereotipos culturales más comunes entre adolescentes que se dan en los espacios públicos. Cumple sus deberes con sus pares y evalúa sus acciones tomando en cuenta los valores cívicos y el bien común."
+    },
+    {
+      "grado": "3S",
+      "orden": 2,
+      "texto": "Intercambia prácticas culturales en relación a estilos de vida mostrando respeto por las diferencias."
+    },
+    {
+      "grado": "3S",
+      "orden": 3,
+      "texto": "Evalúa los acuerdos y las normas de convivencia a partir del criterio del bien común y los acepta. Expresa argumentos a favor del respeto por las normas y señales de tránsito para promover el uso seguro de las vías públicas."
+    },
+    {
+      "grado": "3S",
+      "orden": 4,
+      "texto": "Diferencia conflictos originados por la dinámica de las relaciones humanas de aquellos generados por su estancamiento. Utiliza estrategias diversas y creativas para prevenir y enfrentar conflictos."
+    },
+    {
+      "grado": "3S",
+      "orden": 5,
+      "texto": "Delibera sobre asuntos públicos cuando sustenta su posición a partir de la contraposición de puntos de vista distintos del suyo y del análisis de las diversas posturas y los posibles intereses involucrados. Aporta a la construcción de consensos que contribuyan al bien común de la nación peruana y del mundo."
+    },
+    {
+      "grado": "3S",
+      "orden": 6,
+      "texto": "Participa en acciones colectivas orientadas al bien común de la nación peruana, y a la promoción y defensa de los derechos humanos (civiles, políticos, económicos, sociales, culturales, ambientales, entre otros)."
+    },
+    {
+      "grado": "3S",
+      "orden": 7,
+      "texto": "Utiliza los mecanismos de participación estudiantil para evaluar la gestión de sus autoridades escolares."
+    },
+    {
+      "grado": "4S",
+      "orden": 1,
+      "texto": "Justifica la necesidad de rechazar conductas de violencia, marginación y explotación que puedan afectar a determinados grupos vulnerables de todas las edades y ciclos vitales por factores étnicos, de género, de origen, de lengua, de discapacidad, entre otros. Reconoce como sujetos de derechos a esos grupos. Cumple sus deberes y evalúa las consecuencias de sus acciones tomando en cuenta la dignidad humana."
+    },
+    {
+      "grado": "4S",
+      "orden": 2,
+      "texto": "Intercambia prácticas culturales en relación al sentido de autoridad y de gobierno, mostrando respeto por las diferencias."
+    },
+    {
+      "grado": "4S",
+      "orden": 3,
+      "texto": "Evalúa acuerdos y normas para una convivencia armónica y la promoción de la seguridad vial en su región, y propone normas sobre la base de los principios democráticos y los derechos humanos. Expresa argumentos sobre la importancia que tiene el Estado como institución que garantiza el cumplimiento de las leyes y la defensa nacional en el marco del Estado de derecho."
+    },
+    {
+      "grado": "4S",
+      "orden": 4,
+      "texto": "Explica las características de los diversos tipos de conflicto que se dan en la escuela y la comunidad, y los procedimientos que se deben seguir para su manejo. Utiliza mecanismos como la mediación, la conciliación y el arbitraje."
+    },
+    {
+      "grado": "4S",
+      "orden": 5,
+      "texto": "Delibera sobre asuntos públicos que afectan el sistema democrático, la institucionalidad y el Estado de derecho cuando sustenta su posición a partir de la contraposición de puntos de vista distintos del suyo, y sobre la base del análisis de las diversas posturas y los posibles intereses involucrados. Aporta a la construcción de consensos que contribuyan al bien común basándose en principios democráticos."
+    },
+    {
+      "grado": "4S",
+      "orden": 6,
+      "texto": "Participa en acciones colectivas orientadas al bien común a través de la promoción de los derechos de determinados grupos vulnerables (adultos mayores, discapacitados, miembros de pueblos originarios) y de los mecanismos de participación ciudadana."
+    },
+    {
+      "grado": "4S",
+      "orden": 7,
+      "texto": "Sustenta la pertinencia de recurrir a las correspondientes instancias frente a casos de vulneración de los derechos."
+    },
+    {
+      "grado": "4S",
+      "orden": 8,
+      "texto": "Evalúa el ejercicio del poder de sus autoridades considerando los derechos humanos y utilizando los mecanismos de participación ciudadana."
+    },
+    {
+      "grado": "5S",
+      "orden": 1,
+      "texto": "Demuestra actitudes de respeto por las personas con necesidades educativas especiales y por personas pertenecientes a culturas distintas de la suya. Rechaza situaciones de discriminación que puedan afectar los derechos de los grupos vulnerables. Cumple sus deberes en la escuela y evalúa sus acciones tomando en cuenta los principios democráticos."
+    },
+    {
+      "grado": "5S",
+      "orden": 2,
+      "texto": "Intercambia prácticas culturales en relación a las concepciones del mundo y de la vida, mostrando respeto y tolerancia por las diferencias."
+    },
+    {
+      "grado": "5S",
+      "orden": 3,
+      "texto": "Propone normas que regulan la convivencia y buscan evitar problemas de discriminación, basadas en la normatividad vigente a nivel nacional y mundial."
+    },
+    {
+      "grado": "5S",
+      "orden": 4,
+      "texto": "Explica que el Estado, para garantizar la convivencia, debe administrar justicia siempre en el marco de la legalidad."
+    },
+    {
+      "grado": "5S",
+      "orden": 5,
+      "texto": "Explica cómo se desarrolla la dinámica del conflicto y señala las actitudes que son fuente de este. Pone en práctica su rol de mediador para el manejo de conflictos."
+    },
+    {
+      "grado": "5S",
+      "orden": 6,
+      "texto": "Delibera sobre asuntos públicos que afectan los derechos humanos, la seguridad y la defensa nacional cuando sustenta su posición a partir de la contraposición de puntos de vista distintos del suyo, y sobre la base del análisis de las diversas posturas y los posibles intereses involucrados. Aporta a la construcción de consensos que contribuyan al bien común basándose en principios democráticos."
+    },
+    {
+      "grado": "5S",
+      "orden": 7,
+      "texto": "Realiza acciones participativas para promover y defender los derechos humanos y la justicia social y ambiental. Explica las funciones de los organismos e instituciones que velan por los derechos humanos en el Perú y el mundo."
+    },
+    {
+      "grado": "5S",
+      "orden": 8,
+      "texto": "Evalúa los procedimientos de las instituciones y organismos del Estado considerando el respeto por la dignidad humana, y propone alternativas para su mejora."
+    }
+  ]
+}

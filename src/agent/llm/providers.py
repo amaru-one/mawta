@@ -1,0 +1,93 @@
+"""Where a model runs: a "provider:model" value names both.
+
+Every provider speaks the OpenAI-compatible chat completions API, so moving a task between the
+school's own model server and OpenRouter is a configuration change:
+`PLANNING_AGENT_MODEL=local:gemma4:12b-it-qat` or
+`PLANNING_AGENT_MODEL=openrouter:qwen/qwen3-30b-a3b`.
+
+"local" is any OpenAI-compatible server Mawta's operator runs: Ollama on a developer's laptop,
+Ollama or vLLM on the school's DGX Spark, or the same on a cloud GPU server for a school without
+one. The provider is what comes before the first colon; the rest is the model's name on that
+server, colons included (Ollama tags have one).
+"""
+
+from dataclasses import dataclass
+from typing import override
+
+from openai import AsyncOpenAI
+
+LOCAL = "local"
+OPENROUTER = "openrouter"
+PROVIDERS = (LOCAL, OPENROUTER)
+
+# The SDK refuses to build a client without an api_key, but a local Ollama ignores it.
+_LOCAL_PLACEHOLDER_KEY = "local"
+
+
+@dataclass(frozen=True)
+class ModelRef:
+    provider: str
+    model: str
+
+    @override
+    def __str__(self) -> str:
+        return f"{self.provider}:{self.model}"
+
+
+def parse(value: str) -> ModelRef:
+    """ "local:gemma4:12b-it-qat" -> ModelRef("local", "gemma4:12b-it-qat")."""
+    provider, sep, model = value.strip().partition(":")
+    if not sep or not model.strip():
+        raise ValueError(
+            f'"{value}" is not "provider:model" (for example "local:gemma4:12b-it-qat")'
+        )
+    if provider not in PROVIDERS:
+        raise ValueError(f'unknown provider "{provider}" in "{value}"; use one of {PROVIDERS}')
+    return ModelRef(provider, model.strip())
+
+
+@dataclass(frozen=True)
+class Endpoints:
+    """The providers' addresses and keys, from configuration."""
+
+    local_url: str
+    local_api_key: str
+    openrouter_url: str
+    openrouter_api_key: str
+
+
+def configured(ref: ModelRef, ep: Endpoints) -> bool:
+    """Whether the provider has what it needs: an address for the local server, a key for
+    OpenRouter."""
+    if ref.provider == LOCAL:
+        return bool(ep.local_url)
+    return bool(ep.openrouter_url and ep.openrouter_api_key)
+
+
+def client_for(ref: ModelRef, ep: Endpoints, timeout: float) -> AsyncOpenAI:
+    """A client for the model's provider. One quick SDK retry absorbs a momentary 429/5xx;
+    anything longer is the job queue's backoff."""
+    if ref.provider == LOCAL:
+        url, key = ep.local_url, ep.local_api_key or _LOCAL_PLACEHOLDER_KEY
+    else:
+        url, key = ep.openrouter_url, ep.openrouter_api_key
+    return AsyncOpenAI(base_url=url, api_key=key, timeout=timeout, max_retries=1)
+
+
+REASONING_EFFORTS = ("", "none", "minimal", "low", "medium", "high")
+
+
+def extra_body(ref: ModelRef, reasoning_effort: str = "") -> dict[str, object] | None:
+    """What goes in the request besides the standard fields.
+
+    OpenRouter routes a request to any provider that serves the model; require_parameters keeps
+    it to the ones that honour every parameter sent (the JSON schema, the tools).
+
+    reasoning_effort is only sent when configured. Models that reason first (gemma4, qwen3) spend
+    their max_tokens on hidden reasoning unless told otherwise; "none" turns it off."""
+    body: dict[str, object] = {}
+    if ref.provider == OPENROUTER:
+        body["provider"] = {"require_parameters": True}
+    if reasoning_effort:
+        body["reasoning_effort"] = reasoning_effort
+    return body or None
