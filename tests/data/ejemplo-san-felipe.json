@@ -92,7 +92,7 @@
   "docentes": [
     {
       "usuario": "jeffrey",
-      "clave": "jeffrey2026",
+      "clave": "clave-de-prueba-jeffrey",
       "email": "amaruorihuela@gmail.com",
       "nombres": "Jeffrey",
       "apellidos": "Orihuela",
@@ -103,7 +103,7 @@
     },
     {
       "usuario": "gonzalo",
-      "clave": "gonzalo2026",
+      "clave": "clave-de-prueba-gonzalo",
       "email": "gonzaloscb7@gmail.com",
       "nombres": "Gonzalo",
       "apellidos": "Saavedra",
@@ -114,7 +114,7 @@
     },
     {
       "usuario": "mhuaman",
-      "clave": "mhuaman2026",
+      "clave": "clave-de-prueba-mhuaman",
       "email": "mhuaman@sanfelipe.test",
       "nombres": "Milagros",
       "apellidos": "Huamán Torres",
@@ -125,7 +125,7 @@
     },
     {
       "usuario": "rquispe",
-      "clave": "rquispe2026",
+      "clave": "clave-de-prueba-rquispe",
       "email": "rquispe@sanfelipe.test",
       "nombres": "Raúl",
       "apellidos": "Quispe Mamani",
@@ -136,7 +136,7 @@
     },
     {
       "usuario": "kpalomino",
-      "clave": "kpalomino2026",
+      "clave": "clave-de-prueba-kpalomino",
       "email": "kpalomino@sanfelipe.test",
       "nombres": "Karen",
       "apellidos": "Palomino Ríos",
@@ -147,7 +147,7 @@
     },
     {
       "usuario": "lcardenas",
-      "clave": "lcardenas2026",
+      "clave": "clave-de-prueba-lcardenas",
       "email": "lcardenas@sanfelipe.test",
       "nombres": "Lucía",
       "apellidos": "Cárdenas Vega",
@@ -158,7 +158,7 @@
     },
     {
       "usuario": "jmendoza",
-      "clave": "jmendoza2026",
+      "clave": "clave-de-prueba-jmendoza",
       "email": "jmendoza@sanfelipe.test",
       "nombres": "Jorge",
       "apellidos": "Mendoza Paredes",
@@ -169,7 +169,7 @@
     },
     {
       "usuario": "aflores",
-      "clave": "aflores2026",
+      "clave": "clave-de-prueba-aflores",
       "email": "aflores@sanfelipe.test",
       "nombres": "Andrea",
       "apellidos": "Flores Salazar",
@@ -180,7 +180,7 @@
     },
     {
       "usuario": "rchavez",
-      "clave": "rchavez2026",
+      "clave": "clave-de-prueba-rchavez",
       "email": "rchavez@sanfelipe.test",
       "nombres": "Rosa",
       "apellidos": "Chávez Lozano",
@@ -191,7 +191,7 @@
     },
     {
       "usuario": "dramos",
-      "clave": "dramos2026",
+      "clave": "clave-de-prueba-dramos",
       "email": "dramos@sanfelipe.test",
       "nombres": "Diego",
       "apellidos": "Ramos Cueva",
