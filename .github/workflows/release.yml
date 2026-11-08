@@ -1,10 +1,10 @@
-# On main: the CI, then the image to DigitalOcean's registry, then mawta-ops is told the new
-# version so it deploys it (mawta-ops/.github/workflows/deploy.yml).
+# On main: the CI, then the image to GitHub's registry (ghcr.io/amaru-one/mawta:<sha>), then
+# mawta-ops is told the new version so it deploys it (mawta-ops/.github/workflows/deploy.yml).
 #
-# Needs: secret DIGITALOCEAN_ACCESS_TOKEN (registry write), variable DOCR_REGISTRY (the registry
-# name), secret OPS_DISPATCH_TOKEN (a token allowed to send repository_dispatch to mawta-ops).
-# This repository is public: the secrets stay out of pull requests from forks, which run ci.yml
-# only.
+# The push uses the automatic GITHUB_TOKEN. Needs: secret OPS_DISPATCH_TOKEN (a fine-grained token
+# allowed to send repository_dispatch to mawta-ops).
+# This repository is public, and so is its image: the code is public and the image holds no
+# secrets (they come from the droplet's .env at runtime). Pull requests from forks run ci.yml only.
 name: Release
 
 on:
@@ -22,18 +22,24 @@ jobs:
   image:
     needs: ci
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
-      - uses: digitalocean/action-doctl@v2
+      - uses: docker/login-action@v3
         with:
-          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-      - run: doctl registry login --expiry-seconds 900
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - uses: docker/setup-buildx-action@v3
       - uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: registry.digitalocean.com/${{ vars.DOCR_REGISTRY }}/mawta:${{ github.sha }}
+          tags: ghcr.io/${{ github.repository_owner }}/mawta:${{ github.sha }}
+          # Links the package to this repository (its page, and its visibility and access).
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
 
   tell-ops:
     needs: image

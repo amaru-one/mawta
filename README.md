@@ -104,7 +104,8 @@ flowchart LR
 | `src/onboarding/`, `src/curriculum/`, `src/cli/`, `onboarding/` | The school installer, the CNEB catalog (data), the `onboard` and `useradd` commands, and the onboarding template |
 | `tests/` | pytest against a real Postgres: the API, `tests/chat/` and `tests/schema/` |
 
-The web app, the deployment and the demo school live in their own repositories.
+The web app and the deployment live in their own repositories; the demo school is kept outside
+this one.
 
 ## Running it locally
 

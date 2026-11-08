@@ -15,7 +15,7 @@ file: the loader copies it from the CNEB catalog shipped with the app
 | File | Purpose |
 | --- | --- |
 | `onboarding/plantilla.json` | Blank template. **Share this file** with the onboarding team. |
-| `ejemplo-san-felipe.json` in the demo repository (`mawta-demo`) | A complete example school, used by the demo. Use it as a reference for filling in the template. `mawta-demo/build.py` generates it. |
+| `ejemplo-san-felipe.json` in the demo folder (`mawta-demo`, kept outside this repository) | A complete example school, used by the demo. Use it as a reference for filling in the template. `mawta-demo/build.py` generates it. |
 | `onboarding/colegios/` | Completed school files. **Git ignores this folder** because the files contain passwords and minors' data. |
 | `onboard` | The command that loads a file, or syncs an installed school's curriculum: `uv run onboard`, or the same command inside the app's image. |
 | `src/curriculum/cneb/` | The CNEB catalog: `cneb.json` (grades, cycles, expected levels), `areas.json` (areas and their competency codes), `competencias/cNN.json` (one file per CNEB competency). Data only; never edited by hand outside a reviewed transcription. |
@@ -156,7 +156,7 @@ transaction, and a second run changes nothing.
 
 ## Demo data (optional)
 
-The demo school, I.E. San Felipe, lives in its own repository, `mawta-demo`. It has its generator,
+The demo school, I.E. San Felipe, lives outside this repository, in the `mawta-demo` folder. It has its generator,
 the school's JSON, `seed_demo.sql` (a lived school year: T-I and T-II closed with planning, scores,
 levels, conclusions and voice notes; T-III open and unplanned) and `PERFILES.md`, the answer key
 of every student's profile. Load it into a new, migrated database:
