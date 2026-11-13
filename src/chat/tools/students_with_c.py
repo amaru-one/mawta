@@ -95,10 +95,21 @@ TOOL = Tool(
     ),
     status="Buscando alumnos con C…",
     params={
-        "periodo": Param('Period: "actual", "último cerrado", "T-II", "segundo trimestre"…'),
-        "grado": Param('Grade as the director said it: "primero", "1ro de secundaria"…'),
-        "seccion": Param('Section: "A", "1A", "1ro B"…'),
-        "area": Param('Área: "matemática", "MAT", "comu"…'),
+        "periodo": Param(
+            'Period, only when the director named one ("actual", "último cerrado" or its name). '
+            "Empty = the last period with levels; do not fill it otherwise."
+        ),
+        "grado": Param(
+            "Grade, only when the director named one. Empty = the whole school; do not fill it "
+            "otherwise."
+        ),
+        "seccion": Param(
+            "Section, only when the director named one. Empty = every section; do not fill it "
+            "otherwise."
+        ),
+        "area": Param(
+            "Área, only when the director named one. Empty = every área; do not fill it otherwise."
+        ),
     },
     run=run,
 )

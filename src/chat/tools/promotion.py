@@ -67,7 +67,8 @@ def project_mid_cycle(areas: list[Area]) -> Projection:
     detail = {"areas_no_aprobadas": names(failed)}
     if not failed:
         return Projection(PROMOTED, "", detail)
-    reason = "Menos de la mitad en B o más en: " + ", ".join(names(failed))
+    # Áreas go with ";": "Desarrollo Personal, Ciudadanía y Cívica" has commas of its own.
+    reason = "Menos de la mitad en B o más en: " + "; ".join(names(failed))
     return Projection(REPEAT if len(failed) >= AREAS_TO_REPEAT else RECOVERY, reason, detail)
 
 
@@ -84,19 +85,19 @@ def project_end_of_cycle(areas: list[Area]) -> Projection:
         "areas_con_A_o_AD_en_la_mitad_o_mas": names(half_a),
     }
     if len(half_c) >= AREAS_TO_REPEAT:
-        reason = "C en la mitad o más de las competencias de: " + ", ".join(names(half_c))
+        reason = "C en la mitad o más de las competencias de: " + "; ".join(names(half_c))
         return Projection(REPEAT, reason, detail)
     if not with_c and len(half_a) >= AREAS_WITH_A:
         return Projection(PROMOTED, "", detail)
     reasons: list[str] = []
     if with_c:
-        reasons.append("C en: " + ", ".join(names(with_c)))
+        reasons.append("C en: " + "; ".join(names(with_c)))
     if len(half_a) < AREAS_WITH_A:
         how_many = {0: "ninguna área", 1: "solo 1 área"}.get(
             len(half_a), f"solo {len(half_a)} áreas"
         )
         reasons.append(f"{how_many} con A o AD en la mitad o más (se piden {AREAS_WITH_A})")
-    return Projection(RECOVERY, "; ".join(reasons), detail)
+    return Projection(RECOVERY, " · ".join(reasons), detail)
 
 
 def rule_for(stage: str | None, position: int | None) -> str | None:
@@ -211,8 +212,14 @@ TOOL = Tool(
     ),
     status="Proyectando la promoción…",
     params={
-        "grado": Param('Grade as the director said it: "primero", "1ro de secundaria"…'),
-        "seccion": Param('Section: "A", "1A", "1ro B"…'),
+        "grado": Param(
+            "Grade, only when the director named one. Empty = the whole school; do not fill it "
+            "otherwise."
+        ),
+        "seccion": Param(
+            "Section, only when the director named one. Empty = every section; do not fill it "
+            "otherwise."
+        ),
     },
     run=run,
 )
