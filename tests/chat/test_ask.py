@@ -127,7 +127,7 @@ async def test_tool_arguments_that_are_not_json_answer_as_a_tool_error(
 @pytest.mark.parametrize(
     ("tool", "arguments", "status", "block", "in_result"),
     [
-        ("resumen_de_niveles", "{}", "Contando los niveles de logro…", "barras_apiladas", "totales"),
+        ("resumen_de_niveles", "{}", "Contando los niveles de logro…", "barras_apiladas", "totales_de_niveles"),
         ("alumnos_con_c", "{}", "Buscando alumnos con C…", "tabla", "alumnos_con_C"),
         ("riesgo_por_competencia", "{}", "Buscando rachas de C…", "tabla", "racha_minima"),
         ("proyeccion_de_promocion", '{"grado": "tercero"}', "Proyectando la promoción…", "tabla",

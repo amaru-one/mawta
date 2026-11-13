@@ -128,9 +128,17 @@ TOOL = Tool(
     ),
     status="Buscando rachas de C…",
     params={
-        "grado": Param('Grade as the director said it: "primero", "1ro de secundaria"…'),
-        "seccion": Param('Section: "A", "1A", "1ro B"…'),
-        "area": Param('Área: "matemática", "MAT", "comu"…'),
+        "grado": Param(
+            "Grade, only when the director named one. Empty = the whole school; do not fill it "
+            "otherwise."
+        ),
+        "seccion": Param(
+            "Section, only when the director named one. Empty = every section; do not fill it "
+            "otherwise."
+        ),
+        "area": Param(
+            "Área, only when the director named one. Empty = every área; do not fill it otherwise."
+        ),
         "minimo": Param("Shortest streak to list, in periods (default 2).", kind="integer"),
     },
     run=run,

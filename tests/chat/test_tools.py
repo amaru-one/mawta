@@ -88,11 +88,26 @@ async def test_summary_defaults_to_the_last_period_with_levels(chat_url: str):
     assert out.result["periodo"] == "Bimestre III"  # B-IV is current but has no levels yet
     assert out.result["agrupado_por"] == "area"
     # Only live levels of área competencies: Elena's corrected C and her transversal C are out.
-    assert out.result["totales"] == {"AD": 0, "A": 24, "B": 20, "C": 18}
+    assert out.result["totales_de_niveles"] == {"AD": 0, "A": 24, "B": 20, "C": 18}
     bars = out.blocks[0]
     assert bars["tipo"] == "barras_apiladas"
     assert bars["categorias"] == ["AD", "A", "B", "C"]
     assert bars["grupos"][0] == {"etiqueta": "Matemática", "valores": [0, 8, 4, 6]}
+
+
+async def test_summary_counts_students_apart_from_levels(chat_url: str):
+    """The 2026-10-31 demo read 569 levels as students (D007): the tool now says how many
+    students were evaluated and how many have a C, overall and per group."""
+    out = await call(chat_url, "resumen_de_niveles")
+    with_c = await call(chat_url, "alumnos_con_c")
+
+    assert out.result["alumnos_con_C"] == with_c.result["alumnos_con_C"]
+    assert 0 < out.result["alumnos_con_C"] <= out.result["alumnos_evaluados"]
+    assert sum(out.result["totales_de_niveles"].values()) > out.result["alumnos_evaluados"]
+    mat = next(g for g in out.result["grupos"] if g["grupo"] == "Matemática")
+    assert mat["total_niveles"] == 18 and 0 < mat["alumnos_con_C"] <= mat["alumnos"]
+    assert "alumnos evaluados" in out.blocks[0]["nota"]
+    assert "no alumnos" in out.result["regla"]
 
 
 async def test_summary_of_an_area_by_competency_names_the_ones_without_levels(chat_url: str):
