@@ -8,7 +8,7 @@ row-level security (owner_only, on app.actor_id) refuses any other row even if a
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import case, func, insert, select, update
+from sqlalchemy import Date, case, cast, func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from db import fetch_one, scalar
@@ -73,6 +73,22 @@ async def list_messages(
         .order_by(M.created_at, M.id)
     )
     return [dict(r) for r in rows.mappings()]
+
+
+async def questions_today(conn: AsyncConnection, user_id: UUID) -> int:
+    """How many questions the director asked today, by the school's calendar day (its IANA
+    timezone, as repo.home.school_today defines it)."""
+    tz = select(v.school.c.timezone).scalar_subquery()
+    today = cast(func.timezone(tz, func.now()), Date)
+    count = await scalar(
+        conn,
+        select(func.count()).where(
+            M.user_id == user_id,
+            M.author == "director",
+            cast(func.timezone(tz, M.created_at), Date) == today,
+        ),
+    )
+    return int(count or 0)
 
 
 async def add_director_message(

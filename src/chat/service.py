@@ -27,6 +27,14 @@ def unavailable() -> AppError:
     return AppError(503, "chat_unavailable", "el chat de dirección aún no está disponible")
 
 
+def daily_limit(asked: int) -> AppError:
+    return AppError(
+        429,
+        "chat_daily_limit",
+        f"Hoy ya hiciste {asked} preguntas, el máximo por día. Mañana puedes seguir.",
+    )
+
+
 def busy() -> AppError:
     return AppError(
         429, "chat_busy", "el chat está respondiendo otras preguntas; inténtalo en unos segundos"

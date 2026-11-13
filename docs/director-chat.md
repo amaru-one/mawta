@@ -16,7 +16,7 @@ answer. The numbers and tables come from the tools, never from the model's memor
 | What it reads | Its tools run inside `Database.chat_tx`, which enters the role `mawta_chat` with `SET LOCAL ROLE`. That role can read only the `chat_api` views and write only the `chat` schema |
 | Whose chats | Row-level security (`owner_only`) on `chat.threads` and `chat.messages`: each director sees only their own chats, even through the database |
 | How long | `chat_tx` sets `statement_timeout` 15s, `lock_timeout` 2s and `idle_in_transaction_session_timeout` 30s for the transaction only. Nothing carries over to the next transaction on the pooled connection |
-| How much | `CHAT_MAX_CONCURRENT` questions are answered at once, and one more gets 429 `chat_busy`. `CHAT_MAX_MODEL_CALLS` caps the model calls per question |
+| How much | `CHAT_MAX_CONCURRENT` questions are answered at once, and one more gets 429 `chat_busy`. `CHAT_MAX_MODEL_CALLS` caps the model calls per question. `CHAT_MAX_QUESTIONS_PER_DAY` caps a director's questions per school day (the school's timezone); the next one gets 429 `chat_daily_limit`. 0 = no limit |
 | Without a model | Without `CHAT_MODEL` (or without the OpenRouter key an `openrouter:` model needs), asking answers 503 `chat_unavailable`. The rest of the chat (listing, renaming, deleting) and the rest of the app keep working |
 
 ## Memory
@@ -92,6 +92,7 @@ at all). The row points at the director's message.
 | `LANGGRAPH_DATABASE_URL` | Required when `CHAT_MODEL` is set |
 | `CHAT_MAX_CONCURRENT` | Default 3 |
 | `CHAT_MAX_MODEL_CALLS` | Default 6. Each tool round is one more call |
+| `CHAT_MAX_QUESTIONS_PER_DAY` | Default 0 (no limit): questions per director and school day |
 | `CHAT_MAX_TOKENS` | Default 16000 |
 | `OPENROUTER_API_KEY`, `LOCAL_LLM_URL`, `LOCAL_LLM_API_KEY` | Shared with the agents |
 | `LANGFUSE_HOST`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY` | Traces. All three, or nothing is sent |
