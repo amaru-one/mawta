@@ -38,7 +38,7 @@ All routes are under `/api/v1/chat`.
 | `PATCH /threads/{id}` | Renames a chat: `{"title": "..."}`, at most 200 characters |
 | `DELETE /threads/{id}` | Deletes a chat and its checkpoints (204) |
 | `GET /threads/{id}/messages` | The messages, as protocol v1 blocks |
-| `POST /threads/{id}/messages` | Asks a question: `{"texto": "..."}`. The answer streams as SSE |
+| `POST /threads/{id}/messages` | Asks a question: `{"texto": "..."}`. The answer streams as SSE. It is built and saved by its own task: if the connection drops mid-stream, the answer is still completed and saved, and `GET …/messages` shows it |
 
 Someone else's chat answers 404, never 403.
 

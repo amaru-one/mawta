@@ -2,10 +2,12 @@
 session (the same cookie as the rest of the app); the chat's own work runs in Database.chat_tx,
 as mawta_chat.
 
-Asking streams Server-Sent Events in protocol v1 (chat/protocol.py) and saves the answer when it
-ends.
+Asking streams Server-Sent Events in protocol v1 (chat/protocol.py). The answer is built and
+saved by its own task, independently of the connection: if the director closes the browser
+mid-stream, the task still finishes and saves, and reopening the chat shows the whole answer.
 """
 
+import asyncio
 import json
 import logging
 import time
@@ -125,7 +127,39 @@ async def handle_ask(request: Request) -> Response:
     except BaseException:
         chat.release_slot()
         raise
-    return EventSourceResponse(_answer(chat, db, ctx, thread_id, question_id, question, school))
+    events = start_answer(chat, db, ctx, thread_id, question_id, question, school)
+    return EventSourceResponse(_watch(events))
+
+
+# The events of one answer, as they are produced; None closes the stream.
+Events = asyncio.Queue[dict[str, str] | None]
+
+
+def start_answer(
+    chat: ChatService,
+    db: Database,
+    ctx: RequestCtx,
+    thread_id: UUID,
+    question_id: UUID,
+    question: str,
+    school: str,
+) -> Events:
+    """Answer in a task of its own, holding the slot the caller took until the answer is saved.
+    The task outlives the request: a cut stream loses nothing."""
+    events: Events = asyncio.Queue()
+    task = asyncio.create_task(
+        _answer(chat, db, ctx, thread_id, question_id, question, school, events),
+        name=f"chat-answer:{thread_id}",
+    )
+    chat.track(task)
+    return events
+
+
+async def _watch(events: Events) -> AsyncIterator[dict[str, str]]:
+    """Relay the answer's events to the SSE stream. When the client disconnects, sse_starlette
+    stops iterating here; the answering task does not notice and carries on."""
+    while (evt := await events.get()) is not None:
+        yield evt
 
 
 async def _answer(
@@ -136,10 +170,11 @@ async def _answer(
     question_id: UUID,
     question: str,
     school: str,
-) -> AsyncIterator[dict[str, str]]:
-    """Stream one answer and save it, with the question's row in the bank. Holds an answering slot
-    until it ends, however it ends. The whole answer is one trace (D006); the graph's model calls
-    and tools nest under it."""
+    events: Events,
+) -> None:
+    """Build one answer, save it with the question's row in the bank, and report each step to
+    `events`. Releases the answering slot when it ends, however it ends. The whole answer is one
+    trace (D006); the graph's model calls and tools nest under it."""
     assert ctx.actor_id is not None
     try:
         started = time.monotonic()
@@ -155,7 +190,7 @@ async def _answer(
                 blocks.append({"tipo": "texto", "md": "".join(text)})
             text.clear()
 
-        yield to_sse(event("estado", texto="Pensando…"))
+        await events.put(to_sse(event("estado", texto="Pensando…")))
         key = thread_key(ctx.actor_id, thread_id)
         system = SYSTEM_PROMPT.format(school=school)
         with chat.tracer.question(
@@ -180,15 +215,20 @@ async def _answer(
                     kind = chunk["kind"]
                     if kind == "text":
                         text.append(chunk["delta"])
-                        yield to_sse(event("texto", delta=chunk["delta"]))
+                        await events.put(to_sse(event("texto", delta=chunk["delta"])))
                     elif kind == "status":
-                        yield to_sse(event("estado", texto=chunk["texto"]))
+                        await events.put(to_sse(event("estado", texto=chunk["texto"])))
                     elif kind == "block":
                         flush_text()
                         shown = chunk["block"]
                         blocks.append(shown)
-                        yield to_sse(
-                            event(shown["tipo"], **{k: v for k, v in shown.items() if k != "tipo"})
+                        await events.put(
+                            to_sse(
+                                event(
+                                    shown["tipo"],
+                                    **{k: v for k, v in shown.items() if k != "tipo"},
+                                )
+                            )
                         )
                     elif kind == "tool_call":
                         tool_calls.append({k: v for k, v in chunk.items() if k != "kind"})
@@ -205,8 +245,8 @@ async def _answer(
                         }
                         blocks.append(failure)
                         stop_reason = f"error:{chunk['codigo']}"
-                        yield to_sse(
-                            event("error", codigo=chunk["codigo"], mensaje=chunk["mensaje"])
+                        await events.put(
+                            to_sse(event("error", codigo=chunk["codigo"], mensaje=chunk["mensaje"]))
                         )
             except Exception:
                 log.exception("answering thread %s failed", thread_id)
@@ -218,7 +258,9 @@ async def _answer(
                 }
                 blocks.append(failure)
                 stop_reason = "error:respuesta_fallida"
-                yield to_sse(event("error", codigo=failure["codigo"], mensaje=failure["mensaje"]))
+                await events.put(
+                    to_sse(event("error", codigo=failure["codigo"], mensaje=failure["mensaje"]))
+                )
             flush_text()
             latency_ms = int((time.monotonic() - started) * 1000)
             trace.finish(
@@ -242,6 +284,10 @@ async def _answer(
             )
             status, tool_name = question_status(tool_calls, failed=stop_reason != "ok")
             await repo.add_question(conn, question_id, question, status, tool_name)
-        yield to_sse(event("fin", message_id=str(message_id)))
+        await events.put(to_sse(event("fin", message_id=str(message_id))))
+    except Exception:
+        # Saving failed: the stream ends without `fin`; the question is kept, the UI offers retry.
+        log.exception("saving the answer of thread %s failed", thread_id)
     finally:
         chat.release_slot()
+        await events.put(None)
