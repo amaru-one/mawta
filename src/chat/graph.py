@@ -10,7 +10,8 @@ OpenAI-compatible message shape. It is only ever appended to: assistant
 messages are replayed exactly as the model returned them.
 
 Nodes report progress through the custom stream (get_stream_writer); the
-route turns those reports into protocol v1 events.
+route turns those reports into protocol v1 events. The question's trace (D006) arrives in
+configurable["trace"]: each tool run is a span of it, each model turn adds to its totals.
 """
 
 import json
@@ -24,6 +25,7 @@ from langgraph.graph import START, StateGraph
 
 from chat.llm import LLM
 from chat.tools import TOOL_STATUS, TOOLS, ToolOutcome, run_tool
+from chat.tracing import QuestionTrace, no_question
 
 log = logging.getLogger(__name__)
 
@@ -97,6 +99,10 @@ def tool_input(arguments: str) -> tuple[Any, bool]:
         return None, False
 
 
+def _trace(configurable: dict[str, Any]) -> QuestionTrace:
+    return configurable.get("trace") or no_question
+
+
 def build_graph(llm: LLM, max_model_calls: int, checkpointer: Any):
     async def agent(state: ChatState, config: RunnableConfig) -> dict[str, Any]:
         writer = get_stream_writer()
@@ -107,12 +113,14 @@ def build_graph(llm: LLM, max_model_calls: int, checkpointer: Any):
                 "stop_reason": "limit",
             }
 
+        configurable = config.get("configurable", {})
         turn = await llm.respond(
-            config.get("configurable", {})["system"],
+            configurable["system"],
             state["messages"],
             TOOLS,
             lambda text: writer({"kind": "text", "delta": text}),
         )
+        _trace(configurable).model_turn(turn)
         writer(
             {
                 "kind": "usage",
@@ -148,16 +156,20 @@ def build_graph(llm: LLM, max_model_calls: int, checkpointer: Any):
                 name = call["function"]["name"]
                 writer({"kind": "status", "texto": TOOL_STATUS.get(name, "Consultando…")})
                 tool_in, ok = tool_input(call["function"]["arguments"])
-                if not ok:
-                    outcome = ToolOutcome(
-                        result={"error": "the arguments are not valid JSON"}, is_error=True
-                    )
-                else:
-                    try:
-                        outcome = await run_tool(name, tool_in, conn)
-                    except Exception:
-                        log.exception("tool %s failed", name)
-                        outcome = ToolOutcome(result={"error": "the query failed"}, is_error=True)
+                with _trace(configurable).tool(name, tool_in) as span:
+                    if not ok:
+                        outcome = ToolOutcome(
+                            result={"error": "the arguments are not valid JSON"}, is_error=True
+                        )
+                    else:
+                        try:
+                            outcome = await run_tool(name, tool_in, conn)
+                        except Exception:
+                            log.exception("tool %s failed", name)
+                            outcome = ToolOutcome(
+                                result={"error": "the query failed"}, is_error=True
+                            )
+                    span.result(outcome.result, outcome.is_error)
                 for shown in outcome.blocks:
                     writer({"kind": "block", "block": shown})
                 writer(

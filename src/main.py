@@ -16,6 +16,7 @@ from starlette.responses import PlainTextResponse, Response
 import applog
 from chat.llm import LLM
 from chat.service import ChatService
+from chat.tracing import NoTracer, Tracer
 from db import Database
 from routes import build_routes
 from settings import Settings
@@ -27,13 +28,17 @@ async def _not_found(_request: Request, _exc: Exception) -> Response:
 
 
 def create_app(
-    settings: Settings, logger: logging.Logger | None = None, chat_llm: LLM | None = None
+    settings: Settings,
+    logger: logging.Logger | None = None,
+    chat_llm: LLM | None = None,
+    chat_tracer: Tracer | None = None,
 ) -> Starlette:
-    """The whole app: API, worker and director chat. chat_llm replaces the chat's model (tests)."""
+    """The whole app: API, worker and director chat. chat_llm replaces the chat's model and
+    chat_tracer its tracer (tests)."""
     logger = logger or applog.setup(settings.log_level)
     database = Database(settings.database_url)
     api = Api(db=database, settings=settings, logger=logger)
-    chat = ChatService(settings, llm=chat_llm)
+    chat = ChatService(settings, llm=chat_llm, tracer=chat_tracer or NoTracer())
 
     @contextlib.asynccontextmanager
     async def lifespan(_app: Starlette) -> AsyncGenerator[None]:

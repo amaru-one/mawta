@@ -64,14 +64,17 @@ def configured(ref: ModelRef, ep: Endpoints) -> bool:
     return bool(ep.openrouter_url and ep.openrouter_api_key)
 
 
-def client_for(ref: ModelRef, ep: Endpoints, timeout: float) -> AsyncOpenAI:
+def client_for(
+    ref: ModelRef, ep: Endpoints, timeout: float, client_cls: type[AsyncOpenAI] = AsyncOpenAI
+) -> AsyncOpenAI:
     """A client for the model's provider. One quick SDK retry absorbs a momentary 429/5xx;
-    anything longer is the job queue's backoff."""
+    anything longer is the job queue's backoff. client_cls lets the chat pass Langfuse's
+    drop-in subclass, which records every call as a generation."""
     if ref.provider == LOCAL:
         url, key = ep.local_url, ep.local_api_key or _LOCAL_PLACEHOLDER_KEY
     else:
         url, key = ep.openrouter_url, ep.openrouter_api_key
-    return AsyncOpenAI(base_url=url, api_key=key, timeout=timeout, max_retries=1)
+    return client_cls(base_url=url, api_key=key, timeout=timeout, max_retries=1)
 
 
 REASONING_EFFORTS = ("", "none", "minimal", "low", "medium", "high")

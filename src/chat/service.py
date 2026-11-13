@@ -15,6 +15,7 @@ from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from agent.llm.providers import client_for
 from chat.graph import build_graph
 from chat.llm import LLM, OpenAICompatLLM
+from chat.tracing import LangfuseTracer, NoTracer, Tracer, traced_openai_client
 from errors import AppError
 from settings import Settings
 
@@ -38,6 +39,9 @@ class ChatService:
     llm: LLM | None = None
     graph: Any = None
     saver: AsyncPostgresSaver | None = None
+    # Where each question's trace goes (D006). NoTracer until start() finds LANGFUSE_*; a test
+    # hands in its own recorder.
+    tracer: Tracer = field(default_factory=NoTracer)
     # Questions being answered now. The app runs on one event loop and nothing awaits between
     # the check and the increment, so a plain counter is enough.
     answering: int = field(default=0, init=False)
@@ -50,11 +54,27 @@ class ChatService:
         """Build the model and open the checkpointer, when the chat has what it needs. The
         checkpointer's connection is closed by `stack` on shutdown."""
         cfg = self.settings
+        if isinstance(self.tracer, NoTracer) and cfg.langfuse_ready():
+            langfuse = LangfuseTracer.connect(
+                host=cfg.langfuse_host,
+                public_key=cfg.langfuse_public_key.get_secret_value(),
+                secret_key=cfg.langfuse_secret_key.get_secret_value(),
+            )
+            stack.callback(langfuse.shutdown)
+            self.tracer = langfuse
         if self.llm is None and cfg.chat_ready():
             ref = cfg.chat_model_ref()
             assert ref is not None
+            # With Langfuse, the openai client is its drop-in subclass: each model call becomes
+            # a generation under the question's span.
+            client_cls = traced_openai_client() if isinstance(self.tracer, LangfuseTracer) else None
             self.llm = OpenAICompatLLM(
-                client_for(ref, cfg.endpoints(), timeout=MODEL_TIMEOUT),
+                client_for(
+                    ref,
+                    cfg.endpoints(),
+                    timeout=MODEL_TIMEOUT,
+                    **({"client_cls": client_cls} if client_cls is not None else {}),
+                ),
                 ref,
                 max_tokens=cfg.chat_max_tokens,
                 reasoning_effort=cfg.chat_reasoning_effort,
