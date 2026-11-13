@@ -6,6 +6,7 @@ memory (LANGGRAPH_DATABASE_URL). Without them the app runs anyway: listing and m
 works, asking answers chat_unavailable.
 """
 
+import asyncio
 from contextlib import AsyncExitStack
 from dataclasses import dataclass, field
 from typing import Any
@@ -53,6 +54,9 @@ class ChatService:
     # Questions being answered now. The app runs on one event loop and nothing awaits between
     # the check and the increment, so a plain counter is enough.
     answering: int = field(default=0, init=False)
+    # The tasks answering them. An answer runs to its end and is saved even when the director's
+    # connection is gone (roadmap level 1, item 7); shutdown waits for them.
+    tasks: set[asyncio.Task[None]] = field(default_factory=set, init=False)
 
     @property
     def ready(self) -> bool:
@@ -108,3 +112,12 @@ class ChatService:
 
     def release_slot(self) -> None:
         self.answering -= 1
+
+    def track(self, task: asyncio.Task[None]) -> None:
+        self.tasks.add(task)
+        task.add_done_callback(self.tasks.discard)
+
+    async def drain(self, timeout: float = MODEL_TIMEOUT + 10) -> None:
+        """Wait for the answers in flight (shutdown)."""
+        if self.tasks:
+            await asyncio.wait(list(self.tasks), timeout=timeout)
