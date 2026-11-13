@@ -17,7 +17,7 @@ exactly one row.
 | `src/mawta_schema/views.py` | Views: `chat_api.*` (the director chat's read contract) and `privacy.*` (personal-data audits). |
 | `src/mawta_schema/policies.py` | Row-level security: `owner_only` on `chat.threads` and `chat.messages`, so each director sees only their own chats. |
 | `src/mawta_schema/api_views.py` | The `chat_api` views as read-only `Table` objects, for the chat's Core queries. |
-| `migrations/` | Alembic. `versions/0001_baseline.py` creates the whole schema, roles and grants included; `0002_monolith_roles.py` lets the app enter `mawta_chat` and creates schema `langgraph` for the chat's memory. |
+| `migrations/` | Alembic. `versions/0001_baseline.py` creates the whole schema, roles and grants included; `0002_monolith_roles.py` lets the app enter `mawta_chat` and creates schema `langgraph` for the chat's memory; `0003_drop_chat_pseudonyms.py` drops the unused pseudonyms table (D001 was replaced by D004). |
 
 Functions, triggers, views and policies are [alembic_utils](https://github.com/olirice/alembic_utils)
 entities, so `alembic revision --autogenerate` picks up their changes too. Roles, grants,

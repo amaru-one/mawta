@@ -13,7 +13,6 @@ from sqlalchemy import (
     PrimaryKeyConstraint,
     SmallInteger,
     Text,
-    UniqueConstraint,
     text,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -141,44 +140,13 @@ class ChatQuestionBank(Base):
     message_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
     question: Mapped[str] = mapped_column(
         Text,
-        comment="PII (menor y adulto): texto libre. La pregunta tal como la vio el modelo, seudonimizada (D001).",
+        comment="PII (menor y adulto): texto libre. La pregunta tal como la escribió el director.",
     )
     status: Mapped[str] = mapped_column(Text)
     tool_name: Mapped[str | None] = mapped_column(
         Text,
         comment="Herramienta que respondió, o la que habría hecho falta cuando status = necesita_tool.",
     )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=text("now()")
-    )
-
-
-class ChatPseudonym(Base):
-    __tablename__ = "pseudonyms"
-    __table_args__ = (
-        PrimaryKeyConstraint("id", name="pseudonyms_pkey"),
-        UniqueConstraint("alias", name="pseudonyms_alias_key"),
-        UniqueConstraint("entity_type", "entity_id", name="pseudonyms_entity_key"),
-        CheckConstraint(
-            "((char_length(alias) >= 1) AND (char_length(alias) <= 40))",
-            name="pseudonyms_alias_check",
-        ),
-        CheckConstraint(
-            "(entity_type = ANY (ARRAY['student'::text, 'teacher'::text]))",
-            name="pseudonyms_entity_type_check",
-        ),
-        {
-            "schema": "chat",
-            "comment": "Seudónimos estables por colegio (D001): el modelo nunca recibe nombres reales de alumnos ni profesores, solo estos alias. entity_id apunta a students.id o teachers.id según entity_type; no lleva FK porque cubre dos tablas.",
-        },
-    )
-
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), server_default=text("gen_random_uuid()")
-    )
-    entity_type: Mapped[str] = mapped_column(Text)
-    entity_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
-    alias: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=text("now()")
     )
