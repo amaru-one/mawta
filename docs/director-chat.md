@@ -102,6 +102,27 @@ Without the three variables nothing is configured and nothing leaves the process
 the plain `openai` client and a tracer that does nothing. Traces contain the school's data,
 names included; D006 records the team's approval of that.
 
+## Evaluation
+
+`uv run chat-eval --model <provider:model>` runs the question bank (`src/chat/eval/bank.py`, 36
+cases: D003's questions, the six of the 2026-10-31 demo, adversarial ones and clarifications)
+through the chat graph, in-process and with the real model, three times per case. It creates a
+throwaway database (Alembic, then `ejemplo-san-felipe.json` and `seed_demo.sql` from the
+`mawta-demo` checkout, `--demo` or `MAWTA_DEMO_DIR`) on the cluster `--admin-url` names
+(`MAWTA_EVAL_ADMIN_URL` or `ADMIN_DATABASE_URL`), and drops it at the end.
+
+Every expected value in the bank was read from the demo's data. The checks are code, pass or
+fail (`src/chat/eval/checks.py`): expected tool; no filters nobody asked for; expected arguments;
+required facts; every number in the text comes from a tool result or the question; official level
+names; no judgements, rankings or recommendations; the period is named; the fixed out-of-scope
+phrase; a clarification names the options. A run passes when every check passes; the exit gate
+of level 1 is 90 % of the runs (`--gate`).
+
+With `LANGFUSE_*` set, the bank is the dataset `chat-director-bank` (items upserted by case id),
+each repetition is a dataset run, each answer a trace and each check a `BOOLEAN` score on it
+(`pasa_todo` sums them up). `--no-langfuse` keeps everything local; `--json` saves the full
+results; `--case` and `--category` narrow the bank; `--keep-db` leaves the database behind.
+
 ## Tests
 
 `tests/chat/` runs against its own database: the test school plus `tests/fixtures_levels.py`, two
@@ -109,5 +130,7 @@ terms of achievement levels. A scripted fake replaces the model, so no test call
 - `test_tools.py`: one case per glossary rule.
 - `test_ask.py` and `test_threads.py`: the HTTP flow.
 - `test_boundaries.py`: every limit in the table above.
+- `test_eval_checks.py`, `test_eval_bank.py`, `test_eval_pipeline.py`: each check on its own, the
+  bank's shape, and the runner end to end with the scripted model.
 - `test_tracing.py`: nothing is sent without `LANGFUSE_*`; with Langfuse (an in-memory exporter,
   no network), the trace carries the prompt, the tools, the answer and the totals.
