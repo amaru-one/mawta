@@ -1,7 +1,8 @@
-"""The chat's LangGraph graph (level 0): agent <-> tools, until it answers.
+"""The chat's LangGraph graph: one agent with tools, agent <-> tools, until it answers.
 
-Level 1 adds nodes (classify the question, verify numbers) around these two
-without rewriting them (roadmap principle 4).
+It stays a single agent (decision D007): a classifier or a number verifier is
+added only if the evaluation shows the agent needs one. Later levels add nodes
+around these two without rewriting them (roadmap principle 4).
 
 The conversation history lives in the graph state, persisted by the
 checkpointer in schema langgraph of the school's database, one thread per chat, in the

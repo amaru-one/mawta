@@ -15,7 +15,7 @@ from mawta_schema.tables.assessment import (
     Score,
     YearFinalSituation,
 )
-from mawta_schema.tables.chat import ChatMessage, ChatPseudonym, ChatQuestionBank, ChatThread
+from mawta_schema.tables.chat import ChatMessage, ChatQuestionBank, ChatThread
 from mawta_schema.tables.curriculum import (
     Capability,
     Competency,
@@ -52,7 +52,6 @@ __all__ = [
     "AttendanceRecord",
     "Capability",
     "ChatMessage",
-    "ChatPseudonym",
     "ChatQuestionBank",
     "ChatThread",
     "Class",
