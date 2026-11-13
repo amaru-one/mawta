@@ -21,6 +21,7 @@ from chat import repo
 from chat.graph import SYSTEM_PROMPT, thread_key
 from chat.protocol import event, to_sse
 from chat.service import ChatService
+from chat.status import question_status
 from db import Database, RequestCtx
 from errors import AppError
 from web import api_of, ctx_of, no_content, path_uuid, read_json, write_json
@@ -116,19 +117,26 @@ async def handle_ask(request: Request) -> Response:
         async with db.chat_tx(ctx) as conn:
             if await repo.get_thread(conn, user, thread_id) is None:
                 raise _not_found()
-            await repo.add_director_message(conn, user, thread_id, question)
+            question_id = await repo.add_director_message(conn, user, thread_id, question)
             school = await repo.school_name(conn)
     except BaseException:
         chat.release_slot()
         raise
-    return EventSourceResponse(_answer(chat, db, ctx, thread_id, question, school))
+    return EventSourceResponse(_answer(chat, db, ctx, thread_id, question_id, question, school))
 
 
 async def _answer(
-    chat: ChatService, db: Database, ctx: RequestCtx, thread_id: UUID, question: str, school: str
+    chat: ChatService,
+    db: Database,
+    ctx: RequestCtx,
+    thread_id: UUID,
+    question_id: UUID,
+    question: str,
+    school: str,
 ) -> AsyncIterator[dict[str, str]]:
-    """Stream one answer and save it. Holds an answering slot until it ends, however it ends.
-    The whole answer is one trace (D006); the graph's model calls and tools nest under it."""
+    """Stream one answer and save it, with the question's row in the bank. Holds an answering slot
+    until it ends, however it ends. The whole answer is one trace (D006); the graph's model calls
+    and tools nest under it."""
     assert ctx.actor_id is not None
     try:
         started = time.monotonic()
@@ -229,6 +237,8 @@ async def _answer(
                 output_tokens,
                 latency_ms,
             )
+            status, tool_name = question_status(tool_calls, failed=stop_reason != "ok")
+            await repo.add_question(conn, question_id, question, status, tool_name)
         yield to_sse(event("fin", message_id=str(message_id)))
     finally:
         chat.release_slot()

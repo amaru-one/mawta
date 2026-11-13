@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from db import fetch_one, scalar
 from mawta_schema import api_views as v
-from mawta_schema.tables import ChatMessage, ChatThread
+from mawta_schema.tables import ChatMessage, ChatQuestionBank, ChatThread
 
 DEFAULT_TITLE = "Nuevo chat"
 TITLE_MAX = 60
@@ -131,6 +131,18 @@ async def add_mawta_message(
     )
     await conn.execute(update(T).where(*_mine(user_id, thread_id)).values(updated_at=func.now()))
     return message_id
+
+
+async def add_question(
+    conn: AsyncConnection, message_id: UUID, question: str, status: str, tool_name: str | None
+) -> None:
+    """One row of the question bank per question: how it ended, and which tool answered or was
+    missing (D017). message_id is the director's message."""
+    await conn.execute(
+        insert(ChatQuestionBank).values(
+            message_id=message_id, question=question, status=status, tool_name=tool_name
+        )
+    )
 
 
 async def school_name(conn: AsyncConnection) -> str:
