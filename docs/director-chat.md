@@ -68,9 +68,20 @@ ranked.
 | `riesgo_por_competencia` | C in the same competency in consecutive periods. A period with no level breaks the streak | `tabla` |
 | `proyeccion_de_promocion` | Each secondary student's projected situation, with its reason. 1.°, 3.° and 4.° follow one rule; 2.° and 5.° follow the stricter end-of-cycle rule (cuadro 5.1.3.A, RVM 048-2024) | `tabla` |
 | `historial_del_alumno` | One student's level per competency and period. An empty cell means no level yet, never C | `matriz` |
+| `fuera_de_alcance` | Nothing: the model calls it when the question is not about the school's data, and the graph answers with the fixed phrase itself, word for word (D017) | — |
+| `sin_herramienta` | Nothing: the model calls it when the question is about the school but no tool covers it (attendance, evidences, conclusions, planning, voice notes), with the topic as `tema` | — |
 
 Without a period, a tool uses the last one with levels. Teachers assert levels when a period
 closes, so the current period usually has none yet.
+
+## The question bank
+
+Every question leaves one row in `chat.question_bank` (`src/chat/status.py`, decision D017), decided
+by the code from the tools the graph called: `fuera_de_alcance` when that tool ran; `necesita_tool`
+with the `tema` when `sin_herramienta` ran (the backlog of tools to build); `respondida` when a
+data tool ran clean and the answer ended normally; `parcial` otherwise (a tool answered with
+`sin_datos` or options to clarify, failed, the answer was cut, or the model answered with no tool
+at all). The row points at the director's message.
 
 ## Configuration
 

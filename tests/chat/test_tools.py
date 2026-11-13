@@ -36,7 +36,7 @@ async def call(chat_url: str, name: str, args: dict[str, Any] | None = None) -> 
         await db.close()
 
 
-def test_six_tools_each_with_a_status_and_closed_parameters():
+def test_eight_tools_each_with_a_status_and_closed_parameters():
     names = [t["function"]["name"] for t in TOOLS]
     assert names == [
         "datos_del_colegio",
@@ -45,6 +45,8 @@ def test_six_tools_each_with_a_status_and_closed_parameters():
         "riesgo_por_competencia",
         "proyeccion_de_promocion",
         "historial_del_alumno",
+        "fuera_de_alcance",
+        "sin_herramienta",
     ]
     assert set(TOOL_STATUS) == set(names)
     for t in TOOLS:
