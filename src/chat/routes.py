@@ -20,7 +20,7 @@ from starlette.responses import Response
 from chat import repo
 from chat.graph import SYSTEM_PROMPT, thread_key
 from chat.protocol import event, to_sse
-from chat.service import ChatService
+from chat.service import ChatService, daily_limit
 from chat.status import question_status
 from db import Database, RequestCtx
 from errors import AppError
@@ -117,6 +117,9 @@ async def handle_ask(request: Request) -> Response:
         async with db.chat_tx(ctx) as conn:
             if await repo.get_thread(conn, user, thread_id) is None:
                 raise _not_found()
+            limit = chat.settings.chat_max_questions_per_day
+            if limit and (asked := await repo.questions_today(conn, user)) >= limit:
+                raise daily_limit(asked)
             question_id = await repo.add_director_message(conn, user, thread_id, question)
             school = await repo.school_name(conn)
     except BaseException:
