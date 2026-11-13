@@ -21,6 +21,11 @@ from chat.llm import ModelTurn
 class QuestionTrace(Protocol):
     """One question being answered."""
 
+    @property
+    def trace_id(self) -> str | None:
+        """Langfuse's id of the trace, or None."""
+        ...
+
     def tool(self, name: str, tool_input: Any) -> AbstractContextManager["ToolSpan"]: ...
 
     def model_turn(self, turn: ModelTurn) -> None: ...
@@ -49,6 +54,8 @@ class _NoToolSpan:
 
 
 class _NoQuestion:
+    trace_id: str | None = None
+
     def tool(self, name: str, tool_input: Any) -> AbstractContextManager[ToolSpan]:
         return nullcontext(_NoToolSpan())
 
@@ -89,6 +96,10 @@ class _LangfuseQuestion:
         self.input_tokens = 0
         self.output_tokens = 0
         self.model: str | None = None
+
+    @property
+    def trace_id(self) -> str | None:
+        return getattr(self.span, "trace_id", None)
 
     @contextmanager
     def tool(self, name: str, tool_input: Any) -> Iterator[ToolSpan]:
