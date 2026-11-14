@@ -109,6 +109,10 @@ class Settings(BaseSettings):
     # LangGraph's checkpoints: this same database as mawta_langgraph, in schema langgraph
     # (options=-c search_path=langgraph). Needed only when the chat has a model.
     langgraph_database_url: str = ""
+    # Traces in Langfuse (D006): the host and both keys, or nothing is sent.
+    langfuse_host: str = ""
+    langfuse_public_key: SecretStr = SecretStr("")
+    langfuse_secret_key: SecretStr = SecretStr("")
 
     @field_validator("cors_origins", mode="before")
     @classmethod
@@ -177,6 +181,14 @@ class Settings(BaseSettings):
 
     def agent_reasoning_effort(self, agent: str) -> str:
         return getattr(self, f"{agent}_agent_reasoning_effort")
+
+    def langfuse_ready(self) -> bool:
+        """Traces are sent only with LANGFUSE_HOST and both keys."""
+        return bool(
+            self.langfuse_host
+            and self.langfuse_public_key.get_secret_value()
+            and self.langfuse_secret_key.get_secret_value()
+        )
 
     def endpoints(self) -> Endpoints:
         return Endpoints(

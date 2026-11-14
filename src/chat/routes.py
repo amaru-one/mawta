@@ -127,7 +127,8 @@ async def handle_ask(request: Request) -> Response:
 async def _answer(
     chat: ChatService, db: Database, ctx: RequestCtx, thread_id: UUID, question: str, school: str
 ) -> AsyncIterator[dict[str, str]]:
-    """Stream one answer and save it. Holds an answering slot until it ends, however it ends."""
+    """Stream one answer and save it. Holds an answering slot until it ends, however it ends.
+    The whole answer is one trace (D006); the graph's model calls and tools nest under it."""
     assert ctx.actor_id is not None
     try:
         started = time.monotonic()
@@ -136,6 +137,7 @@ async def _answer(
         tool_calls: list[dict[str, Any]] = []
         usage_model: str | None = None
         input_tokens = output_tokens = 0
+        stop_reason = "ok"
 
         def flush_text() -> None:
             if "".join(text).strip():
@@ -143,60 +145,77 @@ async def _answer(
             text.clear()
 
         yield to_sse(event("estado", texto="Pensando…"))
-        config = {
-            "configurable": {
-                "thread_id": thread_key(ctx.actor_id, thread_id),
-                "system": SYSTEM_PROMPT.format(school=school),
-                "db": db,
-                "ctx": ctx,
+        key = thread_key(ctx.actor_id, thread_id)
+        system = SYSTEM_PROMPT.format(school=school)
+        with chat.tracer.question(
+            thread_key=key, user_id=str(ctx.actor_id), question=question, system=system
+        ) as trace:
+            config = {
+                "configurable": {
+                    "thread_id": key,
+                    "system": system,
+                    "db": db,
+                    "ctx": ctx,
+                    "trace": trace,
+                }
             }
-        }
-        graph_input = {
-            "messages": [{"role": "user", "content": question}],
-            "model_calls": 0,
-            "stop_reason": None,
-        }
-        try:
-            async for chunk in chat.graph.astream(graph_input, config, stream_mode="custom"):
-                kind = chunk["kind"]
-                if kind == "text":
-                    text.append(chunk["delta"])
-                    yield to_sse(event("texto", delta=chunk["delta"]))
-                elif kind == "status":
-                    yield to_sse(event("estado", texto=chunk["texto"]))
-                elif kind == "block":
-                    flush_text()
-                    shown = chunk["block"]
-                    blocks.append(shown)
-                    yield to_sse(
-                        event(shown["tipo"], **{k: v for k, v in shown.items() if k != "tipo"})
-                    )
-                elif kind == "tool_call":
-                    tool_calls.append({k: v for k, v in chunk.items() if k != "kind"})
-                elif kind == "usage":
-                    usage_model = chunk["model"]
-                    input_tokens += chunk["input_tokens"]
-                    output_tokens += chunk["output_tokens"]
-                elif kind == "error":
-                    flush_text()
-                    failure = {
-                        "tipo": "error",
-                        "codigo": chunk["codigo"],
-                        "mensaje": chunk["mensaje"],
-                    }
-                    blocks.append(failure)
-                    yield to_sse(event("error", codigo=chunk["codigo"], mensaje=chunk["mensaje"]))
-        except Exception:
-            log.exception("answering thread %s failed", thread_id)
+            graph_input = {
+                "messages": [{"role": "user", "content": question}],
+                "model_calls": 0,
+                "stop_reason": None,
+            }
+            try:
+                async for chunk in chat.graph.astream(graph_input, config, stream_mode="custom"):
+                    kind = chunk["kind"]
+                    if kind == "text":
+                        text.append(chunk["delta"])
+                        yield to_sse(event("texto", delta=chunk["delta"]))
+                    elif kind == "status":
+                        yield to_sse(event("estado", texto=chunk["texto"]))
+                    elif kind == "block":
+                        flush_text()
+                        shown = chunk["block"]
+                        blocks.append(shown)
+                        yield to_sse(
+                            event(shown["tipo"], **{k: v for k, v in shown.items() if k != "tipo"})
+                        )
+                    elif kind == "tool_call":
+                        tool_calls.append({k: v for k, v in chunk.items() if k != "kind"})
+                    elif kind == "usage":
+                        usage_model = chunk["model"]
+                        input_tokens += chunk["input_tokens"]
+                        output_tokens += chunk["output_tokens"]
+                    elif kind == "error":
+                        flush_text()
+                        failure = {
+                            "tipo": "error",
+                            "codigo": chunk["codigo"],
+                            "mensaje": chunk["mensaje"],
+                        }
+                        blocks.append(failure)
+                        stop_reason = f"error:{chunk['codigo']}"
+                        yield to_sse(
+                            event("error", codigo=chunk["codigo"], mensaje=chunk["mensaje"])
+                        )
+            except Exception:
+                log.exception("answering thread %s failed", thread_id)
+                flush_text()
+                failure = {
+                    "tipo": "error",
+                    "codigo": "respuesta_fallida",
+                    "mensaje": "No pudimos responder ahora. Inténtalo de nuevo en unos segundos.",
+                }
+                blocks.append(failure)
+                stop_reason = "error:respuesta_fallida"
+                yield to_sse(event("error", codigo=failure["codigo"], mensaje=failure["mensaje"]))
             flush_text()
-            failure = {
-                "tipo": "error",
-                "codigo": "respuesta_fallida",
-                "mensaje": "No pudimos responder ahora. Inténtalo de nuevo en unos segundos.",
-            }
-            blocks.append(failure)
-            yield to_sse(event("error", codigo=failure["codigo"], mensaje=failure["mensaje"]))
-        flush_text()
+            latency_ms = int((time.monotonic() - started) * 1000)
+            trace.finish(
+                answer="\n\n".join(b["md"] for b in blocks if b["tipo"] == "texto"),
+                blocks=blocks,
+                latency_ms=latency_ms,
+                stop_reason=stop_reason,
+            )
 
         async with db.chat_tx(ctx) as conn:
             message_id = await repo.add_mawta_message(
@@ -208,7 +227,7 @@ async def _answer(
                 usage_model,
                 input_tokens,
                 output_tokens,
-                int((time.monotonic() - started) * 1000),
+                latency_ms,
             )
         yield to_sse(event("fin", message_id=str(message_id)))
     finally:

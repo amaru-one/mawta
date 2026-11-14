@@ -107,13 +107,20 @@ def fake_llm() -> FakeLLM:
 async def chat_client_for(
     databases: Databases, tmp_path: Any
 ) -> AsyncIterator[Callable[..., Awaitable[httpx.AsyncClient]]]:
-    """chat_client_for(chat_llm, **settings) -> an httpx client at /api/v1/chat on a fresh app."""
+    """chat_client_for(chat_llm, chat_tracer, **settings) -> an httpx client at /api/v1/chat on
+    a fresh app."""
     from contextlib import AsyncExitStack
 
     async with AsyncExitStack() as stack:
 
-        async def build(chat_llm: Any = None, **overrides: Any) -> httpx.AsyncClient:
-            app = create_app(make_settings(databases, tmp_path, **overrides), chat_llm=chat_llm)
+        async def build(
+            chat_llm: Any = None, chat_tracer: Any = None, **overrides: Any
+        ) -> httpx.AsyncClient:
+            app = create_app(
+                make_settings(databases, tmp_path, **overrides),
+                chat_llm=chat_llm,
+                chat_tracer=chat_tracer,
+            )
             await stack.enter_async_context(app.router.lifespan_context(app))
             return await stack.enter_async_context(
                 httpx.AsyncClient(

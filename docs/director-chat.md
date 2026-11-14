@@ -83,6 +83,24 @@ closes, so the current period usually has none yet.
 | `CHAT_MAX_MODEL_CALLS` | Default 6. Each tool round is one more call |
 | `CHAT_MAX_TOKENS` | Default 16000 |
 | `OPENROUTER_API_KEY`, `LOCAL_LLM_URL`, `LOCAL_LLM_API_KEY` | Shared with the agents |
+| `LANGFUSE_HOST`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY` | Traces. All three, or nothing is sent |
+
+## Traces
+
+With `LANGFUSE_HOST`, `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` set (decision D006), every
+question is one trace in Langfuse, tagged `chat-director`, with the thread (`<user id>:<thread
+id>`) as its session and the director as its user:
+- the question's span (`chat.question`) carries the system prompt and the question as input,
+  the answer and the kinds of blocks as output, and the totals as metadata: model, model calls,
+  tokens, latency and how it ended;
+- each model call is a generation, recorded by Langfuse's wrapper of the `openai` client
+  (`src/chat/tracing.py`, `traced_openai_client`): messages, tools, completion and usage;
+- each tool run is a child span named after the tool, with its arguments as input and what the
+  model read as output (level `ERROR` when the tool failed).
+
+Without the three variables nothing is configured and nothing leaves the process: the chat uses
+the plain `openai` client and a tracer that does nothing. Traces contain the school's data,
+names included; D006 records the team's approval of that.
 
 ## Tests
 
@@ -91,3 +109,5 @@ terms of achievement levels. A scripted fake replaces the model, so no test call
 - `test_tools.py`: one case per glossary rule.
 - `test_ask.py` and `test_threads.py`: the HTTP flow.
 - `test_boundaries.py`: every limit in the table above.
+- `test_tracing.py`: nothing is sent without `LANGFUSE_*`; with Langfuse (an in-memory exporter,
+  no network), the trace carries the prompt, the tools, the answer and the totals.
