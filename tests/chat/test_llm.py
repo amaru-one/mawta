@@ -136,7 +136,10 @@ async def test_reasoning_effort_is_sent_only_when_set():
 
     await llm.respond("s", [], [], lambda _: None)
 
-    assert fake.completions.kwargs["extra_body"] == {"reasoning_effort": "none"}
+    assert fake.completions.kwargs["extra_body"] == {
+        "reasoning_effort": "none",
+        "chat_template_kwargs": {"enable_thinking": False},
+    }
 
 
 def test_chat_model_must_be_provider_model():

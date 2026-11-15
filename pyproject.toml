@@ -27,6 +27,7 @@ dependencies = [
 mawta = "main:run"
 useradd = "cli.useradd:main"
 onboard = "cli.onboard:main"
+chat-eval = "cli.chat_eval:main"
 
 [build-system]
 requires = ["hatchling>=1.27.0"]

@@ -187,7 +187,15 @@ def test_provider_configured_and_extra_body():
     assert configured(parse("openrouter:x"), keyed)
     assert extra_body(parse("openrouter:x")) == {"provider": {"require_parameters": True}}
     assert extra_body(parse("local:x")) is None
-    assert extra_body(parse("local:x"), "none") == {"reasoning_effort": "none"}
+    assert extra_body(parse("local:x"), "none") == {
+        "reasoning_effort": "none",
+        "chat_template_kwargs": {"enable_thinking": False},
+    }
+    assert extra_body(parse("local:x"), "low") == {"reasoning_effort": "low"}
+    assert extra_body(parse("openrouter:x"), "none") == {
+        "provider": {"require_parameters": True},
+        "reasoning_effort": "none",
+    }
 
 
 def _completion(
