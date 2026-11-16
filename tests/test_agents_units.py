@@ -3,6 +3,7 @@ OpenAI-compatible client (providers, schema, answers, errors), the STT client an
 transcribe handler."""
 
 import base64
+import datetime as dt
 import json
 import uuid
 from collections.abc import Awaitable, Callable
@@ -15,7 +16,8 @@ from psycopg.rows import DictRow
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 import applog
-from agent.conclusions import Material
+from agent import InvalidAnswer
+from agent.conclusions import NO_DIFFICULTIES_AD, Material, render, validate
 from agent.conclusions.guard import guard, name_words
 from agent.llm import LLMError
 from agent.llm.openai_compat import OpenAICompat, classify, read_completion, strict_schema
@@ -50,8 +52,6 @@ def _material(standard: dict[str, Any] | None) -> Material:
 
 
 def test_render_puts_the_expected_standard_before_the_level():
-    from agent.conclusions import render
-
     text, _ = render(
         _material({"level": 5, "cycle": "ciclo_v", "text": "Se comunica oralmente mediante…"})
     )
@@ -61,10 +61,142 @@ def test_render_puts_the_expected_standard_before_the_level():
 
 
 def test_render_says_when_there_is_no_standard():
-    from agent.conclusions import render
-
     text, _ = render(_material(None))
     assert "Expected standard: not available for this competency." in text
+
+
+# ------------------------------------------------------------- conclusion answer --
+
+
+def _graded_material(level: str = "B", requirement: str = "level_b") -> Material:
+    """A material with two graded evidences (E1, E2) and one voice note (N1)."""
+    m = _material(None)
+    m.level, m.requirement = level, requirement
+    capability = m.competency["capabilities"][0]["id"]
+    m.evidences = [
+        {
+            "id": uuid.uuid4(),
+            "title": title,
+            "kind": kind,
+            "description": None,
+            "score_status": "graded",
+            "scale_level": "B",
+            "raw_value": None,
+            "max_value": None,
+            "feedback": None,
+            "experience_id": uuid.uuid4(),
+            "criteria": [{"description": "Explica sus ideas.", "capability_ids": [capability]}],
+        }
+        for title, kind in (("Relato oral", "actuacion"), ("Ficha de escucha", "produccion"))
+    ]
+    m.voice_notes = [
+        {
+            "id": uuid.uuid4(),
+            "recorded_at": dt.datetime(2026, 5, 4, 9, 0),
+            "session_topic": None,
+            "transcript_redacted": "[ESTUDIANTE] ordenó bien su relato.",
+        }
+    ]
+    m.graded = 2
+    return m
+
+
+def _point(text: str, evidences: list[str], notes: list[str] | None = None) -> dict[str, Any]:
+    return {"texto": text, "evidencias": evidences, "notas": notes or []}
+
+
+def _answer(**changes: Any) -> dict[str, Any]:
+    answer: dict[str, Any] = {
+        "avances": [_point("Narra una experiencia con orden.", ["E1"], ["N1"])],
+        "dificultades": [_point("Le cuesta hacer preguntas a quien expone.", ["E2"])],
+        "recomendaciones": [_point("Se le recomienda anotar una pregunta al escuchar.", [])],
+        "justificacion_sin_progreso": "",
+        "apoyos_brindados": "",
+        "notas_no_usadas": [],
+    }
+    return answer | changes
+
+
+def _validate(m: Material, answer: Any, names: list[str] | None = None) -> dict[str, Any]:
+    _, refs = render(m)
+    return validate(m, refs, names or [], answer)
+
+
+def test_validate_builds_the_proposal_from_a_grounded_answer():
+    m = _graded_material()
+    res = _validate(m, _answer())
+    assert res["body"] == (
+        "Narra una experiencia con orden. Le cuesta hacer preguntas a quien expone. "
+        "Se le recomienda anotar una pregunta al escuchar."
+    )
+    assert res["level"] == "B"
+    assert res["progress"][0]["evidence_ids"] == [m.evidences[0]["id"]]
+    assert res["used_voice_note_ids"] == [m.voice_notes[0]["id"]]
+    assert "no_progress_justification" not in res
+
+
+def test_validate_rejects_an_answer_that_is_not_the_tool_object():
+    with pytest.raises(InvalidAnswer, match="wrong type"):
+        _validate(_graded_material(), ["avances"])
+
+
+def test_validate_asks_every_progress_and_difficulty_for_a_citation():
+    answer = _answer(avances=[_point("Narra una experiencia con orden.", [])])
+    with pytest.raises(InvalidAnswer, match="no cita ninguna evidencia ni nota"):
+        _validate(_graded_material(), answer)
+
+
+def test_validate_rejects_a_reference_that_was_never_given():
+    answer = _answer(dificultades=[_point("Le cuesta hacer preguntas.", ["E9"])])
+    with pytest.raises(InvalidAnswer, match='cita la evidencia "E9"'):
+        _validate(_graded_material(), answer)
+
+
+def test_validate_rejects_a_name_of_the_roster_and_a_replacement_mark():
+    named = _answer(avances=[_point("Lucía narra una experiencia con orden.", ["E1"])])
+    with pytest.raises(InvalidAnswer, match="nombre de estudiante"):
+        _validate(_graded_material(), named, names=["Lucía"])
+    marked = _answer(avances=[_point("[ESTUDIANTE] narra con orden.", ["E1"])])
+    with pytest.raises(InvalidAnswer, match="contiene la marca"):
+        _validate(_graded_material(), marked)
+
+
+def test_validate_keeps_the_no_difficulties_sentence_for_ad():
+    answer = _answer(dificultades=[_point(NO_DIFFICULTIES_AD, ["E1"])])
+    with pytest.raises(InvalidAnswer, match="solo vale en AD"):
+        _validate(_graded_material(), answer)
+    assert _validate(_graded_material("AD", "optional"), answer)["difficulties"]
+
+
+def test_validate_holds_the_conclusion_to_the_siagie_length():
+    long = "Explica con detalle " + "muy " * 80 + "claro."
+    with pytest.raises(InvalidAnswer, match="SIAGIE acepta como máximo 350"):
+        _validate(_graded_material(), _answer(avances=[_point(long, ["E1"])]))
+
+
+def test_validate_requires_what_the_requirement_adds():
+    with pytest.raises(InvalidAnswer, match="justificacion_sin_progreso es obligatoria"):
+        _validate(_graded_material("C", "consecutive_c"), _answer())
+    with pytest.raises(InvalidAnswer, match="apoyos_brindados es obligatorio"):
+        _validate(_graded_material("B", "inclusion_support"), _answer())
+    justified = _answer(justificacion_sin_progreso="Faltó a las sesiones de práctica.")
+    res = _validate(_graded_material("C", "consecutive_c"), justified)
+    assert res["no_progress_justification"] == "Faltó a las sesiones de práctica."
+
+
+def test_validate_lists_only_the_unused_notes_it_was_given():
+    answer = _answer(
+        avances=[_point("Narra una experiencia con orden.", ["E1"])],
+        notas_no_usadas=[
+            {"nota": "N1", "motivo": "Habla de conducta."},
+            {"nota": "N7", "motivo": "No existe."},
+        ],
+    )
+    m = _graded_material()
+    res = _validate(m, answer)
+    assert res["unused_voice_notes"] == [
+        {"voice_note_id": m.voice_notes[0]["id"], "reason": "Habla de conducta."}
+    ]
 
 
 # ------------------------------------------------------------- redaction --
