@@ -44,6 +44,9 @@ REDACTION_AGENT_MODEL=local:qwen3:4b              # a small model is enough for 
 CHAT_MODEL=openrouter:openai/gpt-oss-120b         # or a hosted open model through OpenRouter
 ```
 
+For the provider `local` the answer's JSON schema also goes in the instructions, not only in
+`response_format`: some servers, `mlx_lm.server` among them, ignore that parameter without a word.
+
 The goal is that a school can run Mawta on hardware it controls, with open models and no
 per-question subscription. An agent without a model is simply unavailable, and the teacher works
 by hand. The public demo uses OpenRouter, which also transcribes the voice notes (Whisper).
