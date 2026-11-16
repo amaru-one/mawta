@@ -53,6 +53,7 @@ def create_app(
         try:
             yield
         finally:
+            await chat.drain()
             if worker_task is not None:
                 worker_task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):

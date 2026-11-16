@@ -3,7 +3,7 @@ section."""
 
 from typing import Any
 
-from sqlalchemy import func, select
+from sqlalchemy import distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from chat.tools import blocks, resolve
@@ -11,8 +11,9 @@ from chat.tools.base import Args, Clarify, Param, Tool, ToolOutcome, fetch_rows
 from mawta_schema import api_views as v
 
 RULE = (
-    "Nivel de logro = la afirmación vigente del docente por alumno, competencia y periodo. "
-    "Una competencia sin nivel en el periodo no se cuenta, y nunca es C."
+    "Nivel de logro = la afirmación vigente del docente por alumno, competencia y periodo. Los "
+    "totales cuentan niveles (alumno × competencia), no alumnos: los alumnos van aparte. Una "
+    "competencia sin nivel en el periodo no se cuenta, y nunca es C."
 )
 
 GROUPINGS: dict[str, tuple[tuple[str, ...], tuple[str, ...]]] = {
@@ -65,6 +66,28 @@ async def run(conn: AsyncConnection, args: Args) -> ToolOutcome:
     ):
         bucket = counts.setdefault(group_label(agrupar_por, r), [0, 0, 0, 0])
         bucket[blocks.LEVELS.index(r["level"])] += r["n"]
+    # Students, not levels: how many were evaluated and how many have at least one C, per group
+    # and overall. The model copies these instead of taking a total of levels for students.
+    students_of: dict[str, tuple[int, int]] = {}
+    for r in await fetch_rows(
+        conn,
+        select(
+            *cols,
+            func.count(distinct(L.student_id)).label("alumnos"),
+            func.count(distinct(L.student_id)).filter(L.level == "C").label("con_c"),
+        )
+        .where(*in_scope)
+        .group_by(*cols),
+    ):
+        students_of[group_label(agrupar_por, r)] = (r["alumnos"], r["con_c"])
+    overall = await fetch_rows(
+        conn,
+        select(
+            func.count(distinct(L.student_id)).label("alumnos"),
+            func.count(distinct(L.student_id)).filter(L.level == "C").label("con_c"),
+        ).where(*in_scope),
+    )
+    students, students_with_c = overall[0]["alumnos"], overall[0]["con_c"]
 
     # Competencies of the scope with no level at all in the term: worth saying, never a C.
     c = v.competencies.c
@@ -83,8 +106,10 @@ async def run(conn: AsyncConnection, args: Args) -> ToolOutcome:
         {
             "grupo": name,
             **{lv: values[i] for i, lv in enumerate(blocks.LEVELS)},
-            "total": sum(values),
+            "total_niveles": sum(values),
             "porcentaje_C": round(100 * values[3] / sum(values)) if sum(values) else 0,
+            "alumnos": students_of.get(name, (0, 0))[0],
+            "alumnos_con_C": students_of.get(name, (0, 0))[1],
         }
         for name, values in counts.items()
     ]
@@ -94,15 +119,21 @@ async def run(conn: AsyncConnection, args: Args) -> ToolOutcome:
         "alcance": scope.describe(),
         "agrupado_por": agrupar_por,
         "regla": RULE,
-        "totales": dict(zip(blocks.LEVELS, totals, strict=True)),
+        "totales_de_niveles": dict(zip(blocks.LEVELS, totals, strict=True)),
+        "alumnos_evaluados": students,
+        "alumnos_con_C": students_with_c,
         "grupos": groups,
     }
     if without:
         result["competencias_sin_nivel"] = without
-    note = f"{term['name']} · {scope.describe()}. " + (
-        f"Sin nivel en este periodo: {', '.join(c.split(' · ')[0] for c in without)}."
-        if without
-        else "Cuenta niveles de logro vigentes."
+    note = (
+        f"{term['name']} · {scope.describe()}. Cuenta niveles de logro (alumno × competencia): "
+        f"{students} alumnos evaluados, {students_with_c} con alguna C."
+        + (
+            f" Sin nivel en este periodo: {', '.join(c.split(' · ')[0] for c in without)}."
+            if without
+            else ""
+        )
     )
     bars = blocks.stacked_bars(
         f"Niveles de logro por {'área' if agrupar_por == 'area' else agrupar_por} — {label(term)}",
@@ -119,19 +150,33 @@ def label(term: dict[str, Any]) -> str:
 TOOL = Tool(
     name="resumen_de_niveles",
     description=(
-        "Returns how many students reached each achievement level (AD, A, B, C) in a period, "
-        "grouped by área, by competency (of one área, or all), or by section. A level is the "
-        "teacher's official assertion per competency and period; a competency with no level is "
-        '"sin nivel", never C, and the result lists those. Defaults to the last period with '
-        "levels, because levels are asserted when a period closes. Use it for how a grade, a "
-        "section or an área is doing, or to compare sections."
+        "Counts achievement levels (one per student and competency: AD, A, B or C) in a period, "
+        "grouped by área, by competency (of one área, or all) or by section, and says how many "
+        "students that is: alumnos_evaluados and alumnos_con_C, overall and per group. Level "
+        "counts are not students (168 levels in Matemática are 56 students × 3 competencies): "
+        "copy both as the tool gives them. A level is the teacher's official assertion per "
+        'competency and period; a competency with no level is "sin nivel", never C, and the '
+        "result lists those. Defaults to the last period with levels, because levels are "
+        "asserted when a period closes. Use it for how a grade, a section or an área is doing, "
+        "or to compare sections."
     ),
     status="Contando los niveles de logro…",
     params={
-        "periodo": Param('Period: "actual", "último cerrado", "T-II", "segundo trimestre"…'),
-        "grado": Param('Grade as the director said it: "primero", "1ro de secundaria"…'),
-        "seccion": Param('Section: "A", "1A", "1ro B"…'),
-        "area": Param('Área: "matemática", "MAT", "comu"…'),
+        "periodo": Param(
+            'Period, only when the director named one ("actual", "último cerrado" or its name). '
+            "Empty = the last period with levels; do not fill it otherwise."
+        ),
+        "grado": Param(
+            "Grade, only when the director named one. Empty = the whole school; do not fill it "
+            "otherwise."
+        ),
+        "seccion": Param(
+            "Section, only when the director named one. Empty = every section; do not fill it "
+            "otherwise."
+        ),
+        "area": Param(
+            "Área, only when the director named one. Empty = every área; do not fill it otherwise."
+        ),
         "agrupar_por": Param(
             'One bar per "area", per "competencia" or per "seccion". Default: per área, or per '
             "competency when an área is given.",

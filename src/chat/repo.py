@@ -8,12 +8,12 @@ row-level security (owner_only, on app.actor_id) refuses any other row even if a
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import case, func, insert, select, update
+from sqlalchemy import Date, case, cast, func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from db import fetch_one, scalar
 from mawta_schema import api_views as v
-from mawta_schema.tables import ChatMessage, ChatThread
+from mawta_schema.tables import ChatMessage, ChatQuestionBank, ChatThread
 
 DEFAULT_TITLE = "Nuevo chat"
 TITLE_MAX = 60
@@ -75,6 +75,22 @@ async def list_messages(
     return [dict(r) for r in rows.mappings()]
 
 
+async def questions_today(conn: AsyncConnection, user_id: UUID) -> int:
+    """How many questions the director asked today, by the school's calendar day (its IANA
+    timezone, as repo.home.school_today defines it)."""
+    tz = select(v.school.c.timezone).scalar_subquery()
+    today = cast(func.timezone(tz, func.now()), Date)
+    count = await scalar(
+        conn,
+        select(func.count()).where(
+            M.user_id == user_id,
+            M.author == "director",
+            cast(func.timezone(tz, M.created_at), Date) == today,
+        ),
+    )
+    return int(count or 0)
+
+
 async def add_director_message(
     conn: AsyncConnection, user_id: UUID, thread_id: UUID, text: str
 ) -> UUID:
@@ -131,6 +147,18 @@ async def add_mawta_message(
     )
     await conn.execute(update(T).where(*_mine(user_id, thread_id)).values(updated_at=func.now()))
     return message_id
+
+
+async def add_question(
+    conn: AsyncConnection, message_id: UUID, question: str, status: str, tool_name: str | None
+) -> None:
+    """One row of the question bank per question: how it ended, and which tool answered or was
+    missing (D017). message_id is the director's message."""
+    await conn.execute(
+        insert(ChatQuestionBank).values(
+            message_id=message_id, question=question, status=status, tool_name=tool_name
+        )
+    )
 
 
 async def school_name(conn: AsyncConnection) -> str:

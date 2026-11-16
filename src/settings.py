@@ -106,6 +106,9 @@ class Settings(BaseSettings):
     # Questions answered at the same time; one more answers chat_busy. The chat shares this
     # process with the whole app, so it must not take all its memory.
     chat_max_concurrent: int = 3
+    # Questions one director may ask per school day (repo.home.school_today). 0 = no limit, the
+    # value until real use is measured (roadmap level 1, 2026-11-13).
+    chat_max_questions_per_day: int = 0
     # LangGraph's checkpoints: this same database as mawta_langgraph, in schema langgraph
     # (options=-c search_path=langgraph). Needed only when the chat has a model.
     langgraph_database_url: str = ""
@@ -148,6 +151,8 @@ class Settings(BaseSettings):
             raise ValueError("CHAT_MODEL needs LANGGRAPH_DATABASE_URL (the chat's memory)")
         if self.chat_max_concurrent < 1:
             raise ValueError("CHAT_MAX_CONCURRENT must be at least 1")
+        if self.chat_max_questions_per_day < 0:
+            raise ValueError("CHAT_MAX_QUESTIONS_PER_DAY must be 0 (no limit) or more")
         if self.session_cookie_secure and "*" in self.cors_origins:
             raise ValueError("CORS_ORIGINS may not contain '*' when SESSION_COOKIE_SECURE is true")
         return self

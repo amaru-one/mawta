@@ -16,7 +16,7 @@ answer. The numbers and tables come from the tools, never from the model's memor
 | What it reads | Its tools run inside `Database.chat_tx`, which enters the role `mawta_chat` with `SET LOCAL ROLE`. That role can read only the `chat_api` views and write only the `chat` schema |
 | Whose chats | Row-level security (`owner_only`) on `chat.threads` and `chat.messages`: each director sees only their own chats, even through the database |
 | How long | `chat_tx` sets `statement_timeout` 15s, `lock_timeout` 2s and `idle_in_transaction_session_timeout` 30s for the transaction only. Nothing carries over to the next transaction on the pooled connection |
-| How much | `CHAT_MAX_CONCURRENT` questions are answered at once, and one more gets 429 `chat_busy`. `CHAT_MAX_MODEL_CALLS` caps the model calls per question |
+| How much | `CHAT_MAX_CONCURRENT` questions are answered at once, and one more gets 429 `chat_busy`. `CHAT_MAX_MODEL_CALLS` caps the model calls per question. `CHAT_MAX_QUESTIONS_PER_DAY` caps a director's questions per school day (the school's timezone); the next one gets 429 `chat_daily_limit`. 0 = no limit |
 | Without a model | Without `CHAT_MODEL` (or without the OpenRouter key an `openrouter:` model needs), asking answers 503 `chat_unavailable`. The rest of the chat (listing, renaming, deleting) and the rest of the app keep working |
 
 ## Memory
@@ -38,7 +38,7 @@ All routes are under `/api/v1/chat`.
 | `PATCH /threads/{id}` | Renames a chat: `{"title": "..."}`, at most 200 characters |
 | `DELETE /threads/{id}` | Deletes a chat and its checkpoints (204) |
 | `GET /threads/{id}/messages` | The messages, as protocol v1 blocks |
-| `POST /threads/{id}/messages` | Asks a question: `{"texto": "..."}`. The answer streams as SSE |
+| `POST /threads/{id}/messages` | Asks a question: `{"texto": "..."}`. The answer streams as SSE. It is built and saved by its own task: if the connection drops mid-stream, the answer is still completed and saved, and `GET …/messages` shows it |
 
 Someone else's chat answers 404, never 403.
 
@@ -68,9 +68,20 @@ ranked.
 | `riesgo_por_competencia` | C in the same competency in consecutive periods. A period with no level breaks the streak | `tabla` |
 | `proyeccion_de_promocion` | Each secondary student's projected situation, with its reason. 1.°, 3.° and 4.° follow one rule; 2.° and 5.° follow the stricter end-of-cycle rule (cuadro 5.1.3.A, RVM 048-2024) | `tabla` |
 | `historial_del_alumno` | One student's level per competency and period. An empty cell means no level yet, never C | `matriz` |
+| `fuera_de_alcance` | Nothing: the model calls it when the question is not about the school's data, and the graph answers with the fixed phrase itself, word for word (D017) | — |
+| `sin_herramienta` | Nothing: the model calls it when the question is about the school but no tool covers it (attendance, evidences, conclusions, planning, voice notes), with the topic as `tema` | — |
 
 Without a period, a tool uses the last one with levels. Teachers assert levels when a period
 closes, so the current period usually has none yet.
+
+## The question bank
+
+Every question leaves one row in `chat.question_bank` (`src/chat/status.py`, decision D017), decided
+by the code from the tools the graph called: `fuera_de_alcance` when that tool ran; `necesita_tool`
+with the `tema` when `sin_herramienta` ran (the backlog of tools to build); `respondida` when a
+data tool ran clean and the answer ended normally; `parcial` otherwise (a tool answered with
+`sin_datos` or options to clarify, failed, the answer was cut, or the model answered with no tool
+at all). The row points at the director's message.
 
 ## Configuration
 
@@ -81,6 +92,7 @@ closes, so the current period usually has none yet.
 | `LANGGRAPH_DATABASE_URL` | Required when `CHAT_MODEL` is set |
 | `CHAT_MAX_CONCURRENT` | Default 3 |
 | `CHAT_MAX_MODEL_CALLS` | Default 6. Each tool round is one more call |
+| `CHAT_MAX_QUESTIONS_PER_DAY` | Default 0 (no limit): questions per director and school day |
 | `CHAT_MAX_TOKENS` | Default 16000 |
 | `OPENROUTER_API_KEY`, `LOCAL_LLM_URL`, `LOCAL_LLM_API_KEY` | Shared with the agents |
 | `LANGFUSE_HOST`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY` | Traces. All three, or nothing is sent |

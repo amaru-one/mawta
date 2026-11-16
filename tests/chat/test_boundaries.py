@@ -16,7 +16,7 @@ from chat.llm import ModelTurn
 from db import Database, RequestCtx
 from mawta_schema.tables import ChatThread
 from tests.chat.conftest import ANA, BETO, QUISPE, FakeLLM, Session, text_turn, tool_turn
-from tests.conftest import Databases
+from tests.conftest import Admin, Databases
 
 ChatClientFor = Callable[..., Awaitable[httpx.AsyncClient]]
 
@@ -128,6 +128,57 @@ async def test_too_many_questions_at_once_are_refused(
     assert events((await first).text)[-1]["tipo"] == "fin"
     third = await client.post(f"/threads/{thread}/messages", json={"texto": "tres"}, headers=me)
     assert third.status_code == 200 and events(third.text)[-1]["tipo"] == "fin"
+
+
+async def test_the_daily_limit_counts_the_directors_questions_of_the_school_day(
+    chat_client_for: ChatClientFor, session: Session, fake_llm: FakeLLM, admin: Admin
+):
+    # Other tests already asked questions as Ana and Beto today: the limit sits two above them.
+    asked = await (
+        await admin.execute(
+            "select coalesce(max(n), 0) as asked from (select count(*) n from chat.messages"
+            " where author = 'director' group by user_id) q"
+        )
+    ).fetchone()
+    assert asked is not None
+    limit = int(asked["asked"]) + 2
+    client = await chat_client_for(fake_llm, chat_max_questions_per_day=limit)
+    me = await session(ANA)
+    thread = (await client.post("/threads", headers=me)).json()
+    fake_llm.script(text_turn("Uno."), text_turn("Dos."))
+    for texto in ("¿Primera?", "¿Segunda?"):
+        response = await client.post(
+            f"/threads/{thread['id']}/messages", json={"texto": texto}, headers=me
+        )
+        assert response.status_code == 200
+
+    third = await client.post(
+        f"/threads/{thread['id']}/messages", json={"texto": "¿Tercera?"}, headers=me
+    )
+
+    assert third.status_code == 429
+    assert third.json()["error"]["code"] == "chat_daily_limit"
+    assert third.json()["error"]["message"].endswith("el máximo por día. Mañana puedes seguir.")
+    assert len(fake_llm.calls) == 2, "the refused question never reached the model"
+    messages = (await client.get(f"/threads/{thread['id']}/messages", headers=me)).json()
+    assert [m["author"] for m in messages] == ["director", "mawta"] * 2, (
+        "the refused question is not saved"
+    )
+    # Another director has their own count; the limit is per director.
+    other = await session(BETO)
+    other_thread = (await client.post("/threads", headers=other)).json()
+    fake_llm.script(text_turn("Hola."))
+    response = await client.post(
+        f"/threads/{other_thread['id']}/messages", json={"texto": "¿Hola?"}, headers=other
+    )
+    assert response.status_code == 200
+    # 0 is no limit (the default).
+    unlimited = await chat_client_for(fake_llm)
+    fake_llm.script(text_turn("Tres."))
+    response = await unlimited.post(
+        f"/threads/{thread['id']}/messages", json={"texto": "¿Cuarta?"}, headers=me
+    )
+    assert response.status_code == 200
 
 
 async def test_no_chat_model_means_chat_unavailable(

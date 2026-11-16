@@ -15,12 +15,13 @@ from chat.tools import (
     levels_summary,
     promotion,
     school,
+    scope,
     student_history,
     students_with_c,
 )
 from chat.tools.base import Tool, ToolOutcome
 
-__all__ = ["TOOLS", "TOOL_STATUS", "ToolOutcome", "run_tool"]
+__all__ = ["DATA_TOOLS", "SCOPE_TOOLS", "TOOLS", "TOOL_STATUS", "ToolOutcome", "run_tool"]
 
 REGISTRY: dict[str, Tool] = {
     t.name: t
@@ -31,8 +32,13 @@ REGISTRY: dict[str, Tool] = {
         competency_risk.TOOL,
         promotion.TOOL,
         student_history.TOOL,
+        scope.OUT_OF_SCOPE_TOOL,
+        scope.NO_TOOL_TOOL,
     )
 }
+# The two tools that only say what the chat cannot answer (D017), and the ones that read data.
+SCOPE_TOOLS: frozenset[str] = frozenset({scope.OUT_OF_SCOPE_TOOL.name, scope.NO_TOOL_TOOL.name})
+DATA_TOOLS: frozenset[str] = frozenset(REGISTRY) - SCOPE_TOOLS
 
 TOOLS: list[dict[str, Any]] = [t.spec() for t in REGISTRY.values()]
 TOOL_STATUS: dict[str, str] = {name: t.status for name, t in REGISTRY.items()}
