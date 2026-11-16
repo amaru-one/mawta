@@ -457,6 +457,140 @@ def _str_list(value: Any) -> list[str]:
     return [_str(v) for v in cast(list[Any], value)]
 
 
+def validate(m: Material, refs: Refs, names: list[str], answer: Any) -> dict[str, Any]:
+    """The proposal a model answer amounts to, or InvalidAnswer with the reason it cannot be used.
+
+    Everything a conclusion must meet that the material alone decides: the schema's shape, the
+    citations, the guard against names, the three mandatory parts, what the requirement adds and
+    SIAGIE's length. It reads no database, so an evaluation or a dataset builder runs the very
+    checks the server runs."""
+    if not isinstance(answer, dict):
+        raise InvalidAnswer("la respuesta no tiene el formato de la herramienta: wrong type")
+    answer = cast(dict[str, Any], answer)
+    avances = _points(answer.get("avances"), "avances")
+    dificultades = _points(answer.get("dificultades"), "dificultades")
+    recomendaciones = _points(answer.get("recomendaciones"), "recomendaciones")
+    try:
+        justification = _str(answer.get("justificacion_sin_progreso"))
+        supports = _str(answer.get("apoyos_brindados"))
+        unused = [
+            {"nota": _str(u["nota"]), "motivo": _str(u["motivo"])}
+            for u in cast(list[Any], answer.get("notas_no_usadas") or [])
+        ]
+    except (KeyError, TypeError, AttributeError):
+        raise InvalidAnswer(
+            "la respuesta no tiene el formato de la herramienta: campos de texto"
+        ) from None
+
+    used: dict[UUID, bool] = {}
+    used_ids: list[UUID] = []
+
+    def convert(
+        section: str, points: list[dict[str, Any]], must_cite: bool
+    ) -> list[dict[str, Any]]:
+        out: list[dict[str, Any]] = []
+        for pt in points:
+            text = clean(pt["texto"])
+            if not text:
+                continue
+            if why := guard(text, names):
+                raise InvalidAnswer(why)
+            cp: dict[str, Any] = {"text": text, "evidence_ids": [], "voice_note_ids": []}
+            for ref in pt["evidencias"]:
+                eid = refs.evidences.get(ref.strip())
+                if eid is None:
+                    raise InvalidAnswer(
+                        f'{section} cita la evidencia "{ref}", que no existe; usa solo '
+                        f"E1…E{len(refs.evidences)}"
+                    )
+                cp["evidence_ids"].append(eid)
+            for ref in pt["notas"]:
+                nid = refs.voice_notes.get(ref.strip())
+                if nid is None:
+                    raise InvalidAnswer(
+                        f'{section} cita la nota "{ref}", que no existe; usa solo las '
+                        "referencias N entregadas"
+                    )
+                cp["voice_note_ids"].append(nid)
+                if not used.get(nid):
+                    used[nid] = True
+                    used_ids.append(nid)
+            if must_cite and not cp["evidence_ids"] and not cp["voice_note_ids"]:
+                raise InvalidAnswer(
+                    f"{section} «{text}» no cita ninguna evidencia ni nota; cada avance y "
+                    "dificultad debe apoyarse en el material"
+                )
+            out.append(cp)
+        return out
+
+    res: dict[str, Any] = {
+        "body": "",
+        "level": m.level,
+        "requirement": m.requirement,
+        "progress": convert("un avance", avances, True),
+        "difficulties": convert("una dificultad", dificultades, True),
+        "recommendations": convert("una recomendación", recomendaciones, False),
+        "no_progress_justification": "",
+        "supports_provided": "",
+        "used_voice_note_ids": used_ids,
+        "unused_voice_notes": [],
+        "warnings": m.warnings(),
+    }
+    # RM 281-2016 (CNEB, VII): a conclusion "debe […] señalar avances, dificultades y
+    # recomendaciones". All three, every time.
+    if not res["progress"]:
+        raise InvalidAnswer("la conclusión debe señalar al menos un avance")
+    if not res["difficulties"]:
+        raise InvalidAnswer(
+            "la conclusión debe señalar al menos una dificultad; si el nivel es AD y el "
+            f"material no muestra ninguna, escribe «{NO_DIFFICULTIES_AD}»"
+        )
+    if m.level != "AD":
+        for d in res["difficulties"]:
+            if sentence(d["text"]).casefold() == NO_DIFFICULTIES_AD.casefold():
+                raise InvalidAnswer(
+                    f"el nivel es {m.level}: «{NO_DIFFICULTIES_AD}» solo vale en AD; señala "
+                    "una dificultad que muestre el material"
+                )
+    if not res["recommendations"]:
+        raise InvalidAnswer(
+            "toda conclusión debe incluir al menos una recomendación personalizada (5.1.1.3 p.7)"
+        )
+    res["no_progress_justification"] = clean(justification)
+    res["supports_provided"] = clean(supports)
+    if m.requirement == "consecutive_c" and not res["no_progress_justification"]:
+        raise InvalidAnswer(
+            "el nivel es C por segundo periodo consecutivo: justificacion_sin_progreso es "
+            "obligatoria"
+        )
+    if m.requirement == "inclusion_support" and not res["supports_provided"]:
+        raise InvalidAnswer(
+            "el estudiante tiene apoyo de inclusión: apoyos_brindados es obligatorio"
+        )
+    for extra in (res["no_progress_justification"], res["supports_provided"]):
+        if why := guard(extra, names):
+            raise InvalidAnswer(why)
+    for u in unused:
+        nid = refs.voice_notes.get(u["nota"].strip())
+        if nid is not None and not used.get(nid):
+            res["unused_voice_notes"].append({"voice_note_id": nid, "reason": clean(u["motivo"])})
+    res["body"] = compose(res)
+    n = domain.conclusion_length(res["body"])
+    if n > domain.CONCLUSION_MAX_CHARS:
+        raise InvalidAnswer(
+            f"la conclusión tiene {n} caracteres y SIAGIE acepta como máximo "
+            f"{domain.CONCLUSION_MAX_CHARS}: acórtala en al menos "
+            f"{n - domain.CONCLUSION_MAX_CHARS} sin quitar el avance, la dificultad ni la "
+            "recomendación"
+        )
+    # Optional fields are left out of the result when empty.
+    if not res["no_progress_justification"]:
+        del res["no_progress_justification"]
+    if not res["supports_provided"]:
+        del res["supports_provided"]
+    return res
+
+
 class ConclusionsAgent:
     name: str = NAME
     prompt_version: str = PROMPT_VERSION
@@ -483,24 +617,6 @@ class ConclusionsAgent:
     ) -> Any:
         st: _State = prepared.state
         m = st.material
-        if not isinstance(answer, dict):
-            raise InvalidAnswer("la respuesta no tiene el formato de la herramienta: wrong type")
-        answer = cast(dict[str, Any], answer)
-        avances = _points(answer.get("avances"), "avances")
-        dificultades = _points(answer.get("dificultades"), "dificultades")
-        recomendaciones = _points(answer.get("recomendaciones"), "recomendaciones")
-        try:
-            justification = _str(answer.get("justificacion_sin_progreso"))
-            supports = _str(answer.get("apoyos_brindados"))
-            unused = [
-                {"nota": _str(u["nota"]), "motivo": _str(u["motivo"])}
-                for u in cast(list[Any], answer.get("notas_no_usadas") or [])
-            ]
-        except (KeyError, TypeError, AttributeError):
-            raise InvalidAnswer(
-                "la respuesta no tiene el formato de la herramienta: campos de texto"
-            ) from None
-
         # The level may have changed while the model wrote: a conclusion that explains a level the
         # student no longer has is worse than none.
         level = await ctx_repo.live_competency_level(
@@ -512,114 +628,4 @@ class ConclusionsAgent:
                 "level_changed",
                 "El nivel de logro cambió mientras Mawta escribía. Vuelve a generar la conclusión.",
             )
-
-        used: dict[UUID, bool] = {}
-        used_ids: list[UUID] = []
-
-        def convert(
-            section: str, points: list[dict[str, Any]], must_cite: bool
-        ) -> list[dict[str, Any]]:
-            out: list[dict[str, Any]] = []
-            for pt in points:
-                text = clean(pt["texto"])
-                if not text:
-                    continue
-                if why := guard(text, st.names):
-                    raise InvalidAnswer(why)
-                cp: dict[str, Any] = {"text": text, "evidence_ids": [], "voice_note_ids": []}
-                for ref in pt["evidencias"]:
-                    eid = st.refs.evidences.get(ref.strip())
-                    if eid is None:
-                        raise InvalidAnswer(
-                            f'{section} cita la evidencia "{ref}", que no existe; usa solo '
-                            f"E1…E{len(st.refs.evidences)}"
-                        )
-                    cp["evidence_ids"].append(eid)
-                for ref in pt["notas"]:
-                    nid = st.refs.voice_notes.get(ref.strip())
-                    if nid is None:
-                        raise InvalidAnswer(
-                            f'{section} cita la nota "{ref}", que no existe; usa solo las '
-                            "referencias N entregadas"
-                        )
-                    cp["voice_note_ids"].append(nid)
-                    if not used.get(nid):
-                        used[nid] = True
-                        used_ids.append(nid)
-                if must_cite and not cp["evidence_ids"] and not cp["voice_note_ids"]:
-                    raise InvalidAnswer(
-                        f"{section} «{text}» no cita ninguna evidencia ni nota; cada avance y "
-                        "dificultad debe apoyarse en el material"
-                    )
-                out.append(cp)
-            return out
-
-        res: dict[str, Any] = {
-            "body": "",
-            "level": m.level,
-            "requirement": m.requirement,
-            "progress": convert("un avance", avances, True),
-            "difficulties": convert("una dificultad", dificultades, True),
-            "recommendations": convert("una recomendación", recomendaciones, False),
-            "no_progress_justification": "",
-            "supports_provided": "",
-            "used_voice_note_ids": used_ids,
-            "unused_voice_notes": [],
-            "warnings": m.warnings(),
-        }
-        # RM 281-2016 (CNEB, VII): a conclusion "debe […] señalar avances, dificultades y
-        # recomendaciones". All three, every time.
-        if not res["progress"]:
-            raise InvalidAnswer("la conclusión debe señalar al menos un avance")
-        if not res["difficulties"]:
-            raise InvalidAnswer(
-                "la conclusión debe señalar al menos una dificultad; si el nivel es AD y el "
-                f"material no muestra ninguna, escribe «{NO_DIFFICULTIES_AD}»"
-            )
-        if m.level != "AD":
-            for d in res["difficulties"]:
-                if sentence(d["text"]).casefold() == NO_DIFFICULTIES_AD.casefold():
-                    raise InvalidAnswer(
-                        f"el nivel es {m.level}: «{NO_DIFFICULTIES_AD}» solo vale en AD; señala "
-                        "una dificultad que muestre el material"
-                    )
-        if not res["recommendations"]:
-            raise InvalidAnswer(
-                "toda conclusión debe incluir al menos una recomendación personalizada "
-                "(5.1.1.3 p.7)"
-            )
-        res["no_progress_justification"] = clean(justification)
-        res["supports_provided"] = clean(supports)
-        if m.requirement == "consecutive_c" and not res["no_progress_justification"]:
-            raise InvalidAnswer(
-                "el nivel es C por segundo periodo consecutivo: justificacion_sin_progreso es "
-                "obligatoria"
-            )
-        if m.requirement == "inclusion_support" and not res["supports_provided"]:
-            raise InvalidAnswer(
-                "el estudiante tiene apoyo de inclusión: apoyos_brindados es obligatorio"
-            )
-        for extra in (res["no_progress_justification"], res["supports_provided"]):
-            if why := guard(extra, st.names):
-                raise InvalidAnswer(why)
-        for u in unused:
-            nid = st.refs.voice_notes.get(u["nota"].strip())
-            if nid is not None and not used.get(nid):
-                res["unused_voice_notes"].append(
-                    {"voice_note_id": nid, "reason": clean(u["motivo"])}
-                )
-        res["body"] = compose(res)
-        n = domain.conclusion_length(res["body"])
-        if n > domain.CONCLUSION_MAX_CHARS:
-            raise InvalidAnswer(
-                f"la conclusión tiene {n} caracteres y SIAGIE acepta como máximo "
-                f"{domain.CONCLUSION_MAX_CHARS}: acórtala en al menos "
-                f"{n - domain.CONCLUSION_MAX_CHARS} sin quitar el avance, la dificultad ni la "
-                "recomendación"
-            )
-        # Optional fields are left out of the result when empty.
-        if not res["no_progress_justification"]:
-            del res["no_progress_justification"]
-        if not res["supports_provided"]:
-            del res["supports_provided"]
-        return res
+        return validate(m, st.refs, st.names, answer)
