@@ -12,6 +12,7 @@ asserted first. The proposal stays in agent_generations.result until the teacher
 conclusion; it is never saved on their behalf.
 """
 
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, cast
@@ -457,6 +458,33 @@ def _str_list(value: Any) -> list[str]:
     return [_str(v) for v in cast(list[Any], value)]
 
 
+# A group in parentheses made only of this material's references: «(E1)», «(E1, N2)»,
+# «(E1 y E3)», «(ver N1)». It is how a model cites inside a sentence, and the sentence reaches the
+# teacher, SIAGIE and the family as written. Only the references given count, so «nitrógeno (N2)»
+# passes when the material has no N2; when it does, the repair asks for the sentence again.
+_PARENTHESES = re.compile(r"\(([^()]*)\)")
+_REFERENCE_SEPARATORS = re.compile(r"\s*(?:,|;|\by\b|\be\b)\s*")
+_REFERENCE_LEAD = re.compile(r"^(?:ver|véase|según|cf\.)\s+", re.IGNORECASE)
+
+
+def inline_reference(text: str, refs: Refs) -> str:
+    """The first group of references written inside a text, or "" when there is none."""
+    known = refs.evidences.keys() | refs.voice_notes.keys()
+    for group in _PARENTHESES.finditer(text):
+        inside = _REFERENCE_LEAD.sub("", group.group(1).strip())
+        parts = [p for p in _REFERENCE_SEPARATORS.split(inside) if p]
+        if parts and all(p in known for p in parts):
+            return group.group(0)
+    return ""
+
+
+def _inline_reference_reason(where: str, ref: str) -> str:
+    return (
+        f"{where} escribe la referencia {ref} dentro del texto; las referencias van solo en las "
+        "listas evidencias y notas, nunca en texto, porque el texto llega así a SIAGIE"
+    )
+
+
 def validate(m: Material, refs: Refs, names: list[str], answer: Any) -> dict[str, Any]:
     """The proposal a model answer amounts to, or InvalidAnswer with the reason it cannot be used.
 
@@ -495,6 +523,8 @@ def validate(m: Material, refs: Refs, names: list[str], answer: Any) -> dict[str
                 continue
             if why := guard(text, names):
                 raise InvalidAnswer(why)
+            if inline := inline_reference(text, refs):
+                raise InvalidAnswer(_inline_reference_reason(f"{section} «{text}»", inline))
             cp: dict[str, Any] = {"text": text, "evidence_ids": [], "voice_note_ids": []}
             for ref in pt["evidencias"]:
                 eid = refs.evidences.get(ref.strip())
@@ -567,9 +597,14 @@ def validate(m: Material, refs: Refs, names: list[str], answer: Any) -> dict[str
         raise InvalidAnswer(
             "el estudiante tiene apoyo de inclusión: apoyos_brindados es obligatorio"
         )
-    for extra in (res["no_progress_justification"], res["supports_provided"]):
+    for field_name, extra in (
+        ("justificacion_sin_progreso", res["no_progress_justification"]),
+        ("apoyos_brindados", res["supports_provided"]),
+    ):
         if why := guard(extra, names):
             raise InvalidAnswer(why)
+        if inline := inline_reference(extra, refs):
+            raise InvalidAnswer(_inline_reference_reason(field_name, inline))
     for u in unused:
         nid = refs.voice_notes.get(u["nota"].strip())
         if nid is not None and not used.get(nid):

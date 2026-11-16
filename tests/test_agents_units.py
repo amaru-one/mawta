@@ -184,6 +184,32 @@ def test_validate_requires_what_the_requirement_adds():
     assert res["no_progress_justification"] == "Faltó a las sesiones de práctica."
 
 
+def test_validate_refuses_a_reference_written_inside_the_text():
+    cited = _answer(avances=[_point("Narra una experiencia con orden (E1).", ["E1"])])
+    with pytest.raises(InvalidAnswer, match=r"escribe la referencia \(E1\) dentro del texto"):
+        _validate(_graded_material(), cited)
+    grouped = _answer(dificultades=[_point("Le cuesta preguntar (E2 y N1).", ["E2"], ["N1"])])
+    with pytest.raises(InvalidAnswer, match=r"\(E2 y N1\)"):
+        _validate(_graded_material(), grouped)
+    seen = _answer(dificultades=[_point("Le cuesta preguntar (ver N1).", ["E2"], ["N1"])])
+    with pytest.raises(InvalidAnswer, match=r"\(ver N1\)"):
+        _validate(_graded_material(), seen)
+    justified = _answer(justificacion_sin_progreso="Faltó a las sesiones de práctica (N1).")
+    with pytest.raises(InvalidAnswer, match="justificacion_sin_progreso escribe la referencia"):
+        _validate(_graded_material("C", "consecutive_c"), justified)
+
+
+def test_validate_keeps_parentheses_that_are_not_references():
+    # N2 is not a reference of this material (it has N1 only): here it is nitrogen.
+    plain = _answer(
+        avances=[_point("Explica la presencia del nitrógeno (N2) en el aire.", ["E1"])],
+        recomendaciones=[
+            _point("Se le recomienda practicar con fracciones (medios y tercios).", [])
+        ],
+    )
+    assert _validate(_graded_material(), plain)["body"].startswith("Explica la presencia")
+
+
 def test_validate_lists_only_the_unused_notes_it_was_given():
     answer = _answer(
         avances=[_point("Narra una experiencia con orden.", ["E1"])],
@@ -403,6 +429,55 @@ def test_settings_validate_agent_models():
     assert not cfg.agent_ready("conclusions")
     with pytest.raises(ValidationError):
         Settings(database_url="postgres://x", conclusions_agent_model="gemma4")
+
+
+class _CapturingCompletions:
+    """Stands in for client.chat.completions and keeps the last request."""
+
+    def __init__(self) -> None:
+        self.request: dict[str, Any] = {}
+
+    async def create(self, **kwargs: Any) -> ChatCompletion:
+        self.request = kwargs
+        return _completion('{"a": 1}')
+
+
+def _capturing_client() -> tuple[Any, _CapturingCompletions]:
+    completions = _CapturingCompletions()
+
+    class Chat:
+        pass
+
+    class Client:
+        chat = Chat()
+
+    Client.chat.completions = completions  # type: ignore[attr-defined]
+    return Client(), completions
+
+
+async def test_a_local_model_reads_the_answers_schema_in_its_instructions():
+    from agent.llm import Block, Request, Tool
+
+    tool = Tool(
+        "proponer", "d", {"avances": {"type": "array", "items": {"type": "string"}}}, ["avances"]
+    )
+    req = Request(
+        system=[Block("Instrucciones.", cache=True)], prompt="x", tool=tool, max_tokens=10
+    )
+    for provider, shown in (("local", True), ("openrouter", False)):
+        client, completions = _capturing_client()
+        resp = await OpenAICompat(parse(f"{provider}:m"), client).generate(req)
+        assert resp.input == {"a": 1}
+        system = completions.request["messages"][0]["content"]
+        assert system.startswith("Instrucciones.")
+        assert ('"avances"' in system) is shown, provider
+        # The schema still travels as response_format, which a server that honours it enforces.
+        sent = completions.request["response_format"]["json_schema"]["schema"]
+        assert sent == strict_schema(
+            {"type": "object", "properties": tool.properties, "required": ["avances"]}
+        )
+        if shown:
+            assert system.endswith(json.dumps(sent, ensure_ascii=False))
 
 
 async def test_unconfigured_model_fails_permanently():

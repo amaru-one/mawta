@@ -10,7 +10,7 @@ from openai.types.chat import ChatCompletion, ChatCompletionMessageParam
 from openai.types.shared_params import ResponseFormatJSONSchema
 
 from agent.llm import LLMError, Request, Response, Usage
-from agent.llm.providers import ModelRef, extra_body
+from agent.llm.providers import LOCAL, ModelRef, extra_body
 
 
 class OpenAICompat:
@@ -34,9 +34,18 @@ class OpenAICompat:
         if self._ref is None or self._client is None:
             raise LLMError("llm: no model configured for this agent", permanent=True)
 
+        schema = strict_schema(
+            {
+                "type": "object",
+                "properties": req.tool.properties,
+                "required": req.tool.required,
+            }
+        )
         # Providers have no per-block cache control here; local servers cache the shared prefix
         # on their own, so the stable blocks still go first.
         system = "\n\n".join(block.text for block in req.system)
+        if self._ref.provider == LOCAL:
+            system += "\n\n" + schema_instruction(schema)
         messages: list[ChatCompletionMessageParam] = [
             {"role": "system", "content": system},
             {"role": "user", "content": req.prompt},
@@ -46,13 +55,7 @@ class OpenAICompat:
             "json_schema": {
                 "name": req.tool.name,
                 "strict": True,
-                "schema": strict_schema(
-                    {
-                        "type": "object",
-                        "properties": req.tool.properties,
-                        "required": req.tool.required,
-                    }
-                ),
+                "schema": schema,
             },
         }
         try:
@@ -66,6 +69,21 @@ class OpenAICompat:
         except Exception as exc:
             raise classify(exc) from exc
         return read_completion(completion)
+
+
+def schema_instruction(schema: dict[str, Any]) -> str:
+    """The answer's JSON schema as text, for the instructions.
+
+    The schema otherwise travels only as response_format, and not every local server honours it:
+    mlx_lm.server drops it without a word. The model then never learns the answer's field names,
+    invents its own ({"conclusion": "…"}), and every answer fails validation, the repair included.
+    A local server is whatever the operator runs, so for the provider "local" the schema goes in
+    the instructions too. A server that does enforce response_format loses nothing but a few
+    hundred prompt tokens, and they sit in the cacheable prefix."""
+    return (
+        "Answer with one JSON object that fills this JSON schema, and nothing else:\n"
+        + json.dumps(schema, ensure_ascii=False)
+    )
 
 
 def read_completion(completion: ChatCompletion) -> Response:
