@@ -12,6 +12,7 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     services:
       postgres:
         image: postgres:16
@@ -28,17 +29,12 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           version: "0.13.5"
-      # Voice notes are transcoded with ffmpeg (tests/test_media.py runs it). A static build is
-      # one download with no system libraries; it is checked against the md5 published next to it.
-      - name: Install a static ffmpeg
-        working-directory: ${{ runner.temp }}
+      # Voice notes are transcoded with ffmpeg (tests/test_media.py runs it). The same package the
+      # image installs (Dockerfile), from the runner apt mirror: no third-party host to hang on.
+      - name: Install ffmpeg
         run: |
-          base=https://johnvansickle.com/ffmpeg/releases
-          curl -fsSL --retry 5 --retry-delay 5 -O "$base/ffmpeg-release-amd64-static.tar.xz"
-          curl -fsSL --retry 5 --retry-delay 5 -O "$base/ffmpeg-release-amd64-static.tar.xz.md5"
-          md5sum -c ffmpeg-release-amd64-static.tar.xz.md5
-          tar -xJf ffmpeg-release-amd64-static.tar.xz --strip-components=1 --wildcards '*/ffmpeg'
-          sudo install -m 0755 ffmpeg /usr/local/bin/ffmpeg
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
           ffmpeg -version | head -1
       - run: uv sync --locked
       - run: uv run ruff check .
