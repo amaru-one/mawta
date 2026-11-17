@@ -24,6 +24,7 @@ from langgraph.config import get_stream_writer
 from langgraph.graph import START, StateGraph
 
 from chat.llm import LLM
+from chat.scope_text import ScopeTextGuard
 from chat.tools import TOOL_STATUS, TOOLS, ToolOutcome, run_tool
 from chat.tools.scope import OUT_OF_SCOPE, OUT_OF_SCOPE_TOOL
 from chat.tracing import QuestionTrace, no_question
@@ -125,12 +126,11 @@ def build_graph(llm: LLM, max_model_calls: int, checkpointer: Any):
             }
 
         configurable = config.get("configurable", {})
-        turn = await llm.respond(
-            configurable["system"],
-            state["messages"],
-            TOOLS,
-            lambda text: writer({"kind": "text", "delta": text}),
-        )
+        # A model that writes «fuera_de_alcance» instead of calling it is answered as if it had
+        # called it: the director never reads the tool's name (chat/scope_text.py).
+        guard = ScopeTextGuard(lambda text: writer({"kind": "text", "delta": text}))
+        turn = await llm.respond(configurable["system"], state["messages"], TOOLS, guard.feed)
+        turn = guard.finish(turn)
         _trace(configurable).model_turn(turn)
         writer(
             {

@@ -74,6 +74,13 @@ ranked.
 Without a period, a tool uses the last one with levels. Teachers assert levels when a period
 closes, so the current period usually has none yet.
 
+Some models write a scope tool as text («fuera_de_alcance») instead of calling it. The graph
+holds back text that could still be such a name and turns it into the real call when the turn
+ends (`src/chat/scope_text.py`), so the director never reads it.
+
+`resumen_de_niveles` and `alumnos_con_c`, asked for a period without levels (the one in
+progress), report the last period with levels and say so in `aviso_periodo`.
+
 ## The question bank
 
 Every question leaves one row in `chat.question_bank` (`src/chat/status.py`, decision D017), decided
