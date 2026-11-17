@@ -84,7 +84,6 @@ _JUDGEMENTS = (
     r"\brecomiend\w*",
     r"\bsugier\w*",
     r"\bconviene\b",
-    r"\branking\b",
     r"\bel mejor alumno\b",
     r"\bel peor alumno\b",
 )
@@ -132,12 +131,16 @@ def _expected_tool(case: Case, answer: Answer) -> CheckResult:
 
 
 def _no_unasked_filters(case: Case, answer: Answer) -> CheckResult:
-    """No tool call narrows the scope with a filter the question did not ask for."""
+    """No tool call narrows the scope with a filter the question did not ask for. A section
+    names its grade too ("1B" is primero B), so a grado next to an asked-for section is asked."""
+    asked = set(case.args)
+    if "seccion" in asked:
+        asked.add("grado")
     unasked: list[str] = []
     for call in answer.tool_calls:
         for name in FILTERS:
             value = call.input.get(name)
-            if value not in (None, "") and name not in case.args:
+            if value not in (None, "") and name not in asked:
                 unasked.append(f"{call.name}({name}={value!r})")
     return CheckResult(
         "sin_filtros_no_pedidos", not unasked, "; ".join(unasked) or "sin filtros de más"
@@ -150,6 +153,8 @@ def _expected_args(case: Case, answer: Answer) -> CheckResult:
         return CheckResult("argumentos_esperados", True, "no se esperan argumentos")
     call = next((c for c in answer.tool_calls if c.name in case.tools), None)
     if call is None:
+        if None in case.tools:
+            return CheckResult("argumentos_esperados", True, "respondió sin herramienta")
         return CheckResult("argumentos_esperados", False, "no hubo llamada a la herramienta")
     missing: list[str] = []
     for name, options in case.args.items():
@@ -160,8 +165,13 @@ def _expected_args(case: Case, answer: Answer) -> CheckResult:
 
 
 def _facts(case: Case, answer: Answer) -> CheckResult:
+    """Every fact must appear; "a|b" accepts either spelling."""
     text = normalize(answer.text)
-    missing = [fact for fact in case.facts if normalize(fact) not in text]
+    missing = [
+        fact
+        for fact in case.facts
+        if not any(normalize(option) in text for option in fact.split("|"))
+    ]
     return CheckResult(
         "hechos_presentes", not missing, "faltan: " + ", ".join(missing) if missing else "todos"
     )

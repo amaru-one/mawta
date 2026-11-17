@@ -411,7 +411,9 @@ def test_settings_validate_agent_models():
 
     from settings import Settings
 
+    # _env_file=None: the developer's .env (models, keys) must not leak into this test.
     cfg = Settings(
+        _env_file=None,  # pyright: ignore[reportCallIssue]
         database_url="postgres://x",
         planning_agent_model="local:gemma4:12b-it-qat",
         redaction_agent_model="openrouter:qwen/qwen3-8b",

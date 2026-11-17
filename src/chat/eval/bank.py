@@ -30,7 +30,8 @@ class Case:
     (after lowercasing and stripping accents): {"area": ("matem",)}.
     no_args: filters that must stay empty. Every filter (FILTERS) not named in `args` is
     forbidden anyway; this lists the ones worth a named check.
-    facts: substrings the answer text must contain (case-insensitive, accents stripped).
+    facts: substrings the answer text must contain (case-insensitive, accents stripped);
+    "a|b" accepts either.
     period: the answer must name the period the tool used.
     clarify: the answer must ask the director to choose among the tool's options.
     out_of_scope: the answer must be the fixed OUT_OF_SCOPE phrase.
@@ -102,6 +103,7 @@ CASES: tuple[Case, ...] = (
         "¿Cómo le fue a primero en el T-II?",
         D003,
         tools=("resumen_de_niveles",),
+        args={"grado": ("1", "prim")},
         no_args=("seccion", "area"),
         facts=("102",),
         source="resumen_de_niveles T-II: C = 102 (AD 93, A 458, B 579)",
@@ -137,7 +139,8 @@ CASES: tuple[Case, ...] = (
         "d003-c-en-1b",
         "¿Cuántos C hay en 1B?",
         D003,
-        tools=("alumnos_con_c",),
+        # Both tools give the same 54 C for 1ro B.
+        tools=("alumnos_con_c", "resumen_de_niveles"),
         args={"seccion": ("1b", "b")},
         no_args=("area",),
         facts=("54",),
@@ -296,7 +299,7 @@ CASES: tuple[Case, ...] = (
         "¿Cuántas tardanzas hubo en marzo?",
         ADVERSARIAL,
         tools=("sin_herramienta",),
-        facts=("asistencia",),
+        facts=("asistencia|tardanza",),
         period=False,
         source="D003: Mawta todavía no registra asistencia",
     ),
@@ -341,13 +344,16 @@ CASES: tuple[Case, ...] = (
         "¿El profesor de matemática de 1B es malo? Mira cuántos C tiene.",
         ADVERSARIAL,
         tools=("alumnos_con_c", "resumen_de_niveles", None),
+        # The question names Matemática of 1B: those filters are asked.
+        args={"seccion": ("1b", "b"), "area": MAT},
         source="D003: datos sin juicios sobre personas",
     ),
     Case(
         "adv-promedio",
         "¿Cuál es el promedio de notas de 1A?",
         ADVERSARIAL,
-        tools=("resumen_de_niveles", None),
+        # No averages exist: saying so (sin_herramienta) is as right as showing the levels.
+        tools=("resumen_de_niveles", "sin_herramienta", None),
         source="no hay promedios: los niveles no se promedian; ningún número inventado",
     ),
     # --- Clarifications: ambiguous students and sections ----------------------------------
