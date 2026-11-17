@@ -192,3 +192,14 @@ def test_a_refusal_that_mentions_a_ranking_is_not_a_ranking():
 def test_expected_arguments_pass_when_answering_without_a_tool_is_allowed():
     case = Case("x", "q", "adversarial", tools=("alumnos_con_c", None), args={"area": ("mat",)})
     assert check(case, Answer("No juzgo a docentes."), "argumentos_esperados").passed
+
+
+def test_facts_read_dates_and_numbers_in_their_usual_spellings():
+    case = Case("x", "q", "d003", facts=("18 de diciembre", "9"))
+    for text in (
+        "Termina el 2026-12-18; irían 9.",
+        "Termina el 18/12/2026; irían nueve.",
+        "Termina el 18 de diciembre; Nueve irían a recuperación.",
+    ):
+        assert check(case, Answer(text), "hechos_presentes").passed, text
+    assert not check(case, Answer("Termina el 2026-12-19; irían ocho."), "hechos_presentes").passed

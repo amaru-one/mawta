@@ -134,12 +134,17 @@ async def test_summary_by_section(chat_url: str):
     ]
 
 
-async def test_a_period_without_levels_says_so_instead_of_inventing(chat_url: str):
-    out = await call(chat_url, "resumen_de_niveles", {"periodo": "actual"})
+async def test_a_period_without_levels_reports_the_last_one_with_levels_and_says_so(
+    chat_url: str,
+):
+    """The demo model fills periodo="actual" nobody asked for (2026-11-16): instead of «no data»,
+    the tool reports the last period with levels and tells the model why."""
+    for tool in ("resumen_de_niveles", "alumnos_con_c"):
+        out = await call(chat_url, tool, {"periodo": "actual"})
 
-    assert out.result["periodo"] == "Bimestre IV"
-    assert "todavía no tiene niveles" in out.result["sin_datos"]
-    assert out.blocks == []
+        assert out.result["periodo"] == "Bimestre III", tool
+        assert "Bimestre IV todavía no tiene niveles" in out.result["aviso_periodo"], tool
+        assert "sin_datos" not in out.result and out.blocks, tool
 
 
 async def test_a_school_with_no_levels_at_all_has_no_data(school_without_levels: str):

@@ -97,6 +97,26 @@ def last_with_levels(all_terms: list[dict[str, Any]]) -> dict[str, Any] | None:
     return with_levels[-1] if with_levels else None
 
 
+def with_levels(
+    all_terms: list[dict[str, Any]], term: dict[str, Any]
+) -> tuple[dict[str, Any] | None, str | None]:
+    """The period whose levels a tool reports, and a note when it is not the one asked for.
+
+    The period in progress has no levels yet (they are asserted when it closes). A tool asked
+    for it ("actual", or a model that fills the period nobody named) reports the last period
+    with levels instead and says so, rather than answering that there is no data. None when no
+    period has levels at all."""
+    if term["has_levels"]:
+        return term, None
+    fallback = last_with_levels(all_terms)
+    if fallback is None:
+        return None, None
+    return fallback, (
+        f"{term['name']} todavía no tiene niveles de logro (los docentes los registran al "
+        f"cerrar el periodo); estos datos son de {fallback['name']}. Díselo así al director."
+    )
+
+
 def resolve_term(all_terms: list[dict[str, Any]], text: str | None) -> dict[str, Any]:
     """A period of the active year. Without text: the last one with levels (levels are asserted
     when a period closes, so the one in progress usually has none)."""

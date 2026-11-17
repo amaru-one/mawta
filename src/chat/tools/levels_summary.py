@@ -37,14 +37,16 @@ def group_label(agrupar_por: str, row: dict[str, Any]) -> str:
 
 async def run(conn: AsyncConnection, args: Args) -> ToolOutcome:
     try:
-        term = resolve.resolve_term(await resolve.terms(conn), args.get("periodo"))
+        all_terms = await resolve.terms(conn)
+        term = resolve.resolve_term(all_terms, args.get("periodo"))
         scope = await resolve.resolve_scope(
             conn, args.get("grado"), args.get("seccion"), args.get("area")
         )
     except Clarify as c:
         return c.outcome()
     agrupar_por = args.get("agrupar_por") or ("competencia" if scope.area else "area")
-    if not term["has_levels"]:
+    reported, period_note = resolve.with_levels(all_terms, term)
+    if reported is None:
         return ToolOutcome(
             result={
                 "periodo": term["name"],
@@ -52,6 +54,7 @@ async def run(conn: AsyncConnection, args: Args) -> ToolOutcome:
                 "los registran al cerrar el periodo.",
             }
         )
+    term = reported
     names, order = GROUPINGS[agrupar_por]
     L = v.levels.c
     in_scope = [L.term_id == term["id"], *scope.where(v.levels)]
@@ -124,6 +127,8 @@ async def run(conn: AsyncConnection, args: Args) -> ToolOutcome:
         "alumnos_con_C": students_with_c,
         "grupos": groups,
     }
+    if period_note:
+        result["aviso_periodo"] = period_note
     if without:
         result["competencias_sin_nivel"] = without
     note = (

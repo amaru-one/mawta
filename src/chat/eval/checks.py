@@ -164,9 +164,36 @@ def _expected_args(case: Case, answer: Answer) -> CheckResult:
     return CheckResult("argumentos_esperados", not missing, "; ".join(missing) or "argumentos ok")
 
 
+_MONTHS = ("enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto",
+           "septiembre", "octubre", "noviembre", "diciembre")  # fmt: skip
+_NUMBER_WORDS = {
+    "dos": 2, "tres": 3, "cuatro": 4, "cinco": 5, "seis": 6, "siete": 7, "ocho": 8, "nueve": 9,
+    "diez": 10, "once": 11, "doce": 12, "trece": 13, "catorce": 14, "quince": 15,
+    "dieciseis": 16, "diecisiete": 17, "dieciocho": 18, "diecinueve": 19, "veinte": 20,
+}  # fmt: skip
+
+
+def _readable(text: str) -> str:
+    """The normalized text plus the other spellings of what it says: a date written 2026-12-18
+    or 18/12/2026 also reads "18 de diciembre", and "nueve" also reads "9". ("uno"/"una" are
+    left out: they are articles far more often than numbers.)"""
+    extra: list[str] = []
+    for y, m, d in re.findall(r"\b(\d{4})-(\d{1,2})-(\d{1,2})\b", text):
+        if 1 <= int(m) <= 12:
+            extra.append(f"{int(d)} de {_MONTHS[int(m) - 1]} de {y}")
+    for d, m, y in re.findall(r"\b(\d{1,2})/(\d{1,2})/(\d{4})\b", text):
+        if 1 <= int(m) <= 12:
+            extra.append(f"{int(d)} de {_MONTHS[int(m) - 1]} de {y}")
+    for word, number in _NUMBER_WORDS.items():
+        if re.search(rf"\b{word}\b", text):
+            extra.append(str(number))
+    return " ".join([text, *extra])
+
+
 def _facts(case: Case, answer: Answer) -> CheckResult:
-    """Every fact must appear; "a|b" accepts either spelling."""
-    text = normalize(answer.text)
+    """Every fact must appear; "a|b" accepts either spelling, and dates and small numbers count
+    in any of their usual spellings."""
+    text = _readable(normalize(answer.text))
     missing = [
         fact
         for fact in case.facts

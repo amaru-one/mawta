@@ -19,13 +19,15 @@ RULE = (
 
 async def run(conn: AsyncConnection, args: Args) -> ToolOutcome:
     try:
-        term = resolve.resolve_term(await resolve.terms(conn), args.get("periodo"))
+        all_terms = await resolve.terms(conn)
+        term = resolve.resolve_term(all_terms, args.get("periodo"))
         scope = await resolve.resolve_scope(
             conn, args.get("grado"), args.get("seccion"), args.get("area")
         )
     except Clarify as c:
         return c.outcome()
-    if not term["has_levels"]:
+    reported, period_note = resolve.with_levels(all_terms, term)
+    if reported is None:
         return ToolOutcome(
             result={
                 "periodo": term["name"],
@@ -33,6 +35,7 @@ async def run(conn: AsyncConnection, args: Args) -> ToolOutcome:
                 "los registran al cerrar el periodo.",
             }
         )
+    term = reported
     L = v.levels.c
     student = (
         L.student_id, L.full_name, L.section_name, L.grade_ordinal, L.section,
@@ -72,6 +75,8 @@ async def run(conn: AsyncConnection, args: Args) -> ToolOutcome:
         "total_de_C": sum(r["c_count"] for r in rows),
         **rows_for_model(model_rows),
     }
+    if period_note:
+        result["aviso_periodo"] = period_note
     table = blocks.table(
         f"Alumnos con C — {resolve.label(term)}",
         ["Alumno", "Sección", "C", "Áreas"],
