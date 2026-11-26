@@ -203,3 +203,22 @@ def test_facts_read_dates_and_numbers_in_their_usual_spellings():
     ):
         assert check(case, Answer(text), "hechos_presentes").passed, text
     assert not check(case, Answer("Termina el 2026-12-19; irían ocho."), "hechos_presentes").passed
+
+
+def test_a_number_fact_is_a_whole_number_of_the_text():
+    case = Case("x", "q", "d003", facts=("20",))
+    assert check(case, Answer("Son 20 alumnos."), "hechos_presentes").passed
+    assert not check(case, Answer("Son 220 alumnos."), "hechos_presentes").passed
+    assert not check(case, Answer("Hay 120 C."), "hechos_presentes").passed
+
+
+def test_large_numbers_count_with_or_without_thousands_separators():
+    case = Case("x", "q", "d003", facts=("1094",))
+    result = {"periodo": "Trimestre II", "totales_de_niveles": {"C": 1094, "B": 5744}}
+    for text in ("Hay 1094 C.", "Hay 1.094 C.", "Hay 1,094 C.", "Hay 1 094 C."):
+        answer = Answer(f"{text} B: 5.744.", [call(result=result)])
+        assert check(case, answer, "hechos_presentes").passed, text
+        assert check(case, answer, "numeros_del_resultado").passed, text
+    # A decimal is not a thousands separator, and a date is not a number with separators.
+    assert not check(case, Answer("Hay 1,09 C."), "hechos_presentes").passed
+    assert not check(case, Answer("Hay 1.094,5 C."), "hechos_presentes").passed

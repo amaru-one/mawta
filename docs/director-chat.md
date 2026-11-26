@@ -123,16 +123,18 @@ names included; D006 records the team's approval of that.
 
 ## Evaluation
 
-`uv run chat-eval --model <provider:model>` runs the question bank (`src/chat/eval/bank.py`, 36
+`uv run chat-eval --model <provider:model>` runs the question bank (`src/chat/eval/bank.py`, 42
 cases: D003's questions, the six of the 2026-10-31 demo, adversarial ones and clarifications)
 through the chat graph, in-process and with the real model, three times per case. It creates a
 throwaway database (Alembic, then `ejemplo-san-felipe.json` and `seed_demo.sql` from the
 `mawta-demo` checkout, `--demo` or `MAWTA_DEMO_DIR`) on the cluster `--admin-url` names
 (`MAWTA_EVAL_ADMIN_URL` or `ADMIN_DATABASE_URL`), and drops it at the end.
 
-Every expected value in the bank was read from the demo's data. The checks are code, pass or
-fail (`src/chat/eval/checks.py`): expected tool; no filters nobody asked for; expected arguments;
-required facts; every number in the text comes from a tool result or the question; official level
+Every expected value in the bank was read from the demo's data (the whole school, primaria and
+secundaria) through the tools, and checked against a separate count over the base tables and
+against `PERFILES.md`. The checks are code, pass or fail (`src/chat/eval/checks.py`): expected
+tool; no filters nobody asked for; expected arguments; required facts (a number fact is a whole
+number of the text, with or without thousands separators); every number in the text comes from a tool result or the question; official level
 names; no judgements, rankings or recommendations; the period is named; the fixed out-of-scope
 phrase; a clarification names the options. A run passes when every check passes; the exit gate
 of level 1 is 90 % of the runs (`--gate`).

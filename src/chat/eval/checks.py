@@ -62,6 +62,21 @@ def normalize(text: str) -> str:
 
 
 _NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
+# A whole number written with thousands separators: "1.094", "1,094", "1 094" (no-break or narrow
+# space). The tools write 1094; the school-wide totals are this large.
+_GROUPED = re.compile(r"(?<!\d)(?<!\d[.,])\d{1,3}(?:[.,\u00a0\u202f]\d{3})+(?!\d|[.,]\d)")
+
+
+def _ungroup(text: str) -> str:
+    """ "1.094 C" -> "1094 C"."""
+    return _GROUPED.sub(lambda m: re.sub(r"\D", "", m.group(0)), text)
+
+
+def _numbers(text: str) -> set[str]:
+    """Every number the text writes, canonical: "1.094" is 1094 and "20,0" is 20."""
+    return {_canonical(n) for n in _NUMBER.findall(_ungroup(text))}
+
+
 # The official names of the levels are AD, A, B and C (Logro destacado, Logro esperado, En
 # proceso, En inicio). These words were invented for them in the demo of 2026-10-31.
 _INVENTED_LEVEL_WORDS = ("avanzado", "basico", "satisfactorio", "insuficiente", "sobresaliente")
@@ -192,13 +207,17 @@ def _readable(text: str) -> str:
 
 def _facts(case: Case, answer: Answer) -> CheckResult:
     """Every fact must appear; "a|b" accepts either spelling, and dates and small numbers count
-    in any of their usual spellings."""
-    text = _readable(normalize(answer.text))
-    missing = [
-        fact
-        for fact in case.facts
-        if not any(normalize(option) in text for option in fact.split("|"))
-    ]
+    in any of their usual spellings. A fact that is a number must be a whole number of the text:
+    "20" is not found in "220", and "1094" is found in "1.094"."""
+    text = _readable(normalize(_ungroup(answer.text)))
+    numbers = _numbers(text)
+
+    def found(option: str) -> bool:
+        if option.isdigit():
+            return _canonical(option) in numbers
+        return normalize(option) in text
+
+    missing = [fact for fact in case.facts if not any(found(o) for o in fact.split("|"))]
     return CheckResult(
         "hechos_presentes", not missing, "faltan: " + ", ".join(missing) if missing else "todos"
     )
@@ -214,7 +233,7 @@ def _numbers_from_results(case: Case, answer: Answer) -> CheckResult:
     for source in sources:
         allowed.update(_canonical(n) for n in _NUMBER.findall(source))
     invented = sorted(
-        {n for n in _NUMBER.findall(answer.text) if _canonical(n) not in allowed},
+        {n for n in _NUMBER.findall(_ungroup(answer.text)) if _canonical(n) not in allowed},
         key=lambda n: (len(n), n),
     )
     return CheckResult(
