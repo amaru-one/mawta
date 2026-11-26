@@ -217,13 +217,17 @@ def resolve_grade(all_sections: list[dict[str, Any]], text: str) -> Grade:
 def resolve_section(
     all_sections: list[dict[str, Any]], text: str, grade: Grade | None = None
 ) -> dict[str, Any]:
-    """ "A", "1A", "1ro A", "sección B", "primero B"."""
+    """ "A", "1A", "1ro A", "sección B", "primero B", "1B de secundaria"."""
     pool = [s for s in all_sections if grade is None or s["grade_long"] == grade.grade_long]
     options = [f"{s['name']} ({s['grade_long']})" for s in all_sections]
     t = norm(text)
     for s in pool:
         if t == norm(s["name"] or ""):
             return s
+    # A school with primaria and secundaria has a "1B" in each: the stage the text names decides.
+    for stage in ("secundaria", "primaria", "inicial"):
+        if stage in t:
+            pool = [s for s in pool if s["stage"] and norm(s["stage"]) == stage]
     letters = [tok for tok in tokens(t) if len(tok) == 1 and tok.isalpha()]
     n = number_in(t, roman=False)
     candidates = [

@@ -7,7 +7,9 @@ from typing import Any
 import pytest
 
 from chat.tools import TOOL_STATUS, TOOLS, ToolOutcome, run_tool
+from chat.tools.base import Clarify
 from chat.tools.promotion import Area, project_end_of_cycle, project_mid_cycle, rule_for
+from chat.tools.resolve import resolve_section
 from db import Database, RequestCtx
 from tests import fixtures
 from tests.chat.conftest import ANA
@@ -406,3 +408,34 @@ async def test_arguments_outside_the_schema_are_a_tool_error(chat_url: str):
     no_tool = await call(chat_url, "secciones_del_colegio")
 
     assert all(o.is_error for o in (unknown, wrong_type, bad_enum, no_tool))
+
+
+def _section(grade: str, grade_long: str, stage: str, letter: str) -> dict[str, Any]:
+    return {"grade": grade, "grade_long": grade_long, "stage": stage, "section": letter,
+            "name": f"{grade} {letter} de {stage}"}  # fmt: skip
+
+
+BOTH_STAGES = [
+    _section("1ro", "Primero de Primaria", "primaria", "A"),
+    _section("1ro", "Primero de Primaria", "primaria", "B"),
+    _section("1ro", "Primero de Secundaria", "secundaria", "A"),
+    _section("1ro", "Primero de Secundaria", "secundaria", "B"),
+]
+
+
+def test_a_section_with_its_stage_is_found_when_both_stages_have_it():
+    sec = resolve_section(BOTH_STAGES, "1B de secundaria")
+    prim = resolve_section(BOTH_STAGES, "1ro B de primaria")
+
+    assert sec["name"] == "1ro B de secundaria"
+    assert prim["name"] == "1ro B de primaria"
+
+
+def test_a_section_without_its_stage_asks_which_when_both_stages_have_it():
+    with pytest.raises(Clarify) as asked:
+        resolve_section(BOTH_STAGES, "1B")
+
+    assert asked.value.options == [
+        "1ro B de primaria (Primero de Primaria)",
+        "1ro B de secundaria (Primero de Secundaria)",
+    ]
