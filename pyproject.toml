@@ -65,6 +65,11 @@ include = ["src", "tests", "migrations"]
 # `src` search path, but editors that send their own analysis settings (Zed's
 # basedpyright) turn that off, so name the path explicitly.
 extraPaths = ["src"]
+# Point editors at the uv-managed venv so third-party imports (alembic, psycopg, sqlalchemy, …)
+# resolve; without this basedpyright falls back to whatever Python is on PATH.
+venvPath = "."
+venv = ".venv"
+pythonVersion = "3.13"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
