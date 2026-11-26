@@ -163,10 +163,12 @@ def _no_unasked_filters(case: Case, answer: Answer) -> CheckResult:
 
 
 def _expected_args(case: Case, answer: Answer) -> CheckResult:
-    """The first call to the expected tool carries the asked-for arguments."""
+    """The last call to the expected tool, the one the answer comes from, carries the asked-for
+    arguments. A first call the tool answered with a clarification ("1" is primaria or
+    secundaria) and a second, corrected call is a right answer."""
     if not case.args:
         return CheckResult("argumentos_esperados", True, "no se esperan argumentos")
-    call = next((c for c in answer.tool_calls if c.name in case.tools), None)
+    call = next((c for c in reversed(answer.tool_calls) if c.name in case.tools), None)
     if call is None:
         if None in case.tools:
             return CheckResult("argumentos_esperados", True, "respondió sin herramienta")

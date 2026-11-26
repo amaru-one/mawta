@@ -71,7 +71,9 @@ CASES: tuple[Case, ...] = (
         "¿Qué secciones tenemos?",
         D003,
         tools=("datos_del_colegio",),
-        facts=("6to B de primaria", "5to B de secundaria"),
+        # The sections may be listed one by one or grouped by grade ("6to: A y B"): the answer
+        # names both stages and reaches 6.° de primaria.
+        facts=("primaria", "secundaria", "6to|sexto"),
         period=False,
         source="datos_del_colegio: 22 secciones, de 1ro A de primaria a 5to B de secundaria, 28 "
         "alumnos cada una",

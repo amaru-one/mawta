@@ -222,3 +222,22 @@ def test_large_numbers_count_with_or_without_thousands_separators():
     # A decimal is not a thousands separator, and a date is not a number with separators.
     assert not check(case, Answer("Hay 1,09 C."), "hechos_presentes").passed
     assert not check(case, Answer("Hay 1.094,5 C."), "hechos_presentes").passed
+
+
+def test_the_arguments_are_judged_on_the_call_the_answer_comes_from():
+    case = Case(
+        "x", "¿Primero de secundaria?", "d003", tools=("resumen_de_niveles",),
+        args={"grado": ("secundaria",)},
+    )  # fmt: skip
+    asked_again = Answer(
+        "…",
+        [call("resumen_de_niveles", grado="1"),
+         call("resumen_de_niveles", grado="Primero de Secundaria")],
+    )  # fmt: skip
+    assert check(case, asked_again, "argumentos_esperados").passed
+    lost_it = Answer(
+        "…",
+        [call("resumen_de_niveles", grado="Primero de Secundaria"),
+         call("resumen_de_niveles", grado="1")],
+    )  # fmt: skip
+    assert not check(case, lost_it, "argumentos_esperados").passed
