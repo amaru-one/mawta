@@ -329,7 +329,9 @@ CASES: tuple[Case, ...] = (
         "demo-c-matematica",
         "¿Cuántos alumnos tienen C en matemática?",
         DEMO,
-        tools=("alumnos_con_c",),
+        # Both tools state the students with C in Matemática (61); the fact keeps a model that
+        # reports the 127 levels as students failing.
+        tools=("alumnos_con_c", "resumen_de_niveles"),
         args={"area": MAT},
         no_args=("grado", "seccion"),
         facts=("61",),

@@ -460,3 +460,13 @@ def test_students_are_broken_down_by_stage_and_section_without_repeats():
         },
     }
     assert students_by_group(rows[:2]) == {}
+
+
+def test_a_grade_that_carries_a_section_letter_is_read_as_a_section():
+    from chat.tools.resolve import names_a_section
+
+    assert names_a_section("1B de secundaria")
+    assert names_a_section("1ro B")
+    assert not names_a_section("Primero de Secundaria")
+    assert not names_a_section("5to de secundaria")
+    assert not names_a_section("1ro")

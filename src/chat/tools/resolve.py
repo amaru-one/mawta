@@ -372,6 +372,11 @@ class Scope:
         return ", ".join(parts) if parts else "todo el colegio"
 
 
+def names_a_section(text: str) -> bool:
+    """ "1B de secundaria", "1ro B": a grade text that carries a section letter."""
+    return any(len(tok) == 1 and tok.isalpha() for tok in tokens(text))
+
+
 async def resolve_scope(
     conn: AsyncConnection,
     grado: str | None = None,
@@ -379,6 +384,9 @@ async def resolve_scope(
     area: str | None = None,
 ) -> Scope:
     scope = Scope()
+    if grado and not seccion and names_a_section(grado):
+        # "1B de secundaria" sent as a grade is a section: read it as one, not as the whole grade.
+        grado, seccion = None, grado
     if grado or seccion:
         all_sections = await sections(conn)
         if grado:
