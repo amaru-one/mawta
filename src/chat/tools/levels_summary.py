@@ -172,12 +172,14 @@ TOOL = Tool(
             "Empty = the last period with levels; do not fill it otherwise."
         ),
         "grado": Param(
-            "Grade, only when the director named one. Empty = the whole school; do not fill it "
-            "otherwise."
+            "Grade, only when the director named one, with its stage when they said it "
+            '("Primero de Secundaria", "tercero de primaria"); never shorten it to "1" or '
+            '"primero". Empty = the whole school; do not fill it otherwise.'
         ),
         "seccion": Param(
-            "Section, only when the director named one. Empty = every section; do not fill it "
-            "otherwise."
+            "Section, only when the director named one, as they wrote it with its grade and "
+            'stage ("1ro B de secundaria", "3B de primaria"); never shorten it to "B". '
+            "Empty = every section; do not fill it otherwise."
         ),
         "area": Param(
             "Área, only when the director named one. Empty = every área; do not fill it otherwise."

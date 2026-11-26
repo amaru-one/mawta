@@ -6,7 +6,16 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from chat.tools import blocks, resolve
-from chat.tools.base import Args, Clarify, Param, Tool, ToolOutcome, fetch_rows, rows_for_model
+from chat.tools.base import (
+    Args,
+    Clarify,
+    Param,
+    Tool,
+    ToolOutcome,
+    fetch_rows,
+    rows_for_model,
+    students_by_group,
+)
 from mawta_schema import api_views as v
 
 RULE = (
@@ -38,6 +47,7 @@ async def run(conn: AsyncConnection, args: Args) -> ToolOutcome:
             L.paternal_surname,
             L.maternal_surname,
             L.grade_ordinal,
+            L.stage,
             L.section,
             L.section_name,
             L.subject_order,
@@ -97,6 +107,7 @@ async def run(conn: AsyncConnection, args: Args) -> ToolOutcome:
         "racha_minima": minimum,
         "alumnos_en_riesgo": len({r["student_id"] for r in found}),
         "casos_por_competencia": by_competency,
+        **students_by_group(found),
         **rows_for_model(model_rows),
     }
     table = blocks.table(
@@ -129,12 +140,14 @@ TOOL = Tool(
     status="Buscando rachas de C…",
     params={
         "grado": Param(
-            "Grade, only when the director named one. Empty = the whole school; do not fill it "
-            "otherwise."
+            "Grade, only when the director named one, with its stage when they said it "
+            '("Primero de Secundaria", "tercero de primaria"); never shorten it to "1" or '
+            '"primero". Empty = the whole school; do not fill it otherwise.'
         ),
         "seccion": Param(
-            "Section, only when the director named one. Empty = every section; do not fill it "
-            "otherwise."
+            "Section, only when the director named one, as they wrote it with its grade and "
+            'stage ("1ro B de secundaria", "3B de primaria"); never shorten it to "B". '
+            "Empty = every section; do not fill it otherwise."
         ),
         "area": Param(
             "Área, only when the director named one. Empty = every área; do not fill it otherwise."

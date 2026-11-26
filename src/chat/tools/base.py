@@ -126,6 +126,23 @@ async def fetch_rows(conn: AsyncConnection, stmt: Executable) -> list[dict[str, 
     return [dict(r) for r in (await conn.execute(stmt)).mappings().all()]
 
 
+def students_by_group(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Distinct students per educational stage (primaria, secundaria) and per section, in the
+    rows' order: the breakdowns the director asks for next, stated by the tool so the model never
+    counts rows itself (D007). A breakdown with a single group is left out."""
+    stages: dict[str, set[Any]] = {}
+    sections: dict[str, set[Any]] = {}
+    for r in rows:
+        stages.setdefault(r["stage"] or "sin nivel educativo", set()).add(r["student_id"])
+        sections.setdefault(r["section_name"], set()).add(r["student_id"])
+    out: dict[str, Any] = {}
+    if len(stages) > 1:
+        out["alumnos_por_nivel_educativo"] = {k: len(v) for k, v in stages.items()}
+    if len(sections) > 1:
+        out["alumnos_por_seccion"] = {k: len(v) for k, v in sections.items()}
+    return out
+
+
 def rows_for_model(rows: list[dict[str, Any]]) -> dict[str, Any]:
     """The rows the model reads, capped, with how many there were."""
     out: dict[str, Any] = {"total_filas": len(rows), "filas": rows[:MAX_MODEL_ROWS]}

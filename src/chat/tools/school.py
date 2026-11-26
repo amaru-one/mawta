@@ -14,6 +14,19 @@ TERM_STATUS = {"planned": "por empezar", "active": "en curso", "closed": "cerrad
                "archived": "archivado"}  # fmt: skip
 
 
+def _by_stage(all_sections: list[dict[str, Any]], counts: dict[Any, int]) -> dict[str, Any]:
+    """Sections and students per educational stage, so the model never counts them (D007)."""
+    sections: dict[str, int] = {}
+    students: dict[str, int] = {}
+    for s in all_sections:
+        stage = s["stage"] or "sin nivel educativo"
+        sections[stage] = sections.get(stage, 0) + 1
+        students[stage] = students.get(stage, 0) + counts.get(s["id"], 0)
+    if len(sections) < 2:
+        return {}
+    return {"secciones_por_nivel_educativo": sections, "alumnos_por_nivel_educativo": students}
+
+
 async def run(conn: AsyncConnection, _args: Args) -> ToolOutcome:
     school = (await conn.execute(select(v.school.c.name))).mappings().first()
     all_terms = await resolve.terms(conn)
@@ -65,6 +78,9 @@ async def run(conn: AsyncConnection, _args: Args) -> ToolOutcome:
             }
             for t in all_terms
         ],
+        "total_secciones": len(sections_out),
+        "total_alumnos": sum(s["alumnos"] for s in sections_out),
+        **_by_stage(all_sections, counts),
         "secciones": sections_out,
         "docentes_por_clase": [
             {

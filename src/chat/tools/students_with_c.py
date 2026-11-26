@@ -7,7 +7,16 @@ from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from chat.tools import blocks, resolve
-from chat.tools.base import Args, Clarify, Param, Tool, ToolOutcome, fetch_rows, rows_for_model
+from chat.tools.base import (
+    Args,
+    Clarify,
+    Param,
+    Tool,
+    ToolOutcome,
+    fetch_rows,
+    rows_for_model,
+    students_by_group,
+)
 from mawta_schema import api_views as v
 
 RULE = (
@@ -38,7 +47,7 @@ async def run(conn: AsyncConnection, args: Args) -> ToolOutcome:
     term = reported
     L = v.levels.c
     student = (
-        L.student_id, L.full_name, L.section_name, L.grade_ordinal, L.section,
+        L.student_id, L.full_name, L.section_name, L.grade_ordinal, L.stage, L.section,
         L.paternal_surname, L.maternal_surname,
     )  # fmt: skip
     rows = await fetch_rows(
@@ -73,6 +82,7 @@ async def run(conn: AsyncConnection, args: Args) -> ToolOutcome:
         "regla": RULE,
         "alumnos_con_C": len(rows),
         "total_de_C": sum(r["c_count"] for r in rows),
+        **students_by_group(rows),
         **rows_for_model(model_rows),
     }
     if period_note:
@@ -105,12 +115,14 @@ TOOL = Tool(
             "Empty = the last period with levels; do not fill it otherwise."
         ),
         "grado": Param(
-            "Grade, only when the director named one. Empty = the whole school; do not fill it "
-            "otherwise."
+            "Grade, only when the director named one, with its stage when they said it "
+            '("Primero de Secundaria", "tercero de primaria"); never shorten it to "1" or '
+            '"primero". Empty = the whole school; do not fill it otherwise.'
         ),
         "seccion": Param(
-            "Section, only when the director named one. Empty = every section; do not fill it "
-            "otherwise."
+            "Section, only when the director named one, as they wrote it with its grade and "
+            'stage ("1ro B de secundaria", "3B de primaria"); never shorten it to "B". '
+            "Empty = every section; do not fill it otherwise."
         ),
         "area": Param(
             "Área, only when the director named one. Empty = every área; do not fill it otherwise."

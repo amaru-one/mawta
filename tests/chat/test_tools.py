@@ -439,3 +439,24 @@ def test_a_section_without_its_stage_asks_which_when_both_stages_have_it():
         "1ro B de primaria (Primero de Primaria)",
         "1ro B de secundaria (Primero de Secundaria)",
     ]
+
+
+def test_students_are_broken_down_by_stage_and_section_without_repeats():
+    from chat.tools.base import students_by_group
+
+    rows = [
+        {"student_id": 1, "stage": "primaria", "section_name": "1ro A de primaria"},
+        {"student_id": 1, "stage": "primaria", "section_name": "1ro A de primaria"},
+        {"student_id": 2, "stage": "primaria", "section_name": "4to B de primaria"},
+        {"student_id": 3, "stage": "secundaria", "section_name": "1ro A de secundaria"},
+    ]
+
+    assert students_by_group(rows) == {
+        "alumnos_por_nivel_educativo": {"primaria": 2, "secundaria": 1},
+        "alumnos_por_seccion": {
+            "1ro A de primaria": 1,
+            "4to B de primaria": 1,
+            "1ro A de secundaria": 1,
+        },
+    }
+    assert students_by_group(rows[:2]) == {}

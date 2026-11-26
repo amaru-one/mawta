@@ -157,11 +157,14 @@ async def run(conn: AsyncConnection, args: Args) -> ToolOutcome:
         ),  # fmt: skip
     )
     counts: dict[str, int] = dict.fromkeys(SITUATIONS, 0)
+    per_section: dict[str, dict[str, int]] = {}
     flagged: list[dict[str, Any]] = []
     for s in ordered:
         project = project_mid_cycle if s["rule"] == "mid" else project_end_of_cycle
         p = project(s["areas"])
         counts[p.situation] += 1
+        section = per_section.setdefault(s["section_name"], dict.fromkeys(SITUATIONS, 0))
+        section[p.situation] += 1
         if p.situation != PROMOTED:
             flagged.append({"alumno": s["full_name"], "seccion": s["section_name"],
                             "situacion_proyectada": p.situation, "motivo": p.reason,
@@ -177,6 +180,7 @@ async def run(conn: AsyncConnection, args: Args) -> ToolOutcome:
         ),
         "es_proyeccion": True,
         "alumnos_por_situacion": counts,
+        **({"alumnos_por_situacion_y_seccion": per_section} if len(per_section) > 1 else {}),
         **rows_for_model(flagged),
     }
     if no_rule:
@@ -213,12 +217,14 @@ TOOL = Tool(
     status="Proyectando la promoción…",
     params={
         "grado": Param(
-            "Grade, only when the director named one. Empty = the whole school; do not fill it "
-            "otherwise."
+            "Grade, only when the director named one, with its stage when they said it "
+            '("Primero de Secundaria", "tercero de primaria"); never shorten it to "1" or '
+            '"primero". Empty = the whole school; do not fill it otherwise.'
         ),
         "seccion": Param(
-            "Section, only when the director named one. Empty = every section; do not fill it "
-            "otherwise."
+            "Section, only when the director named one, as they wrote it with its grade and "
+            'stage ("1ro B de secundaria", "3B de primaria"); never shorten it to "B". '
+            "Empty = every section; do not fill it otherwise."
         ),
     },
     run=run,

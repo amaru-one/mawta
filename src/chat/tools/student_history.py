@@ -46,6 +46,7 @@ async def run(conn: AsyncConnection, args: Args) -> ToolOutcome:
     rows: list[tuple[str, str, list[str | None]]] = []
     model_rows: list[dict[str, Any]] = []
     c_per_term = dict.fromkeys(columns, 0)
+    levels_per_term = {col: {k: 0 for k in ("AD", "A", "B", "C", "sin nivel")} for col in columns}
     for c in competencies:
         cells = [level_of.get((c["code"], t["sequence"])) for t in all_terms]
         rows.append((c["subject_name"], f"{c['code']} · {c['name']}", cells))
@@ -59,6 +60,7 @@ async def run(conn: AsyncConnection, args: Args) -> ToolOutcome:
         for col, cell in zip(columns, cells, strict=True):
             if cell == "C":
                 c_per_term[col] += 1
+            levels_per_term[col][cell if cell in levels_per_term[col] else "sin nivel"] += 1
     without_levels = [t["name"] for t in all_terms if not t["has_levels"]]
     result: dict[str, Any] = {
         "alumno": student["full_name"],
@@ -67,6 +69,7 @@ async def run(conn: AsyncConnection, args: Args) -> ToolOutcome:
         "matriculado_desde": student["joined_on"].isoformat(),
         "regla": RULE,
         "cantidad_de_C_por_periodo": c_per_term,
+        "competencias_por_nivel_y_periodo": levels_per_term,
         "competencias": model_rows,
     }
     if student["left_on"] is not None:
