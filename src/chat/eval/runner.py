@@ -30,8 +30,8 @@ import curriculum
 from chat import repo
 from chat.eval.bank import Case
 from chat.eval.checks import Answer, CheckResult, ToolCall, failures, passed, run_checks
-from chat.graph import SYSTEM_PROMPT
 from chat.llm import LLM
+from chat.prompt import build_system_prompt
 from chat.service import ChatService
 from chat.tracing import LangfuseTracer
 from db import Database, RequestCtx, admin_engine, sa_url
@@ -150,7 +150,7 @@ async def ask(
     """One question through the graph, as the route does it, collecting what the checks need.
     Returns the answer, the Langfuse trace id (if any) and the latency."""
     assert ctx.actor_id is not None
-    system = SYSTEM_PROMPT.format(school=school)
+    system = build_system_prompt(school)
     text: list[str] = []
     calls: list[ToolCall] = []
     blocks: list[dict[str, Any]] = []
@@ -212,7 +212,7 @@ def ensure_dataset(client: Any, cases: Sequence[Case]) -> None:
     except Exception:
         client.create_dataset(
             name=DATASET,
-            description="Banco de preguntas del chat del director (roadmap nivel 1, D007). "
+            description="Banco de preguntas del chat del director. "
             "Las respuestas esperadas salen de mawta-demo (San Felipe).",
         )
     for case in cases:

@@ -1,5 +1,6 @@
 """The question bank (D017): the two scope tools, the fixed out-of-scope phrase written by the
-code, and the status of every question, decided from the tools that ran."""
+code, and the status of every question, decided from the tools that ran in the answer and, for a
+follow-up, in the thread before it."""
 
 import httpx
 import pytest
@@ -101,6 +102,75 @@ async def test_a_clarification_and_a_toolless_answer_are_partial(
         "status": "parcial",
         "tool_name": None,
     }
+
+
+async def test_a_follow_up_answered_from_the_thread_is_answered(
+    client: httpx.AsyncClient, session: Session, fake_llm: FakeLLM, admin: Admin
+):
+    me = await session(ANA)
+    thread = (await client.post("/threads", headers=me)).json()
+    fake_llm.script(
+        tool_turn(name="resumen_de_niveles"),
+        text_turn("En el Bimestre III hay 18 C."),
+        text_turn("De esas, Matemática tiene 6."),
+    )
+    await ask(client, me, thread["id"], "¿Cuántas C hay?")
+    await ask(client, me, thread["id"], "¿Y cuántas en matemática?")
+
+    assert await bank_row(admin, thread["id"], "¿Y cuántas en matemática?") == {
+        "status": "respondida",
+        "tool_name": None,
+    }
+
+
+async def test_a_clarification_the_model_resolves_itself_is_answered(
+    client: httpx.AsyncClient, session: Session, fake_llm: FakeLLM, admin: Admin
+):
+    me = await session(ANA)
+    thread = (await client.post("/threads", headers=me)).json()
+    fake_llm.script(
+        tool_turn("call_1", '{"area": "robótica"}', name="alumnos_con_c"),
+        tool_turn("call_2", "{}", name="alumnos_con_c"),
+        text_turn("No hay robótica; en todo el colegio, en el Bimestre III…"),
+    )
+    await ask(client, me, thread["id"], "¿Jalados en robótica?")
+
+    assert await bank_row(admin, thread["id"], "¿Jalados en robótica?") == {
+        "status": "respondida",
+        "tool_name": "alumnos_con_c",
+    }
+
+
+CLEAN = {"name": "resumen_de_niveles", "input": {}, "result": {"alumnos_con_C": 2}}
+OPTIONS = {"name": "alumnos_con_c", "input": {}, "result": {"necesita_aclaracion": "…"}}
+NO_DATA = {"name": "comparar_periodos", "input": {}, "result": {"sin_datos": "…"}}
+
+
+@pytest.mark.parametrize(
+    ("calls", "earlier", "failed", "expected"),
+    [
+        # A follow-up with no tool rests on a clean result of the thread.
+        ([], [CLEAN], False, ("respondida", None)),
+        ([], [OPTIONS], False, ("parcial", None)),
+        ([], [NO_DATA, CLEAN], False, ("respondida", None)),
+        ([], [CLEAN], True, ("parcial", None)),
+        ([], [{"name": "sin_herramienta", "input": {}, "result": {}}], False, ("parcial", None)),
+        # Several tools: a clean data call backs the answer even if a later exploratory call found
+        # no data, unless the last call failed or asked to clarify; the first names the tool.
+        ([NO_DATA, CLEAN], [], False, ("respondida", "comparar_periodos")),
+        ([CLEAN, NO_DATA], [], False, ("respondida", "resumen_de_niveles")),
+        ([OPTIONS, CLEAN], [], False, ("respondida", "alumnos_con_c")),
+        ([CLEAN, OPTIONS], [], False, ("parcial", "resumen_de_niveles")),
+        ([CLEAN, {**CLEAN, "is_error": True}], [], False, ("parcial", "resumen_de_niveles")),
+        # The scope tools still win, whatever the thread holds.
+        ([{"name": "fuera_de_alcance", "input": {}, "result": {}}], [CLEAN], False,
+         ("fuera_de_alcance", None)),
+        ([CLEAN, {"name": "sin_herramienta", "input": {"tema": "asistencia"}, "result": {}}],
+         [CLEAN], False, ("necesita_tool", "asistencia")),
+    ],
+)  # fmt: skip
+def test_the_status_of_follow_ups_and_chained_tools(calls, earlier, failed, expected):
+    assert question_status(calls, failed=failed, earlier=earlier) == expected
 
 
 @pytest.mark.parametrize(

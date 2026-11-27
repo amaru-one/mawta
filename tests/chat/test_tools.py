@@ -1,13 +1,15 @@
-"""The six tools against tests/fixtures_levels.py: one case per rule of the glossary (D003) and
-the resolution of what the director wrote."""
+"""The data tools against tests/fixtures_levels.py: one case per rule of the glossary (D003), the
+resolution of what the director wrote, and when a tool shows its block (mostrar_bloque)."""
 
 from collections.abc import Iterator
 from typing import Any
 
 import pytest
 
-from chat.tools import TOOL_STATUS, TOOLS, ToolOutcome, run_tool
-from chat.tools.base import Clarify
+from chat.tools import REGISTRY, TOOL_STATUS, TOOLS, TOPICS, ToolOutcome, block_requested, run_tool
+from chat.tools.base import MOSTRAR_BLOQUE, Clarify, Param, Tool, shown
+from chat.tools.compare_periods import pick_terms, variation
+from chat.tools.levels import Group, percentages
 from chat.tools.promotion import Area, project_end_of_cycle, project_mid_cycle, rule_for
 from chat.tools.resolve import resolve_section
 from db import Database, RequestCtx
@@ -28,21 +30,26 @@ def school_without_levels() -> Iterator[str]:
         yield dbs.app_url
 
 
-async def call(chat_url: str, name: str, args: dict[str, Any] | None = None) -> ToolOutcome:
-    """The tool the way the chat runs it: as mawta_chat, for a director."""
+async def call(
+    chat_url: str, name: str, args: dict[str, Any] | None = None, *, show: bool = False
+) -> ToolOutcome:
+    """The tool the way the chat runs it: as mawta_chat, for a director. show passes
+    mostrar_bloque=true, the way the model asks to show the block."""
     db = Database(chat_url, pool_size=1)
+    args = {**(args or {}), **({"mostrar_bloque": True} if show else {})}
     try:
         async with db.chat_tx(RequestCtx(actor_id=ANA, role="director")) as conn:
-            return await run_tool(name, args or {}, conn)
+            return await run_tool(name, args, conn)
     finally:
         await db.close()
 
 
-def test_eight_tools_each_with_a_status_and_closed_parameters():
+def test_nine_tools_each_with_a_status_and_closed_parameters():
     names = [t["function"]["name"] for t in TOOLS]
     assert names == [
         "datos_del_colegio",
         "resumen_de_niveles",
+        "comparar_periodos",
         "alumnos_con_c",
         "riesgo_por_competencia",
         "proyeccion_de_promocion",
@@ -57,11 +64,69 @@ def test_eight_tools_each_with_a_status_and_closed_parameters():
         assert params.get("required", []) == []
 
 
+def test_every_data_tool_can_show_its_block_and_names_its_topic():
+    """The scope tools show nothing and look nothing up; every other tool has mostrar_bloque
+    (a boolean, off by default) and a topic for the system prompt's list."""
+    for name, tool in REGISTRY.items():
+        is_scope = name in ("fuera_de_alcance", "sin_herramienta")
+        assert tool.shows_blocks is not is_scope, name
+        assert (name in TOPICS) is not is_scope, name
+        if not is_scope:
+            prop = tool.spec()["function"]["parameters"]["properties"]["mostrar_bloque"]
+            assert prop["type"] == "boolean"
+
+
+def test_mostrar_bloque_is_a_boolean_and_only_true_shows():
+    tool = Tool("x", "x", "x", {"mostrar_bloque": MOSTRAR_BLOQUE, "n": Param("n")}, run=None)  # type: ignore[arg-type]
+    assert tool.check({"mostrar_bloque": True}) == {"mostrar_bloque": True}
+    assert tool.check({"mostrar_bloque": "false"}) == {"mostrar_bloque": False}
+    assert tool.check({"mostrar_bloque": "TRUE"}) == {"mostrar_bloque": True}
+    with pytest.raises(ValueError, match="true or false"):
+        tool.check({"mostrar_bloque": "sí"})
+    with pytest.raises(ValueError, match="true or false"):
+        tool.check({"mostrar_bloque": 1})
+    block = {"tipo": "tabla"}
+    assert shown({}, block) == []
+    assert shown({"mostrar_bloque": False}, block) == []
+    assert shown({"mostrar_bloque": True}, block, None) == [block]
+    assert block_requested({"mostrar_bloque": True}) and block_requested({"mostrar_bloque": "true"})
+    assert not block_requested({}) and not block_requested(None)
+    assert not block_requested({"mostrar_bloque": "false"})
+
+
+@pytest.mark.parametrize(
+    ("tool", "args"),
+    [
+        ("datos_del_colegio", {}),
+        ("resumen_de_niveles", {}),
+        ("comparar_periodos", {}),
+        ("alumnos_con_c", {}),
+        ("riesgo_por_competencia", {}),
+        ("proyeccion_de_promocion", {}),
+        ("historial_del_alumno", {"alumno": "ana alvarez"}),
+    ],
+)
+async def test_a_tool_shows_its_block_only_when_asked(
+    chat_url: str, tool: str, args: dict[str, Any]
+):
+    silent = await call(chat_url, tool, args)
+    explicit = await call(chat_url, tool, {**args, "mostrar_bloque": False})
+    asked = await call(chat_url, tool, args, show=True)
+
+    assert silent.blocks == [] and explicit.blocks == []
+    assert silent.result["bloque_mostrado"] is False
+    assert len(asked.blocks) == 1 and asked.result["bloque_mostrado"] is True
+    # The model reads the same data either way.
+    assert {k: v for k, v in silent.result.items() if k != "bloque_mostrado"} == {
+        k: v for k, v in asked.result.items() if k != "bloque_mostrado"
+    }
+
+
 # --- datos_del_colegio ----------------------------------------------------------------------
 
 
 async def test_school_data_lists_periods_sections_and_teachers(chat_url: str):
-    out = await call(chat_url, "datos_del_colegio")
+    out = await call(chat_url, "datos_del_colegio", show=True)
 
     assert out.result["colegio"] == "I.E. Cristo Rey"
     assert [(p["abreviatura"], p["estado"], p["es_el_actual"], p["tiene_niveles_de_logro"])
@@ -87,7 +152,7 @@ async def test_school_data_lists_periods_sections_and_teachers(chat_url: str):
 
 
 async def test_summary_defaults_to_the_last_period_with_levels(chat_url: str):
-    out = await call(chat_url, "resumen_de_niveles")
+    out = await call(chat_url, "resumen_de_niveles", show=True)
 
     assert out.result["periodo"] == "Bimestre III"  # B-IV is current but has no levels yet
     assert out.result["agrupado_por"] == "area"
@@ -102,7 +167,7 @@ async def test_summary_defaults_to_the_last_period_with_levels(chat_url: str):
 async def test_summary_counts_students_apart_from_levels(chat_url: str):
     """The 2026-10-31 demo read 569 levels as students (D007): the tool now says how many
     students were evaluated and how many have a C, overall and per group."""
-    out = await call(chat_url, "resumen_de_niveles")
+    out = await call(chat_url, "resumen_de_niveles", show=True)
     with_c = await call(chat_url, "alumnos_con_c")
 
     assert out.result["alumnos_con_C"] == with_c.result["alumnos_con_C"]
@@ -112,6 +177,41 @@ async def test_summary_counts_students_apart_from_levels(chat_url: str):
     assert mat["total_niveles"] == 18 and 0 < mat["alumnos_con_C"] <= mat["alumnos"]
     assert "alumnos evaluados" in out.blocks[0]["nota"]
     assert "no alumnos" in out.result["regla"]
+
+
+async def test_summary_gives_the_percentage_of_every_level_per_group_and_in_total(chat_url: str):
+    out = await call(chat_url, "resumen_de_niveles")
+
+    # 62 levels: AD 0, A 24, B 20, C 18.
+    assert out.result["porcentajes_totales"] == {
+        "porcentaje_AD": 0.0,
+        "porcentaje_A": 38.7,
+        "porcentaje_B": 32.3,
+        "porcentaje_C": 29.0,
+        "porcentaje_logro": 38.7,
+    }
+    mat = next(g for g in out.result["grupos"] if g["grupo"] == "Matemática")
+    # Matemática: AD 0, A 8, B 4, C 6 of 18.
+    assert {k: mat[k] for k in mat if k.startswith("porcentaje")} == {
+        "porcentaje_AD": 0.0,
+        "porcentaje_A": 44.4,
+        "porcentaje_B": 22.2,
+        "porcentaje_C": 33.3,
+        "porcentaje_logro": 44.4,
+    }
+    for g in out.result["grupos"]:
+        assert g == {**g, **percentages([g["AD"], g["A"], g["B"], g["C"]])}, g["grupo"]
+
+
+def test_percentages_have_one_decimal_and_logro_is_a_plus_ad():
+    assert percentages([1, 2, 3, 0]) == {
+        "porcentaje_AD": 16.7,
+        "porcentaje_A": 33.3,
+        "porcentaje_B": 50.0,
+        "porcentaje_C": 0.0,
+        "porcentaje_logro": 50.0,
+    }
+    assert percentages([0, 0, 0, 0])["porcentaje_logro"] == 0.0
 
 
 async def test_summary_of_an_area_by_competency_names_the_ones_without_levels(chat_url: str):
@@ -142,7 +242,7 @@ async def test_a_period_without_levels_reports_the_last_one_with_levels_and_says
     """The demo model fills periodo="actual" nobody asked for (2026-11-16): instead of «no data»,
     the tool reports the last period with levels and tells the model why."""
     for tool in ("resumen_de_niveles", "alumnos_con_c"):
-        out = await call(chat_url, tool, {"periodo": "actual"})
+        out = await call(chat_url, tool, {"periodo": "actual"}, show=True)
 
         assert out.result["periodo"] == "Bimestre III", tool
         assert "Bimestre IV todavía no tiene niveles" in out.result["aviso_periodo"], tool
@@ -155,11 +255,157 @@ async def test_a_school_with_no_levels_at_all_has_no_data(school_without_levels:
     assert "sin_datos" in out.result and "necesita_aclaracion" not in out.result
 
 
+# --- comparar_periodos ----------------------------------------------------------------------
+
+
+def _term(seq: int, has_levels: bool = True, current: bool = False) -> dict[str, Any]:
+    return {"id": seq, "sequence": seq, "name": f"Bimestre {'I' * seq}", "short_name": f"B-{seq}",
+            "status": "active" if current else "closed", "is_current": current,
+            "has_levels": has_levels}  # fmt: skip
+
+
+TERMS = [_term(1), _term(2), _term(3), _term(4, has_levels=False, current=True)]
+
+
+def test_the_periods_to_compare():
+    def names(picked: Any) -> Any:
+        return picked if isinstance(picked, str) else [t["sequence"] for t in picked]
+
+    assert names(pick_terms(TERMS, None, None)) == [2, 3]  # the last two with levels
+    assert names(pick_terms(TERMS, "B-1", None)) == [1, 3]  # with the last one with levels
+    assert names(pick_terms(TERMS, None, "B-1")) == [1, 3]
+    assert names(pick_terms(TERMS, "B-3", None)) == [2, 3]  # the last one: with the one before
+    assert names(pick_terms(TERMS, "B-3", "B-1")) == [1, 3]  # always in order
+    assert "todavía no tiene niveles" in pick_terms(TERMS, "B-4", None)
+    assert "todavía no tiene niveles" in pick_terms(TERMS, "actual", "B-1")
+    assert "Solo Bimestre I" in pick_terms([_term(1), _term(2, has_levels=False)], None, None)
+    assert "Ningún periodo" in pick_terms([_term(1, has_levels=False)], None, None)
+    with pytest.raises(Clarify) as same:
+        pick_terms(TERMS, "B-2", "segundo bimestre")
+    assert same.value.options == ["Bimestre I", "Bimestre II", "Bimestre III"]
+
+
+def test_a_variation_is_the_difference_of_the_stated_figures():
+    before = Group("x", [1, 2, 3, 0], students=6, students_with_c=0)  # 16.7 / 33.3 / 50 / 0
+    after = Group("x", [0, 1, 1, 1], students=3, students_with_c=1)  # 0 / 33.3 / 33.3 / 33.3
+    assert variation(before, after) == {
+        "porcentaje_AD": -16.7,
+        "porcentaje_A": 0.0,
+        "porcentaje_B": -16.7,
+        "porcentaje_C": 33.3,
+        "porcentaje_logro": -16.7,
+        "alumnos_con_C": 1,
+        "alumnos_evaluados": -3,
+    }
+
+
+async def test_comparing_defaults_to_the_last_two_periods_with_levels(chat_url: str):
+    out = await call(chat_url, "comparar_periodos")
+    before = await call(chat_url, "resumen_de_niveles", {"periodo": "B-II"})
+    after = await call(chat_url, "resumen_de_niveles", {"periodo": "B-III"})
+
+    assert (out.result["periodo_inicial"], out.result["periodo_final"]) == (
+        "Bimestre II",
+        "Bimestre III",
+    )
+    assert out.result["agrupado_por"] == "area"
+    totals = out.result["totales"]
+    assert totals["final"]["porcentaje_C"] == after.result["porcentajes_totales"]["porcentaje_C"]
+    assert totals["inicial"]["alumnos_con_C"] == before.result["alumnos_con_C"]
+    assert totals["final"]["alumnos_evaluados"] == after.result["alumnos_evaluados"]
+    for key in (
+        "porcentaje_AD",
+        "porcentaje_A",
+        "porcentaje_B",
+        "porcentaje_C",
+        "porcentaje_logro",
+    ):
+        assert totals["variacion"][key] == round(
+            after.result["porcentajes_totales"][key] - before.result["porcentajes_totales"][key], 1
+        ), key
+    assert totals["variacion"]["alumnos_con_C"] == (
+        after.result["alumnos_con_C"] - before.result["alumnos_con_C"]
+    )
+    # Every group present in both periods carries its own exact variation.
+    groups_after = {g["grupo"]: g for g in after.result["grupos"]}
+    groups_before = {g["grupo"]: g for g in before.result["grupos"]}
+    for g in out.result["grupos"]:
+        if g["grupo"] in groups_after and g["grupo"] in groups_before:
+            a, b = groups_after[g["grupo"]], groups_before[g["grupo"]]
+            assert g["final"]["C"] == a["C"] and g["inicial"]["C"] == b["C"]
+            assert g["variacion"]["porcentaje_logro"] == round(
+                a["porcentaje_logro"] - b["porcentaje_logro"], 1
+            )
+            assert g["variacion"]["alumnos_con_C"] == a["alumnos_con_C"] - b["alumnos_con_C"]
+        else:
+            assert "variacion" not in g and g["grupo"] in out.result["solo_en_un_periodo"]
+    assert out.blocks == []
+
+
+async def test_comparing_named_periods_with_filters_and_grouping(chat_url: str):
+    out = await call(
+        chat_url,
+        "comparar_periodos",
+        {
+            "periodo_inicial": "B-I",
+            "periodo_final": "B-III",
+            "area": "mate",
+            "seccion": "3ro A",
+        },  # fmt: skip
+    )
+    after = await call(
+        chat_url, "resumen_de_niveles", {"periodo": "B-III", "area": "mate", "seccion": "3ro A"}
+    )
+
+    assert (out.result["periodo_inicial"], out.result["periodo_final"]) == (
+        "Bimestre I",
+        "Bimestre III",
+    )
+    assert out.result["alcance"] == after.result["alcance"]
+    assert out.result["agrupado_por"] == "competencia"
+    assert out.result["totales"]["final"]["C"] == after.result["totales_de_niveles"]["C"]
+    by_section = await call(chat_url, "comparar_periodos", {"agrupar_por": "seccion"})
+    assert {g["grupo"] for g in by_section.result["grupos"]} <= {"2do A", "3ro A", "5to B"}
+
+
+async def test_comparing_a_period_without_levels_has_no_data(
+    chat_url: str, school_without_levels: str
+):
+    current = await call(chat_url, "comparar_periodos", {"periodo_final": "actual"})
+    nothing = await call(school_without_levels, "comparar_periodos")
+    same = await call(chat_url, "comparar_periodos", {"periodo_inicial": "B-II",
+                                                       "periodo_final": "B-II"})  # fmt: skip
+
+    assert "Bimestre IV todavía no tiene niveles" in current.result["sin_datos"]
+    assert "sin_datos" in nothing.result
+    assert "bloque_mostrado" not in current.result
+    assert "necesita_aclaracion" in same.result
+
+
+async def test_the_comparison_table_has_a_row_per_group_and_a_total(chat_url: str):
+    out = await call(chat_url, "comparar_periodos", show=True)
+
+    table = out.blocks[0]
+    assert table["tipo"] == "tabla"
+    assert table["columnas"][:4] == ["Área", "% A+AD B-II", "% A+AD B-III", "Var. A+AD"]
+    assert [row[0] for row in table["filas"]] == [
+        *(g["grupo"] for g in out.result["grupos"]),
+        "Total",
+    ]
+    total = out.result["totales"]
+    assert table["filas"][-1][1:3] == [
+        total["inicial"]["porcentaje_logro"],
+        total["final"]["porcentaje_logro"],
+    ]
+    change = total["variacion"]["porcentaje_C"]
+    assert table["filas"][-1][6] == (f"{change:+.1f}" if change else "0.0")
+
+
 # --- alumnos_con_c --------------------------------------------------------------------------
 
 
 async def test_students_with_c_by_section_then_surname(chat_url: str):
-    out = await call(chat_url, "alumnos_con_c")
+    out = await call(chat_url, "alumnos_con_c", show=True)
 
     assert out.result["alumnos_con_C"] == 7
     assert out.result["total_de_C"] == 18
@@ -191,7 +437,7 @@ async def test_students_with_c_in_a_section_and_area(chat_url: str):
 
 
 async def test_risk_counts_consecutive_c_and_a_period_without_level_breaks_it(chat_url: str):
-    out = await call(chat_url, "riesgo_por_competencia")
+    out = await call(chat_url, "riesgo_por_competencia", show=True)
 
     assert out.result["hasta_el_periodo"] == "Bimestre III"
     assert [(r["alumno"], r["competencia"][:6], r["racha"], r["periodos"])
@@ -214,7 +460,7 @@ async def test_risk_with_a_longer_minimum(chat_url: str):
 
 
 async def test_promotion_projection_applies_the_rule_of_each_grade(chat_url: str):
-    out = await call(chat_url, "proyeccion_de_promocion")
+    out = await call(chat_url, "proyeccion_de_promocion", show=True)
 
     assert out.result["es_proyeccion"] is True
     assert out.result["con_los_niveles_de"] == "Bimestre III"
@@ -322,7 +568,7 @@ def test_the_rule_of_each_grade(stage: str | None, position: int, rule: str | No
 
 
 async def test_student_history_is_a_matrix_with_empty_cells_for_no_level(chat_url: str):
-    out = await call(chat_url, "historial_del_alumno", {"alumno": "ana alvarez"})
+    out = await call(chat_url, "historial_del_alumno", {"alumno": "ana alvarez"}, show=True)
 
     assert out.result["alumno"] == "Ana Alvarez Ruiz"
     assert out.result["cantidad_de_C_por_periodo"] == {"B-I": 1, "B-II": 1, "B-III": 1, "B-IV": 0}
@@ -336,7 +582,7 @@ async def test_student_history_is_a_matrix_with_empty_cells_for_no_level(chat_ur
 
 
 async def test_student_history_shows_only_the_live_level(chat_url: str):
-    out = await call(chat_url, "historial_del_alumno", {"alumno": "Elena"})
+    out = await call(chat_url, "historial_del_alumno", {"alumno": "Elena"}, show=True)
 
     cells = {f["etiqueta"][:6]: f["celdas"] for f in out.blocks[0]["filas"]}
     assert cells["MAT-C1"] == [None, None, "A", None]

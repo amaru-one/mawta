@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from chat.tools import blocks, resolve
 from chat.tools.base import (
+    MOSTRAR_BLOQUE,
     Args,
     Clarify,
     Param,
@@ -14,6 +15,7 @@ from chat.tools.base import (
     ToolOutcome,
     fetch_rows,
     rows_for_model,
+    shown,
     students_by_group,
 )
 from mawta_schema import api_views as v
@@ -126,7 +128,7 @@ async def run(conn: AsyncConnection, args: Args) -> ToolOutcome:
         f"C en la misma competencia en {minimum} o más periodos seguidos, hasta {last['name']} · "
         f"{scope.describe()}.",
     )
-    return ToolOutcome(result=result, blocks=[table] if found else [])
+    return ToolOutcome(result=result, blocks=shown(args, table if found else None))
 
 
 TOOL = Tool(
@@ -135,16 +137,21 @@ TOOL = Tool(
         "Lists students at risk in a competency: those with C in the same competency in two or "
         "more consecutive periods, ending in the last period with levels. The streak counts "
         "consecutive periods; a period with no level in that competency breaks it. Use it for "
-        '"en riesgo", "C seguidas" or "dos trimestres en C".'
+        '"en riesgo", "C seguidas" or "dos trimestres en C", and to find which competencies '
+        "concentrate persistent difficulty (casos_por_competencia) before suggesting where to "
+        "focus support."
     ),
     status="Buscando rachas de C…",
     params={
         "grado": Param(resolve.GRADO_HINT),
         "seccion": Param(resolve.SECCION_HINT),
         "area": Param(
-            "Área, only when the director named one. Empty = every área; do not fill it otherwise."
+            "Área, only when the director named one or a previous result pointed to it. Empty = "
+            "every área."
         ),
         "minimo": Param("Shortest streak to list, in periods (default 2).", kind="integer"),
+        "mostrar_bloque": MOSTRAR_BLOQUE,
     },
     run=run,
+    topic="alumnos en riesgo: C en la misma competencia en periodos seguidos",
 )

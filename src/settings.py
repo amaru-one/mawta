@@ -112,7 +112,7 @@ class Settings(BaseSettings):
     chat_quantizations: Annotated[list[str], NoDecode] = []
     chat_max_tokens: int = 16000
     # Model calls per question (each tool round is one more call).
-    chat_max_model_calls: int = 6
+    chat_max_model_calls: int = 8
     # Questions answered at the same time; one more answers chat_busy. The chat shares this
     # process with the whole app, so it must not take all its memory.
     chat_max_concurrent: int = 3

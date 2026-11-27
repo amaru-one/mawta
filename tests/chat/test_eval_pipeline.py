@@ -5,7 +5,7 @@ import re
 from typing import Any
 
 from chat.eval import runner
-from chat.eval.bank import Case
+from chat.eval.bank import OUT_OF_SCOPE, Case
 from tests.chat.conftest import FakeLLM, text_turn, tool_turn
 from tests.conftest import Databases, make_settings
 
@@ -29,12 +29,9 @@ async def test_the_bank_runs_through_the_graph_and_the_checks_judge_each_answer(
     fake.script(
         tool_turn(),
         text_turn("Tu colegio tiene tres secciones: 2do A, 3ro A y 5to B."),
-        text_turn(
-            "Solo puedo ayudarte con datos de tu colegio: secciones, niveles de logro y alumnos "
-            "en riesgo. ¿Quieres consultar algo de eso?"
-        ),
+        text_turn(OUT_OF_SCOPE),
         tool_turn(name="resumen_de_niveles", arguments='{"seccion": "5to B"}'),
-        text_turn("Son 569 estudiantes con buen desempeño."),
+        text_turn("Son 569 estudiantes; el mejor alumno es Kevin."),
         text_turn("No puedo."),
     )
     settings = make_settings(databases, tmp_path)

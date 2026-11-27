@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from chat.tools import blocks, resolve
 from chat.tools.base import (
+    MOSTRAR_BLOQUE,
     Args,
     Clarify,
     Param,
@@ -15,6 +16,7 @@ from chat.tools.base import (
     ToolOutcome,
     fetch_rows,
     rows_for_model,
+    shown,
     students_by_group,
 )
 from mawta_schema import api_views as v
@@ -97,7 +99,7 @@ async def run(conn: AsyncConnection, args: Args) -> ToolOutcome:
         f"{term['name']} · {scope.describe()}. C en al menos una competencia; por sección y "
         "apellido.",
     )
-    return ToolOutcome(result=result, blocks=[table] if rows else [])
+    return ToolOutcome(result=result, blocks=shown(args, table if rows else None))
 
 
 TOOL = Tool(
@@ -106,7 +108,10 @@ TOOL = Tool(
         'Lists students with C ("en inicio") in at least one competency in a period, with how '
         "many C they have and in which áreas and competencies. A competency with no level is "
         "never counted as C. Listed by section and surname, never ranked. Defaults to the last "
-        'period with levels. Use it for "jalados", "desaprobados", "en inicio" or "con C".'
+        'period with levels. Use it for "jalados", "desaprobados", "en inicio" or "con C", '
+        "and to look into the students behind a group that stood out in resumen_de_niveles or "
+        "comparar_periodos (by grade, section or área); it also gives the students per stage "
+        "and per section."
     ),
     status="Buscando alumnos con C…",
     params={
@@ -117,8 +122,11 @@ TOOL = Tool(
         "grado": Param(resolve.GRADO_HINT),
         "seccion": Param(resolve.SECCION_HINT),
         "area": Param(
-            "Área, only when the director named one. Empty = every área; do not fill it otherwise."
+            "Área, only when the director named one or a previous result pointed to it. Empty = "
+            "every área."
         ),
+        "mostrar_bloque": MOSTRAR_BLOQUE,
     },
     run=run,
+    topic="alumnos con C en al menos una competencia de un periodo",
 )

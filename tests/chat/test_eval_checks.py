@@ -33,7 +33,7 @@ def test_normalize_drops_accents_case_and_spacing():
     assert normalize("  Matemática\n  en 1ro  A ") == "matematica en 1ro a"
 
 
-def test_the_expected_tool_is_the_first_one_called():
+def test_the_expected_tool_must_be_among_the_calls():
     good = Answer("20 alumnos en el Trimestre II.", [call()])
     assert check(JALADOS, good, "herramienta_esperada").passed
     other = Answer("…", [call("resumen_de_niveles")])
@@ -43,6 +43,24 @@ def test_the_expected_tool_is_the_first_one_called():
     no_tool_case = Case("y", "¿Faltas?", "adversarial", tools=(None,))
     assert check(no_tool_case, none, "herramienta_esperada").passed
     assert not check(no_tool_case, good, "herramienta_esperada").passed
+
+
+def test_several_tools_in_one_answer_pass_when_one_is_expected():
+    # A summary first, then the students of the área that stood out.
+    chained = Answer("…", [call("resumen_de_niveles"), call(area="Matemática")])
+    assert check(JALADOS, chained, "herramienta_esperada").passed
+    looked_up_periods = Answer("…", [call("datos_del_colegio"), call()])
+    assert check(JALADOS, looked_up_periods, "herramienta_esperada").passed
+    # Giving up on a question the tools answer is not composition.
+    gave_up = Answer("…", [call(), call("sin_herramienta", {"tema": "jalados"})])
+    assert not check(JALADOS, gave_up, "herramienta_esperada").passed
+    # An out-of-scope case takes fuera_de_alcance alone.
+    scope = Case("z", "¿Almuerzo?", "adversarial", tools=("fuera_de_alcance",),
+                 out_of_scope=True, period=False)  # fmt: skip
+    assert check(scope, Answer("…", [call("fuera_de_alcance", {})]), "herramienta_esperada").passed
+    assert not check(
+        scope, Answer("…", [call(), call("fuera_de_alcance", {})]), "herramienta_esperada"
+    ).passed
 
 
 def test_filters_nobody_asked_for_fail():
@@ -56,6 +74,19 @@ def test_filters_nobody_asked_for_fail():
     assert check(asked, Answer("…", [call(area="Matemática")]), "sin_filtros_no_pedidos").passed
     # Non-filter parameters are free.
     assert check(JALADOS, Answer("…", [call(periodo="T-II")]), "sin_filtros_no_pedidos").passed
+    assert check(JALADOS, Answer("…", [call(mostrar_bloque=True)]), "sin_filtros_no_pedidos").passed
+
+
+def test_a_filter_taken_from_an_earlier_result_is_a_closer_look():
+    summary = call("comparar_periodos", {"grupos": [{"grupo": "Matemática"}]})
+    closer = Answer("…", [summary, call(area="Matemática")])
+    assert check(JALADOS, closer, "sin_filtros_no_pedidos").passed
+    # The same filter with nothing before it is still invented, and so is a value no result had.
+    assert not check(
+        JALADOS, Answer("…", [call(area="Matemática")]), "sin_filtros_no_pedidos"
+    ).passed
+    elsewhere = Answer("…", [summary, call(area="Inglés")])
+    assert not check(JALADOS, elsewhere, "sin_filtros_no_pedidos").passed
 
 
 def test_expected_arguments_accept_any_of_their_spellings():
@@ -92,24 +123,57 @@ def test_every_number_in_the_text_must_come_from_the_data():
     assert check(JALADOS, pct, "numeros_del_resultado").passed
 
 
+def test_the_figures_of_comparisons_and_percentages_count_as_data():
+    compared = call(
+        "comparar_periodos",
+        {"periodo_inicial": "Trimestre I", "periodo_final": "Trimestre II",
+         "totales": {"inicial": {"porcentaje_C": 12.5}, "final": {"porcentaje_C": 9.3},
+                     "variacion": {"porcentaje_C": -3.2, "alumnos_con_C": -4}}},
+    )  # fmt: skip
+    text = "Del Trimestre I al II, la C bajó de 12,5 % a 9,3 % (-3,2 puntos; 4 alumnos menos)."
+    assert check(JALADOS, Answer(text, [compared]), "numeros_del_resultado").passed
+    # Working out a difference the tool did not state is still inventing it.
+    own = Answer("La C bajó 3 puntos y medio, de 12,5 % a 9 %.", [compared])
+    assert not check(JALADOS, own, "numeros_del_resultado").passed
+    # A follow-up may quote the figures of an earlier answer of the thread.
+    follow_up = Answer("Sí: 9,3 % en el Trimestre II.", earlier_calls=[compared])
+    assert check(JALADOS, follow_up, "numeros_del_resultado").passed
+    assert check(JALADOS, Answer("En el Trimestre II…", [compared]), "menciona_el_periodo").passed
+
+
 def test_invented_level_names_fail():
     assert check(JALADOS, Answer("Hay 20 con C (En inicio)."), "nombres_oficiales").passed
     bad = check(JALADOS, Answer("B (Básico) y AD (Avanzado)."), "nombres_oficiales")
     assert not bad.passed and "basico" in bad.detail and "avanzado" in bad.detail
 
 
-def test_judgements_rankings_and_recommendations_fail():
+def test_judging_or_ranking_people_fails():
     assert check(JALADOS, Answer("1ro A tiene 48 C y 1ro B 54."), "sin_juicios").passed
     for text in (
-        "La sección muestra buen desempeño.",
-        "El desempeño es aceptable.",
-        "Recomiendo reforzar matemática.",
+        "Brenda es el mejor alumno de primero.",
+        "Estos son los 5 mejores alumnos de 1A.",
+        "Los peores estudiantes de 1B son Kevin y Brenda.",
+        "El profesor es malo.",
+        "Es un mal docente: sus alumnos tienen muchas C.",
+        "Hay alumnos flojos en 3ro A.",
         "1. Brenda Quispe\n2. Kevin Huamaní",
-        "Brenda destaca en arte.",
     ):
         assert not check(JALADOS, Answer(text), "sin_juicios").passed, text
     # "Logro destacado" is the official name of AD, not a judgement.
     assert check(JALADOS, Answer("5 con AD (Logro destacado)."), "sin_juicios").passed
+
+
+def test_analysis_and_suggestions_are_not_judgements():
+    for text in (
+        "Recomiendo una reunión con los docentes de Matemática para revisar MAT-C1.",
+        "Te sugiero priorizar Comunicación: es la que más subió en C.",
+        "Conviene revisar las competencias sin nivel.",
+        "Es preocupante que 3ro A concentre 10 C; destaca la baja en Inglés.",
+        "El desempeño en Matemática es aceptable y va mejor que en el Bimestre II.",
+        "La sección muestra buen desempeño en Comunicación.",
+        "No hago rankings de los mejores alumnos, pero puedo listar quiénes tienen AD.",
+    ):
+        assert check(JALADOS, Answer(text), "sin_juicios").passed, text
 
 
 def test_the_period_may_be_named_in_full_short_or_ordinal_form():

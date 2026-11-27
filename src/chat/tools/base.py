@@ -15,7 +15,8 @@ MAX_MODEL_ROWS = 60
 @dataclass
 class ToolOutcome:
     """result goes to the model; blocks go to the director as they are (built from the database,
-    never from the model's text: the model does not retype numbers)."""
+    never from the model's text: the model does not retype numbers). A tool fills blocks only
+    when the model asked to show them (mostrar_bloque)."""
 
     result: dict[str, Any]
     blocks: list[dict[str, Any]] = field(default_factory=list)
@@ -59,8 +60,29 @@ Run = Callable[[AsyncConnection, Args], Awaitable[ToolOutcome]]
 @dataclass(frozen=True)
 class Param:
     description: str
-    kind: str = "string"  # "string" or "integer"
+    kind: str = "string"  # "string", "integer" or "boolean"
     enum: tuple[str, ...] = ()
+
+
+# The parameter every data tool declares: the model reads data without showing it (to look into
+# something, cross two results or answer one figure in text) and shows a chart or table only when
+# it makes the answer clearer.
+SHOW_BLOCK = "mostrar_bloque"
+MOSTRAR_BLOQUE = Param(
+    "true to show the director this result's chart or table below your answer; false (the "
+    "default) to only read the data. Show it when it makes the answer clearer: an overview by "
+    "área or section, a long list or history, or when the director asks to see it. Leave it "
+    "false for intermediate steps and for questions answered with a figure or two.",
+    kind="boolean",
+)
+
+
+def shown(args: Args, *blocks: dict[str, Any] | None) -> list[dict[str, Any]]:
+    """The blocks a tool returns: none unless the model asked to show them, and never an empty
+    one (a block is None when the tool had no rows to show)."""
+    if not args.get(SHOW_BLOCK):
+        return []
+    return [b for b in blocks if b is not None]
 
 
 @dataclass(frozen=True)
@@ -70,6 +92,13 @@ class Tool:
     status: str  # what the director sees while it runs
     params: dict[str, Param]
     run: Run
+    # What it lets the chat look up, in Spanish, for the list in the system prompt. Empty for the
+    # tools that look nothing up (fuera_de_alcance, sin_herramienta).
+    topic: str = ""
+
+    @property
+    def shows_blocks(self) -> bool:
+        return SHOW_BLOCK in self.params
 
     def spec(self) -> dict[str, Any]:
         """The OpenAI-compatible function declaration. Every parameter is optional."""
@@ -106,7 +135,12 @@ class Tool:
             if value is None or value == "":
                 continue
             p = self.params[str(key)]
-            if p.kind == "integer":
+            if p.kind == "boolean":
+                if isinstance(value, str) and value.strip().lower() in ("true", "false"):
+                    value = value.strip().lower() == "true"
+                if not isinstance(value, bool):
+                    raise ValueError(f"{key} must be true or false")
+            elif p.kind == "integer":
                 if isinstance(value, bool) or not isinstance(value, int | str):
                     raise ValueError(f"{key} must be an integer")
                 try:
@@ -149,6 +183,6 @@ def rows_for_model(rows: list[dict[str, Any]]) -> dict[str, Any]:
     if len(rows) > MAX_MODEL_ROWS:
         out["aviso"] = (
             f"Solo se muestran {MAX_MODEL_ROWS} de {len(rows)} filas al modelo; "
-            "la directora ve la tabla completa."
+            "la tabla completa se muestra al director solo si mostrar_bloque=true."
         )
     return out

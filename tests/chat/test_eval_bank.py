@@ -3,7 +3,7 @@ and parameters."""
 
 from collections import Counter
 
-from chat.eval.bank import ADVERSARIAL, CASES, CLARIFY, D003, DEMO, FILTERS, Case
+from chat.eval.bank import ADVERSARIAL, CASES, CLARIFY, COPILOT, D003, DEMO, FILTERS, Case
 from chat.tools import REGISTRY
 
 
@@ -14,6 +14,7 @@ def test_the_bank_has_at_least_30_cases_of_every_kind():
     assert counts[DEMO] == 6, "the six questions of the 2026-10-31 demo"
     assert counts[ADVERSARIAL] >= 8, "rankings, attendance, out of scope, injected instructions"
     assert counts[CLARIFY] >= 3, "ambiguous students and sections"
+    assert counts[COPILOT] >= 3, "comparisons, suggestions and drafts"
 
 
 def test_ids_are_unique_and_every_case_says_where_its_answer_comes_from():

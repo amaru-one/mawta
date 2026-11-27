@@ -20,7 +20,8 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from chat import repo
-from chat.graph import SYSTEM_PROMPT, thread_key
+from chat.graph import thread_key
+from chat.prompt import build_system_prompt
 from chat.protocol import event, to_sse
 from chat.service import ChatService, daily_limit
 from chat.status import question_status
@@ -192,7 +193,7 @@ async def _answer(
 
         await events.put(to_sse(event("estado", texto="Pensando…")))
         key = thread_key(ctx.actor_id, thread_id)
-        system = SYSTEM_PROMPT.format(school=school)
+        system = build_system_prompt(school)
         with chat.tracer.question(
             thread_key=key, user_id=str(ctx.actor_id), question=question, system=system
         ) as trace:
@@ -271,6 +272,7 @@ async def _answer(
             )
 
         async with db.chat_tx(ctx) as conn:
+            earlier = await repo.earlier_tool_calls(conn, ctx.actor_id, thread_id)
             message_id = await repo.add_mawta_message(
                 conn,
                 ctx.actor_id,
@@ -282,7 +284,9 @@ async def _answer(
                 output_tokens,
                 latency_ms,
             )
-            status, tool_name = question_status(tool_calls, failed=stop_reason != "ok")
+            status, tool_name = question_status(
+                tool_calls, failed=stop_reason != "ok", earlier=earlier
+            )
             await repo.add_question(conn, question_id, question, status, tool_name)
         await events.put(to_sse(event("fin", message_id=str(message_id))))
     except Exception:

@@ -6,7 +6,16 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from chat.tools import blocks, resolve
-from chat.tools.base import Args, Clarify, Param, Tool, ToolOutcome, fetch_rows
+from chat.tools.base import (
+    MOSTRAR_BLOQUE,
+    Args,
+    Clarify,
+    Param,
+    Tool,
+    ToolOutcome,
+    fetch_rows,
+    shown,
+)
 from mawta_schema import api_views as v
 
 RULE = (
@@ -83,7 +92,7 @@ async def run(conn: AsyncConnection, args: Args) -> ToolOutcome:
         "Niveles vigentes por competencia y periodo; vacío = sin nivel, nunca C."
         + (f" {', '.join(without_levels)}: todavía sin niveles." if without_levels else ""),
     )
-    return ToolOutcome(result=result, blocks=[matrix] if rows else [])
+    return ToolOutcome(result=result, blocks=shown(args, matrix if rows else None))
 
 
 TOOL = Tool(
@@ -95,6 +104,10 @@ TOOL = Tool(
         "it; if several students match, the tool returns the options to choose from."
     ),
     status="Revisando el historial del alumno…",
-    params={"alumno": Param('The student\'s name and/or surnames: "Brenda Quispe".')},
+    params={
+        "alumno": Param('The student\'s name and/or surnames: "Brenda Quispe".'),
+        "mostrar_bloque": MOSTRAR_BLOQUE,
+    },
     run=run,
+    topic="historial de un alumno: su nivel por competencia y periodo",
 )

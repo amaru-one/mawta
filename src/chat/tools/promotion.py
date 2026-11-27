@@ -8,7 +8,17 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from chat.tools import blocks, resolve
-from chat.tools.base import Args, Clarify, Param, Tool, ToolOutcome, fetch_rows, rows_for_model
+from chat.tools.base import (
+    MOSTRAR_BLOQUE,
+    Args,
+    Clarify,
+    Param,
+    Tool,
+    ToolOutcome,
+    fetch_rows,
+    rows_for_model,
+    shown,
+)
 from mawta_schema import api_views as v
 
 # Cuadro 5.1.3.A of RVM 048-2024 (p. 8) has one rule for 1.°, 3.° and 4.° de secundaria and
@@ -198,7 +208,7 @@ async def run(conn: AsyncConnection, args: Args) -> ToolOutcome:
         f"Promoverían {counts[PROMOTED]}; irían a recuperación {counts[RECOVERY]}; "
         f"en riesgo de permanecer {counts[REPEAT]}.",
     )
-    return ToolOutcome(result=result, blocks=[table] if flagged else [])
+    return ToolOutcome(result=result, blocks=shown(args, table if flagged else None))
 
 
 TOOL = Tool(
@@ -212,12 +222,15 @@ TOOL = Tool(
         "A or AD in half or more of the competencies of at least 3 áreas; would repeat with C in "
         'half or more of the competencies of 4 or more áreas. Otherwise "iría a recuperación". '
         "Each listed student comes with the reason. It is a projection, not the official result. "
-        "Use it for who could repeat the grade or go to recovery."
+        "Use it for who could repeat the grade or go to recovery, or how many students each "
+        "situation has per section."
     ),
     status="Proyectando la promoción…",
     params={
         "grado": Param(resolve.GRADO_HINT),
         "seccion": Param(resolve.SECCION_HINT),
+        "mostrar_bloque": MOSTRAR_BLOQUE,
     },
     run=run,
+    topic="proyección de promoción de secundaria (RVM 048-2024), con su motivo",
 )

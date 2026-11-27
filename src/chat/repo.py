@@ -75,6 +75,19 @@ async def list_messages(
     return [dict(r) for r in rows.mappings()]
 
 
+async def earlier_tool_calls(
+    conn: AsyncConnection, user_id: UUID, thread_id: UUID
+) -> list[dict[str, Any]]:
+    """The tool calls of the thread's saved answers, oldest first: what a follow-up question can
+    rest on (chat.status)."""
+    rows = await conn.execute(
+        select(M.tool_calls)
+        .where(M.thread_id == thread_id, M.user_id == user_id, M.author == "mawta")
+        .order_by(M.created_at, M.id)
+    )
+    return [call for (calls,) in rows if isinstance(calls, list) for call in calls]
+
+
 async def questions_today(conn: AsyncConnection, user_id: UUID) -> int:
     """How many questions the director asked today, by the school's calendar day (its IANA
     timezone, as repo.home.school_today defines it)."""

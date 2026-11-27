@@ -36,7 +36,8 @@ async def test_a_question_uses_the_tool_and_streams_the_answer(
     me = await session(ANA)
     thread = (await client.post("/threads", headers=me)).json()
     fake_llm.script(
-        tool_turn(), text_turn("Tu colegio tiene tres secciones: 2do A, 3ro A y 5to B.")
+        tool_turn(arguments='{"mostrar_bloque": true}'),
+        text_turn("Tu colegio tiene tres secciones: 2do A, 3ro A y 5to B."),
     )
 
     events = await ask(client, me, thread["id"], "¿Qué secciones tiene mi colegio?")
@@ -127,13 +128,18 @@ async def test_tool_arguments_that_are_not_json_answer_as_a_tool_error(
 @pytest.mark.parametrize(
     ("tool", "arguments", "status", "block", "in_result"),
     [
-        ("resumen_de_niveles", "{}", "Contando los niveles de logro…", "barras_apiladas", "totales_de_niveles"),
-        ("alumnos_con_c", "{}", "Buscando alumnos con C…", "tabla", "alumnos_con_C"),
-        ("riesgo_por_competencia", "{}", "Buscando rachas de C…", "tabla", "racha_minima"),
-        ("proyeccion_de_promocion", '{"grado": "tercero"}', "Proyectando la promoción…", "tabla",
-         "es_proyeccion"),
-        ("historial_del_alumno", '{"alumno": "Ana Alvarez"}', "Revisando el historial del alumno…",
-         "matriz", "cantidad_de_C_por_periodo"),
+        ("resumen_de_niveles", '{"mostrar_bloque": true}', "Contando los niveles de logro…",
+         "barras_apiladas", "porcentajes_totales"),
+        ("comparar_periodos", '{"mostrar_bloque": true}', "Comparando periodos…", "tabla",
+         "totales"),
+        ("alumnos_con_c", '{"mostrar_bloque": true}', "Buscando alumnos con C…", "tabla",
+         "alumnos_con_C"),
+        ("riesgo_por_competencia", '{"mostrar_bloque": true}', "Buscando rachas de C…", "tabla",
+         "racha_minima"),
+        ("proyeccion_de_promocion", '{"grado": "tercero", "mostrar_bloque": true}',
+         "Proyectando la promoción…", "tabla", "es_proyeccion"),
+        ("historial_del_alumno", '{"alumno": "Ana Alvarez", "mostrar_bloque": true}',
+         "Revisando el historial del alumno…", "matriz", "cantidad_de_C_por_periodo"),
     ],
 )  # fmt: skip
 async def test_each_tool_reaches_the_director_and_the_model(
@@ -159,6 +165,50 @@ async def test_each_tool_reaches_the_director_and_the_model(
     assert in_result in json.loads(tool_message["content"])
     messages = (await client.get(f"/threads/{thread['id']}/messages", headers=me)).json()
     assert [b["tipo"] for b in messages[-1]["blocks"]] == [block, "texto"]
+
+
+async def test_a_silent_call_reaches_the_model_but_shows_and_saves_no_block(
+    client: httpx.AsyncClient, session: Session, fake_llm: FakeLLM
+):
+    me = await session(ANA)
+    thread = (await client.post("/threads", headers=me)).json()
+    fake_llm.script(
+        tool_turn(name="resumen_de_niveles", arguments='{"mostrar_bloque": false}'),
+        text_turn("En el Bimestre III hay 18 C."),
+    )
+
+    events = await ask(client, me, thread["id"], "¿Cuántas C hay?")
+
+    assert [e["tipo"] for e in events if e["tipo"] not in ("estado", "texto", "fin")] == []
+    result = json.loads(fake_llm.calls[-1][-1]["content"])
+    assert result["totales_de_niveles"]["C"] == 18 and result["bloque_mostrado"] is False
+    messages = (await client.get(f"/threads/{thread['id']}/messages", headers=me)).json()
+    assert [b["tipo"] for b in messages[-1]["blocks"]] == ["texto"]
+
+
+async def test_one_answer_chains_tools_and_shows_only_the_block_it_asks_for(
+    client: httpx.AsyncClient, session: Session, fake_llm: FakeLLM
+):
+    """Compose: compare the periods silently, then show the students with C of one área."""
+    me = await session(ANA)
+    thread = (await client.post("/threads", headers=me)).json()
+    fake_llm.script(
+        tool_turn("call_1", "{}", name="comparar_periodos"),
+        tool_turn("call_2", '{"area": "Matemática", "mostrar_bloque": true}', name="alumnos_con_c"),
+        text_turn("Matemática concentra las C del Bimestre III. Sugerencias: revisar con el área."),
+    )
+
+    events = await ask(client, me, thread["id"], "¿Dónde conviene poner el foco?")
+
+    statuses = [e.get("texto") for e in events if e["tipo"] == "estado"]
+    assert "Comparando periodos…" in statuses and "Buscando alumnos con C…" in statuses
+    assert [e["tipo"] for e in events if e["tipo"] not in ("estado", "texto", "fin")] == ["tabla"]
+    sent = fake_llm.calls[-1]
+    assert [m["role"] for m in sent] == ["user", "assistant", "tool", "assistant", "tool"]
+    assert "totales" in json.loads(sent[2]["content"])
+    assert json.loads(sent[4]["content"])["alcance"] == "Matemática"
+    messages = (await client.get(f"/threads/{thread['id']}/messages", headers=me)).json()
+    assert [b["tipo"] for b in messages[-1]["blocks"]] == ["tabla", "texto"]
 
 
 async def test_a_question_to_clarify_reaches_the_model_without_a_block(

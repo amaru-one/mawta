@@ -1,5 +1,6 @@
-"""The blocks a tool shows the director (protocol v1). Each tool always returns the same kind
-(D003): the model never chooses or builds a chart."""
+"""The blocks a tool can show the director (protocol v1): tabla, barras_apiladas and matriz.
+The tool builds the block from the database and picks its kind; the model only decides whether
+it is shown (mostrar_bloque), never what it contains."""
 
 from typing import Any
 

@@ -104,7 +104,7 @@ async def test_a_question_becomes_one_trace_with_its_tools_and_answer(
 
     q = _text(question)
     assert "¿Qué secciones tiene mi colegio?" in q
-    assert "You are Mawta's data assistant" in q, "the system prompt"
+    assert "You are Mawta's assistant" in q, "the system prompt"
     assert "Tres secciones: 2do A, 3ro A y 5to B." in q, "the final answer"
     assert 'model_calls": 2' in q and 'input_tokens": 250' in q and 'output_tokens": 30' in q
     assert 'latency_ms"' in q and f"{ANA}:{thread['id']}" in q, "the thread tags the trace"

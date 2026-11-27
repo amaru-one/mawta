@@ -40,7 +40,10 @@ async def test_an_abandoned_stream_still_saves_the_whole_answer(
     chat: ChatService = app_of(client).state.chat
     me = await session(ANA)
     thread = (await client.post("/threads", headers=me)).json()
-    llm.script(tool_turn(), text_turn("Tres secciones: 2do A, 3ro A y 5to B."))
+    llm.script(
+        tool_turn(arguments='{"mostrar_bloque": true}'),
+        text_turn("Tres secciones: 2do A, 3ro A y 5to B."),
+    )
 
     # The director asks and leaves before any event arrives: nobody reads the stream.
     db = Database(databases.app_url, pool_size=1)
@@ -78,7 +81,7 @@ async def test_the_stream_still_delivers_every_event_in_order(
 ):
     me = await session(ANA)
     thread = (await client.post("/threads", headers=me)).json()
-    fake_llm.script(tool_turn(), text_turn("Listo."))
+    fake_llm.script(tool_turn(arguments='{"mostrar_bloque": true}'), text_turn("Listo."))
 
     response = await client.post(
         f"/threads/{thread['id']}/messages", json={"texto": "¿Secciones?"}, headers=me

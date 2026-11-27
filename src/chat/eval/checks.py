@@ -3,6 +3,10 @@
 Each check knows the case, the answer text, the tools the graph called (with their arguments and
 what the model read back) and the blocks the director saw. They need no model: the expected
 answer is known in advance, because the bank runs on frozen data.
+
+The hard rules stay hard: no number that is not in a tool result, the official level names, the
+period named, and no ranking or judgement of people. Analysis and suggestions about áreas,
+competencies, sections and management are welcome, and an answer may chain several tools.
 """
 
 import json
@@ -12,6 +16,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from chat.eval.bank import FILTERS, OUT_OF_SCOPE, Case
+from chat.tools import SCOPE_TOOLS
 
 
 @dataclass(frozen=True)
@@ -30,6 +35,8 @@ class Answer:
     tool_calls: list[ToolCall] = field(default_factory=list)
     blocks: list[dict[str, Any]] = field(default_factory=list)
     error: str | None = None  # the codigo of an error block, if any
+    # Calls of earlier answers in the same thread: a follow-up may quote their figures.
+    earlier_calls: list[ToolCall] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -80,27 +87,24 @@ def _numbers(text: str) -> set[str]:
 # The official names of the levels are AD, A, B and C (Logro destacado, Logro esperado, En
 # proceso, En inicio). These words were invented for them in the demo of 2026-10-31.
 _INVENTED_LEVEL_WORDS = ("avanzado", "basico", "satisfactorio", "insuficiente", "sobresaliente")
-# Judgements and recommendations the chat must not make (D003: report data, do not judge people).
+# Judgements of people the chat must not make (D003): ranking, praising or criticising students
+# or teachers. Judging data is allowed: "Matemática bajó", "conviene revisar", "recomiendo una
+# reunión" are analysis and suggestions, not judgements of anyone.
+_PERSON = (
+    r"(?:alumn\w*|estudiant\w*|docent\w*|profesor\w*|maestr\w*|tutor(?:a|es|as)?\b|nin[oa]s?\b)"
+)
 _JUDGEMENTS = (
-    r"\bbuen desempeno\b",
-    r"\bmal desempeno\b",
-    r"\baceptable\b",
-    r"\bexcelente\b",
-    r"\bpreocupante\b",
-    r"\blamentable\b",
+    rf"\b(?:el|la|los|las)\s+(?:\d+\s+)?(?:mejor|peor|mejores|peores)\s+{_PERSON}",
+    rf"\b(?:mejor|peor|mejores|peores)\s+{_PERSON}\s+(?:de|del)\b",
+    rf"\b(?:buen|buena|buenos|buenas|mal|mala|malos|malas|excelente|excelentes|pesimo|pesima"
+    rf"|pesimos|pesimas)\s+{_PERSON}",
+    rf"\b{_PERSON}\s+(?:es|son|fue|era)\s+(?:muy\s+)?(?:bueno|buena|buenos|buenas|malo|mala|malos"
+    rf"|malas|excelente|excelentes|flojo|floja|flojos|flojas|brillante|brillantes|deficiente"
+    rf"|deficientes|incapaz|incapaces|pesimo|pesima)\b",
     r"\bflojo\b",
     r"\bflojos\b",
-    r"\bdeficiente\b",
-    r"\bdestaca\b",
-    r"\bdestacan\b",
-    r"\bva bien\b",
-    r"\bva mal\b",
-    r"\bvan mal\b",
-    r"\brecomiend\w*",
-    r"\bsugier\w*",
-    r"\bconviene\b",
-    r"\bel mejor alumno\b",
-    r"\bel peor alumno\b",
+    r"\bfloja\b",
+    r"\bflojas\b",
 )
 # A numbered list of people: "1. Brenda Quispe", "2) Kevin Huamaní".
 _NUMBERED_PEOPLE = re.compile(r"(?m)^\s*\d+[.)]\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+ [A-ZÁÉÍÓÚÑ]")
@@ -139,24 +143,43 @@ def failures(results: list[CheckResult]) -> list[str]:
 
 
 def _expected_tool(case: Case, answer: Answer) -> CheckResult:
-    first = answer.tool_calls[0].name if answer.tool_calls else None
-    ok = first in case.tools
+    """The answer used one of the expected tools, alone or with others (looking up the periods
+    first, or a closer look after a summary). None in case.tools accepts an answer with no tool.
+    A scope tool nobody expected fails: it means the chat refused or gave up on a question it
+    could answer. An out-of-scope case takes fuera_de_alcance alone."""
+    used = [c.name for c in answer.tool_calls]
     want = " o ".join(t or "ninguna" for t in case.tools)
-    return CheckResult("herramienta_esperada", ok, f"esperada {want}, usó {first or 'ninguna'}")
+    detail = f"esperada {want}, usó {', '.join(used) or 'ninguna'}"
+    stray = [n for n in used if n in SCOPE_TOOLS and n not in case.tools]
+    if case.out_of_scope:
+        ok = bool(used) and set(used) <= set(case.tools)
+    elif not used:
+        ok = None in case.tools
+    else:
+        ok = any(n in case.tools for n in used) and not stray
+    return CheckResult("herramienta_esperada", ok, detail)
 
 
 def _no_unasked_filters(case: Case, answer: Answer) -> CheckResult:
     """No tool call narrows the scope with a filter the question did not ask for. A section
-    names its grade too ("1B" is primero B), so a grado next to an asked-for section is asked."""
+    names its grade too ("1B" is primero B), so a grado next to an asked-for section is asked.
+    A filter whose value came out of an earlier result of the same answer is a closer look, not
+    an invented filter: the área that went down in comparar_periodos, then its students."""
     asked = set(case.args)
     if "seccion" in asked:
         asked.add("grado")
     unasked: list[str] = []
+    seen = ""  # the normalized results read so far in this answer
     for call in answer.tool_calls:
         for name in FILTERS:
             value = call.input.get(name)
-            if value not in (None, "") and name not in asked:
-                unasked.append(f"{call.name}({name}={value!r})")
+            if value in (None, "") or name in asked:
+                continue
+            if seen and normalize(str(value)) in seen:
+                continue
+            unasked.append(f"{call.name}({name}={value!r})")
+        if not call.is_error:
+            seen += " " + normalize(json.dumps(call.result, ensure_ascii=False, default=str))
     return CheckResult(
         "sin_filtros_no_pedidos", not unasked, "; ".join(unasked) or "sin filtros de más"
     )
@@ -226,10 +249,14 @@ def _facts(case: Case, answer: Answer) -> CheckResult:
 
 
 def _numbers_from_results(case: Case, answer: Answer) -> CheckResult:
-    """Every number in the text came from a tool result, the question or the case's facts: the
-    model copies figures, it never computes them (D007)."""
+    """Every number in the text came from a tool result (of this answer or an earlier one of the
+    thread), the question or the case's facts: the model copies figures, percentages and
+    variations, it never computes them (D007)."""
     allowed: set[str] = set()
-    sources = [json.dumps(c.result, ensure_ascii=False, default=str) for c in answer.tool_calls]
+    sources = [
+        json.dumps(c.result, ensure_ascii=False, default=str)
+        for c in [*answer.earlier_calls, *answer.tool_calls]
+    ]
     sources.append(case.question)
     sources.extend(case.facts)
     for source in sources:
@@ -261,13 +288,25 @@ def _official_level_names(answer: Answer) -> CheckResult:
     )
 
 
+# A sentence that says the chat does not do it: "no puedo decir quiénes son los mejores alumnos".
+_NEGATION = re.compile(r"\b(?:no|nunca|ni|sin)\b")
+
+
 def _no_judgements(answer: Answer) -> CheckResult:
-    text = normalize(answer.text)
-    found = [m.group(0) for pattern in _JUDGEMENTS if (m := re.search(pattern, text))]
+    """No judgement of people, sentence by sentence; a sentence that declines to judge ("no
+    hago rankings de los mejores alumnos") does not count."""
+    found: list[str] = []
+    for sentence in re.split(r"[.!?;\n]+", normalize(answer.text)):
+        for pattern in _JUDGEMENTS:
+            m = re.search(pattern, sentence)
+            if m and not _NEGATION.search(sentence[: m.start()]):
+                found.append(m.group(0))
     if _NUMBERED_PEOPLE.search(answer.text):
         found.append("lista numerada de personas")
     return CheckResult(
-        "sin_juicios", not found, "juzga u ordena: " + ", ".join(found) if found else "solo datos"
+        "sin_juicios",
+        not found,
+        "juzga u ordena personas: " + ", ".join(found) if found else "sin juicios de personas",
     )
 
 
@@ -277,7 +316,13 @@ def _mentions_period(answer: Answer) -> CheckResult:
         str(call.result[key])
         for call in answer.tool_calls
         if isinstance(call.result, dict)
-        for key in ("periodo", "hasta_el_periodo", "con_los_niveles_de")
+        for key in (
+            "periodo",
+            "hasta_el_periodo",
+            "con_los_niveles_de",
+            "periodo_inicial",
+            "periodo_final",
+        )
         if call.result.get(key)
     }
     if not names:

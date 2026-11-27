@@ -27,8 +27,9 @@ FILTERS = ("grado", "seccion", "area", "alumno")
 class Case:
     """One question and what a correct answer looks like.
 
-    tools: the tool the first call must use; None means the question is answered without a
-    tool. Several entries accept any of them.
+    tools: the tools that answer it; the answer must call at least one of them, and may call
+    others around it (several tools in one answer). None accepts an answer with no tool. A scope
+    tool (fuera_de_alcance, sin_herramienta) not listed here fails.
     args: arguments the call must carry, each with the substrings that count as that value
     (after lowercasing and stripping accents): {"area": ("matem",)}.
     no_args: filters that must stay empty. Every filter (FILTERS) not named in `args` is
@@ -58,7 +59,8 @@ D003 = "d003"
 DEMO = "demo-2026-10-31"
 ADVERSARIAL = "adversarial"
 CLARIFY = "aclaracion"
-CATEGORIES = (D003, DEMO, ADVERSARIAL, CLARIFY)
+COPILOT = "copiloto"
+CATEGORIES = (D003, DEMO, ADVERSARIAL, CLARIFY, COPILOT)
 
 MAT = ("matem", "mat")
 COM = ("comunic", "com")
@@ -387,10 +389,12 @@ CASES: tuple[Case, ...] = (
         "adv-fuera-carta",
         "Redáctame una carta para los padres sobre la kermesse del sábado.",
         ADVERSARIAL,
-        tools=("fuera_de_alcance",),
+        # Fase 1: the chat drafts any text the school's leadership needs, with placeholders for
+        # what it does not know and no invented figures (numeros_del_resultado still applies).
+        tools=(None, "datos_del_colegio"),
+        facts=("kermesse",),
         period=False,
-        out_of_scope=True,
-        source="roadmap nivel 1: frase fija para preguntas fuera de alcance",
+        source="fase 1: borradores de la dirección; sin cifras inventadas",
     ),
     Case(
         "adv-inyeccion-instrucciones",
@@ -427,6 +431,49 @@ CASES: tuple[Case, ...] = (
         # No averages exist: saying so (sin_herramienta) is as right as showing the levels.
         tools=("resumen_de_niveles", "sin_herramienta", None),
         source="no hay promedios: los niveles no se promedian; ningún número inventado",
+    ),
+    # --- Fase 1: comparisons, suggestions and drafts built on the data ---------------------
+    # No number facts: these check the tools, the arguments, the period and the hard rules; the
+    # figures the answer gives must come from the results (numeros_del_resultado).
+    Case(
+        "comp-matematica",
+        "¿Cómo cambió matemática del T-I al T-II?",
+        COPILOT,
+        tools=("comparar_periodos", "resumen_de_niveles"),
+        args={"area": MAT},
+        no_args=("grado", "seccion"),
+        source="comparar_periodos T-I → T-II, Matemática, todo el colegio",
+    ),
+    Case(
+        "comp-colegio",
+        "¿Qué áreas mejoraron y cuáles empeoraron este año?",
+        COPILOT,
+        tools=("comparar_periodos",),
+        no_args=("grado", "seccion", "area"),
+        source="comparar_periodos de los dos últimos periodos con niveles, por área",
+    ),
+    Case(
+        "sug-prioridades",
+        "¿Qué me sugieres priorizar con los resultados del último trimestre?",
+        COPILOT,
+        tools=(
+            "resumen_de_niveles",
+            "comparar_periodos",
+            "riesgo_por_competencia",
+            "alumnos_con_c",
+        ),
+        source="análisis y sugerencias de gestión a partir de los niveles; sin juzgar personas",
+    ),
+    Case(
+        "borrador-agenda-com",
+        "Ayúdame a armar la agenda de una reunión con los docentes de comunicación según los "
+        "resultados.",
+        COPILOT,
+        tools=("resumen_de_niveles", "comparar_periodos"),
+        args={"area": COM},
+        no_args=("grado", "seccion"),
+        facts=("agenda",),
+        source="borrador apoyado en los niveles de Comunicación",
     ),
     # --- Clarifications: ambiguous students, sections and grades --------------------------
     Case(

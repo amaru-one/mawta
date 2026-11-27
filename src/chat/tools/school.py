@@ -6,7 +6,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from chat.tools import blocks, resolve
-from chat.tools.base import Args, Tool, ToolOutcome, fetch_rows
+from chat.tools.base import MOSTRAR_BLOQUE, Args, Tool, ToolOutcome, fetch_rows, shown
 from mawta_schema import api_views as v
 
 SHIFTS = {"manana": "Mañana", "tarde": "Tarde", "noche": "Noche", "completo": "Completo"}
@@ -27,7 +27,7 @@ def _by_stage(all_sections: list[dict[str, Any]], counts: dict[Any, int]) -> dic
     return {"secciones_por_nivel_educativo": sections, "alumnos_por_nivel_educativo": students}
 
 
-async def run(conn: AsyncConnection, _args: Args) -> ToolOutcome:
+async def run(conn: AsyncConnection, args: Args) -> ToolOutcome:
     school = (await conn.execute(select(v.school.c.name))).mappings().first()
     all_terms = await resolve.terms(conn)
     all_sections = await resolve.sections(conn)
@@ -93,13 +93,20 @@ async def run(conn: AsyncConnection, _args: Args) -> ToolOutcome:
             for c in classes
         ],
     }
-    table = blocks.table(
-        f"Secciones del colegio ({year})" if year else "Secciones del colegio",
-        ["Grado", "Sección", "Turno", "Tutor", "Alumnos"],
-        [[s["grado"], s["seccion"], s["turno"], s["tutor"], s["alumnos"]] for s in sections_out],
-        "Fuente: secciones, tutores y matrículas vigentes registradas en Mawta.",
+    table = (
+        blocks.table(
+            f"Secciones del colegio ({year})" if year else "Secciones del colegio",
+            ["Grado", "Sección", "Turno", "Tutor", "Alumnos"],
+            [
+                [s["grado"], s["seccion"], s["turno"], s["tutor"], s["alumnos"]]
+                for s in sections_out
+            ],  # fmt: skip
+            "Fuente: secciones, tutores y matrículas vigentes registradas en Mawta.",
+        )
+        if sections_out
+        else None
     )
-    return ToolOutcome(result=result, blocks=[table] if sections_out else [])
+    return ToolOutcome(result=result, blocks=shown(args, table))
 
 
 TOOL = Tool(
@@ -109,9 +116,11 @@ TOOL = Tool(
         "and status (which one is current, and which already have achievement levels), its "
         "grades and sections with their tutor, shift and number of students, and the teacher "
         "of each class. Use it for questions about how the school is organised, what period "
-        "it is, or who teaches or tutors a group. Takes no parameters."
+        "it is, or who teaches or tutors a group, and to find the period names or the teachers "
+        "of an área before another step (a meeting with the teachers of an área, for example)."
     ),
     status="Consultando los datos del colegio…",
-    params={},
+    params={"mostrar_bloque": MOSTRAR_BLOQUE},
     run=run,
+    topic="organización del colegio: periodos, secciones, tutores, docentes por clase y alumnos",
 )
