@@ -23,7 +23,20 @@ before touching `src/chat/`.
 - Requests run through `Database.user_tx` / `auth_tx` as `mawta_app`. The chat's tools run through
   `chat_tx`, as `mawta_chat`, and may read only the `chat_api` views.
 - Run the database tests with `MAWTA_TEST_ADMIN_URL` set and `pytest -rs`. A run with skipped tests
-  verified nothing.
+  verified nothing. The tests read it from the environment, not through `Settings`; a git-ignored
+  `.env` that sets it works with `uv run --env-file .env pytest -rs`.
 - If the linter or the language server (LSP) shows a warning, fix it.
 - Write prompts and Markdown documentation in English. User-facing text and the chat's tools stay
   in Spanish. Keep literal identifiers, commands, schema values and file paths as they are.
+
+### Commits
+
+Follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/):
+`<type>(<scope>): <description>`.
+
+- Types: `feat`, `fix`, `test`, `docs`, `refactor`, `perf`, `chore`, `ci`, `build`.
+- The scope is optional and names the area touched: `chat`, `agent`, `api`, `schema`, `cli`,
+  `eval`.
+- The description is in English, in the imperative, lowercase, with no final period.
+- A breaking change adds `!` after the type or scope (`feat(api)!: ...`) and a `BREAKING CHANGE:`
+  footer that explains it.
