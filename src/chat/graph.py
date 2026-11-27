@@ -26,6 +26,7 @@ from langgraph.graph import START, StateGraph
 from chat.llm import LLM
 from chat.scope_text import ScopeTextGuard
 from chat.tools import TOOL_STATUS, TOOLS, ToolOutcome, run_tool
+from chat.tools.resolve import drop_unsaid_stage
 from chat.tools.scope import OUT_OF_SCOPE, OUT_OF_SCOPE_TOOL
 from chat.tracing import QuestionTrace, no_question
 
@@ -72,9 +73,9 @@ Ambiguity
 - If the question is ambiguous in a way that changes the data ("primero" can be a primary or a
   secondary grade), ask one short question before calling a tool. Read "atrasado" or "va mal"
   as achievement levels and say so.
-- The school has primaria and secundaria. When the director names the stage ("1B de
-  secundaria", "tercero de primaria"), keep it in the tool arguments; never shorten it to "1"
-  or "B".
+- The school has primaria and secundaria, so a grade or section without its stage can be
+  either. Pass grades and sections exactly as the director wrote them: keep a stage they named,
+  never add one they did not (the tool then asks which, and you ask the director).
 - If a tool answers with options (several grades, sections or students match), ask the
   director to choose.
 
@@ -169,12 +170,21 @@ def build_graph(llm: LLM, max_model_calls: int, checkpointer: Any):
         configurable = config.get("configurable", {})
         results: list[dict[str, Any]] = []
         calls: list[dict[str, Any]] = state["messages"][-1]["tool_calls"]
+        # A stage the director never named is dropped from the arguments: the tool then offers
+        # primaria and secundaria and the chat asks (chat/tools/resolve.py).
+        said = " ".join(
+            m["content"]
+            for m in state["messages"]
+            if m["role"] == "user" and isinstance(m.get("content"), str)
+        )
         # The tools run as mawta_chat: whatever the model asks for can only read chat_api.
         async with configurable["db"].chat_tx(configurable["ctx"]) as conn:
             for call in calls:
                 name = call["function"]["name"]
                 writer({"kind": "status", "texto": TOOL_STATUS.get(name, "Consultando…")})
                 tool_in, ok = tool_input(call["function"]["arguments"])
+                if ok:
+                    tool_in = drop_unsaid_stage(tool_in, said)
                 with _trace(configurable).tool(name, tool_in) as span:
                     if not ok:
                         outcome = ToolOutcome(

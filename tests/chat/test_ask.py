@@ -176,3 +176,44 @@ async def test_a_question_to_clarify_reaches_the_model_without_a_block(
     assert not [e for e in events if e["tipo"] in ("tabla", "matriz", "barras_apiladas")]
     result = json.loads(fake_llm.calls[-1][-1]["content"])
     assert result["opciones"] == ["Gabriel Gomez Huaman (3ro A)", "Hilda Huaman Inca (3ro A)"]
+
+
+@pytest.mark.parametrize(
+    ("questions", "sent"),
+    [
+        (["¿Cuántos C hay en 3ro A?"], "3ro A"),
+        (["¿Cuántos C hay en 3ro A de secundaria?"], "3ro A de secundaria"),
+        # A stage named in an earlier question of the chat still counts.
+        (["¿Cómo va secundaria?", "¿Y cuántos C hay en 3ro A?"], "3ro A de secundaria"),
+    ],
+)
+async def test_the_tool_never_gets_a_stage_the_director_did_not_name(
+    client: httpx.AsyncClient,
+    session: Session,
+    fake_llm: FakeLLM,
+    monkeypatch: pytest.MonkeyPatch,
+    questions: list[str],
+    sent: str,
+):
+    import chat.graph
+
+    received: list[Any] = []
+    real_run_tool = chat.graph.run_tool
+
+    async def spy(name: str, tool_input: Any, conn: Any) -> Any:
+        received.append(tool_input)
+        return await real_run_tool(name, tool_input, conn)
+
+    monkeypatch.setattr(chat.graph, "run_tool", spy)
+    me = await session(ANA)
+    thread = (await client.post("/threads", headers=me)).json()
+    arguments = '{"seccion": "3ro A de secundaria"}'
+    turns = [text_turn("Listo.")] * (len(questions) - 1)
+    fake_llm.script(
+        *turns, tool_turn(name="alumnos_con_c", arguments=arguments), text_turn("Listo.")
+    )
+
+    for question in questions:
+        await ask(client, me, thread["id"], question)
+
+    assert received == [{"seccion": sent}]

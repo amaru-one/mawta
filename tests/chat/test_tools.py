@@ -470,3 +470,29 @@ def test_a_grade_that_carries_a_section_letter_is_read_as_a_section():
     assert not names_a_section("Primero de Secundaria")
     assert not names_a_section("5to de secundaria")
     assert not names_a_section("1ro")
+
+
+def test_a_stage_counts_only_when_the_director_named_it():
+    from chat.tools.resolve import stage_named
+
+    assert not stage_named("¿Cuántos C hay en 1B?")
+    assert not stage_named("¿Cuántos jalados hay en la sección B?")
+    assert stage_named("¿Cuántos C hay en 1B de secundaria?")
+    assert stage_named("¿Cómo va primero de prim?")
+    assert stage_named("1ro B sec")
+    assert stage_named("¿Y en Primaria?")
+
+
+def test_a_stage_the_director_did_not_name_is_dropped_from_the_arguments():
+    from chat.tools.resolve import drop_unsaid_stage
+
+    sent = {"seccion": "1ro B de secundaria", "grado": "Primero de Primaria", "area": "MAT"}
+
+    assert drop_unsaid_stage(sent, "¿Cuántos C hay en 1B?") == {
+        "seccion": "1ro B",
+        "grado": "Primero",
+        "area": "MAT",
+    }
+    assert drop_unsaid_stage(sent, "¿Cuántos C hay en 1B de secundaria?") == sent
+    assert drop_unsaid_stage({"periodo": "T-II"}, "¿Y en el T-II?") == {"periodo": "T-II"}
+    assert drop_unsaid_stage(None, "1B") is None

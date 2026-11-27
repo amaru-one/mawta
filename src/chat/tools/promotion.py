@@ -216,16 +216,8 @@ TOOL = Tool(
     ),
     status="Proyectando la promoción…",
     params={
-        "grado": Param(
-            "Grade, only when the director named one, with its stage when they said it "
-            '("Primero de Secundaria", "tercero de primaria"); never shorten it to "1" or '
-            '"primero". Empty = the whole school; do not fill it otherwise.'
-        ),
-        "seccion": Param(
-            "Section, only when the director named one, as they wrote it with its grade and "
-            'stage ("1ro B de secundaria", "3B de primaria"); never shorten it to "B". '
-            "Empty = every section; do not fill it otherwise."
-        ),
+        "grado": Param(resolve.GRADO_HINT),
+        "seccion": Param(resolve.SECCION_HINT),
     },
     run=run,
 )

@@ -372,6 +372,47 @@ class Scope:
         return ", ".join(parts) if parts else "todo el colegio"
 
 
+# The examples must not match the bank's questions: models copy them into their arguments, and
+# "1ro B de secundaria" here once turned every bare "1B" into secundaria.
+GRADO_HINT = (
+    "Grade, only when the director named one, exactly as they wrote it: with its stage if they "
+    'said it ("cuarto de primaria"), without one if they did not. Never drop a stage they named, '
+    "and never add one they did not: the tool asks which. Empty = the whole school; do not fill "
+    "it otherwise."
+)
+SECCION_HINT = (
+    "Section, only when the director named one, exactly as they wrote it: with its grade and "
+    'stage if they said them ("cuarto A de primaria"). Never drop what they named, and never add '
+    "a stage they did not: the tool asks which. Empty = every section; do not fill it otherwise."
+)
+
+_STAGE_WORDS = ("secund", "primar", "inicial")
+_STAGE_SHORT = ("sec", "secu", "prim")
+_STAGE_IN_ARG = re.compile(r"\b(?:de\s+)?(?:secundaria|primaria|inicial)\b", re.IGNORECASE)
+
+
+def stage_named(said: str) -> bool:
+    """Whether the director's own words name a stage: "secundaria", "de prim", "1ro sec".
+    "sección" is not "sec": a short form counts only as a whole word."""
+    return any(
+        tok.startswith(_STAGE_WORDS) or tok in _STAGE_SHORT for tok in tokens(said)
+    )  # fmt: skip
+
+
+def drop_unsaid_stage(args: Any, said: str) -> Any:
+    """The grado and seccion arguments without a stage the director never named. The school has
+    a "1ro B" in primaria and in secundaria: a model that adds "de secundaria" to a bare "1B"
+    answers for one of them, while the bare text makes the tool offer both and the chat ask."""
+    if not isinstance(args, dict) or stage_named(said):
+        return args
+    out: dict[str, Any] = dict(args)  # pyright: ignore[reportUnknownArgumentType]
+    for key in ("grado", "seccion"):
+        value = out.get(key)
+        if isinstance(value, str) and _STAGE_IN_ARG.search(value):
+            out[key] = " ".join(_STAGE_IN_ARG.sub(" ", value).split())
+    return out
+
+
 def names_a_section(text: str) -> bool:
     """ "1B de secundaria", "1ro B": a grade text that carries a section letter."""
     return any(len(tok) == 1 and tok.isalpha() for tok in tokens(text))
