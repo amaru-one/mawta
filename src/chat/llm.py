@@ -5,7 +5,7 @@ model server (Ollama, vLLM: "local") or on OpenRouter: CHAT_MODEL says which
 ("local:gemma4:12b-it-qat", "openrouter:qwen/qwen3-30b-a3b").
 """
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Any, Protocol, cast
 
@@ -48,13 +48,20 @@ class OpenAICompatLLM:
     model: str
     max_tokens: int
     reasoning_effort: str
+    quantizations: tuple[str, ...]
 
     def __init__(
-        self, client: AsyncOpenAI, ref: ModelRef, max_tokens: int, reasoning_effort: str = ""
+        self,
+        client: AsyncOpenAI,
+        ref: ModelRef,
+        max_tokens: int,
+        reasoning_effort: str = "",
+        quantizations: Sequence[str] = (),
     ) -> None:
         self.client = client
         self.ref = ref
         self.reasoning_effort = reasoning_effort
+        self.quantizations = tuple(quantizations)
         # The whole "provider:model", which is what chat.messages records.
         self.model = str(ref)
         self.max_tokens = max_tokens
@@ -78,7 +85,7 @@ class OpenAICompatLLM:
             tools=cast(list[ChatCompletionToolParam], tools),
             stream=True,
             stream_options={"include_usage": True},
-            extra_body=extra_body(self.ref, self.reasoning_effort),
+            extra_body=extra_body(self.ref, self.reasoning_effort, self.quantizations),
         )
         text: list[str] = []
         calls: dict[int, dict[str, Any]] = {}

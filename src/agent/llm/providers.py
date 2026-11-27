@@ -11,6 +11,7 @@ one. The provider is what comes before the first colon; the rest is the model's 
 server, colons included (Ollama tags have one).
 """
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import override
 
@@ -80,7 +81,13 @@ def client_for(
 REASONING_EFFORTS = ("", "none", "minimal", "low", "medium", "high")
 
 
-def extra_body(ref: ModelRef, reasoning_effort: str = "") -> dict[str, object] | None:
+# OpenRouter's names for how a provider stores the weights, from smallest to full precision.
+QUANTIZATIONS = ("int4", "int8", "fp4", "fp6", "fp8", "fp16", "bf16", "fp32", "unknown")
+
+
+def extra_body(
+    ref: ModelRef, reasoning_effort: str = "", quantizations: Sequence[str] = ()
+) -> dict[str, object] | None:
     """What goes in the request besides the standard fields.
 
     OpenRouter routes a request to any provider that serves the model; require_parameters keeps
@@ -89,10 +96,18 @@ def extra_body(ref: ModelRef, reasoning_effort: str = "") -> dict[str, object] |
     reasoning_effort is only sent when configured. Models that reason first (gemma4, qwen3) spend
     their max_tokens on hidden reasoning unless told otherwise; "none" turns it off. A local
     server (mlx_lm.server, llama.cpp, vLLM) may ignore reasoning_effort but honours the chat
-    template's enable_thinking, so "none" also sends that (decision D009)."""
+    template's enable_thinking, so "none" also sends that (decision D009).
+
+    quantizations keeps OpenRouter to providers that serve the model at those precisions, the
+    cheapest first: the same model name at fp4 can copy figures and fill tool arguments worse
+    than at fp8. A local server ignores it."""
     body: dict[str, object] = {}
     if ref.provider == OPENROUTER:
-        body["provider"] = {"require_parameters": True}
+        provider: dict[str, object] = {"require_parameters": True}
+        if quantizations:
+            provider["quantizations"] = list(quantizations)
+            provider["sort"] = "price"
+        body["provider"] = provider
     if reasoning_effort:
         body["reasoning_effort"] = reasoning_effort
     if reasoning_effort == "none" and ref.provider == LOCAL:

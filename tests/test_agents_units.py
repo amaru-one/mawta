@@ -354,6 +354,10 @@ def test_provider_configured_and_extra_body():
         "provider": {"require_parameters": True},
         "reasoning_effort": "none",
     }
+    assert extra_body(parse("openrouter:x"), "", ("fp8",)) == {
+        "provider": {"require_parameters": True, "quantizations": ["fp8"], "sort": "price"}
+    }
+    assert extra_body(parse("local:x"), "", ("fp8",)) is None
 
 
 def _completion(

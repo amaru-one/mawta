@@ -142,6 +142,29 @@ async def test_reasoning_effort_is_sent_only_when_set():
     }
 
 
+async def test_openrouter_is_kept_to_the_precisions_configured():
+    fake = FakeClient([chunk({"content": "Hola"}, finish="stop")])
+    llm = OpenAICompatLLM(
+        cast(AsyncOpenAI, cast(object, fake)), parse("openrouter:z-ai/m"), 10, "", ("fp8",)
+    )
+
+    await llm.respond("s", [], [], lambda _: None)
+
+    assert fake.completions.kwargs["extra_body"] == {
+        "provider": {"require_parameters": True, "quantizations": ["fp8"], "sort": "price"}
+    }
+
+
+def test_chat_quantizations_are_a_comma_list_of_known_precisions(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("CHAT_QUANTIZATIONS", "fp8, bf16")
+    assert Settings(**BASE).chat_quantizations == ["fp8", "bf16"]
+    monkeypatch.delenv("CHAT_QUANTIZATIONS")
+    assert Settings(**BASE).chat_quantizations == []
+    monkeypatch.setenv("CHAT_QUANTIZATIONS", "fp9")
+    with pytest.raises(ValidationError, match="unknown"):
+        Settings(**BASE)
+
+
 def test_chat_model_must_be_provider_model():
     cfg = Settings(**BASE, chat_model="local:gemma4:12b-it-qat")
     assert str(cfg.chat_model_ref()) == "local:gemma4:12b-it-qat"

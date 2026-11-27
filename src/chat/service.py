@@ -90,6 +90,7 @@ class ChatService:
                 ref,
                 max_tokens=cfg.chat_max_tokens,
                 reasoning_effort=cfg.chat_reasoning_effort,
+                quantizations=cfg.chat_quantizations,
             )
         if self.llm is None or not cfg.langgraph_database_url:
             return

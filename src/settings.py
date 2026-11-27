@@ -11,7 +11,14 @@ from typing import Annotated, Any, ClassVar
 from pydantic import BeforeValidator, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
-from agent.llm.providers import REASONING_EFFORTS, Endpoints, ModelRef, configured, parse
+from agent.llm.providers import (
+    QUANTIZATIONS,
+    REASONING_EFFORTS,
+    Endpoints,
+    ModelRef,
+    configured,
+    parse,
+)
 
 _DURATION_PART = re.compile(r"(\d+(?:\.\d+)?)(ns|us|µs|ms|s|m|h)")
 _UNIT_SECONDS = {
@@ -100,6 +107,9 @@ class Settings(BaseSettings):
     # unavailable (its routes answer chat_unavailable) without stopping the rest of the app.
     chat_model: str = ""
     chat_reasoning_effort: str = ""
+    # OpenRouter only: the precisions the chat model may be served at, comma separated ("fp8",
+    # "fp8,bf16"), cheapest provider first. Empty = any provider OpenRouter picks.
+    chat_quantizations: Annotated[list[str], NoDecode] = []
     chat_max_tokens: int = 16000
     # Model calls per question (each tool round is one more call).
     chat_max_model_calls: int = 6
@@ -117,7 +127,7 @@ class Settings(BaseSettings):
     langfuse_public_key: SecretStr = SecretStr("")
     langfuse_secret_key: SecretStr = SecretStr("")
 
-    @field_validator("cors_origins", mode="before")
+    @field_validator("cors_origins", "chat_quantizations", mode="before")
     @classmethod
     def _split_csv(cls, value: Any) -> Any:
         if isinstance(value, str):
@@ -134,6 +144,14 @@ class Settings(BaseSettings):
     def _reasoning_effort(cls, value: str) -> str:
         if value not in REASONING_EFFORTS:
             raise ValueError(f"must be one of {REASONING_EFFORTS[1:]} or empty")
+        return value
+
+    @field_validator("chat_quantizations")
+    @classmethod
+    def _quantizations(cls, value: list[str]) -> list[str]:
+        unknown = [q for q in value if q not in QUANTIZATIONS]
+        if unknown:
+            raise ValueError(f"unknown {unknown}; use some of {QUANTIZATIONS}")
         return value
 
     @field_validator(

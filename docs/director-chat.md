@@ -96,6 +96,7 @@ at all). The row points at the director's message.
 |---|---|
 | `CHAT_MODEL` | `provider:model`, for example `openrouter:<model>` or `local:<model>`. Empty makes the chat unavailable |
 | `CHAT_REASONING_EFFORT` | Sent to the model only when set |
+| `CHAT_QUANTIZATIONS` | OpenRouter only: the precisions the model may be served at, comma separated (`fp8`, `fp8,bf16`); the cheapest such provider is used. Empty = any provider |
 | `LANGGRAPH_DATABASE_URL` | Required when `CHAT_MODEL` is set |
 | `CHAT_MAX_CONCURRENT` | Default 3 |
 | `CHAT_MAX_MODEL_CALLS` | Default 6. Each tool round is one more call |
