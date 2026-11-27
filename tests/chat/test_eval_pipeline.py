@@ -18,18 +18,27 @@ SECTIONS = Case(
     period=False,
     source="tests/fixtures.py: Cristo Rey has 2do A, 3ro A and 5to B",
 )
-OUT = Case("test-almuerzo", "¿Qué hay de almuerzo?", "adversarial", period=False, out_of_scope=True)
+OUT = Case(
+    "test-almuerzo",
+    "¿Qué hay de almuerzo?",
+    "adversarial",
+    tools=("fuera_de_alcance",),
+    period=False,
+    out_of_scope=True,
+)
 
 
 async def test_the_bank_runs_through_the_graph_and_the_checks_judge_each_answer(
     databases: Databases, tmp_path: Any
 ):
     fake = FakeLLM()
-    # Repetition 1: both cases right. Repetition 2: the first one invents a filter and a number.
+    # Repetition 1: both cases right. Repetition 2: the first one invents a filter and a number,
+    # the second one refuses in its own words without calling fuera_de_alcance.
     fake.script(
         tool_turn(),
         text_turn("Tu colegio tiene tres secciones: 2do A, 3ro A y 5to B."),
-        text_turn(OUT_OF_SCOPE),
+        # The graph writes the fixed OUT_OF_SCOPE phrase itself and ends: no further model turn.
+        tool_turn(name="fuera_de_alcance"),
         tool_turn(name="resumen_de_niveles", arguments='{"seccion": "5to B"}'),
         text_turn("Son 569 estudiantes; el mejor alumno es Kevin."),
         text_turn("No puedo."),
@@ -62,7 +71,8 @@ async def test_the_bank_runs_through_the_graph_and_the_checks_judge_each_answer(
         "sin_juicios",
     }
     assert bad.answer.tool_calls[0].name == "resumen_de_niveles"
-    assert runs[3].failures == ["fuera_de_alcance"]
+    assert set(runs[3].failures) == {"herramienta_esperada", "fuera_de_alcance"}
+    assert runs[1].answer.text == OUT_OF_SCOPE
     assert runs[0].trace_id is None and runs[0].latency_ms >= 0
     assert len(lines) == 4 and lines[0].startswith("  [1/2] ok  ") and "FALLA" in lines[2]
 
