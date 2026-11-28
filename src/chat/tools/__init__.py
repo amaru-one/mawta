@@ -1,4 +1,4 @@
-"""The chat's tools (chat-director D003). Each reads only chat_api views, inside the director's
+"""The chat's tools. Each reads only chat_api views, inside the director's
 chat transaction (role mawta_chat, which can read nothing else), and applies the glossary's
 definitions in its own query.
 
@@ -53,7 +53,7 @@ REGISTRY: dict[str, Tool] = {
         scope.NO_TOOL_TOOL,
     )
 }
-# The two tools that only say what the chat does not answer (D017), and the ones that read data.
+# The two tools that only say what the chat does not answer, and the ones that read data.
 SCOPE_TOOLS: frozenset[str] = frozenset({scope.OUT_OF_SCOPE_TOOL.name, scope.NO_TOOL_TOOL.name})
 DATA_TOOLS: frozenset[str] = frozenset(REGISTRY) - SCOPE_TOOLS
 

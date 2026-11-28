@@ -1,6 +1,6 @@
 """The chat's LangGraph graph: one agent with tools, agent <-> tools, until it answers.
 
-It stays a single agent (decision D007): a classifier or a number verifier is
+It stays a single agent: a classifier or a number verifier is
 added only if the evaluation shows the agent needs one. Later levels add nodes
 around these two without rewriting them (roadmap principle 4). In one answer the
 agent may chain several tool rounds (read silently, then look closer, then show
@@ -13,7 +13,7 @@ OpenAI-compatible message shape. It is only ever appended to: assistant
 messages are replayed exactly as the model returned them.
 
 Nodes report progress through the custom stream (get_stream_writer); the
-route turns those reports into protocol v1 events. The question's trace (D006) arrives in
+route turns those reports into protocol v1 events. The question's trace arrives in
 configurable["trace"]: each tool run is a span of it, each model turn adds to its totals.
 """
 
@@ -175,7 +175,7 @@ def build_graph(llm: LLM, max_model_calls: int, checkpointer: Any):
                     }
                 )
         if any(call["function"]["name"] == OUT_OF_SCOPE_TOOL.name for call in calls):
-            # The fixed answer is the code's, word for word (D017): the model writes nothing.
+            # The fixed answer is the code's, word for word: the model writes nothing.
             writer({"kind": "text", "delta": OUT_OF_SCOPE})
             return {
                 "messages": [*results, {"role": "assistant", "content": OUT_OF_SCOPE}],

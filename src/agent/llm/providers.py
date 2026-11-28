@@ -96,7 +96,7 @@ def extra_body(
     reasoning_effort is only sent when configured. Models that reason first (gemma4, qwen3) spend
     their max_tokens on hidden reasoning unless told otherwise; "none" turns it off. A local
     server (mlx_lm.server, llama.cpp, vLLM) may ignore reasoning_effort but honours the chat
-    template's enable_thinking, so "none" also sends that (decision D009).
+    template's enable_thinking, so "none" also sends that.
 
     quantizations keeps OpenRouter to providers that serve the model at those precisions, the
     cheapest first: the same model name at fp4 can copy figures and fill tool arguments worse

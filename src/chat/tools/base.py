@@ -25,7 +25,7 @@ class ToolOutcome:
 
 class Clarify(Exception):
     """A parameter matched several things, or none: the tool answers with the valid options and
-    the model asks the director to choose (D003)."""
+    the model asks the director to choose."""
 
     message: str
     options: list[str]
@@ -163,7 +163,7 @@ async def fetch_rows(conn: AsyncConnection, stmt: Executable) -> list[dict[str, 
 def students_by_group(rows: list[dict[str, Any]]) -> dict[str, Any]:
     """Distinct students per educational stage (primaria, secundaria) and per section, in the
     rows' order: the breakdowns the director asks for next, stated by the tool so the model never
-    counts rows itself (D007). A breakdown with a single group is left out."""
+    counts rows itself. A breakdown with a single group is left out."""
     stages: dict[str, set[Any]] = {}
     sections: dict[str, set[Any]] = {}
     for r in rows:

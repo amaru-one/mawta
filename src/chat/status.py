@@ -1,5 +1,5 @@
 """The status of a question in chat.question_bank, decided by the code from what the graph did
-(decision D017): which tools ran and how they ended, never the model's prose.
+which tools ran and how they ended, never the model's prose.
 
 - fuera_de_alcance: the out-of-scope tool ran.
 - necesita_tool: sin_herramienta ran; tool_name is the missing topic (the backlog of tools).

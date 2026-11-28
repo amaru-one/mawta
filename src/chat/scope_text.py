@@ -5,7 +5,7 @@ the director would read them (official evaluation, 2026-11-16).
 ScopeTextGuard sits between the model's text stream and the director. While the text could still
 be one of the two scope tools' names it holds it back; as soon as it cannot, it lets everything
 through. When the model's turn ends and the held text is exactly such a "call", the turn becomes
-a real tool call, so the graph answers exactly as if the model had called the tool (D017).
+a real tool call, so the graph answers exactly as if the model had called the tool.
 """
 
 import dataclasses

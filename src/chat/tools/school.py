@@ -15,7 +15,7 @@ TERM_STATUS = {"planned": "por empezar", "active": "en curso", "closed": "cerrad
 
 
 def _by_stage(all_sections: list[dict[str, Any]], counts: dict[Any, int]) -> dict[str, Any]:
-    """Sections and students per educational stage, so the model never counts them (D007)."""
+    """Sections and students per educational stage, so the model never counts them."""
     sections: dict[str, int] = {}
     students: dict[str, int] = {}
     for s in all_sections:

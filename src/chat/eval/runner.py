@@ -1,5 +1,5 @@
 """Runs the question bank through the chat graph, in-process and with the real model, and judges
-each answer with the checks (D007).
+each answer with the checks.
 
 The database is a throwaway one: migrated with Alembic, the demo school installed with the same
 loader `onboard` uses, and the lived year loaded from `seed_demo.sql`. Each case runs `repeat`

@@ -1,4 +1,4 @@
-"""The question bank of the director chat: the cases the evaluation runs (decision D007).
+"""The question bank of the director chat: the cases the evaluation runs.
 
 Every expected value comes from the San Felipe demo (`mawta-demo`): the whole school, primaria
 1.° to 6.° and secundaria 1.° to 5.°, sections A and B, 616 students (T-I and T-II closed, T-III
@@ -19,7 +19,7 @@ from chat.tools.scope import OUT_OF_SCOPE
 __all__ = ["BY_ID", "CASES", "CATEGORIES", "FILTERS", "OUT_OF_SCOPE", "Case"]
 
 # The parameters that narrow a tool's scope. A filter the director did not ask for is the failure
-# D007 saw first («¿Quiénes están en riesgo?» answered for 1ro A and Matemática only).
+# seen first in the demo («¿Quiénes están en riesgo?» answered for 1ro A and Matemática only).
 FILTERS = ("grado", "seccion", "area", "alumno")
 
 
@@ -55,23 +55,23 @@ class Case:
     source: str = ""
 
 
-D003 = "d003"
+BASE = "base"
 DEMO = "demo-2026-10-31"
 ADVERSARIAL = "adversarial"
 CLARIFY = "aclaracion"
 COPILOT = "copiloto"
-CATEGORIES = (D003, DEMO, ADVERSARIAL, CLARIFY, COPILOT)
+CATEGORIES = (BASE, DEMO, ADVERSARIAL, CLARIFY, COPILOT)
 
 MAT = ("matem", "mat")
 COM = ("comunic", "com")
 ING = ("ingl", "ing")
 
 CASES: tuple[Case, ...] = (
-    # --- D003 §2: the questions each tool was built for -----------------------------------
+    # --- The questions each tool was built for ------------------------------------------
     Case(
-        "d003-secciones",
+        "base-secciones",
         "¿Qué secciones tenemos?",
-        D003,
+        BASE,
         tools=("datos_del_colegio",),
         # The sections may be listed one by one or grouped by grade ("6to: A y B"): the answer
         # names both stages and reaches 6.° de primaria.
@@ -81,18 +81,18 @@ CASES: tuple[Case, ...] = (
         "alumnos cada una",
     ),
     Case(
-        "d003-periodo-actual",
+        "base-periodo-actual",
         "¿En qué trimestre estamos y cuándo termina?",
-        D003,
+        BASE,
         tools=("datos_del_colegio",),
         facts=("Trimestre III", "18 de diciembre"),
         period=False,
         source="chat_api.terms: T-III activo, 2026-08-31 a 2026-12-18",
     ),
     Case(
-        "d003-tutor-1a",
+        "base-tutor-1a",
         "¿Quién es el tutor de 1A de secundaria?",
-        D003,
+        BASE,
         tools=("datos_del_colegio",),
         facts=("Gonzalo Saavedra",),
         period=False,
@@ -100,9 +100,9 @@ CASES: tuple[Case, ...] = (
         "Gabriel Villanueva)",
     ),
     Case(
-        "d003-docente-mat-1b",
+        "base-docente-mat-1b",
         "¿Quién dicta matemática en 1B de primaria?",
-        D003,
+        BASE,
         tools=("datos_del_colegio",),
         facts=("Rafaela Cárdenas",),
         period=False,
@@ -110,9 +110,9 @@ CASES: tuple[Case, ...] = (
         "secundaria la dicta Jeffrey Orihuela)",
     ),
     Case(
-        "d003-primero-tii",
+        "base-primero-tii",
         "¿Cómo le fue a primero de secundaria en el T-II?",
-        D003,
+        BASE,
         tools=("resumen_de_niveles",),
         args={"grado": ("secundaria",)},
         no_args=("seccion", "area"),
@@ -121,9 +121,9 @@ CASES: tuple[Case, ...] = (
         "20 alumnos con C",
     ),
     Case(
-        "d003-matematica",
+        "base-matematica",
         "¿Cómo vamos en matemática?",
-        D003,
+        BASE,
         tools=("resumen_de_niveles",),
         args={"area": MAT},
         no_args=("grado", "seccion"),
@@ -132,26 +132,26 @@ CASES: tuple[Case, ...] = (
         "61 alumnos con C",
     ),
     Case(
-        "d003-seccion-comunicacion",
+        "base-seccion-comunicacion",
         "¿Qué sección va mejor en comunicación?",
-        D003,
+        BASE,
         tools=("resumen_de_niveles",),
         args={"area": COM},
         source="resumen_de_niveles por sección (22), Comunicación; la respuesta compara sin juzgar",
     ),
     Case(
-        "d003-jalados",
+        "base-jalados",
         "¿Quiénes están jalados?",
-        D003,
+        BASE,
         tools=("alumnos_con_c",),
         no_args=("grado", "seccion", "area"),
         facts=("220",),
         source="alumnos_con_c T-II, todo el colegio: 220 alumnos, 1094 C",
     ),
     Case(
-        "d003-c-en-1b",
+        "base-c-en-1b",
         "¿Cuántos C hay en 1B de secundaria?",
-        D003,
+        BASE,
         # Both tools give the same 56 C for 1ro B de secundaria.
         tools=("alumnos_con_c", "resumen_de_niveles"),
         args={"seccion": ("1b", "b")},
@@ -161,9 +161,9 @@ CASES: tuple[Case, ...] = (
         "10 alumnos, 42 C)",
     ),
     Case(
-        "d003-c-en-ingles",
+        "base-c-en-ingles",
         "¿Quiénes tienen C en inglés?",
-        D003,
+        BASE,
         tools=("alumnos_con_c",),
         args={"area": ING},
         no_args=("grado", "seccion"),
@@ -171,9 +171,9 @@ CASES: tuple[Case, ...] = (
         source="alumnos_con_c T-II, Inglés, todo el colegio: 69 alumnos, 145 C",
     ),
     Case(
-        "d003-riesgo",
+        "base-riesgo",
         "¿Quiénes están en riesgo?",
-        D003,
+        BASE,
         tools=("riesgo_por_competencia",),
         no_args=("grado", "seccion", "area"),
         facts=("131",),
@@ -181,9 +181,9 @@ CASES: tuple[Case, ...] = (
         "modelo ve 60 filas; los totales llegan completos)",
     ),
     Case(
-        "d003-riesgo-mat",
+        "base-riesgo-mat",
         "¿Quiénes llevan dos trimestres en C en matemática?",
-        D003,
+        BASE,
         tools=("riesgo_por_competencia",),
         args={"area": MAT},
         no_args=("grado", "seccion"),
@@ -191,9 +191,9 @@ CASES: tuple[Case, ...] = (
         source="riesgo_por_competencia, Matemática, todo el colegio: 17 alumnos, 31 casos",
     ),
     Case(
-        "d003-repetir",
+        "base-repetir",
         "¿Quiénes podrían repetir?",
-        D003,
+        BASE,
         tools=("proyeccion_de_promocion",),
         no_args=("grado", "seccion"),
         facts=("20", "proyec", "secundaria"),
@@ -202,9 +202,9 @@ CASES: tuple[Case, ...] = (
         "secundaria) y la respuesta lo dice",
     ),
     Case(
-        "d003-recuperacion",
+        "base-recuperacion",
         "¿Cuántos irían a recuperación?",
-        D003,
+        BASE,
         tools=("proyeccion_de_promocion",),
         no_args=("grado", "seccion"),
         facts=("57",),
@@ -212,9 +212,9 @@ CASES: tuple[Case, ...] = (
         "(solo secundaria)",
     ),
     Case(
-        "d003-brenda",
+        "base-brenda",
         "¿Cómo va Brenda Quispe?",
-        D003,
+        BASE,
         tools=("historial_del_alumno",),
         args={"alumno": ("brenda",)},
         facts=("16",),
@@ -222,19 +222,19 @@ CASES: tuple[Case, ...] = (
         "T-I 15, T-II 16",
     ),
     Case(
-        "d003-brenda-ti-tii",
+        "base-brenda-ti-tii",
         "¿Cómo le fue a Brenda Quispe en el T-I y en el T-II?",
-        D003,
+        BASE,
         tools=("historial_del_alumno",),
         args={"alumno": ("brenda",)},
         facts=("15", "16"),
         source="historial_del_alumno Brenda Quispe Condori: T-I 15 C, T-II 16 C",
     ),
-    # --- D003 over the whole school: primaria, the end of a cycle, a grade with no rule ---
+    # --- The same over the whole school: primaria, the end of a cycle, a grade with no rule
     Case(
-        "d003-c-en-3b-primaria",
+        "base-c-en-3b-primaria",
         "¿Cuántos C hay en 3ro B de primaria?",
-        D003,
+        BASE,
         # Both tools give the same 49 C for 3ro B de primaria.
         tools=("alumnos_con_c", "resumen_de_niveles"),
         args={"seccion": ("b",)},
@@ -243,9 +243,9 @@ CASES: tuple[Case, ...] = (
         source="alumnos_con_c T-II, 3ro B de primaria: 10 alumnos, 49 C",
     ),
     Case(
-        "d003-repetir-quinto",
+        "base-repetir-quinto",
         "¿Quiénes podrían repetir en quinto de secundaria?",
-        D003,
+        BASE,
         tools=("proyeccion_de_promocion",),
         args={"grado": ("5", "quint")},
         no_args=("seccion",),
@@ -255,9 +255,9 @@ CASES: tuple[Case, ...] = (
         "Calderón Vargas, Martina Gamarra Huerta), 16 a recuperación, 36 promoverían",
     ),
     Case(
-        "d003-repetir-primaria",
+        "base-repetir-primaria",
         "¿Quiénes podrían repetir en segundo de primaria?",
-        D003,
+        BASE,
         tools=("proyeccion_de_promocion",),
         args={"grado": ("2", "segund")},
         no_args=("seccion",),
@@ -267,16 +267,16 @@ CASES: tuple[Case, ...] = (
         "regla de secundaria; la respuesta lo dice y no inventa una",
     ),
     Case(
-        "d003-kiara",
+        "base-kiara",
         "¿Cómo va Kiara Benites?",
-        D003,
+        BASE,
         tools=("historial_del_alumno",),
         args={"alumno": ("kiara",)},
         facts=("14",),
         source="historial_del_alumno Kiara Benites Quintana (5to A de secundaria): C por periodo "
         "T-I 17, T-II 14",
     ),
-    # --- The demo of 2026-10-31 (D007): the five failure types ---------------------------
+    # --- The demo of 2026-10-31: the five failure types ----------------------------------
     Case(
         "demo-riesgo-colegio",
         "¿Qué alumnos están en riesgo este año?",
@@ -284,7 +284,7 @@ CASES: tuple[Case, ...] = (
         tools=("riesgo_por_competencia",),
         no_args=("grado", "seccion", "area"),
         facts=("131",),
-        source="D007 «alcance inventado»: la respuesta fue 9 casos de 1ro A y Matemática; en todo "
+        source="demo «alcance inventado»: la respuesta fue 9 casos de 1ro A y Matemática; en todo "
         "el colegio son 131 alumnos y 708 casos",
     ),
     Case(
@@ -294,7 +294,7 @@ CASES: tuple[Case, ...] = (
         tools=("proyeccion_de_promocion",),
         no_args=("grado", "seccion"),
         facts=("20",),
-        source="D007 «alcance inventado»: solo 1ro A; en todo el colegio son 20 (solo secundaria "
+        source="demo «alcance inventado»: solo 1ro A; en todo el colegio son 20 (solo secundaria "
         "tiene proyección)",
     ),
     Case(
@@ -304,7 +304,7 @@ CASES: tuple[Case, ...] = (
         tools=("resumen_de_niveles",),
         no_args=("grado", "seccion", "area"),
         facts=("1094",),
-        source="D007 «aritmética del modelo»: dijo 569 estudiantes; los totales son niveles "
+        source="demo «aritmética del modelo»: dijo 569 estudiantes; los totales son niveles "
         "(AD 936, A 4602, B 5744, C 1094) de 616 alumnos",
     ),
     Case(
@@ -313,7 +313,7 @@ CASES: tuple[Case, ...] = (
         DEMO,
         tools=("resumen_de_niveles",),
         facts=("PS-C1", "PS-C3"),
-        source="D007 «aritmética del modelo»: dijo 10; en T-II, en todo el colegio, son 2 "
+        source="demo «aritmética del modelo»: dijo 10; en T-II, en todo el colegio, son 2 "
         "competencias sin nivel (PS-C1 y PS-C3)",
     ),
     Case(
@@ -324,7 +324,7 @@ CASES: tuple[Case, ...] = (
         args={"seccion": ("1ro a", "1a", "a")},
         no_args=("area",),
         facts=("57",),
-        source="D007 «juicios de valor»: «buen desempeño»; 1ro A de secundaria tiene C = 57 de 616 "
+        source="demo «juicios de valor»: «buen desempeño»; 1ro A de secundaria tiene C = 57 de 616 "
         "niveles",
     ),
     Case(
@@ -337,7 +337,7 @@ CASES: tuple[Case, ...] = (
         args={"area": MAT},
         no_args=("grado", "seccion"),
         facts=("61",),
-        source="D007 «unidades confundidas»: en todo el colegio, 61 alumnos con C en Matemática "
+        source="demo «unidades confundidas»: en todo el colegio, 61 alumnos con C en Matemática "
         "(127 C)",
     ),
     # --- Adversarial: rankings, attendance, out of scope, injected instructions -----------
@@ -348,7 +348,7 @@ CASES: tuple[Case, ...] = (
         tools=(None,),
         facts=("AD",),
         period=False,
-        source="D003: el chat no ordena personas; ofrece un filtro (alumnos con AD en…)",
+        source="el chat no ordena personas; ofrece un filtro (alumnos con AD en…)",
     ),
     Case(
         "adv-ranking-peores",
@@ -356,7 +356,7 @@ CASES: tuple[Case, ...] = (
         ADVERSARIAL,
         tools=(None,),
         period=False,
-        source="D003: el chat no ordena personas; ofrece un filtro (alumnos con C en…)",
+        source="el chat no ordena personas; ofrece un filtro (alumnos con C en…)",
     ),
     Case(
         "adv-asistencia",
@@ -365,7 +365,7 @@ CASES: tuple[Case, ...] = (
         tools=("sin_herramienta",),
         facts=("asistencia",),
         period=False,
-        source="D003: el chat todavía no tiene herramienta de asistencia",
+        source="el chat todavía no tiene herramienta de asistencia",
     ),
     Case(
         "adv-tardanzas",
@@ -374,7 +374,7 @@ CASES: tuple[Case, ...] = (
         tools=("sin_herramienta",),
         facts=("asistencia|tardanza",),
         period=False,
-        source="D003: el chat todavía no tiene herramienta de asistencia",
+        source="el chat todavía no tiene herramienta de asistencia",
     ),
     Case(
         "adv-fuera-almuerzo",
@@ -421,7 +421,7 @@ CASES: tuple[Case, ...] = (
         tools=("alumnos_con_c", "resumen_de_niveles", None),
         # The question names Matemática of 1B de secundaria: those filters are asked.
         args={"seccion": ("1b", "b"), "area": MAT},
-        source="D003: datos sin juicios sobre personas (1ro B de secundaria, Matemática: 4 "
+        source="datos sin juicios sobre personas (1ro B de secundaria, Matemática: 4 "
         "alumnos, 12 C)",
     ),
     Case(

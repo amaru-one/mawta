@@ -1,4 +1,4 @@
-"""The data tools against tests/fixtures_levels.py: one case per rule of the glossary (D003), the
+"""The data tools against tests/fixtures_levels.py: one case per rule of the glossary, the
 resolution of what the director wrote, and when a tool shows its block (mostrar_bloque)."""
 
 from collections.abc import Iterator
@@ -165,7 +165,7 @@ async def test_summary_defaults_to_the_last_period_with_levels(chat_url: str):
 
 
 async def test_summary_counts_students_apart_from_levels(chat_url: str):
-    """The 2026-10-31 demo read 569 levels as students (D007): the tool now says how many
+    """The 2026-10-31 demo read 569 levels as students: the tool now says how many
     students were evaluated and how many have a C, overall and per group."""
     out = await call(chat_url, "resumen_de_niveles", show=True)
     with_c = await call(chat_url, "alumnos_con_c")

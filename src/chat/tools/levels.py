@@ -1,6 +1,6 @@
 """What resumen_de_niveles and comparar_periodos share: the count of achievement levels of one
 period in a scope, grouped by área, competency or section, with the students apart and every
-percentage already computed, so the model copies figures instead of working them out (D007)."""
+percentage already computed, so the model copies figures instead of working them out."""
 
 from dataclasses import dataclass, field
 from typing import Any

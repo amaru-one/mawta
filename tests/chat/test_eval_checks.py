@@ -1,4 +1,4 @@
-"""The evaluation's checks, each on its own, without a model or a database (D007)."""
+"""The evaluation's checks, each on its own, without a model or a database."""
 
 from typing import Any
 
@@ -26,7 +26,7 @@ def names(case: Case, answer: Answer) -> list[str]:
     return [r.name for r in run_checks(case, answer)]
 
 
-JALADOS = Case("x", "¿Quiénes están jalados?", "d003", tools=("alumnos_con_c",), facts=("20",))
+JALADOS = Case("x", "¿Quiénes están jalados?", "base", tools=("alumnos_con_c",), facts=("20",))
 
 
 def test_normalize_drops_accents_case_and_spacing():
@@ -69,7 +69,7 @@ def test_filters_nobody_asked_for_fail():
     result = check(JALADOS, answer, "sin_filtros_no_pedidos")
     assert not result.passed and "seccion" in result.detail and "area" in result.detail
     asked = Case(
-        "x", "¿Jalados en mate?", "d003", tools=("alumnos_con_c",), args={"area": ("mat",)}
+        "x", "¿Jalados en mate?", "base", tools=("alumnos_con_c",), args={"area": ("mat",)}
     )
     assert check(asked, Answer("…", [call(area="Matemática")]), "sin_filtros_no_pedidos").passed
     # Non-filter parameters are free.
@@ -91,7 +91,7 @@ def test_a_filter_taken_from_an_earlier_result_is_a_closer_look():
 
 def test_expected_arguments_accept_any_of_their_spellings():
     case = Case(
-        "x", "¿C en mate?", "d003", tools=("alumnos_con_c",), args={"area": ("matem", "mat")}
+        "x", "¿C en mate?", "base", tools=("alumnos_con_c",), args={"area": ("matem", "mat")}
     )
     assert check(case, Answer("…", [call(area="Matemática")]), "argumentos_esperados").passed
     assert check(case, Answer("…", [call(area="MAT")]), "argumentos_esperados").passed
@@ -101,7 +101,7 @@ def test_expected_arguments_accept_any_of_their_spellings():
 
 
 def test_facts_must_appear_regardless_of_accents_and_case():
-    case = Case("x", "q", "d003", facts=("Brenda Quispe", "14"))
+    case = Case("x", "q", "base", facts=("Brenda Quispe", "14"))
     assert check(case, Answer("brenda quispe tiene 14 C"), "hechos_presentes").passed
     missing = check(case, Answer("Tiene 14 C"), "hechos_presentes")
     assert not missing.passed and "Brenda Quispe" in missing.detail
@@ -114,7 +114,7 @@ def test_every_number_in_the_text_must_come_from_the_data():
     result = check(JALADOS, invented, "numeros_del_resultado")
     assert not result.passed and "569" in result.detail
     # Numbers from the question itself are fine; "20,0" is 20.
-    asked = Case("x", "¿Cuántos de los 56 alumnos…?", "d003", tools=("alumnos_con_c",))
+    asked = Case("x", "¿Cuántos de los 56 alumnos…?", "base", tools=("alumnos_con_c",))
     assert check(
         asked, Answer("De los 56, 20,0 tienen C.", [call()]), "numeros_del_resultado"
     ).passed
@@ -240,7 +240,7 @@ def test_facts_accept_alternatives():
 
 
 def test_a_grade_next_to_an_asked_section_is_not_an_unasked_filter():
-    case = Case("x", "¿C en 1B?", "d003", tools=("alumnos_con_c",), args={"seccion": ("1b", "b")})
+    case = Case("x", "¿C en 1B?", "base", tools=("alumnos_con_c",), args={"seccion": ("1b", "b")})
     answer = Answer("…", [call(grado="1", seccion="B")])
     assert check(case, answer, "sin_filtros_no_pedidos").passed
     assert not check(
@@ -259,7 +259,7 @@ def test_expected_arguments_pass_when_answering_without_a_tool_is_allowed():
 
 
 def test_facts_read_dates_and_numbers_in_their_usual_spellings():
-    case = Case("x", "q", "d003", facts=("18 de diciembre", "9"))
+    case = Case("x", "q", "base", facts=("18 de diciembre", "9"))
     for text in (
         "Termina el 2026-12-18; irían 9.",
         "Termina el 18/12/2026; irían nueve.",
@@ -270,14 +270,14 @@ def test_facts_read_dates_and_numbers_in_their_usual_spellings():
 
 
 def test_a_number_fact_is_a_whole_number_of_the_text():
-    case = Case("x", "q", "d003", facts=("20",))
+    case = Case("x", "q", "base", facts=("20",))
     assert check(case, Answer("Son 20 alumnos."), "hechos_presentes").passed
     assert not check(case, Answer("Son 220 alumnos."), "hechos_presentes").passed
     assert not check(case, Answer("Hay 120 C."), "hechos_presentes").passed
 
 
 def test_large_numbers_count_with_or_without_thousands_separators():
-    case = Case("x", "q", "d003", facts=("1094",))
+    case = Case("x", "q", "base", facts=("1094",))
     result = {"periodo": "Trimestre II", "totales_de_niveles": {"C": 1094, "B": 5744}}
     for text in ("Hay 1094 C.", "Hay 1.094 C.", "Hay 1,094 C.", "Hay 1 094 C."):
         answer = Answer(f"{text} B: 5.744.", [call(result=result)])
@@ -290,7 +290,7 @@ def test_large_numbers_count_with_or_without_thousands_separators():
 
 def test_the_arguments_are_judged_on_the_call_the_answer_comes_from():
     case = Case(
-        "x", "¿Primero de secundaria?", "d003", tools=("resumen_de_niveles",),
+        "x", "¿Primero de secundaria?", "base", tools=("resumen_de_niveles",),
         args={"grado": ("secundaria",)},
     )  # fmt: skip
     asked_again = Answer(

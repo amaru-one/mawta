@@ -1,4 +1,4 @@
-"""Traces (D006): nothing leaves without LANGFUSE_*; with Langfuse configured, one trace per
+"""Traces: nothing leaves without LANGFUSE_*; with Langfuse configured, one trace per
 question carries the system prompt, the tools with input and output, the answer, latency and
 tokens. Langfuse is exercised against an in-memory OpenTelemetry exporter: no network."""
 

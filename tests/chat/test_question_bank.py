@@ -1,4 +1,4 @@
-"""The question bank (D017): the two scope tools, the fixed out-of-scope phrase written by the
+"""The question bank: the two scope tools, the fixed out-of-scope phrase written by the
 code, and the status of every question, decided from the tools that ran in the answer and, for a
 follow-up, in the thread before it."""
 

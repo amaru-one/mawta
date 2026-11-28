@@ -48,7 +48,7 @@ class ChatService:
     llm: LLM | None = None
     graph: Any = None
     saver: AsyncPostgresSaver | None = None
-    # Where each question's trace goes (D006). NoTracer until start() finds LANGFUSE_*; a test
+    # Where each question's trace goes. NoTracer until start() finds LANGFUSE_*; a test
     # hands in its own recorder.
     tracer: Tracer = field(default_factory=NoTracer)
     # Questions being answered now. The app runs on one event loop and nothing awaits between

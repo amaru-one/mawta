@@ -846,7 +846,7 @@ $$"""
         sa.UniqueConstraint("alias", name="pseudonyms_alias_key"),
         sa.UniqueConstraint("entity_type", "entity_id", name="pseudonyms_entity_key"),
         schema="chat",
-        comment="Seudónimos estables por colegio (D001): el modelo nunca recibe nombres reales de alumnos ni profesores, solo estos alias. entity_id apunta a students.id o teachers.id según entity_type; no lleva FK porque cubre dos tablas.",
+        comment="Seudónimos estables por colegio: el modelo nunca recibe nombres reales de alumnos ni profesores, solo estos alias. entity_id apunta a students.id o teachers.id según entity_type; no lleva FK porque cubre dos tablas.",
     )
     op.create_table(
         "events",
@@ -1966,7 +1966,7 @@ $$"""
             postgresql.JSONB(astext_type=sa.Text()),
             server_default=sa.text("'[]'::jsonb"),
             nullable=False,
-            comment="PII (menor y adulto): texto libre. Bloques del protocolo v1 (estado, texto, tabla, grafico, error, fin) tal como los vio el modelo: los nombres de alumnos y profesores van seudonimizados (D001) y se restauran solo al mostrar.",
+            comment="PII (menor y adulto): texto libre. Bloques del protocolo v1 (estado, texto, tabla, grafico, error, fin) tal como los vio el modelo: los nombres de alumnos y profesores van seudonimizados y se restauran solo al mostrar.",
         ),
         sa.Column(
             "tool_calls",
@@ -2207,7 +2207,7 @@ $$"""
             "question",
             sa.Text(),
             nullable=False,
-            comment="PII (menor y adulto): texto libre. La pregunta tal como la vio el modelo, seudonimizada (D001).",
+            comment="PII (menor y adulto): texto libre. La pregunta tal como la vio el modelo, seudonimizada.",
         ),
         sa.Column("status", sa.Text(), nullable=False),
         sa.Column(

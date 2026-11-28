@@ -1,6 +1,6 @@
 """comparar_periodos: how the achievement levels of a scope changed from one period to another,
 with every difference already computed (in percentage points and in students), so the model
-reports real changes without doing arithmetic of its own (D007)."""
+reports real changes without doing arithmetic of its own."""
 
 from typing import Any
 

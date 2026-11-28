@@ -3,14 +3,14 @@ and parameters."""
 
 from collections import Counter
 
-from chat.eval.bank import ADVERSARIAL, CASES, CLARIFY, COPILOT, D003, DEMO, FILTERS, Case
+from chat.eval.bank import ADVERSARIAL, BASE, CASES, CLARIFY, COPILOT, DEMO, FILTERS, Case
 from chat.tools import REGISTRY
 
 
 def test_the_bank_has_at_least_30_cases_of_every_kind():
     assert len(CASES) >= 30
     counts = Counter(c.category for c in CASES)
-    assert counts[D003] >= 12, "D003's questions"
+    assert counts[BASE] >= 12, "the questions each tool was built for"
     assert counts[DEMO] == 6, "the six questions of the 2026-10-31 demo"
     assert counts[ADVERSARIAL] >= 8, "rankings, attendance, out of scope, injected instructions"
     assert counts[CLARIFY] >= 3, "ambiguous students and sections"

@@ -1,8 +1,8 @@
-"""Evaluate the director chat on the question bank, with the real model (roadmap level 1, D007).
+"""Evaluate the director chat on the question bank, with the real model (roadmap level 1).
 
     uv run chat-eval --model openrouter:qwen/qwen3-30b-a3b-instruct-2507
     uv run chat-eval --model local:qwen3.8-27b-6bit --reasoning-effort none --repeat 1
-    uv run chat-eval --model local:x --case d003-jalados --case adv-asistencia --no-langfuse
+    uv run chat-eval --model local:x --case base-jalados --case adv-asistencia --no-langfuse
 
 It creates a throwaway database (Alembic, then `ejemplo-san-felipe.json` and `seed_demo.sql` from
 the mawta-demo checkout), runs every case through the chat graph `--repeat` times, prints the

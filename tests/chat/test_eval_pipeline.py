@@ -12,7 +12,7 @@ from tests.conftest import Databases, make_settings
 SECTIONS = Case(
     "test-secciones",
     "¿Qué secciones tiene mi colegio?",
-    "d003",
+    "base",
     tools=("datos_del_colegio",),
     facts=("5to B",),
     period=False,

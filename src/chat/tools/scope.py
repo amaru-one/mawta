@@ -1,4 +1,4 @@
-"""The two tools that mark what the chat does not answer (decision D017): the model calls them
+"""The two tools that mark what the chat does not answer: the model calls them
 instead of improvising, and the code, not the model's prose, decides the question's status in
 chat.question_bank and the exact words of the out-of-scope answer.
 

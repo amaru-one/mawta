@@ -226,7 +226,7 @@ to 350 characters, **draft or final**: `422 conclusion_too_short` or
 
 ## Privacy
 
-- Every agent runs on the model its own variable names (chat-director D004):
+- Every agent runs on the model its own variable names:
   on the school's own model server (`local`: a DGX Spark, or a cloud server for
   a school without one) nothing leaves Mawta's operator; through OpenRouter,
   what the agent reads goes to that provider and belongs in the school's

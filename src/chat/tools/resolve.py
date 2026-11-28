@@ -1,5 +1,5 @@
 """How the director's words become the school's own periods, grades, sections, áreas and
-students (D003, glossary): "este trimestre", "los de primero", "1A", "mate", "Brenda Quispe".
+students (glossary): "este trimestre", "los de primero", "1A", "mate", "Brenda Quispe".
 
 Everything is resolved against the active academic year of the school in the session, read from
 chat_api. Nothing matches → the valid options; several match → the candidates. Either way the

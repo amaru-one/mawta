@@ -4,8 +4,8 @@ Revision ID: 0003
 Revises: 0002
 Create Date: 2026-11-12
 
-Decision D001 gave every student and teacher a stable alias so the model never saw a real name.
-D004 replaced it: the models are the school's own, so the chat uses real names, and nothing
+The chat once gave every student and teacher a stable alias so the model never saw a real name.
+That was replaced: the models are the school's own, so the chat uses real names, and nothing
 writes or reads this table any more. The comments that still described pseudonyms (schema chat,
 question_bank.question) are corrected here too.
 
@@ -25,7 +25,9 @@ depends_on: str | Sequence[str] | None = None
 QUESTION_COMMENT = (
     "PII (menor y adulto): texto libre. La pregunta tal como la escribió el director."
 )
-OLD_QUESTION_COMMENT = "PII (menor y adulto): texto libre. La pregunta tal como la vio el modelo, seudonimizada (D001)."
+OLD_QUESTION_COMMENT = (
+    "PII (menor y adulto): texto libre. La pregunta tal como la vio el modelo, seudonimizada."
+)
 SCHEMA_COMMENT = (
     "Datos propios del chat de dirección: hilos, mensajes y banco de preguntas. Solo mawta_chat "
     "los lee y escribe; la app entra a ese rol con SET LOCAL ROLE."
@@ -85,6 +87,6 @@ def downgrade() -> None:
         sa.UniqueConstraint("alias", name="pseudonyms_alias_key"),
         sa.UniqueConstraint("entity_type", "entity_id", name="pseudonyms_entity_key"),
         schema="chat",
-        comment="Seudónimos estables por colegio (D001): el modelo nunca recibe nombres reales de alumnos ni profesores, solo estos alias. entity_id apunta a students.id o teachers.id según entity_type; no lleva FK porque cubre dos tablas.",
+        comment="Seudónimos estables por colegio: el modelo nunca recibe nombres reales de alumnos ni profesores, solo estos alias. entity_id apunta a students.id o teachers.id según entity_type; no lleva FK porque cubre dos tablas.",
     )
     op.execute("grant select, insert, update, delete on chat.pseudonyms to mawta_chat")

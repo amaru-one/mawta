@@ -122,7 +122,7 @@ class Settings(BaseSettings):
     # LangGraph's checkpoints: this same database as mawta_langgraph, in schema langgraph
     # (options=-c search_path=langgraph). Needed only when the chat has a model.
     langgraph_database_url: str = ""
-    # Traces in Langfuse (D006): the host and both keys, or nothing is sent.
+    # Traces in Langfuse: the host and both keys, or nothing is sent.
     langfuse_host: str = ""
     langfuse_public_key: SecretStr = SecretStr("")
     langfuse_secret_key: SecretStr = SecretStr("")

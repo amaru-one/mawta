@@ -1,4 +1,4 @@
-"""The checks of the evaluation: code that says pass or fail for one answer to one case (D007).
+"""The checks of the evaluation: code that says pass or fail for one answer to one case.
 
 Each check knows the case, the answer text, the tools the graph called (with their arguments and
 what the model read back) and the blocks the director saw. They need no model: the expected
@@ -87,7 +87,7 @@ def _numbers(text: str) -> set[str]:
 # The official names of the levels are AD, A, B and C (Logro destacado, Logro esperado, En
 # proceso, En inicio). These words were invented for them in the demo of 2026-10-31.
 _INVENTED_LEVEL_WORDS = ("avanzado", "basico", "satisfactorio", "insuficiente", "sobresaliente")
-# Judgements of people the chat must not make (D003): ranking, praising or criticising students
+# Judgements of people the chat must not make: ranking, praising or criticising students
 # or teachers. Judging data is allowed: "Matemática bajó", "conviene revisar", "recomiendo una
 # reunión" are analysis and suggestions, not judgements of anyone.
 _PERSON = (
@@ -251,7 +251,7 @@ def _facts(case: Case, answer: Answer) -> CheckResult:
 def _numbers_from_results(case: Case, answer: Answer) -> CheckResult:
     """Every number in the text came from a tool result (of this answer or an earlier one of the
     thread), the question or the case's facts: the model copies figures, percentages and
-    variations, it never computes them (D007)."""
+    variations, it never computes them."""
     allowed: set[str] = set()
     sources = [
         json.dumps(c.result, ensure_ascii=False, default=str)
