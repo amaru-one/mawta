@@ -96,7 +96,7 @@ class ChatMessage(Base):
     blocks: Mapped[Any] = mapped_column(
         JSONB,
         server_default=text("'[]'::jsonb"),
-        comment="PII (menor y adulto): texto libre. Bloques del protocolo v1 (estado, texto, tabla, grafico, error, fin) tal como los vio el modelo: los nombres de alumnos y profesores van seudonimizados (D001) y se restauran solo al mostrar.",
+        comment="PII (menor y adulto): texto libre. Bloques del protocolo v1 (estado, texto, tabla, grafico, error, fin) tal como los vio el modelo: los nombres de alumnos y profesores van seudonimizados y se restauran solo al mostrar.",
     )
     tool_calls: Mapped[Any] = mapped_column(
         JSONB,
@@ -107,7 +107,51 @@ class ChatMessage(Base):
     input_tokens: Mapped[int | None] = mapped_column(Integer)
     output_tokens: Mapped[int | None] = mapped_column(Integer)
     latency_ms: Mapped[int | None] = mapped_column(Integer)
+    trace_id: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=text("now()")
+    )
+
+
+class ChatMessageFeedback(Base):
+    __tablename__ = "message_feedback"
+    __table_args__ = (
+        PrimaryKeyConstraint("message_id", name="message_feedback_pkey"),
+        ForeignKeyConstraint(
+            ["message_id"],
+            ["chat.messages.id"],
+            name="message_feedback_message_fk",
+            ondelete="CASCADE",
+        ),
+        ForeignKeyConstraint(["user_id"], ["users.id"], name="message_feedback_user_id_fkey"),
+        CheckConstraint("(rating = ANY (ARRAY[-1, 1]))", name="message_feedback_rating_check"),
+        CheckConstraint(
+            "((reason IS NULL) OR (reason = ANY (ARRAY['dato_incorrecto'::text, 'falto_contexto'::text, 'grafico_innecesario'::text, 'sin_sugerencia'::text, 'otro'::text])))",
+            name="message_feedback_reason_check",
+        ),
+        CheckConstraint(
+            "((comment IS NULL) OR (char_length(comment) <= 500))",
+            name="message_feedback_comment_check",
+        ),
+        Index("message_feedback_rating_idx", "rating", "created_at"),
+        {
+            "schema": "chat",
+            "comment": "Feedback del director sobre una respuesta de Mawta (útil o mejorable, motivo y comentario opcional). Un voto editable por respuesta, privado por RLS.",
+        },
+    )
+
+    message_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    rating: Mapped[int] = mapped_column(SmallInteger)
+    reason: Mapped[str | None] = mapped_column(Text)
+    comment: Mapped[str | None] = mapped_column(
+        Text,
+        comment="PII (menor y adulto): texto libre. Comentario opcional del director sobre la respuesta.",
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=text("now()")
+    )
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=text("now()")
     )
 

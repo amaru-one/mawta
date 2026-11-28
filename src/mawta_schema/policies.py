@@ -6,6 +6,12 @@ POLICIES = [
     PGPolicy(
         schema="chat",
         signature="owner_only",
+        on_entity="chat.message_feedback",
+        definition="AS PERMISSIVE FOR ALL TO public USING ((user_id = app.current_actor_id())) WITH CHECK ((user_id = app.current_actor_id()))",
+    ),
+    PGPolicy(
+        schema="chat",
+        signature="owner_only",
         on_entity="chat.messages",
         definition="AS PERMISSIVE FOR ALL TO public USING ((user_id = app.current_actor_id())) WITH CHECK ((user_id = app.current_actor_id()))",
     ),

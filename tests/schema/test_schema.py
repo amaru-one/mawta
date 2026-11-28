@@ -54,6 +54,47 @@ def test_a_director_only_sees_their_own_chats(db: Connection) -> None:
         db.execute(text("insert into chat.threads (user_id) values (:u)"), {"u": beto})
 
 
+def test_a_director_only_sees_their_own_feedback(db: Connection) -> None:
+    ana, beto = add_user(db, "ana"), add_user(db, "beto")
+    ana_t = db.execute(
+        text("insert into chat.threads (user_id) values (:u) returning id"), {"u": ana}
+    ).scalar_one()
+    beto_t = db.execute(
+        text("insert into chat.threads (user_id) values (:u) returning id"), {"u": beto}
+    ).scalar_one()
+    ana_m = db.execute(
+        text(
+            "insert into chat.messages (thread_id, user_id, author) values (:t, :u, 'mawta') returning id"
+        ),
+        {"t": ana_t, "u": ana},
+    ).scalar_one()
+    beto_m = db.execute(
+        text(
+            "insert into chat.messages (thread_id, user_id, author) values (:t, :u, 'mawta') returning id"
+        ),
+        {"t": beto_t, "u": beto},
+    ).scalar_one()
+    db.execute(
+        text("insert into chat.message_feedback (message_id, user_id, rating) values (:m, :u, 1)"),
+        {"m": ana_m, "u": ana},
+    )
+    db.execute(
+        text("insert into chat.message_feedback (message_id, user_id, rating) values (:m, :u, -1)"),
+        {"m": beto_m, "u": beto},
+    )
+
+    as_director(db, ana)
+    owners = db.execute(text("select user_id from chat.message_feedback")).scalars().all()
+    assert owners == [ana]
+    with pytest.raises(DBAPIError, match="row-level security"):
+        db.execute(
+            text(
+                "insert into chat.message_feedback (message_id, user_id, rating) values (:m, :u, 1)"
+            ),
+            {"m": beto_m, "u": beto},
+        )
+
+
 def test_the_chat_role_reads_views_not_tables(db: Connection) -> None:
     as_director(db, uuid.uuid4())
     db.execute(text("select count(*) from chat_api.students"))

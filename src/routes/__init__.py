@@ -187,6 +187,8 @@ def _chat_routes() -> list[tuple[str, str, Handler]]:
         ("DELETE", "/threads/{threadID}", chat_routes.handle_delete_thread),
         ("GET", "/threads/{threadID}/messages", chat_routes.handle_list_messages),
         ("POST", "/threads/{threadID}/messages", chat_routes.handle_ask),
+        ("PUT", "/messages/{messageID}/feedback", chat_routes.handle_put_feedback),
+        ("DELETE", "/messages/{messageID}/feedback", chat_routes.handle_delete_feedback),
     ]
 
 

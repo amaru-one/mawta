@@ -8,17 +8,26 @@ row-level security (owner_only, on app.actor_id) refuses any other row even if a
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import Date, case, cast, func, insert, select, update
+from sqlalchemy import Date, case, cast, delete, func, insert, select, update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from db import fetch_one, scalar
 from mawta_schema import api_views as v
-from mawta_schema.tables import ChatMessage, ChatQuestionBank, ChatThread
+from mawta_schema.tables import ChatMessage, ChatMessageFeedback, ChatQuestionBank, ChatThread
 
 DEFAULT_TITLE = "Nuevo chat"
 TITLE_MAX = 60
+FEEDBACK_REASONS = (
+    "dato_incorrecto",
+    "falto_contexto",
+    "grafico_innecesario",
+    "sin_sugerencia",
+    "otro",
+)
+FEEDBACK_COMMENT_MAX = 500
 
-T, M = ChatThread, ChatMessage
+T, M, F = ChatThread, ChatMessage, ChatMessageFeedback
 _THREAD = (T.id, T.title, T.created_at, T.updated_at)
 
 
@@ -68,11 +77,93 @@ async def list_messages(
     conn: AsyncConnection, user_id: UUID, thread_id: UUID
 ) -> list[dict[str, Any]]:
     rows = await conn.execute(
-        select(M.id, M.author, M.protocol_version, M.blocks, M.created_at)
+        select(
+            M.id,
+            M.author,
+            M.protocol_version,
+            M.blocks,
+            M.created_at,
+            F.rating.label("fb_rating"),
+            F.reason.label("fb_reason"),
+            F.comment.label("fb_comment"),
+        )
+        .outerjoin(F, F.message_id == M.id)
         .where(M.thread_id == thread_id, M.user_id == user_id)
         .order_by(M.created_at, M.id)
     )
-    return [dict(r) for r in rows.mappings()]
+    out: list[dict[str, Any]] = []
+    for r in rows.mappings():
+        msg: dict[str, Any] = {
+            "id": r["id"],
+            "author": r["author"],
+            "protocol_version": r["protocol_version"],
+            "blocks": r["blocks"],
+            "created_at": r["created_at"],
+        }
+        if r["author"] == "mawta":
+            msg["feedback"] = (
+                {
+                    "rating": r["fb_rating"],
+                    "reason": r["fb_reason"],
+                    "comment": r["fb_comment"],
+                }
+                if r["fb_rating"] is not None
+                else None
+            )
+        out.append(msg)
+    return out
+
+
+async def get_mawta_message(
+    conn: AsyncConnection, user_id: UUID, message_id: UUID
+) -> dict[str, Any] | None:
+    """One non-deleted Mawta answer owned by the director, with its trace_id."""
+    row = await fetch_one(
+        conn,
+        select(M.id, M.thread_id, M.trace_id)
+        .join(T, T.id == M.thread_id)
+        .where(
+            M.id == message_id,
+            M.user_id == user_id,
+            M.author == "mawta",
+            T.user_id == user_id,
+            T.deleted_at.is_(None),
+        ),
+    )
+    return dict(row) if row else None
+
+
+async def upsert_feedback(
+    conn: AsyncConnection,
+    user_id: UUID,
+    message_id: UUID,
+    rating: int,
+    reason: str | None,
+    comment: str | None,
+) -> dict[str, Any]:
+    stmt = (
+        pg_insert(F)
+        .values(
+            message_id=message_id,
+            user_id=user_id,
+            rating=rating,
+            reason=reason,
+            comment=comment,
+        )
+        .on_conflict_do_update(
+            index_elements=[F.message_id],
+            set_={"rating": rating, "reason": reason, "comment": comment},
+        )
+        .returning(F.message_id, F.rating, F.reason, F.comment, F.updated_at)
+    )
+    row = await fetch_one(conn, stmt)
+    assert row is not None
+    return dict(row)
+
+
+async def delete_feedback(conn: AsyncConnection, user_id: UUID, message_id: UUID) -> bool:
+    result = await conn.execute(delete(F).where(F.message_id == message_id, F.user_id == user_id))
+    return result.rowcount == 1
 
 
 async def earlier_tool_calls(
@@ -141,6 +232,7 @@ async def add_mawta_message(
     input_tokens: int,
     output_tokens: int,
     latency_ms: int,
+    trace_id: str | None = None,
 ) -> UUID:
     message_id = await scalar(
         conn,
@@ -155,6 +247,7 @@ async def add_mawta_message(
             input_tokens=input_tokens,
             output_tokens=output_tokens,
             latency_ms=latency_ms,
+            trace_id=trace_id,
         )
         .returning(M.id),
     )
@@ -166,7 +259,7 @@ async def add_question(
     conn: AsyncConnection, message_id: UUID, question: str, status: str, tool_name: str | None
 ) -> None:
     """One row of the question bank per question: how it ended, and which tool answered or was
-    missing (D017). message_id is the director's message."""
+    missing. message_id is the director's message."""
     await conn.execute(
         insert(ChatQuestionBank).values(
             message_id=message_id, question=question, status=status, tool_name=tool_name

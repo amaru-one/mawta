@@ -391,6 +391,13 @@ TRIGGERS = [
     PGTrigger(
         schema="chat",
         signature="set_updated_at",
+        on_entity="chat.message_feedback",
+        is_constraint=False,
+        definition="BEFORE UPDATE ON chat.message_feedback FOR EACH ROW EXECUTE FUNCTION app.set_updated_at()",
+    ),
+    PGTrigger(
+        schema="chat",
+        signature="set_updated_at",
         on_entity="chat.threads",
         is_constraint=False,
         definition="BEFORE UPDATE ON chat.threads FOR EACH ROW EXECUTE FUNCTION app.set_updated_at()",

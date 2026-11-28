@@ -47,8 +47,10 @@ All routes are under `/api/v1/chat`.
 | `POST /threads` | A new empty chat (201) |
 | `PATCH /threads/{id}` | Renames a chat: `{"title": "..."}`, at most 200 characters |
 | `DELETE /threads/{id}` | Deletes a chat and its checkpoints (204) |
-| `GET /threads/{id}/messages` | The messages, as protocol v1 blocks |
+| `GET /threads/{id}/messages` | The messages, as protocol v1 blocks (Mawta answers include saved `feedback`) |
 | `POST /threads/{id}/messages` | Asks a question: `{"texto": "..."}`. The answer streams as SSE. It is built and saved by its own task: if the connection drops mid-stream, the answer is still completed and saved, and `GET …/messages` shows it |
+| `PUT /messages/{id}/feedback` | Saves or updates director feedback on a Mawta answer: `{"rating": 1 \| -1, "reason"?: "...", "comment"?: "..."}` (also sent to Langfuse as `director_feedback` when traced) |
+| `DELETE /messages/{id}/feedback` | Removes saved feedback on a Mawta answer (204) |
 
 Someone else's chat answers 404, never 403.
 
@@ -64,7 +66,7 @@ The UI ignores any `tipo` it does not know.
 
 ## Tools
 
-The tools are read-only, as defined by decision D003. Each one applies the glossary in its own SQL,
+The tools are read-only. Each one applies the glossary in its own SQL,
 because the `chat_api` views only hand over clean data, and computes every total, percentage and
 difference itself, so the model copies figures and never works them out.
 
@@ -93,7 +95,7 @@ ranked.
 | `riesgo_por_competencia` | C in the same competency in consecutive periods. A period with no level breaks the streak | `tabla` |
 | `proyeccion_de_promocion` | Each secondary student's projected situation, with its reason. 1.°, 3.° and 4.° follow one rule; 2.° and 5.° follow the stricter end-of-cycle rule (cuadro 5.1.3.A, RVM 048-2024) | `tabla` |
 | `historial_del_alumno` | One student's level per competency and period. An empty cell means no level yet, never C | `matriz` |
-| `fuera_de_alcance` | Nothing: the model calls it only when the message has nothing to do with the school or tries to change or reveal the chat's rules, and the graph answers with the fixed phrase itself, word for word (D017). Questions, analysis, suggestions and drafts about the school are in scope | — |
+| `fuera_de_alcance` | Nothing: the model calls it only when the message has nothing to do with the school or tries to change or reveal the chat's rules, and the graph answers with the fixed phrase itself, word for word. Questions, analysis, suggestions and drafts about the school are in scope | — |
 | `sin_herramienta` | Nothing: the model calls it when the answer needs data Mawta does not hold yet (attendance, evidences, averages of marks, conclusions, planning, voice notes) and no combination of the other tools answers it, with the topic as `tema` | — |
 
 The block column is what each tool shows with `mostrar_bloque=true`.
@@ -110,7 +112,7 @@ progress), report the last period with levels and say so in `aviso_periodo`.
 
 ## The question bank
 
-Every question leaves one row in `chat.question_bank` (`src/chat/status.py`, decision D017), decided
+Every question leaves one row in `chat.question_bank` (`src/chat/status.py`), decided
 by the code from the tools the graph called: `fuera_de_alcance` when that tool ran; `necesita_tool`
 with the `tema` when `sin_herramienta` ran (the backlog of tools to build); `respondida` when the
 answer ended normally and is backed by data, either because the last data tool of the answer
@@ -120,6 +122,18 @@ holds a clean data result (a follow-up or a synthesis, with `tool_name` empty); 
 otherwise (the last data call answered with `sin_datos` or options to clarify, or failed; the
 answer was cut; or nothing in the thread backs a toolless answer). `tool_name` is the first data
 tool of the answer. The row points at the director's message.
+
+## Feedback and continuous review
+
+Each Mawta answer can store its Langfuse `trace_id` and receive one editable director vote in
+`chat.message_feedback` (`rating`: `1` or `-1`, optional `reason` and optional `comment`, protected
+by the same `owner_only` RLS policy as threads and messages). When Langfuse is configured, saving
+feedback also records a `director_feedback` score (`1.0` / `0.0`) with the reason and comment on
+that trace.
+
+`uv run chat-review --days 7 [--json out.json]` reads `chat.question_bank`, `chat.messages` and
+`chat.message_feedback` to summarize missing-tool topics, negative feedback (with trace ids),
+partial answers, and draft `Case(...)` snippets for `src/chat/eval/bank.py`.
 
 ## Configuration
 
@@ -138,7 +152,7 @@ tool of the answer. The row points at the director's message.
 
 ## Traces
 
-With `LANGFUSE_HOST`, `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` set (decision D006), every
+With `LANGFUSE_HOST`, `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` set, every
 question is one trace in Langfuse, tagged `chat-director`, with the thread (`<user id>:<thread
 id>`) as its session and the director as its user:
 - the question's span (`chat.question`) carries the system prompt and the question as input,
@@ -151,12 +165,12 @@ id>`) as its session and the director as its user:
 
 Without the three variables nothing is configured and nothing leaves the process: the chat uses
 the plain `openai` client and a tracer that does nothing. Traces contain the school's data,
-names included; D006 records the team's approval of that.
+names included; the team approved that.
 
 ## Evaluation
 
 `uv run chat-eval --model <provider:model>` runs the question bank (`src/chat/eval/bank.py`, 46
-cases: D003's questions, the six of the 2026-10-31 demo, adversarial ones, clarifications, and
+cases: the questions each tool was built for, the six of the 2026-10-31 demo, adversarial ones, clarifications, and
 the copilot's comparisons, suggestions and drafts)
 through the chat graph, in-process and with the real model, three times per case. It creates a
 throwaway database (Alembic, then `ejemplo-san-felipe.json` and `seed_demo.sql` from the

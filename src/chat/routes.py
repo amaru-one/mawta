@@ -49,6 +49,42 @@ def _not_found() -> AppError:
     return AppError(404, "thread_not_found", "no encontramos ese chat")
 
 
+def _message_not_found() -> AppError:
+    return AppError(404, "message_not_found", "no encontramos esa respuesta")
+
+
+def _feedback_payload(body: dict[str, Any]) -> tuple[int, str | None, str | None]:
+    rating = body.get("rating")
+    if isinstance(rating, bool) or rating not in (-1, 1):
+        raise AppError(422, "validation_error", "rating debe ser 1 o -1")
+    raw_reason = body.get("reason")
+    reason: str | None = None
+    if raw_reason is not None and raw_reason != "":
+        if not isinstance(raw_reason, str) or raw_reason not in repo.FEEDBACK_REASONS:
+            raise AppError(422, "validation_error", "reason no es válido")
+        reason = raw_reason
+    raw_comment = body.get("comment")
+    comment: str | None = None
+    if raw_comment is not None:
+        if not isinstance(raw_comment, str):
+            raise AppError(422, "validation_error", "comment debe ser texto")
+        cleaned = raw_comment.strip()
+        if len(cleaned) > repo.FEEDBACK_COMMENT_MAX:
+            raise AppError(
+                422,
+                "validation_error",
+                f"comment debe tener como máximo {repo.FEEDBACK_COMMENT_MAX} caracteres",
+            )
+        comment = cleaned or None
+    return rating, reason, comment
+
+
+def _score_comment(reason: str | None, comment: str | None) -> str | None:
+    if reason and comment:
+        return f"[{reason}] {comment}"
+    return f"[{reason}]" if reason else comment
+
+
 def _text(body: dict[str, Any], name: str, max_len: int) -> str:
     """A required text field between 1 and max_len characters."""
     value = body.get(name)
@@ -106,6 +142,36 @@ async def handle_list_messages(request: Request) -> Response:
         if await repo.get_thread(conn, user, thread_id) is None:
             raise _not_found()
         return write_json(await repo.list_messages(conn, user, thread_id))
+
+
+async def handle_put_feedback(request: Request) -> Response:
+    db, ctx, user = _director(request)
+    message_id = path_uuid(request, "messageID")
+    rating, reason, comment = _feedback_payload(await read_json(request))
+    async with db.chat_tx(ctx) as conn:
+        message = await repo.get_mawta_message(conn, user, message_id)
+        if message is None:
+            raise _message_not_found()
+        saved = await repo.upsert_feedback(conn, user, message_id, rating, reason, comment)
+    trace_id = message.get("trace_id")
+    if isinstance(trace_id, str) and trace_id:
+        chat_of(request).tracer.score(
+            trace_id,
+            name="director_feedback",
+            value=1.0 if rating == 1 else 0.0,
+            comment=_score_comment(reason, comment),
+        )
+    return write_json(saved)
+
+
+async def handle_delete_feedback(request: Request) -> Response:
+    db, ctx, user = _director(request)
+    message_id = path_uuid(request, "messageID")
+    async with db.chat_tx(ctx) as conn:
+        if await repo.get_mawta_message(conn, user, message_id) is None:
+            raise _message_not_found()
+        await repo.delete_feedback(conn, user, message_id)
+    return no_content()
 
 
 async def handle_ask(request: Request) -> Response:
@@ -175,7 +241,7 @@ async def _answer(
 ) -> None:
     """Build one answer, save it with the question's row in the bank, and report each step to
     `events`. Releases the answering slot when it ends, however it ends. The whole answer is one
-    trace (D006); the graph's model calls and tools nest under it."""
+    trace; the graph's model calls and tools nest under it."""
     assert ctx.actor_id is not None
     try:
         started = time.monotonic()
@@ -194,9 +260,11 @@ async def _answer(
         await events.put(to_sse(event("estado", texto="Pensando…")))
         key = thread_key(ctx.actor_id, thread_id)
         system = build_system_prompt(school)
+        trace_id: str | None = None
         with chat.tracer.question(
             thread_key=key, user_id=str(ctx.actor_id), question=question, system=system
         ) as trace:
+            trace_id = trace.trace_id
             config = {
                 "configurable": {
                     "thread_id": key,
@@ -283,6 +351,7 @@ async def _answer(
                 input_tokens,
                 output_tokens,
                 latency_ms,
+                trace_id=trace_id,
             )
             status, tool_name = question_status(
                 tool_calls, failed=stop_reason != "ok", earlier=earlier

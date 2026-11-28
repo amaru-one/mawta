@@ -28,6 +28,7 @@ mawta = "main:run"
 useradd = "cli.useradd:main"
 onboard = "cli.onboard:main"
 chat-eval = "cli.chat_eval:main"
+chat-review = "cli.chat_review:main"
 
 [build-system]
 requires = ["hatchling>=1.27.0"]

@@ -1,4 +1,4 @@
-"""Traces of the director chat (decision D006): one trace per question, with the system prompt,
+"""Traces of the director chat: one trace per question, with the system prompt,
 every model call, every tool with its input and output, the final answer, latency and tokens.
 
 The chat talks to a small Tracer interface, so the rest of the code never imports Langfuse:
@@ -11,11 +11,14 @@ The chat talks to a small Tracer interface, so the rest of the code never import
 Tests use a recording tracer of their own against this same interface.
 """
 
+import logging
 from collections.abc import Iterator
 from contextlib import AbstractContextManager, contextmanager, nullcontext
 from typing import Any, Protocol
 
 from chat.llm import ModelTurn
+
+log = logging.getLogger("mawta.chat")
 
 
 class QuestionTrace(Protocol):
@@ -43,6 +46,15 @@ class Tracer(Protocol):
     def question(
         self, *, thread_key: str, user_id: str, question: str, system: str
     ) -> AbstractContextManager[QuestionTrace]: ...
+
+    def score(
+        self,
+        trace_id: str,
+        *,
+        name: str,
+        value: float,
+        comment: str | None = None,
+    ) -> None: ...
 
 
 # --- nothing -------------------------------------------------------------------------------
@@ -75,6 +87,16 @@ class NoTracer:
         self, *, thread_key: str, user_id: str, question: str, system: str
     ) -> AbstractContextManager[QuestionTrace]:
         return nullcontext(_NoQuestion())
+
+    def score(
+        self,
+        trace_id: str,
+        *,
+        name: str,
+        value: float,
+        comment: str | None = None,
+    ) -> None:
+        return None
 
 
 # --- Langfuse ------------------------------------------------------------------------------
@@ -160,6 +182,25 @@ class LangfuseTracer:
             ) as span,
         ):
             yield _LangfuseQuestion(self.client, span)
+
+    def score(
+        self,
+        trace_id: str,
+        *,
+        name: str,
+        value: float,
+        comment: str | None = None,
+    ) -> None:
+        try:
+            self.client.create_score(
+                trace_id=trace_id,
+                name=name,
+                value=value,
+                data_type="BOOLEAN",
+                comment=comment,
+            )
+        except Exception:
+            log.warning("sending score %s to Langfuse failed", name, exc_info=True)
 
     def flush(self) -> None:
         self.client.flush()
